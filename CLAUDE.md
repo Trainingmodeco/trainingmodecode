@@ -61,9 +61,10 @@ three takes of each at once, cut each with
 `node scripts/voice-takes/plain.mjs <take.wav> <out.mp3>` (the bank's own cut:
 it reaches back to the true start of the word, drops a click on the file edge,
 caps a pause inside at 0.10 s, sets -16 LUFS through the bank's limiter) and
-choose by the numbers it prints: `groups` 1 after clicks, `startMs` and
-`endGapMs` clear of 0, `longestPause` under 0.2, a length in line with the
-voice's rate and with the other voice. A clip cut 20 ms before the first loud
+choose by the numbers it prints: `groups` 1 after clicks, `headRoomMs` of 10
+or more and `tailRoomMs` of 20 or more (the voice does not run into the edge
+of the file), `longestPause` under 0.2, a length in line with the voice's
+rate and with the other voice. A clip cut 20 ms before the first loud
 frame, or gained without the limiter, sounds clipped at the start and quiet
 next to the rest of the bank: that was the first cut of those 66.
 

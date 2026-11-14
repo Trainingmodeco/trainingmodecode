@@ -3,12 +3,14 @@
 //
 // The cut: the phrase is the group of voiced runs with the most voice in it (runs closer than 0.30 s are one group;
 // a short burst on the first or last frames of the file is the generator's click and is dropped). Its start reaches
-// back, and its end forward, while the level stays above (loud level - 50 dB), then 15 ms before and 60 ms after;
+// back, and its end forward, while the level stays above (loud level - 50 dB), then 45 ms before (the bank's clips
+// carry about 50 ms of silence before the voice) and 60 ms after;
 // a pause inside over 0.12 s is capped at 0.10 s; 8 ms in, 70 ms out; gain to -16 LUFS; the bank's limiter and mp3.
 //
-// The numbers (one JSON line): ms; groups (1 = nothing but the phrase and clicks); startMs / endGapMs (0 = the cut
-// touches the edge of the file: the take may be cut off there, prefer another); capped and longestPause (a pause of
-// 0.2 s or more inside is a choppy take; 0.3 s or more makes a second group, a double take); lufs after encoding.
+// The numbers (one JSON line): ms; groups (1 = nothing but the phrase and clicks); headRoomMs / tailRoomMs (the silence
+// the file holds before the phrase starts and after it ends: under 10 and 20 ms the voice runs into the edge of the
+// file and the take may be cut off there, prefer another); capped and longestPause (a pause of 0.2 s or more inside is
+// a choppy take; 0.3 s or more makes a second group, a double take); lufs after encoding.
 // Record a name again rather than install a take that fails these. See CLAUDE.md, "Recording plain names".
 import { execFileSync as x, spawnSync } from 'node:child_process'; import fs from 'node:fs'; import { Buffer } from 'node:buffer'; import process from 'node:process';
 const [inp, out] = process.argv.slice(2); const SR = 24000, F = 240; const ms = (n) => Math.round(n * SR / 1000);
@@ -26,7 +28,7 @@ const groups = []; for (const r of runs) { const g = groups[groups.length - 1]; 
 const voice = (g) => g.runs.reduce((a, r) => a + r[1] - r[0] + 1, 0); const main = groups.reduce((a, g) => (voice(g) > voice(a) ? g : a), groups[0]); const keep = main.runs;
 let a = keep[0][0], b = keep[keep.length - 1][1];
 const fa = a, fb = b; while (a - 1 >= 0 && fa - (a - 1) <= 15 && fr[a - 1] > low) a--; while (b + 1 < fr.length && (b + 1) - fb <= 25 && fr[b + 1] > low) b++;
-const A = Math.max(0, a * F - ms(15)), B = Math.min(s.length, (b + 1) * F + ms(60));
+const A = Math.max(0, a * F - ms(45)), B = Math.min(s.length, (b + 1) * F + ms(60));
 const parts = []; let from = A, capped = 0, longest = 0;
 for (let k = 0; k < keep.length - 1; k++) { const gA = (keep[k][1] + 1) * F, gB = keep[k + 1][0] * F; const g = (gB - gA) / SR; longest = Math.max(longest, g); if (g > 0.12) { parts.push([from, gA + ms(50)]); from = gB - ms(50); capped++; } }
 parts.push([from, B]);
@@ -42,4 +44,4 @@ let I = lufs(tmp, RAWFMT); let after = NaN;
 for (let pass = 0; pass < 3; pass++) { const g = Math.pow(10, (-16 - (pass === 0 ? I : after)) / 20); if (!Number.isFinite(g)) break; for (let i = 0; i < y.length; i++) y[i] *= g; gainDb += 20 * Math.log10(g); write(); enc(); after = lufs(out, []); if (Math.abs(after + 16) <= 0.4) break; }
 fs.unlinkSync(tmp);
 const outMs = Math.round(Number(x('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', out]).toString()) * 1000);
-console.log(JSON.stringify({ in: inp.split('/').pop(), ms: outMs, groups: groups.length, runs: keep.length, reachedBackMs: (fa - a) * 10, reachedFwdMs: (b - fb) * 10, startMs: Math.round(A / SR * 1000), endGapMs: Math.round((s.length - B) / SR * 1000), capped, longestPause: +longest.toFixed(2), lufs: after, gainDb: +gainDb.toFixed(1) }));
+console.log(JSON.stringify({ in: inp.split('/').pop(), ms: outMs, groups: groups.length, runs: keep.length, reachedBackMs: (fa - a) * 10, reachedFwdMs: (b - fb) * 10, headRoomMs: a * 10, tailRoomMs: Math.max(0, Math.round((s.length - (b + 1) * F) / SR * 1000)), capped, longestPause: +longest.toFixed(2), lufs: after, gainDb: +gainDb.toFixed(1) }));
