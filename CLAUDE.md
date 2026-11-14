@@ -42,6 +42,15 @@ else from its plain clip, else from the fewest recorded pieces. Put names and
 numbers in their own sentence or after a colon when writing a new spoken line
 ("Up next: Goblet Squats."), so they reuse existing clips.
 
+Library exercise names: the Workout Builder and a generated Quick Mission say
+an exercise of `fit-mode/fitModeExerciseData*.js` by its name, and `test:spoken`
+sweeps every active name (`libraryNameLines` in `scripts/spoken-sweeps.mjs`).
+A new library exercise needs its name recorded as a plain clip in both voices
+(`test:spoken --json` prints the key). `LIBRARY_NAMES_NOT_RECORDED` in that
+file lists the 54 staples found with no clip on 2026-11-13: until they are
+recorded, a line that says one falls to the phone's speech engine. Record
+them, then take them off the list (the test fails if a listed name has its clip).
+
 ## Natural-sounding lines (owner's rule, 2026-11-13)
 
 A phrase recorded on its own comes out slow, with a full stop on it; stitched

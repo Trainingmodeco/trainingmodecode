@@ -273,6 +273,21 @@ for (const sw of sweeps) {
   for (const m of uniq.slice(0, 15)) console.log(`         ${m}`);
 }
 
+// ── Library names waiting for a recording: the list only shrinks ─────────
+// LIBRARY_NAMES_NOT_RECORDED keeps the sweep honest about names nobody has
+// recorded yet. A name on it that now plays from clips in both voices, or
+// that left the library, must come off it, or the sweep would go on skipping
+// a name it could be guarding. (Not checked on an assumed run: a record list
+// that covers these names is exactly what such a run is proving.)
+if (!assumeFile) {
+  const { LIBRARY_NAMES_NOT_RECORDED, libraryNameLines } = await import('./spoken-sweeps.mjs');
+  const { FIT_MODE_EXERCISES } = await import('../components/training-mode/fit-mode/fitModeExerciseData.js');
+  const active = new Set(FIT_MODE_EXERCISES.filter((e) => e.active).map((e) => e.name));
+  const stale = LIBRARY_NAMES_NOT_RECORDED.filter((n) => !active.has(n) || VOICES.every((v) => libraryNameLines(n).every((l) => planClips(banks[v], l))));
+  if (!stale.length) { pass++; console.log(`  ok   library names not recorded yet: ${LIBRARY_NAMES_NOT_RECORDED.length}, none of them has its clip`); }
+  else { fail++; console.log(`  FAIL ${stale.length} names are on LIBRARY_NAMES_NOT_RECORDED but play from clips or left the library; take them off the list: ${stale.join(', ')}`); }
+}
+
 if (needs.size || bigNumbers.size) {
   const list = [...needs.values()].sort((a, b) => b.count - a.count);
   const kinds = {};

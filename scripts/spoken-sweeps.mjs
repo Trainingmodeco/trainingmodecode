@@ -16,6 +16,44 @@ export const withoutName = (line, name = UNKNOWN_NAME) => line.split(/(?<=[.!?])
 
 const range = (lo, hi, step = 1) => { const out = []; for (let v = lo; v <= hi + 1e-9; v += step) out.push(Math.round(v * 100) / 100); return out; };
 
+// The lines that say a library exercise by its name: the Workout Builder's
+// guided player (reps, weighted window, hold, a chain round, done, straight
+// into, skip, back), the rep coach, and a generated Quick Mission's rest call.
+export const libraryNameLines = (n) => [
+  `${n}. Set 1 of 3. 10 reps. On my count.`,
+  `${n}. Set 1 of 3. 10 reps. 2 minutes to complete, with 60 seconds rest. Get into position.`,
+  `${n}. Set 1 of 3. 30 seconds. Get into position.`,
+  `${n}. Round 1 of 3. 10 reps. On my count.`,
+  `${n} complete.`,
+  `Straight into ${n}. No rest.`,
+  `Skipping to ${n}.`,
+  `Back to ${n}.`,
+  `Set 1, ${n}. Ready. Go.`,
+  `Rest. 30 seconds. Up next: ${n}. Get in position.`,
+  `Round 1 complete. Rest. 60 seconds. Up next: Round 2. ${n}. Get in position.`,
+];
+
+// Library names with NO clip in either voice, found on 2026-11-13: all of them
+// staples from fitModeExerciseDataCore. voice:coverage read only the names
+// typed as `name: '...'` in fitModeExerciseData and never saw these, so a
+// line that says one falls to the phone's speech engine (silent on some
+// phones). They are left out of the sweep below until they are recorded;
+// test:spoken fails if a name here has its clip, so the list only shrinks.
+// A new library exercise is NOT added here: record its name.
+export const LIBRARY_NAMES_NOT_RECORDED = [
+  'Decline Push-Ups', 'Dumbbell Bench Press', 'Incline Dumbbell Press', 'Dumbbell Flyes', 'Dumbbell Floor Press',
+  'Dumbbell Pullover', 'Chin-Ups', 'Reverse Snow Angels', 'Single-Arm Dumbbell Row', 'Barbell Rows',
+  'Dumbbell Deadlifts', 'Band Pull-Aparts', 'Band Lat Pulldown', 'Shoulder Taps', 'Handstand Hold',
+  'Plank to Down Dog', 'Dumbbell Shoulder Press', 'Front Raises', 'Rear Delt Flyes', 'Dumbbell Upright Rows',
+  'Dumbbell Curls', 'Hammer Curls', 'Concentration Curls', 'Incline Dumbbell Curls', 'Band Curls', 'Chin-Up Hold',
+  'Triceps Dips', 'Close-Grip Push-Ups', 'Dumbbell Skull Crushers', 'Close-Grip Dumbbell Press', 'Side Plank',
+  'Weighted Sit-Ups', 'Weighted Plank', 'Step-Ups', 'Dumbbell Front Squats', 'Barbell Back Squats',
+  'Dumbbell Lunges', 'Dumbbell Step-Ups', 'Nordic Curl Negatives', 'Hamstring Walkouts', 'Sliding Leg Curls',
+  'Stiff-Leg Deadlifts', 'Sumo Deadlifts', 'Donkey Kicks', 'Clamshells', 'Frog Pumps', 'Single-Leg Hip Thrusts',
+  'Dumbbell Sumo Squats', 'Weighted Step-Ups', 'Banded Glute Bridges', 'Band Lateral Walks', 'Dumbbell Calf Raises',
+  'Man Makers', 'Dumbbell Snatch',
+];
+
 export async function spokenSweeps() {
   if (typeof globalThis.localStorage === 'undefined') {
     const store = new Map();
@@ -251,6 +289,11 @@ export async function spokenSweeps() {
   for (const n of names) qm.push(`Rest. ${mm.secondsPhrase(30)}. Up next: ${n}. Get in position.`);
   for (let r = 1; r <= 20; r++) qm.push(`Round ${r} complete. Rest. ${mm.secondsPhrase(60)}. Up next: Round ${r + 1}. ${names[r]}. Get in position.`, `Round ${r} complete. Rest.`);
   sweep('Quick Mission', 'Quick Mission rest and round calls', qm);
+
+  // Every active library exercise, said by name the way the screens say it.
+  const { FIT_MODE_EXERCISES } = await import('../components/training-mode/fit-mode/fitModeExerciseData.js');
+  const libNames = [...new Set(FIT_MODE_EXERCISES.filter((e) => e.active).map((e) => e.name))].filter((n) => !LIBRARY_NAMES_NOT_RECORDED.includes(n));
+  sweep('Workout Builder', 'a library exercise said by name (guided player, rep coach, Quick Mission rest call)', libNames.flatMap(libraryNameLines));
 
   return out;
 }

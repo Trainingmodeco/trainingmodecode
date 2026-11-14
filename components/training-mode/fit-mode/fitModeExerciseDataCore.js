@@ -76,6 +76,8 @@ export const FIT_MODE_CORE_EXERCISES = [
     'Hang under the bar, body straight, pull until the chin clears it, lower all the way down.', 'Pulling strength for the clinch and for keeping a guard up.', { reps: '5-8', rest: 90 }),
   ex('Chin-Ups', 'Back', ['Biceps'], 'Bodyweight', 'Normal', 'Compound',
     'Palms facing you, pull the chest to the bar, lower slow.', 'Bicep and lat strength for pulling an opponent in.', { reps: '5-8', rest: 90 }),
+  ex('Close-Grip Pull-Ups', 'Back', ['Biceps', 'Shoulders'], 'Bodyweight', 'Hard', 'Compound',
+    'Hands close together on the bar, hang long, pull until the chin clears it, lower all the way down.', 'Arm-heavy pulling strength for hand fighting in the clinch.', { reps: '5-8', rest: 90 }),
   ex('Inverted Rows', 'Back', ['Biceps', 'Shoulders'], 'Bodyweight', 'Normal', 'Compound',
     'Hang under a bar or table edge, body straight, pull the chest to the bar and squeeze the shoulder blades.', 'Back strength that keeps the shoulders healthy under punching volume.'),
   ex('Superman Hold', 'Back', ['Glutes', 'Core'], 'Bodyweight', 'Easy', 'Isolation',
@@ -230,6 +232,8 @@ export const FIT_MODE_CORE_EXERCISES = [
     'Hinge, hike the bell back, snap the hips forward to chest height, let it fall and repeat.', 'Hip snap — the engine of every punch and every kick.', { reps: '12-20', rest: 45, style: 'Power' }),
   ex('Stiff-Leg Deadlifts', 'Hamstrings', ['Glutes', 'Back'], 'Weighted', 'Hard', 'Compound',
     'Legs nearly straight, hinge until the bar is at mid-shin, stand tall with the glutes.', 'Hamstring strength under load.', { reps: '6-10', rest: 90 }),
+  ex('Zercher Good Mornings', 'Hamstrings', ['Glutes', 'Back'], 'Weighted', 'Hard', 'Compound',
+    'Bar in the crooks of the elbows, soft knees, push the hips back with a flat back, stand tall.', 'Hinge strength with the load held out in front, the way an opponent hangs on you.', { reps: '8-10', rest: 90 }),
   ex('Sumo Deadlifts', 'Hamstrings', ['Glutes', 'Quads'], 'Weighted', 'Normal', 'Compound',
     'Wide stance, toes out, hands inside the knees, drive the floor apart and stand.', 'Hip strength for a wide, stable base.', { reps: '6-10', rest: 90 }),
 
@@ -280,4 +284,7 @@ export const FIT_MODE_CORE_EXERCISES = [
     'Push-up on the dumbbells, row each side, jump in, clean and press overhead.', 'The whole fight in one rep.', { reps: '5-8', rest: 90, style: 'Conditioning' }),
   ex('Dumbbell Snatch', 'Full Body', ['Hamstrings', 'Shoulders'], 'Weighted', 'Hard', 'Compound',
     'One dumbbell between the feet, hinge, and pull it overhead in one explosive move, alternate arms.', 'Hip snap into an overhead lockout.', { reps: '6-8', rest: 75, style: 'Power' }),
+  // The owner's barbell complex: one rep is the whole chain, so the dose is low.
+  ex('Snatch to Zercher Squat', 'Full Body', ['Quads', 'Shoulders', 'Back'], 'Weighted', 'Hard', 'Compound',
+    'Snatch the bar from the floor to overhead, lower it into the crooks of the elbows, squat deep and stand tall.', 'An explosive pull into a loaded squat: lift, carry and drive.', { reps: '3-5', rest: 120, style: 'Power' }),
 ];

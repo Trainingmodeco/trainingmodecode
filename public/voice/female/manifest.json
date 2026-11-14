@@ -1,6 +1,6 @@
 {
  "voice": "female",
- "version": 21,
+ "version": 22,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -20765,6 +20765,18 @@
   "recover, easy spin coming": {
    "file": "recover_easy_spin_coming__s.mp3",
    "ms": 2256
+  },
+  "close grip pull ups": {
+   "file": "close_grip_pull_ups.mp3",
+   "ms": 1440
+  },
+  "zercher good mornings": {
+   "file": "zercher_good_mornings.mp3",
+   "ms": 1416
+  },
+  "snatch to zercher squat": {
+   "file": "snatch_to_zercher_squat.mp3",
+   "ms": 1296
   }
  },
  "count": 1121,

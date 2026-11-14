@@ -98,6 +98,20 @@ const FAMILIES = [
     mistakes: ['Kipping wildly before the pull is strong enough.', 'Chicken-winging one arm over at a time.'],
     easier: 'Pull-Up Negatives', harder: null,
   },
+  // A barbell complex whose name ends in "squat": without its own entry the
+  // sheet would teach a squat and say nothing about the lift before it.
+  {
+    id: 'snatch-zercher',
+    test: /snatch to zercher/i,
+    cues: [
+      'Bar over the mid-foot, wide grip, flat back.',
+      'Drive with the legs and pull the bar overhead in one move, arms locked.',
+      'Lower it to the chest, then into the crooks of the elbows.',
+      'Squat deep with the chest tall, then drive up to standing.',
+    ],
+    mistakes: ['Pulling with the arms before the legs and hips have finished.', 'Letting the bar swing away from the body on the way down.'],
+    easier: 'Clean and Press', harder: null,
+  },
   {
     id: 'glute-kickback',
     test: /glute kickback/i,

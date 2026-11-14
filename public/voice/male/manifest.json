@@ -1,6 +1,6 @@
 {
  "voice": "male",
- "version": 21,
+ "version": 22,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -20849,6 +20849,18 @@
   "shadowbox, knees only": {
    "file": "shadowbox_knees_only__s.mp3",
    "ms": 2280
+  },
+  "close grip pull ups": {
+   "file": "close_grip_pull_ups.mp3",
+   "ms": 1464
+  },
+  "zercher good mornings": {
+   "file": "zercher_good_mornings.mp3",
+   "ms": 1488
+  },
+  "snatch to zercher squat": {
+   "file": "snatch_to_zercher_squat.mp3",
+   "ms": 1704
   }
  },
  "count": 1121,
