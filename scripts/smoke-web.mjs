@@ -2087,7 +2087,7 @@ await check('practice: SHADOWBOXING lists the clips by discipline, plays one and
   // File order interleaves two groups: the screen groups them, and NEXT follows the screen.
   const clips = [
     { id: 'jab-cross', discipline: 'Boxing', group: 'Combinations', title: 'Jab, cross', video: 'jab-cross.mp4', seconds: 24, level: 'Beginner', note: 'Chin down.' },
-    { id: 'pivot-flow', discipline: 'Boxing', group: 'Footwork', title: 'Pivot flow with a much longer title than the others so the card wraps its heading', video: 'pivot-flow.mp4', seconds: 60, level: 'Advanced', note: 'Stay light on the front foot and turn off the line. Keep your hands up while you move.' },
+    { id: 'pivot-flow', discipline: 'Boxing', group: 'Footwork', title: 'Pivot flow with a much longer title than the others so the card wraps', video: 'pivot-flow.mp4', seconds: 60, level: 'Advanced', note: 'Stay light on the front foot and turn off the line. Keep your hands up while you move.' },
     { id: 'slip-counter', discipline: 'Boxing', group: 'combinations', title: 'Slip and counter', video: 'slip-counter.mp4', seconds: 38 },
     { id: 'sprawl-flow', discipline: 'MMA', group: 'Defence', title: 'Sprawl flow', video: 'sprawl-flow.mp4', seconds: 15 },
     { id: 'bad one', discipline: 'Boxing', title: 'Not a clip', video: '../x.mp4' },
@@ -2104,7 +2104,7 @@ await check('practice: SHADOWBOXING lists the clips by discipline, plays one and
     if (!/SHADOWBOXING/.test(t) || !/3 CLIPS/.test(t) || !/COMBINATIONS\s*·\s*2/.test(t) || !/FOOTWORK\s*·\s*1/.test(t)) throw new Error('the list is not 3 Boxing clips in two groups (a group in another letter case is the same group): ' + t.slice(0, 220).replace(/\n/g, ' '));
     if ((await page.locator('.sb-tile').count()) !== 3) throw new Error('not 3 tiles (the bad entry must be dropped)');
     const tiles = await page.locator('.sb-tile').evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')));
-    if (tiles.join('|') !== 'Play Jab, cross|Play Slip and counter|Play Pivot flow with a much longer title than the others so the card wraps its heading') throw new Error('tiles are not group by group: ' + tiles.join('|'));
+    if (tiles.join('|') !== 'Play Jab, cross|Play Slip and counter|Play Pivot flow with a much longer title than the others so the card wraps') throw new Error('tiles are not group by group: ' + tiles.join('|'));
     // The discipline is Practice's own: switch here, go Back, and Practice is on it.
     await page.getByRole('tab', { name: /MMA/i }).click({ timeout: 4000 }); await S(500);
     if ((await page.locator('.sb-tile').count()) !== 1 || !/Sprawl flow/.test(await text())) throw new Error('MMA does not list its one clip');
