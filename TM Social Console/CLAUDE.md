@@ -336,6 +336,51 @@ edits the app chat's work directly. They share information through
 - **App code a delivery needs** (like the lesson card's player) goes in the
   same handoff with `--also <path>`, written to fit the app as it is on `app`.
 
+## Shadowboxing clips for the app (local, big batches)
+
+Fight Mode › Practice › SHADOWBOXING plays the owner's follow-along clips
+(10 s to a minute, one move each). The app's format is in HANDOFF.md (log
+entry 2026-11-14) and `components/training-mode/data/shadowboxing.js`.
+
+**Run this on the owner's Windows PC, never in the cloud.** The footage is
+4K HEVC, 100–600 MB a clip; FFmpeg and Whisper are installed here.
+
+1. **Drop** a shoot's clips in `raw-footage/<shoot name>/` (folders starting
+   with `_` are skipped). Saying the move's name at the start of each clip
+   lets Whisper label it.
+2. `npm run shadow -- scan` adds new clips to `shadow/manifest.json`. First
+   labels come from `shadow/seed-*.csv` if one names the file, else from
+   what was said on camera (a guess the owner confirms).
+3. `npm run shadow -- build` (run it in the background: ~30 s a clip, 3 at a
+   time; safe to stop and rerun). Per clip: motion analysis (auto trim of
+   walking to the camera, auto framing that zooms ≤1.35× around the area the
+   owner moves in, poster = the most extended moment), an editor preview with
+   sound, and for labelled clips the app's 1280×720 muted H.264 + 960×540 .webp
+   poster + `index.json` in `exports/shadow/app/`.
+4. `npm run shadow:edit` opens the clip editor (http://localhost:4610): title,
+   discipline tab(s), group, level, note, in/out, poster, framing; "Build this
+   clip" re-encodes just that one. A clip in two disciplines is one video with
+   two index entries.
+5. `npm run shadow -- deliver` copies the build into the app checkout
+   (`../trainingmodecode/public/static/practice/shadow/`) to preview the app
+   locally (`npm run dev:web` there).
+6. `npm run shadow -- handoff --push` **only after the owner says yes** (the
+   repo is public): branch `claude/console-handoff-<date>-shadowboxing` from
+   `origin/app` with only those files, the image lock and a HANDOFF.md log entry.
+
+`shadow/manifest.json` is the owner's work (labels, trims, framing): keep it.
+Everything in `exports/shadow/` can be deleted and rebuilt. Titles are
+technique names only (rule 2).
+
+### How the chats link up
+
+`../trainingmodecode/` is a git checkout of `Trainingmodeco/trainingmodecode`
+on `app`, the branch the cloud chats (Fight mode improvements, the console
+chat) merge into. Before working: `git -C ../trainingmodecode pull`, then read
+its `HANDOFF.md` (*Needs* and the newest *Log* entries). Send work back the
+same way: a `claude/console-handoff-*` branch plus a HANDOFF.md log line. The
+app's code belongs to the app chat; don't edit it from here.
+
 ## Cloud vs laptop
 
 The owner's laptop is Windows. Run the console there with Claude Code (Claude

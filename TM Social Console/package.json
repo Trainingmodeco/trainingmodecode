@@ -32,7 +32,9 @@
     "sync-broll": "node tools/app-broll.mjs --only sync",
     "align": "node tools/align-audio.mjs",
     "test:align": "node tools/test-align-audio.mjs",
-    "test:sync": "node tools/test-sync-phrases.mjs"
+    "test:sync": "node tools/test-sync-phrases.mjs",
+    "shadow": "node tools/shadow.mjs",
+    "shadow:edit": "node tools/shadow.mjs edit --open"
   },
   "dependencies": {
     "@remotion/bundler": "4.0.535",
@@ -50,5 +52,9 @@
   "devDependencies": {
     "@types/react": "19.1.10",
     "typescript": "5.9.2"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "esbuild@0.25.12": true
   }
 }
