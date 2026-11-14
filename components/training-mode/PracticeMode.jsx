@@ -9,7 +9,7 @@ import DisciplineTabs, { useDiscipline } from './shared/DisciplineTabs';
 import { FightBackdrop } from './shared/FightTimerKit';
 import PracticeRound from './PracticeRound';
 import PracticeShadowboxing from './PracticeShadowboxing';
-import { loadShadowClips, shadowClipsFor } from './data/shadowboxing';
+import { loadShadowClips, cachedShadowClips, shadowClipsFor } from './data/shadowboxing';
 import { addStartHereLesson, addPracticeSession, addPracticeWeeklyBonus } from './data/userStats';
 import { loadProfile, isBeginnerLearner } from './data/userProfile';
 import { primeSpeech, setVoiceGender, speakAsync, cancelSpeech, stopVoiceSession, delay } from './voiceCoach';
@@ -96,6 +96,9 @@ const css = `
 .pm-gold:hover, .pm-gold:focus-visible { filter: brightness(1.1); }
 .pm-hit:active, .pm-tile:active { transform: scale(0.98); }
 .pm-grid { scrollbar-width: thin; scrollbar-color: rgba(143,180,255,.35) transparent; }
+/* The SHADOWBOXING row costs the library grid a line; on a very short screen (an old small phone, a squat window) the
+   grid is already a sliver, so the row steps aside rather than push DRILL A COMBO under the BETA chip. */
+@media (max-height: 620px) { .pm-shadow-row { display: none !important; } }
 @keyframes pm-toast-in { from { opacity: 0; transform: translate(-50%, 10px) } to { opacity: 1; transform: translate(-50%, 0) } }
 @keyframes pm-cue-glow { 0%, 100% { box-shadow: 0 0 10px rgba(242,190,69,0.3) } 50% { box-shadow: 0 0 20px rgba(242,190,69,0.55) } }
 `;
@@ -296,7 +299,7 @@ export default function PracticeMode({ openLesson = false, onBack, onComboCoach 
   const [toast, setToast] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);
   // The shadowboxing clips (public/static/practice/shadow/index.json). None, and the screen looks as it always did.
-  const [shadowClips, setShadowClips] = useState([]);
+  const [shadowClips, setShadowClips] = useState(cachedShadowClips);
   const [shadowOpen, setShadowOpen] = useState(false);
   useEffect(() => {
     let live = true;
@@ -403,7 +406,12 @@ export default function PracticeMode({ openLesson = false, onBack, onComboCoach 
   const allDone = nextIndex < 0;
 
   if (shadowOpen && shadowClips.length) {
-    return <PracticeShadowboxing clips={shadowClips} onBack={() => setShadowOpen(false)} onComboCoach={onComboCoach}/>;
+    return (
+      <PracticeShadowboxing
+        clips={shadowClips} discipline={discipline} onBack={() => setShadowOpen(false)} onComboCoach={onComboCoach}
+        onDiscipline={(d) => { pickStored(d); setCategory('Strikes'); setShowAll(false); setDetail(null); }}
+      />
+    );
   }
   const shadowHere = shadowClipsFor(shadowClips, discipline).length;
 
@@ -494,7 +502,7 @@ export default function PracticeMode({ openLesson = false, onBack, onComboCoach 
         </div>
 
         {shadowClips.length > 0 && (
-          <button type="button" className="pm-hit pm-txt" data-testid="shadow-entry" data-guide="pm-shadow" onClick={() => setShadowOpen(true)} style={{
+          <button type="button" className="pm-hit pm-txt pm-shadow-row" data-testid="shadow-entry" data-guide="pm-shadow" onClick={() => setShadowOpen(true)} style={{
             display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0, height: 40, padding: '0 12px', borderRadius: 10, cursor: 'pointer',
             background: '#0B0F22', border: '1px solid rgba(168,85,247,.45)', color: '#fff', textAlign: 'left',
           }}>
@@ -503,8 +511,8 @@ export default function PracticeMode({ openLesson = false, onBack, onComboCoach 
               background: 'linear-gradient(180deg,#FFE9A8,#F2BE45 55%,#C98A1C)',
             }}><Play size={10} style={{ marginLeft: 1 }}/></span>
             <span style={{ font: "700 13px 'Chakra Petch',sans-serif", letterSpacing: '0.1em', flexGrow: 1, whiteSpace: 'nowrap' }}>SHADOWBOXING</span>
-            <span style={{ ...label, letterSpacing: '0.1em', color: '#8FB4FF', whiteSpace: 'nowrap' }}>
-              {shadowHere ? `${shadowHere} ${discipline.toUpperCase()} CLIPS` : `${shadowClips.length} CLIPS`} ›
+            <span style={{ ...label, letterSpacing: '0.1em', color: '#8FB4FF', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              {shadowHere ? `${shadowHere} ${shadowHere === 1 ? 'CLIP' : 'CLIPS'}` : 'OTHER STYLES'} ›
             </span>
           </button>
         )}

@@ -2,7 +2,7 @@
 // Run: npm run test:shadow
 import process from 'node:process';
 import fs from 'node:fs';
-import { parseShadowClip, parseShadowIndex, loadShadowClips, shadowClipsFor, shadowGroups, shadowClock, SHADOW_DIR, SHADOW_INDEX } from '../components/training-mode/data/shadowboxing.js';
+import { parseShadowClip, parseShadowIndex, loadShadowClips, cachedShadowClips, _resetShadowCache, shadowClipsFor, shadowGroups, shadowOrder, shadowClock, SHADOW_DIR, SHADOW_INDEX } from '../components/training-mode/data/shadowboxing.js';
 
 let pass = 0, fail = 0;
 const check = (name, ok, detail = '') => { if (ok) { pass++; console.log(`  ok   ${name}`); } else { fail++; console.log(`  FAIL ${name}${detail ? ': ' + detail : ''}`); } };
@@ -26,6 +26,18 @@ const good = { id: 'box-1', discipline: 'Boxing', group: 'Combinations', title: 
   check('long text is cut, not trusted', parseShadowClip({ ...good, title: 'x'.repeat(500) }).title.length === 80 && parseShadowClip({ ...good, note: 'n'.repeat(500) }).note.length === 140);
 }
 
+// ── what a real delivery might look like ───────────────────────────────────
+{
+  check('a numeric id is kept as text', parseShadowClip({ ...good, id: 7 })?.id === '7');
+  check('the discipline matches in any letter case and padding', parseShadowClip({ ...good, discipline: ' boxing ' })?.discipline === 'Boxing' && parseShadowClip({ ...good, discipline: 'MUAY THAI' })?.discipline === 'Muay Thai' && parseShadowClip({ ...good, discipline: 'mma' })?.discipline === 'MMA');
+  check('the level matches in any letter case', parseShadowClip({ ...good, level: 'advanced' }).level === 'Advanced');
+  const up = parseShadowClip({ ...good, video: 'IMG_0412.MP4' });
+  check('a camera-style .MP4 name is kept, its poster is .webp', up && up.videoUrl === `${SHADOW_DIR}IMG_0412.MP4` && up.posterUrl === `${SHADOW_DIR}IMG_0412.webp`);
+  check('invisible characters do not make a title', parseShadowClip({ ...good, title: '\u200B\u200B' }) === null && parseShadowClip({ ...good, title: '\u200Bjab\u200F' }).title === 'jab');
+  const emoji = parseShadowClip({ ...good, title: '🥊'.repeat(100) }).title;
+  check('text is cut by whole characters (no half an emoji)', Array.from(emoji).length === 80 && !emoji.includes('\uFFFD') && Array.from(emoji).every((c) => c === '🥊'));
+}
+
 // ── the file ───────────────────────────────────────────────────────────────
 {
   const list = parseShadowIndex({ clips: [good, { ...good, id: 'box-1', title: 'again' }, { ...good, id: 'x', discipline: 'Nope' }, { ...good, id: 'box-2', video: 'box-2.mp4' }, null, 5] });
@@ -41,6 +53,14 @@ const good = { id: 'box-1', discipline: 'Boxing', group: 'Combinations', title: 
   const gs = shadowGroups(grouped);
   check('groups come in the order they first appear, clips in file order', gs.map((g) => g.group).join('|') === 'Flow|Defence|Shadowboxing' && gs[0].clips.map((c) => c.id).join() === '1,3');
   check('no clips gives no groups', shadowGroups([]).length === 0);
+  const cased = shadowGroups(parseShadowIndex({ clips: [
+    { ...good, id: 'a', group: 'Flow', video: 'a.mp4' }, { ...good, id: 'b', group: 'flow', video: 'b.mp4' }, { ...good, id: 'c', group: ' FLOW ', video: 'c.mp4' }, { ...good, id: 'd', group: 'Other', video: 'd.mp4' },
+  ] }));
+  check('groups that differ only in letter case are one group, headed with the first spelling', cased.length === 2 && cased[0].group === 'Flow' && cased[0].clips.length === 3);
+  const inter = parseShadowIndex({ clips: [
+    { ...good, id: 'a1', group: 'A', video: 'a1.mp4' }, { ...good, id: 'b1', group: 'B', video: 'b1.mp4' }, { ...good, id: 'a2', group: 'A', video: 'a2.mp4' }, { ...good, id: 'b2', group: 'B', video: 'b2.mp4' },
+  ] });
+  check('shadowOrder is the order on screen, group by group (what PREVIOUS and NEXT walk)', shadowOrder(inter).map((c) => c.id).join() === 'a1,a2,b1,b2');
 }
 
 // ── reading it ─────────────────────────────────────────────────────────────
@@ -53,6 +73,17 @@ const good = { id: 'box-1', discipline: 'Boxing', group: 'Combinations', title: 
   check('the app shell sent back for a missing file (not JSON) is no clips', (await loadShadowClips(async () => ({ ok: true, json: async () => { throw new SyntaxError('Unexpected token <'); } }))).length === 0);
   check('being offline is no clips', (await loadShadowClips(async () => { throw new TypeError('Failed to fetch'); })).length === 0);
   check('no fetch at all is no clips', (await loadShadowClips(null)).length === 0);
+  const t0 = Date.now();
+  const hung = await loadShadowClips((u, o) => new Promise((_, rej) => o.signal.addEventListener('abort', () => rej(new Error('aborted')))), { timeoutMs: 40 });
+  check('a request that hangs ends as no clips after the timeout', hung.length === 0 && Date.now() - t0 < 1500);
+  _resetShadowCache();
+  check('nothing is remembered before a first read', cachedShadowClips().length === 0);
+  await loadShadowClips(ok);
+  check('a good read is remembered (the row is there on the next visit\'s first frame)', cachedShadowClips().length === 1);
+  await loadShadowClips(async () => { throw new TypeError('Failed to fetch'); });
+  check('going offline keeps what was read', cachedShadowClips().length === 1);
+  await loadShadowClips(async () => ({ ok: false, json: async () => ({}) }));
+  check('a missing file (the list was taken away) forgets it', cachedShadowClips().length === 0);
 }
 
 // ── the clock ──────────────────────────────────────────────────────────────
