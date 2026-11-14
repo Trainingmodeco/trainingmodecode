@@ -1865,33 +1865,32 @@ await check('build workout: a session back with every row done opens the summary
   if (!/WORKOUT COMPLETE/.test(t) || !t.includes(`${total}/${total}`) || !t.includes(`+${total * 15 + 30}`)) throw new Error(`not the WORKOUT COMPLETE summary with ${total}/${total}`);
   await bankedOnce(total * 15 + 30);
 }, /WORKOUT COMPLETE/);
-// A finish that throws (the stats write on a full storage) on the automatic
-// path used to take the app down to the crash screen, and left every finish
-// button dead. Now it lands on the list, and COMPLETE WORKOUT tries again.
-await check('build workout: a finish that fails stays on the list and can be retried', async () => {
+// A finish whose stats write fails (a full or refusing storage) used to throw on the automatic path and take the
+// app down to the crash screen, then (after that fix) strand the athlete on the list. A failed save no longer throws:
+// the session is kept in memory, the athlete lands on the summary with the XP earned, and a notice says this phone
+// is not keeping their progress.
+await check('build workout: a finish whose stats write fails still lands on the summary, with the notice', async () => {
   const { total } = await builderAt(1);
   await page.evaluate(() => {
-    window.__failStats = true;
     const set = Storage.prototype.setItem;
     Storage.prototype.setItem = function (k, v) {
-      if (k === 'tm_user_stats' && window.__failStats) throw new DOMException('quota', 'QuotaExceededError');
+      if (k === 'tm_user_stats') throw new DOMException('quota', 'QuotaExceededError');
       return set.call(this, k, v);
     };
   });
   await btn(/^START$/).click({ timeout: 4000 });
+  let landed = false;
   for (let i = 0; i < 60; i += 1) {
     await S(500);
     const t = await text();
     if (/Training Mode runtime error/.test(t)) throw new Error('the failed finish crashed the app');
-    if (/WORKOUT COMPLETE/.test(t)) throw new Error('reached the summary with the stats write failing');
-    if (/COMPLETE WORKOUT/.test(t)) break;
+    if (/WORKOUT COMPLETE/.test(t)) { landed = true; break; }
   }
-  if (!await btn(/COMPLETE WORKOUT/).isVisible()) throw new Error('not back on the list with COMPLETE WORKOUT');
-  await page.evaluate(() => { window.__failStats = false; });
-  await btn(/COMPLETE WORKOUT/).click({ timeout: 4000 }); await S(2500);
+  if (!landed) throw new Error('did not reach the WORKOUT COMPLETE summary with the stats write failing');
   const t = await text();
-  if (!/WORKOUT COMPLETE/.test(t) || !t.includes(`${total}/${total}`)) throw new Error('COMPLETE WORKOUT did not retry the finish');
-  await bankedOnce(total * 15 + 30);
+  if (!t.includes(`${total}/${total}`)) throw new Error(`the summary does not show ${total}/${total}`);
+  const n = await page.locator('[data-testid="storage-notice"][data-kind="cannot-save"]').count();
+  if (n !== 1) throw new Error('the screen has no "cannot save" notice (' + n + ')');
 }, /WORKOUT COMPLETE/);
 await check('programs', async () => { await fit(); await page.locator('[data-guide="fit-programs"]').click(); await S(1500); }, /PROGRAM/i);
 await check('cardio setup', async () => { await fit(); await page.locator('[data-guide="fit-cardio"]').click(); await S(1800); }, /START/);
