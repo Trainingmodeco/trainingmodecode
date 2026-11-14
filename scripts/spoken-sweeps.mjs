@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import process from 'node:process';
 
-export const NEW_SWEEP_MODULES = ['loadout-missions', 'named-workouts', 'concept-fit-days', 'concept-fight-days', 'arcade-campaigns', 'small-sources'];
+export const NEW_SWEEP_MODULES = ['loadout-missions', 'named-workouts', 'concept-fit-days', 'concept-fight-days', 'arcade-campaigns', 'small-sources', 'practice-and-extras'];
 
 const TM = new URL('../components/training-mode/', import.meta.url);
 
