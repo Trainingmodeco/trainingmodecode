@@ -47,15 +47,20 @@ exercise of `fit-mode/fitModeExerciseData*.js` by its name, and a generated
 Quick Mission says the moves of its own pools in
 `fit-mode/quickMissionGenerator.js` (it does not deal from the library).
 `test:spoken` sweeps every active library name and every pool name
-(`libraryNameLines`, `quickMissionNameLines` in `scripts/spoken-sweeps.mjs`).
-A new library exercise or pool move needs its name recorded as a plain clip in
-both voices (`test:spoken --json` prints the key). Two lists in that file name
-what was found with no clip and is still to record: `LIBRARY_NAMES_NOT_RECORDED`
-(54 staples, 2026-11-13) and `QUICK_MISSION_NAMES_NOT_RECORDED` (12 more pool
-names, 2026-11-14). Until they are recorded, a line that says one falls to the
-phone's speech engine. Record them, then take them off the list (the test fails
-if a listed name has its clip). `SPOKEN_ASSUME` on `test:spoken` puts a listed
-name back into its sweep when the record list can say it.
+(`libraryNameLines`, `quickMissionNameLines` in `scripts/spoken-sweeps.mjs`),
+so a new library exercise or pool move fails the test until its name is
+recorded as a plain clip in both voices (`test:spoken --json` prints the key).
+The 66 names found with no clip were recorded on 2026-11-14; the two lists
+in that file (`LIBRARY_NAMES_NOT_RECORDED`, `QUICK_MISSION_NAMES_NOT_RECORDED`)
+are empty and are not a place to park a new name.
+
+Recording a batch of names: the generator takes about four requests every
+twenty seconds, and about one take in three comes back unusable: cut at the
+edge of the file (the voice starts or ends on the first or last frame), or
+said in two parts with a silence of 0.3 s or more in the middle (the female
+voice most of all). Order two takes of a doubtful name at once and choose by
+numbers: one voiced group, clear of both file edges, a length in line with the
+voice's own rate and with the other voice.
 
 ## Natural-sounding lines (owner's rule, 2026-11-13)
 

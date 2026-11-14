@@ -35,26 +35,15 @@ export const libraryNameLines = (n) => [
   `Round 1 complete. Rest. 60 seconds. Up next: Round 2. ${n}. Get in position.`,
 ];
 
-// Library names with NO clip in either voice, found on 2026-11-13: all of them
-// staples from fitModeExerciseDataCore. voice:coverage read only the names
-// typed as `name: '...'` in fitModeExerciseData and never saw these, so a
-// line that says one falls to the phone's speech engine (silent on some
-// phones). They are left out of the sweep below until they are recorded;
-// test:spoken fails if a name here has its clip, so the list only shrinks.
-// A new library exercise is NOT added here: record its name.
-export const LIBRARY_NAMES_NOT_RECORDED = [
-  'Decline Push-Ups', 'Dumbbell Bench Press', 'Incline Dumbbell Press', 'Dumbbell Flyes', 'Dumbbell Floor Press',
-  'Dumbbell Pullover', 'Chin-Ups', 'Reverse Snow Angels', 'Single-Arm Dumbbell Row', 'Barbell Rows',
-  'Dumbbell Deadlifts', 'Band Pull-Aparts', 'Band Lat Pulldown', 'Shoulder Taps', 'Handstand Hold',
-  'Plank to Down Dog', 'Dumbbell Shoulder Press', 'Front Raises', 'Rear Delt Flyes', 'Dumbbell Upright Rows',
-  'Dumbbell Curls', 'Hammer Curls', 'Concentration Curls', 'Incline Dumbbell Curls', 'Band Curls', 'Chin-Up Hold',
-  'Triceps Dips', 'Close-Grip Push-Ups', 'Dumbbell Skull Crushers', 'Close-Grip Dumbbell Press', 'Side Plank',
-  'Weighted Sit-Ups', 'Weighted Plank', 'Step-Ups', 'Dumbbell Front Squats', 'Barbell Back Squats',
-  'Dumbbell Lunges', 'Dumbbell Step-Ups', 'Nordic Curl Negatives', 'Hamstring Walkouts', 'Sliding Leg Curls',
-  'Stiff-Leg Deadlifts', 'Sumo Deadlifts', 'Donkey Kicks', 'Clamshells', 'Frog Pumps', 'Single-Leg Hip Thrusts',
-  'Dumbbell Sumo Squats', 'Weighted Step-Ups', 'Banded Glute Bridges', 'Band Lateral Walks', 'Dumbbell Calf Raises',
-  'Man Makers', 'Dumbbell Snatch',
-];
+// Names waiting for a recording. On 2026-11-13 and 14 the sweeps below found
+// 54 library staples and 12 more Quick Mission pool names with no clip in
+// either voice (voice:coverage read only the names typed as `name: '...'` in
+// fitModeExerciseData, and nothing swept the Quick Mission pools). All 66 were
+// recorded on 2026-11-14, so both lists are empty and should stay that way: a
+// new library exercise or pool move is NOT added here, its name is recorded.
+// A name on a list is left out of its sweep; test:spoken fails when a listed
+// name has its clip, so a list only shrinks.
+export const LIBRARY_NAMES_NOT_RECORDED = [];
 
 // The lines a generated Quick Mission says a dealt move in (QuickMissionActive:
 // the first move, each next move, and the rest calls with their three preps).
@@ -71,18 +60,7 @@ export const quickMissionNameLines = (n) => [
   `Round 1 complete. Rest. 60 seconds. Up next: Round 2. ${n}. Get in position.`,
 ];
 
-// Quick Mission pool names (fit-mode/quickMissionGenerator.js) with NO clip in
-// either voice, found on 2026-11-14, that are not already on the library list
-// above (seven more pool names are: Shoulder Taps, Step-Ups, Side Plank,
-// Hammer Curls, Sumo Deadlifts, Weighted Sit-Ups, Dumbbell Snatch). Nothing
-// swept the pools before, so a mission that deals one of these says its
-// "Up next" and "Ready. Begin." lines through the phone's speech engine.
-// Same rule as the library list: it only shrinks, and a new pool move is NOT
-// added here: record its name.
-export const QUICK_MISSION_NAMES_NOT_RECORDED = [
-  'Inchworms', 'Hollow Hold', 'Elbow Strikes', 'Slip and Rip', 'Dumbbell Press', 'Shoulder Press', 'Bicep Curls',
-  'Triceps Extensions', 'Floor Press', 'Chest Flys', 'Weighted Lunges', 'Shuttle Runs',
-];
+export const QUICK_MISSION_NAMES_NOT_RECORDED = [];
 
 // `keepPending(name)`: on a SPOKEN_ASSUME run, test:spoken passes the names
 // its record list can say, so a list that records the pending names is proven

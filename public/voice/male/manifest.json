@@ -1,6 +1,6 @@
 {
  "voice": "male",
- "version": 22,
+ "version": 23,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -20861,6 +20861,270 @@
   "snatch to zercher squat": {
    "file": "snatch_to_zercher_squat.mp3",
    "ms": 1704
+  },
+  "decline push ups": {
+   "file": "decline_push_ups.mp3",
+   "ms": 1128
+  },
+  "dumbbell bench press": {
+   "file": "dumbbell_bench_press.mp3",
+   "ms": 1320
+  },
+  "incline dumbbell press": {
+   "file": "incline_dumbbell_press.mp3",
+   "ms": 1680
+  },
+  "dumbbell flyes": {
+   "file": "dumbbell_flyes.mp3",
+   "ms": 1224
+  },
+  "dumbbell floor press": {
+   "file": "dumbbell_floor_press.mp3",
+   "ms": 1416
+  },
+  "dumbbell pullover": {
+   "file": "dumbbell_pullover.mp3",
+   "ms": 1128
+  },
+  "chin ups": {
+   "file": "chin_ups.mp3",
+   "ms": 720
+  },
+  "reverse snow angels": {
+   "file": "reverse_snow_angels.mp3",
+   "ms": 1512
+  },
+  "single arm dumbbell row": {
+   "file": "single_arm_dumbbell_row.mp3",
+   "ms": 1656
+  },
+  "barbell rows": {
+   "file": "barbell_rows.mp3",
+   "ms": 960
+  },
+  "dumbbell deadlifts": {
+   "file": "dumbbell_deadlifts.mp3",
+   "ms": 1344
+  },
+  "band pull aparts": {
+   "file": "band_pull_aparts.mp3",
+   "ms": 1248
+  },
+  "band lat pulldown": {
+   "file": "band_lat_pulldown.mp3",
+   "ms": 1728
+  },
+  "shoulder taps": {
+   "file": "shoulder_taps.mp3",
+   "ms": 1008
+  },
+  "handstand hold": {
+   "file": "handstand_hold.mp3",
+   "ms": 1224
+  },
+  "plank to down dog": {
+   "file": "plank_to_down_dog.mp3",
+   "ms": 1032
+  },
+  "dumbbell shoulder press": {
+   "file": "dumbbell_shoulder_press.mp3",
+   "ms": 1320
+  },
+  "front raises": {
+   "file": "front_raises.mp3",
+   "ms": 960
+  },
+  "rear delt flyes": {
+   "file": "rear_delt_flyes.mp3",
+   "ms": 1368
+  },
+  "dumbbell upright rows": {
+   "file": "dumbbell_upright_rows.mp3",
+   "ms": 1776
+  },
+  "dumbbell curls": {
+   "file": "dumbbell_curls.mp3",
+   "ms": 1128
+  },
+  "hammer curls": {
+   "file": "hammer_curls.mp3",
+   "ms": 840
+  },
+  "concentration curls": {
+   "file": "concentration_curls.mp3",
+   "ms": 1440
+  },
+  "incline dumbbell curls": {
+   "file": "incline_dumbbell_curls.mp3",
+   "ms": 2040
+  },
+  "band curls": {
+   "file": "band_curls.mp3",
+   "ms": 840
+  },
+  "chin up hold": {
+   "file": "chin_up_hold.mp3",
+   "ms": 912
+  },
+  "triceps dips": {
+   "file": "triceps_dips.mp3",
+   "ms": 1272
+  },
+  "close grip push ups": {
+   "file": "close_grip_push_ups.mp3",
+   "ms": 1224
+  },
+  "dumbbell skull crushers": {
+   "file": "dumbbell_skull_crushers.mp3",
+   "ms": 1608
+  },
+  "close grip dumbbell press": {
+   "file": "close_grip_dumbbell_press.mp3",
+   "ms": 1848
+  },
+  "side plank": {
+   "file": "side_plank.mp3",
+   "ms": 888
+  },
+  "weighted sit ups": {
+   "file": "weighted_sit_ups.mp3",
+   "ms": 1104
+  },
+  "weighted plank": {
+   "file": "weighted_plank.mp3",
+   "ms": 1008
+  },
+  "step ups": {
+   "file": "step_ups.mp3",
+   "ms": 888
+  },
+  "dumbbell front squats": {
+   "file": "dumbbell_front_squats.mp3",
+   "ms": 1368
+  },
+  "barbell back squats": {
+   "file": "barbell_back_squats.mp3",
+   "ms": 1344
+  },
+  "dumbbell lunges": {
+   "file": "dumbbell_lunges.mp3",
+   "ms": 1272
+  },
+  "dumbbell step ups": {
+   "file": "dumbbell_step_ups.mp3",
+   "ms": 1224
+  },
+  "nordic curl negatives": {
+   "file": "nordic_curl_negatives.mp3",
+   "ms": 2016
+  },
+  "hamstring walkouts": {
+   "file": "hamstring_walkouts.mp3",
+   "ms": 1368
+  },
+  "sliding leg curls": {
+   "file": "sliding_leg_curls.mp3",
+   "ms": 1560
+  },
+  "stiff leg deadlifts": {
+   "file": "stiff_leg_deadlifts.mp3",
+   "ms": 1680
+  },
+  "sumo deadlifts": {
+   "file": "sumo_deadlifts.mp3",
+   "ms": 1416
+  },
+  "donkey kicks": {
+   "file": "donkey_kicks.mp3",
+   "ms": 1152
+  },
+  "clamshells": {
+   "file": "clamshells.mp3",
+   "ms": 960
+  },
+  "frog pumps": {
+   "file": "frog_pumps.mp3",
+   "ms": 960
+  },
+  "single leg hip thrusts": {
+   "file": "single_leg_hip_thrusts.mp3",
+   "ms": 1752
+  },
+  "dumbbell sumo squats": {
+   "file": "dumbbell_sumo_squats.mp3",
+   "ms": 1704
+  },
+  "weighted step ups": {
+   "file": "weighted_step_ups.mp3",
+   "ms": 1560
+  },
+  "banded glute bridges": {
+   "file": "banded_glute_bridges.mp3",
+   "ms": 1440
+  },
+  "band lateral walks": {
+   "file": "band_lateral_walks.mp3",
+   "ms": 1608
+  },
+  "dumbbell calf raises": {
+   "file": "dumbbell_calf_raises.mp3",
+   "ms": 1656
+  },
+  "man makers": {
+   "file": "man_makers.mp3",
+   "ms": 1152
+  },
+  "dumbbell snatch": {
+   "file": "dumbbell_snatch.mp3",
+   "ms": 1008
+  },
+  "inchworms": {
+   "file": "inchworms.mp3",
+   "ms": 960
+  },
+  "hollow hold": {
+   "file": "hollow_hold.mp3",
+   "ms": 1008
+  },
+  "elbow strikes": {
+   "file": "elbow_strikes.mp3",
+   "ms": 1032
+  },
+  "slip and rip": {
+   "file": "slip_and_rip.mp3",
+   "ms": 1080
+  },
+  "dumbbell press": {
+   "file": "dumbbell_press.mp3",
+   "ms": 1008
+  },
+  "shoulder press": {
+   "file": "shoulder_press.mp3",
+   "ms": 1080
+  },
+  "bicep curls": {
+   "file": "bicep_curls.mp3",
+   "ms": 1104
+  },
+  "triceps extensions": {
+   "file": "triceps_extensions.mp3",
+   "ms": 1632
+  },
+  "floor press": {
+   "file": "floor_press.mp3",
+   "ms": 1080
+  },
+  "chest flys": {
+   "file": "chest_flys.mp3",
+   "ms": 1032
+  },
+  "weighted lunges": {
+   "file": "weighted_lunges.mp3",
+   "ms": 1368
+  },
+  "shuttle runs": {
+   "file": "shuttle_runs.mp3",
+   "ms": 984
   }
  },
  "count": 1121,
