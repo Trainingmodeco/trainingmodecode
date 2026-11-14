@@ -18,7 +18,9 @@ const range = (lo, hi, step = 1) => { const out = []; for (let v = lo; v <= hi +
 
 // The lines that say a library exercise by its name: the Workout Builder's
 // guided player (reps, weighted window, hold, a chain round, done, straight
-// into, skip, back), the rep coach, and a generated Quick Mission's rest call.
+// into, skip, back) and the rep coach, plus the two rest calls, so a name is
+// proven in every place a screen puts one. (A generated Quick Mission does
+// NOT deal from the library: it has its own pools, swept further down.)
 export const libraryNameLines = (n) => [
   `${n}. Set 1 of 3. 10 reps. On my count.`,
   `${n}. Set 1 of 3. 10 reps. 2 minutes to complete, with 60 seconds rest. Get into position.`,
@@ -54,7 +56,40 @@ export const LIBRARY_NAMES_NOT_RECORDED = [
   'Man Makers', 'Dumbbell Snatch',
 ];
 
-export async function spokenSweeps() {
+// The lines a generated Quick Mission says a dealt move in (QuickMissionActive:
+// the first move, each next move, and the rest calls with their three preps).
+export const quickMissionNameLines = (n) => [
+  `Round 1. ${n}. 12 reps. Ready. Begin.`,
+  `Round 1. ${n}. 12 reps. On my count. Ready. Begin.`,
+  `Round 1. ${n}. 30 seconds. Ready. Begin.`,
+  `${n}. 12 reps. Ready. Begin.`,
+  `${n}. 12 reps. On my count. Ready. Begin.`,
+  `${n}. 30 seconds. Ready. Begin.`,
+  `Rest. 30 seconds. Up next: ${n}. Get in position.`,
+  `Rest. 30 seconds. Up next: ${n}. Grab your weight and prepare.`,
+  `Rest. 30 seconds. Up next: ${n}. Prepare your setup.`,
+  `Round 1 complete. Rest. 60 seconds. Up next: Round 2. ${n}. Get in position.`,
+];
+
+// Quick Mission pool names (fit-mode/quickMissionGenerator.js) with NO clip in
+// either voice, found on 2026-11-14, that are not already on the library list
+// above (seven more pool names are: Shoulder Taps, Step-Ups, Side Plank,
+// Hammer Curls, Sumo Deadlifts, Weighted Sit-Ups, Dumbbell Snatch). Nothing
+// swept the pools before, so a mission that deals one of these says its
+// "Up next" and "Ready. Begin." lines through the phone's speech engine.
+// Same rule as the library list: it only shrinks, and a new pool move is NOT
+// added here: record its name.
+export const QUICK_MISSION_NAMES_NOT_RECORDED = [
+  'Inchworms', 'Hollow Hold', 'Elbow Strikes', 'Slip and Rip', 'Dumbbell Press', 'Shoulder Press', 'Bicep Curls',
+  'Triceps Extensions', 'Floor Press', 'Chest Flys', 'Weighted Lunges', 'Shuttle Runs',
+];
+
+// `keepPending(name)`: on a SPOKEN_ASSUME run, test:spoken passes the names
+// its record list can say, so a list that records the pending names is proven
+// against every line shape before a credit is spent.
+export async function spokenSweeps({ keepPending = () => false } = {}) {
+  const pending = new Set([...LIBRARY_NAMES_NOT_RECORDED, ...QUICK_MISSION_NAMES_NOT_RECORDED]);
+  const swept = (n) => !pending.has(n) || keepPending(n);
   if (typeof globalThis.localStorage === 'undefined') {
     const store = new Map();
     globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k), clear: () => store.clear(), key: () => null, length: 0 };
@@ -292,8 +327,12 @@ export async function spokenSweeps() {
 
   // Every active library exercise, said by name the way the screens say it.
   const { FIT_MODE_EXERCISES } = await import('../components/training-mode/fit-mode/fitModeExerciseData.js');
-  const libNames = [...new Set(FIT_MODE_EXERCISES.filter((e) => e.active).map((e) => e.name))].filter((n) => !LIBRARY_NAMES_NOT_RECORDED.includes(n));
-  sweep('Workout Builder', 'a library exercise said by name (guided player, rep coach, Quick Mission rest call)', libNames.flatMap(libraryNameLines));
+  const libNames = [...new Set(FIT_MODE_EXERCISES.filter((e) => e.active).map((e) => e.name))].filter(swept);
+  sweep('Workout Builder', 'a library exercise said by name (guided player, rep coach)', libNames.flatMap(libraryNameLines));
+
+  // Every move a generated Quick Mission can deal, said the way its player says it.
+  const { QUICK_MISSION_POOL_NAMES } = await import('../components/training-mode/fit-mode/quickMissionGenerator.js');
+  sweep('Quick Mission', 'a generated mission\'s move said by name (first move, next move, rest calls)', QUICK_MISSION_POOL_NAMES.filter(swept).flatMap(quickMissionNameLines));
 
   return out;
 }

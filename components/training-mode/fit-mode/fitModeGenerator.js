@@ -124,12 +124,24 @@ function tuneForDifficulty(exercise, difficulty) {
   };
 }
 
+// The sets, reps and rest a library move is dealt at. The focus and
+// difficulty tables are written for one movement a rep. A complex whose rep
+// is a chain of lifts (fixedDose) keeps its own reps and never rests less
+// than it asks: "15-20 reps, 35s rest" of a snatch into a squat is not a
+// dose anyone should be dealt. Sets still follow the table.
+export function builderDose(exercise, difficulty, focus, exerciseIndex = 0) {
+  const byTable = focus && FOCUS_PARAMS[focus]
+    ? tuneForFocus(exercise, difficulty, focus, exerciseIndex)
+    : tuneForDifficulty(exercise, difficulty);
+  return exercise.fixedDose && !exercise.durationSeconds && exercise.reps
+    ? { ...byTable, reps: exercise.reps, restSeconds: Math.max(byTable.restSeconds, exercise.restSeconds || 0) }
+    : byTable;
+}
+
 // Full-fidelity mapping from a raw data entry to a generated workout item.
 // Keeps all useful metadata plus the preview-media foundation fields.
 function toWorkoutExercise(exercise, muscleLabel, difficulty, { tier, fallbackUsed, focus, exerciseIndex } = {}) {
-  const tuned = focus && FOCUS_PARAMS[focus]
-    ? tuneForFocus(exercise, difficulty, focus, exerciseIndex || 0)
-    : tuneForDifficulty(exercise, difficulty);
+  const tuned = builderDose(exercise, difficulty, focus, exerciseIndex || 0);
   const item = {
     id: exercise.id,
     name: exercise.name,
@@ -160,6 +172,8 @@ function toWorkoutExercise(exercise, muscleLabel, difficulty, { tier, fallbackUs
     _tier: tier,
   };
   if (fallbackUsed) item.fallbackUsed = true;
+  // Carried on the row so a swap knows this dose is the move's own.
+  if (exercise.fixedDose) item.fixedDose = true;
   return item;
 }
 

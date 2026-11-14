@@ -434,11 +434,14 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
       // The slot keeps ITS sets and rest (the scheme the workout was built
       // with); a swapped-in move used to arrive with the library's own
       // 2×8-12 / 75 s next to everyone else's 4×8 / 120 s. Reps only follow
-      // the new move when one of the two is a timed hold.
+      // the new move when one of the two is a timed hold, or a complex with
+      // its own dose (fixedDose: a snatch into a squat is 3-5 reps whatever
+      // the slot ran before, and never rests less than it asks).
       sets: ex.sets,
-      reps: /\d\s*s$/i.test(String(alt.reps)) || /\d\s*s$/i.test(String(ex.reps)) ? alt.reps : ex.reps,
-      rest: ex.rest,
-      restSeconds: ex.restSeconds,
+      reps: /\d\s*s$/i.test(String(alt.reps)) || /\d\s*s$/i.test(String(ex.reps)) || alt.fixedDose || ex.fixedDose ? alt.reps : ex.reps,
+      rest: alt.fixedDose ? `${Math.max(ex.restSeconds || 0, alt.restSeconds || 0)}s` : ex.rest,
+      restSeconds: alt.fixedDose ? Math.max(ex.restSeconds || 0, alt.restSeconds || 0) : ex.restSeconds,
+      fixedDose: alt.fixedDose || undefined,
       // Keep the UPPERCASE convention the generator uses (display + colours).
       muscle: String(alt.primaryMuscle || '').toUpperCase(),
       primaryMuscle: alt.primaryMuscle,

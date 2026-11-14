@@ -106,10 +106,15 @@ const FAMILIES = [
     cues: [
       'Bar over the mid-foot, wide grip, flat back.',
       'Drive with the legs and pull the bar overhead in one move, arms locked.',
-      'Lower it to the chest, then into the crooks of the elbows.',
+      'Lower it to the chest under control, then set it in the crooks of the elbows.',
       'Squat deep with the chest tall, then drive up to standing.',
     ],
-    mistakes: ['Pulling with the arms before the legs and hips have finished.', 'Letting the bar swing away from the body on the way down.'],
+    mistakes: [
+      'Pulling with the arms before the legs and hips have finished.',
+      'Letting the bar loop out in front on the way up: keep it close to the body.',
+      'Dropping the bar from overhead instead of lowering it to the chest first.',
+    ],
+    // Floor to overhead in two simpler steps, with no squat under the bar.
     easier: 'Clean and Press', harder: null,
   },
   {
@@ -181,6 +186,19 @@ const FAMILIES = [
     ],
     mistakes: ['Hips sagging or piking up — the line breaks.', 'Only going halfway down.'],
     easier: 'Knee Push-Ups', harder: 'Archer Push-Ups',
+  },
+  // Before 'pull-up', whose first cue says "hands about shoulder-width".
+  {
+    id: 'close-grip-pull-up',
+    test: /close[- ]grip pull[- ]?up/i,
+    cues: [
+      'Hang with straight arms, hands close together on the bar.',
+      'Pull the elbows down in front of your ribs.',
+      'Chin clears the bar without shrugging into your ears.',
+      'Lower all the way down under control.',
+    ],
+    mistakes: ['Kicking the legs to swing up.', 'Stopping halfway down and losing the bottom of the rep.'],
+    easier: 'Assisted Pull-Ups', harder: 'Archer Pull-Ups',
   },
   {
     id: 'pull-up',

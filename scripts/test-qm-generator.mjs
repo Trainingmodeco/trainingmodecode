@@ -549,6 +549,24 @@ check('31c seededRng is deterministic and spread over [0, 1)', (() => { const a 
   const offered = TYPES.every(equipment => ['Easy', 'Normal', 'Hard'].every(difficulty => FIT_MODE_EXERCISES.some(ex => G.fitsBuilderSlot(ex, { equipment, difficulty }))));
   check('45 a Builder swap never offers cable or machine moves, other gear, or a move two levels away', swapBad.length === 0 && offered, swapBad.slice(0, 4).join(' | '));
 
+  // A complex with its own dose (fixedDose) keeps its reps in every focus and
+  // level and never rests less than it asks; every other move takes the table's.
+  {
+    const fixed = FIT_MODE_EXERCISES.filter(e => e.fixedDose);
+    const plain = FIT_MODE_EXERCISES.find(e => e.name === 'Clean and Press');
+    const doseBad = [];
+    for (const focus of ['Strength', 'Hypertrophy', 'Endurance', 'Hybrid', undefined]) for (const difficulty of ['Easy', 'Normal', 'Hard']) for (const i of [0, 1]) {
+      for (const e of fixed) {
+        const d = G.builderDose(e, difficulty, focus, i);
+        if (d.reps !== e.reps || d.restSeconds < e.restSeconds || !(d.sets >= 2)) doseBad.push(`${e.name} ${focus} ${difficulty}: ${d.sets} x ${d.reps}, rest ${d.restSeconds}`);
+      }
+      const p = G.builderDose(plain, difficulty, focus, i);
+      if (focus === 'Endurance' && p.reps !== '15-20') doseBad.push(`Clean and Press ${focus} ${difficulty}: ${p.reps}`);
+    }
+    const snatch = fixed.find(e => e.name === 'Snatch to Zercher Squat');
+    check('45b a complex with its own dose keeps it in every focus and level (Snatch to Zercher Squat: 3-5 reps, 120 s rest or more)', doseBad.length === 0 && !!snatch && snatch.reps === '3-5' && snatch.restSeconds === 120 && !plain.fixedDose, doseBad.slice(0, 4).join(' | '));
+  }
+
   // A program card prints programMinutes for the gear picked: every day, at
   // every gear and level the Programs screen launches, builds that. (FULL
   // BODY's card printed a fixed ~40 min; WEIGHTED builds about 34.)

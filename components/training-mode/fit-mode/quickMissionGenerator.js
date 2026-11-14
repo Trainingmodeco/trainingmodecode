@@ -107,6 +107,11 @@ const CARDIO_FINISHER_POOL = [
   'Sprawls', 'Battle Ropes', 'Shuttle Runs', 'Bear Crawls',
 ];
 
+// Every name a generated mission can say. The coach says a move by its name
+// (QuickMissionActive), so each needs a recording in both voices: test:spoken
+// sweeps this list (scripts/spoken-sweeps.mjs).
+export const QUICK_MISSION_POOL_NAMES = [...new Set([...HYBRID_POOL.map(m => m.name), ...CARDIO_FINISHER_POOL])];
+
 export const DIFFICULTY_CONFIG = {
   Easy:     { repsMin: 6,  repsMax: 10, workMin: 20, workMax: 30, rest: 40 },
   Normal:   { repsMin: 10, repsMax: 14, workMin: 30, workMax: 40, rest: 30 },

@@ -249,7 +249,9 @@ same('half-unit calls when turned on', rc.spokenMarkers([0.5, 1, 1.5, 2], true).
 }
 
 // ── Lines built at runtime: Cardio Mode and the other data-built lines ────
-const sweeps = await spokenSweeps();
+// On an assumed run, a pending name the record list can say goes back into
+// its sweep, so the list is proven against every line that says the name.
+const sweeps = await spokenSweeps({ keepPending: (n) => !!assumeFile && VOICES.every((v) => planClips(banks[v], `${n}.`)) });
 for (const sw of sweeps) mustPlan(`${sw.feature}: ${sw.name}`, sw.lines, sw.feature);
 
 // ── Cardio Mode sounds like one voice, not a tiled list ──────────────────
@@ -273,12 +275,21 @@ for (const sw of sweeps) {
   for (const m of uniq.slice(0, 15)) console.log(`         ${m}`);
 }
 
-// ── Library names waiting for a recording: the list only shrinks ─────────
-// LIBRARY_NAMES_NOT_RECORDED keeps the sweep honest about names nobody has
-// recorded yet. A name on it that now plays from clips in both voices, or
-// that left the library, must come off it, or the sweep would go on skipping
-// a name it could be guarding. (Not checked on an assumed run: a record list
-// that covers these names is exactly what such a run is proving.)
+// ── Names waiting for a recording: the lists only shrink ─────────────────
+// LIBRARY_NAMES_NOT_RECORDED and QUICK_MISSION_NAMES_NOT_RECORDED keep the
+// sweeps honest about names nobody has recorded yet. A name on one that now
+// plays from clips in both voices, or that left its library or pool, must
+// come off it, or the sweep would go on skipping a name it could be guarding.
+// (Not checked on an assumed run: a record list that covers these names is
+// exactly what such a run is proving.)
+if (!assumeFile) {
+  const { QUICK_MISSION_NAMES_NOT_RECORDED, quickMissionNameLines, LIBRARY_NAMES_NOT_RECORDED: onLibraryList } = await import('./spoken-sweeps.mjs');
+  const { QUICK_MISSION_POOL_NAMES } = await import('../components/training-mode/fit-mode/quickMissionGenerator.js');
+  const inPool = new Set(QUICK_MISSION_POOL_NAMES);
+  const staleQm = QUICK_MISSION_NAMES_NOT_RECORDED.filter((n) => !inPool.has(n) || onLibraryList.includes(n) || VOICES.every((v) => quickMissionNameLines(n).every((l) => planClips(banks[v], l))));
+  if (!staleQm.length) { pass++; console.log(`  ok   Quick Mission pool names not recorded yet: ${QUICK_MISSION_NAMES_NOT_RECORDED.length}, none of them has its clip`); }
+  else { fail++; console.log(`  FAIL ${staleQm.length} names are on QUICK_MISSION_NAMES_NOT_RECORDED but play from clips, left the pools, or are on the library list too; take them off the list: ${staleQm.join(', ')}`); }
+}
 if (!assumeFile) {
   const { LIBRARY_NAMES_NOT_RECORDED, libraryNameLines } = await import('./spoken-sweeps.mjs');
   const { FIT_MODE_EXERCISES } = await import('../components/training-mode/fit-mode/fitModeExerciseData.js');
