@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useCallback, lazy } from 'react';
+import { reportError } from './data/analytics';
 import SplashScreen from './SplashScreen';
 import XpVerdictPlate, { useVerdictFlash } from './shared/XpVerdictPlate';
 import Onboarding from './Onboarding';
@@ -679,7 +680,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
   if (screen === 'cc_complete' && ccMission && ccResult) {
     return (
       <WithNav activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
-        <CombatConditioningComplete mission={ccMission} result={ccResult} cardioResult={cardioResult} onNewMission={goCombatCondSetup} onFitHub={goFitHub} onHome={goHome}/>
+        <CombatConditioningComplete mission={ccMission} result={ccResult} cardioResult={cardioResult} onNewMission={goCombatCondSetup} onFightHub={goFightHub} onHome={goHome}/>
       </WithNav>
     );
   }
@@ -773,5 +774,12 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
       </WithNav>
     );
   }
+  // No branch matched (a restored session whose state was never saved, a screen name from an older
+  // version): go Home instead of leaving a blank screen with no way out.
+  return <BlankScreenHome screen={screen} onHome={goHome}/>;
+}
+
+function BlankScreenHome({ screen, onHome }) {
+  useEffect(() => { reportError(new Error(`blank screen: ${screen}`), 'router'); onHome(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return null;
 }

@@ -19,7 +19,9 @@ import { recordFightSession } from './data/fightStats';
 import { loadProfile, saveProfile } from './data/userProfile';
 import { generateCombatConditioningMission } from './data/combatConditioningGenerator';
 import { stopVoiceSession, setVoiceGender } from './voiceCoach';
-import { trackEvent, setErrorScreen, trackSessionStart } from './data/analytics';
+import { trackEvent, setErrorScreen, trackSessionStart, reportError } from './data/analytics';
+import { safeStorage, safeSetItem, runStorageCheck, markOnboarded } from './data/storageHealth';
+import StorageNotice from './shared/StorageNotice';
 import { refreshEntitlement } from './data/entitlements';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
@@ -112,7 +114,11 @@ function makeHybridBonusKey(mode) {
   return `tm_hybrid_bonus_${mode}_${sid}`;
 }
 
+// Called inside the end-of-session handlers, before the screen changes: it must never throw.
 function tryCompleteDailyMission(completedActionType) {
+  try { completeDailyMissionIfDue(completedActionType); } catch (e) { reportError(e, 'daily-mission'); }
+}
+function completeDailyMissionIfDue(completedActionType) {
   if (typeof localStorage === 'undefined') return;
   const today = new Date().toISOString().slice(0, 10);
   const isActive = localStorage.getItem('dailyMissionActive') === 'true';
@@ -408,11 +414,15 @@ export default function App() {
       // a router branch whose guard is false and fall through to the splash.
       campCtx,
       cardioContext,
+      // cc_complete / qm_complete need their result, and the cardio finisher that follows a circuit
+      // reaches them: without the result in the snapshot a reload during the finisher ended on a blank screen.
+      ccResult,
+      qmResult,
       internalState,
       reason: reason || 'nav',
       timestamp: Date.now(),
     };
-  }, [screen, disc, cfg, comboCfg, fitCfg, qmCfg, ccMission, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, cardioContext]);
+  }, [screen, disc, cfg, comboCfg, fitCfg, qmCfg, ccMission, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, cardioContext, ccResult, qmResult]);
 
   // The setup page's opening request is used once: leaving the page clears it.
   useEffect(() => { if (screen !== 'qm_setup') setQmEntry(null); }, [screen]);
@@ -444,6 +454,8 @@ export default function App() {
     setArcadeSettings(ps.arcadeSettings || null);
     if (ps.campCtx) setCampCtx(ps.campCtx);
     if (ps.cardioContext) setCardioContext(ps.cardioContext);
+    if (ps.ccResult) setCcResult(ps.ccResult);
+    if (ps.qmResult) setQmResult(ps.qmResult);
     setResumeData(ps.internalState || null);
     setScreen(ps.screen);
   }, []);
@@ -1306,7 +1318,10 @@ export default function App() {
     },
     goOnboarding:  () => setScreen('onboarding'),
     goAfterSplash: () => {
-      const done = typeof localStorage !== 'undefined' && localStorage.getItem(ONBOARDING_KEY) === 'true';
+      let done = false;
+      try { done = safeStorage()?.getItem(ONBOARDING_KEY) === 'true'; } catch { done = false; }
+      // Once per open: does this phone keep what the app saves? (data/storageHealth)
+      runStorageCheck({ onboardingDone: done });
       setScreen(done ? 'home' : 'onboarding');
       if (!done) return;
       // One full-screen interstitial per open, most personal first: a
@@ -1324,7 +1339,10 @@ export default function App() {
       if (shouldShowWeekly(loadProfile())) { markWeeklyShown(); setPracticeInvite('weekly'); }
     },
     completeOnboarding: ({ goal, experience, profile: onboardingProfile }) => {
-      if (typeof localStorage !== 'undefined') localStorage.setItem(ONBOARDING_KEY, 'true');
+      // A failed save (storage full or blocked) must not leave LET'S GO doing nothing: the athlete
+      // still gets in for this visit, and the banner says the phone is not keeping it.
+      safeSetItem(ONBOARDING_KEY, 'true');
+      markOnboarded();
       updateProfile(onboardingProfile || { goal, experience });
       trackEvent('onboarding_complete', { goal, experience });
       // Land on the REAL Home and run the one-time full walkthrough.
@@ -1343,7 +1361,8 @@ export default function App() {
       startFullIntro();
     },
     skipOnboardingToHome: ({ goal, experience, profile: onboardingProfile }) => {
-      if (typeof localStorage !== 'undefined') localStorage.setItem(ONBOARDING_KEY, 'true');
+      safeSetItem(ONBOARDING_KEY, 'true');
+      markOnboarded();
       updateProfile(onboardingProfile || { goal, experience });
       // The full walkthrough runs right after the questionnaire no matter how
       // it ended — skipping the wizard doesn't skip the intro (or the PAR-Q).
@@ -1364,6 +1383,7 @@ export default function App() {
     <>
       <style>{STYLE}</style>
       <style>{`@keyframes tm-offline-toast{0%{opacity:0;transform:translateY(8px)}12%{opacity:1;transform:none}82%{opacity:1;transform:none}100%{opacity:0;transform:translateY(8px)}}`}</style>
+      <StorageNotice />
       {/* ND-06 — one-time PAR-Q at the end of onboarding, above everything
           (the tour starts only after it closes, so no z-order contest). */}
       {showParqGate && (

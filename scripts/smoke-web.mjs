@@ -2071,6 +2071,65 @@ await check('practice tutorial plays', async () => {
   if (!(t > 0.5)) throw new Error(`the tutorial did not play (currentTime ${t})`);
 }, /KEY POINTS/);
 await check('combat conditioning start', async () => { await fight(); await page.locator('.ft.cond').click(); await S(1500); await page.locator('text=GAS TANK').first().click(); await S(600); await btn(/START CIRCUIT/).click({ timeout: 4000 }); await S(4000); }, /ROUND|DRILL|WARM/i);
+
+// A phone that will not keep what the app saves (full or blocked storage, an in-app browser, wiped site data)
+// used to freeze the finished circuit on its last screen, and said nothing. The circuit must still end on its
+// summary, the summary must lead Home or to the Fight hub, and the app must say it cannot save.
+const startCircuit = async () => { await fight(); await page.locator('.ft.cond').click(); await S(1500); await page.locator('text=GAS TANK').first().click(); await S(600); await btn(/START CIRCUIT/).click({ timeout: 4000 }); await S(4000); };
+const endCircuit = async () => { await page.locator('[data-guide="cca-stop"]').first().click({ timeout: 4000 }); await S(500); await btn(/^END SESSION$/).click({ timeout: 4000 }); await S(1500); };
+await check('combat conditioning ends on its summary when the stats cannot be saved', async () => {
+  await startCircuit();
+  await page.evaluate(() => { const o = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (k === 'tm_user_stats') throw new DOMException('full', 'QuotaExceededError'); return o.call(this, k, v); }; });
+  await endCircuit();
+  const n = await page.locator('[data-testid="storage-notice"][data-kind="cannot-save"]').count();
+  if (n !== 1) throw new Error('the screen has no "cannot save" notice (' + n + ')');
+}, /RETURN HOME/);
+await check('combat conditioning summary: RETURN HOME goes Home', async () => { await startCircuit(); await endCircuit(); await btn(/^RETURN HOME$/).click({ timeout: 4000 }); await S(1200); }, /FIT MODE/);
+await check('combat conditioning summary: BACK TO FIGHT MODE goes to the Fight hub, not Fit Mode', async () => {
+  await startCircuit(); await endCircuit(); await btn(/^BACK TO FIGHT MODE$/).click({ timeout: 4000 }); await S(1200);
+  if (process.env.SMOKE_DEBUG) console.log('--- fight hub text:\n' + (await text()).slice(0, 600));
+  if (!(await page.locator('.ft.cond').count())) throw new Error('the Combat Conditioning tile of the Fight hub is not on screen');
+});
+// The circuit ended and the phone was locked inside the 1.8 s hand-off: the page was stashed as a finished circuit,
+// and used to come back as a dead "complete" screen that banked nothing. It must be banked on return, once.
+await check('combat conditioning: a finished circuit stashed in its hand-off is banked once on return', async () => {
+  await startCircuit();
+  const slots = JSON.parse(await page.evaluate(() => localStorage.getItem('trainingModePausedSession')) || '[]');
+  const snap = slots.find((x) => x.screen === 'cc_active');
+  if (!snap?.internalState || !snap.ccMission) throw new Error('no live Combat Conditioning snapshot to seed');
+  Object.assign(snap.internalState, { phase: 'complete', roundsCompleted: snap.ccMission.totalRounds, drillsCompleted: snap.ccMission.drills.length * snap.ccMission.totalRounds });
+  Object.assign(snap, { reason: 'lifecycle', timestamp: Date.now() });
+  await page.evaluate((v) => sessionStorage.setItem('__smoke_seed', v), JSON.stringify([snap]));
+  await page.goto(BASE, { waitUntil: 'networkidle' }); await S(3500);
+  const stats = JSON.parse(await page.evaluate(() => localStorage.getItem('tm_user_stats')) || '{"sessions":[]}');
+  const rows = (stats.sessions || []).filter((x) => /combat/i.test(JSON.stringify(x)));
+  if (rows.length !== 1) throw new Error('expected one Combat Conditioning row banked, found ' + rows.length);
+}, /RETURN HOME/);
+// A page of the app in a fresh browser context (own storage, own user agent), for the storage notices.
+const inContext = async (name, ctxOpts, initScript, run) => {
+  const c = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, ...ctxOpts });
+  if (initScript) await c.addInitScript(initScript);
+  const p = await c.newPage();
+  p.on('pageerror', (e) => failures.push(name + ': uncaught ' + String(e.message).slice(0, 200)));
+  try { await p.goto(BASE, { waitUntil: 'networkidle' }); await p.waitForTimeout(2000); await p.mouse.click(195, 120); await p.waitForTimeout(1800); return await run(p); } finally { await c.close(); }
+};
+const noticeKind = (p) => p.locator('[data-testid="storage-notice"]').first().getAttribute('data-kind', { timeout: 3000 }).catch(() => null);
+await check('storage notice: Instagram in-app browser', async () => {
+  const kind = await inContext('storage notice: Instagram in-app browser', { userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 320.0.0.12.108' }, null, noticeKind);
+  if (kind !== 'inapp') throw new Error('expected an in-app browser notice, got ' + kind);
+});
+await check('storage notice: storage that refuses writes', async () => {
+  const kind = await inContext('storage notice: storage that refuses writes', {}, () => { Storage.prototype.setItem = function () { throw new DOMException('full', 'QuotaExceededError'); }; }, noticeKind);
+  if (kind !== 'cannot-save') throw new Error('expected a cannot-save notice, got ' + kind);
+});
+await check('storage notice: saved progress that was wiped', async () => {
+  const kind = await inContext('storage notice: saved progress that was wiped', {}, () => { document.cookie = 'tm_seen=1; path=/; max-age=3600'; }, noticeKind);
+  if (kind !== 'wiped') throw new Error('expected a wiped notice, got ' + kind);
+});
+await check('storage notice: a normal phone sees none', async () => {
+  const kind = await inContext('storage notice: a normal phone sees none', {}, null, noticeKind);
+  if (kind !== null) throw new Error('unexpected notice ' + kind);
+});
 // The hub's Arcade tile by its guide anchor: a live concept drop's card also says ARCADE.
 await check('arcade', async () => { await home(); await page.locator('[data-guide="home-arcade"]').first().click({ timeout: 5000 }); await S(3000); }, /TRAINING ARCADE/);
 // The START badge lives inside a scroll-snapping carousel card; a real-mouse

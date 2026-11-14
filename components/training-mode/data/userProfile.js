@@ -1,4 +1,5 @@
 import { normalizeGoal, normalizeExperience } from './profileOptions';
+import { noteWriteFailure } from './storageHealth';
 
 const STORAGE_KEY = 'tm_user_profile';
 
@@ -56,8 +57,15 @@ export function loadProfile() {
 
 export function saveProfile(profile) {
   _profileCache = null; // invalidate → next load reflects the change
-  if (typeof localStorage === 'undefined') return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+  try {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+  } catch (e) {
+    // Storage full or blocked: keep the profile for this visit instead of throwing out of the
+    // onboarding or Profile screen (see data/storageHealth).
+    _profileCache = { ...DEFAULT_PROFILE, ...profile, goal: normalizeGoal(profile?.goal), experience: normalizeExperience(profile?.experience) };
+    noteWriteFailure(STORAGE_KEY, e);
+  }
 }
 
 export function getDisplayName(profile) {

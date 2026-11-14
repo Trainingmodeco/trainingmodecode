@@ -77,6 +77,15 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
   // Clean rounds — a circuit round with no pause in it pays a flat bonus
   // (data/xpStakes). Counted here, settled by the host with the session XP.
   const pausesThisRoundRef = useRef(0);
+  // The hand-off to the summary: the result is built the moment the circuit ends, and handed over once,
+  // after the closing line (1.8 s), or at once if the page is hidden first or this is a finished run
+  // restored from a snapshot. See handOff below.
+  const finishedResultRef = useRef(null);
+  const handedOffRef = useRef(false);
+  const finishTimerRef = useRef(null);
+  const handOffRef = useRef(() => {});
+  // True while startDrill is announcing, so a RESUME can tell "restored mid-announcement, nothing is running".
+  const announcingRef = useRef(false);
   const cleanRoundsRef = useRef(0);
   const cadenceVersionRef = useRef(0);
   const cadenceRepRef = useRef(0);
@@ -145,6 +154,23 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
   // --- Init: voice + auto-start ---
   useEffect(() => {
     const version = ++versionRef.current;
+    if (initialResumeData?.phase === 'complete') {
+      // The circuit had finished when the page was stashed (it was in the 1.8 s hand-off): bank it now
+      // instead of showing a finished circuit that can never end.
+      setDone(true);
+      finishedResultRef.current = {
+        roundsCompleted: initialResumeData.roundsCompleted ?? totalRounds,
+        totalRounds,
+        drillsCompleted: initialResumeData.drillsCompleted ?? drills.length * totalRounds,
+        totalDrills: drills.length * totalRounds,
+        completed: true,
+        integrityResult: null,
+        cleanRounds: 0,
+        cleanRoundXp: 0,
+      };
+      handOffRef.current();
+      return;
+    }
     if (initialPaused) {
       setVoiceGender(profile?.voiceCoach || 'FEMALE');
       return;
@@ -286,6 +312,11 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
   };
 
   const startDrill = async (isFirst) => {
+    announcingRef.current = true;
+    try { await startDrillInner(isFirst); } finally { announcingRef.current = false; }
+  };
+
+  const startDrillInner = async (isFirst) => {
     const drill = drills[drillIdxRef.current];
     // Hold the clock while the coach announces the drill. What was
     // happening before: setPhase('working') + setRemaining(40) fired
@@ -350,7 +381,10 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
       const newRoundsCompleted = roundsCompletedRef.current + 1;
       setRoundsCompleted(newRoundsCompleted);
       roundsCompletedRef.current = newRoundsCompleted;
-      if (pausesThisRoundRef.current === 0) cleanRoundsRef.current += 1;
+      // Read the round's pauses BEFORE resetting them: the line below used to see the reset 0 and
+      // call every round clean, even one the athlete paused.
+      const cleanRound = pausesThisRoundRef.current === 0;
+      if (cleanRound) cleanRoundsRef.current += 1;
       pausesThisRoundRef.current = 0;
 
       if (roundRef.current >= totalRounds) {
@@ -362,7 +396,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
       // corner voice, so an athlete on the far side of the bag knows the
       // work window closed even if they missed the announcement.
       playBell(2);
-      speak(`Round ${roundRef.current} complete.${pausesThisRoundRef.current === 0 ? ' Clean round. Plus five.' : ''} Prepare for Round ${roundRef.current + 1}.`);
+      speak(`Round ${roundRef.current} complete.${cleanRound ? ' Clean round. Plus five.' : ''} Prepare for Round ${roundRef.current + 1}.`);
       setPhase('resting');
       setRemaining(drill.restSeconds || 30);
       setDrillIdx(0);
@@ -479,6 +513,11 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
         && cadenceRepRef.current >= 0 && cadenceRepRef.current < (drill.reps || 10)) {
         resumeCadence();
       }
+      // A session restored during a drill announcement has nothing running: the phase stays 'ready'
+      // ("PREPARING...") for good. Announce the drill again.
+      if (phaseRef.current === 'ready' && !announcingRef.current && !doneRef.current) {
+        startDrill(drillIdxRef.current === 0 && roundRef.current === 1 && drillsCompletedRef.current === 0);
+      }
     } else {
       stopCadence();
       cancelSpeech();
@@ -501,21 +540,44 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
     playBell(3);
     speak('Conditioning complete. Good work.');
     const integrityResult = integrity.finalize();
-    setTimeout(() => {
-      // Let the closing line finish into the summary (voice audit CCA-4).
-      stopVoiceSession({ graceful: true });
-      onEnd({
-        roundsCompleted: finalRounds,
-        totalRounds,
-        drillsCompleted: finalDrills,
-        totalDrills: drills.length * totalRounds,
-        completed: true,
-        integrityResult,
-        cleanRounds: cleanRoundsRef.current,
-        cleanRoundXp: cleanRoundXp(cleanRoundsRef.current),
-      });
-    }, 1800);
+    finishedResultRef.current = {
+      roundsCompleted: finalRounds,
+      totalRounds,
+      drillsCompleted: finalDrills,
+      totalDrills: drills.length * totalRounds,
+      completed: true,
+      integrityResult,
+      cleanRounds: cleanRoundsRef.current,
+      cleanRoundXp: cleanRoundXp(cleanRoundsRef.current),
+    };
+    // Let the closing line finish into the summary (voice audit CCA-4), unless the page is hidden first.
+    clearTimeout(finishTimerRef.current);
+    finishTimerRef.current = setTimeout(() => handOffRef.current(), 1800);
   };
+
+  // Bank the finished run, once. A run stashed while the closing line played used to come back as a
+  // dead "complete" screen that never banked anything.
+  const handOff = () => {
+    if (handedOffRef.current || !finishedResultRef.current) return;
+    handedOffRef.current = true;
+    clearTimeout(finishTimerRef.current);
+    stopVoiceSession({ graceful: true });
+    onEnd(finishedResultRef.current);
+  };
+  handOffRef.current = handOff;
+
+  // The page is hidden or closing (phone locked, app switched) before the 1.8 s timer: browsers freeze
+  // timers in a hidden page, so bank the run now.
+  useEffect(() => {
+    const flush = () => { if (typeof document === 'undefined' || document.visibilityState === 'hidden') handOffRef.current(); };
+    document.addEventListener('visibilitychange', flush);
+    window.addEventListener('pagehide', flush);
+    return () => {
+      document.removeEventListener('visibilitychange', flush);
+      window.removeEventListener('pagehide', flush);
+      clearTimeout(finishTimerRef.current);
+    };
+  }, []);
 
   const handleEndConfirm = () => {
     cadenceVersionRef.current++;

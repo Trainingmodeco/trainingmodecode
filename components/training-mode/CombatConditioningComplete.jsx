@@ -5,7 +5,7 @@ import { resolveOutcome, xpForOutcome } from './shared/sessionOutcome';
 // Combat Conditioning complete — rendered by the shared design-24f screen.
 const GOLD = '#fde047';
 
-export default function CombatConditioningComplete({ mission, result, cardioResult, onNewMission, onFitHub, onHome }) {
+export default function CombatConditioningComplete({ mission, result, cardioResult, onNewMission, onFightHub, onHome }) {
   const { roundsCompleted, totalRounds, drillsCompleted, totalDrills, completed, integrityResult, cleanRounds = 0, cleanRoundXp = 0 } = result;
   // Item 9 — the engine decides the outcome, so this mode can end on
   // fail / validation_failed and not only success / partial.
@@ -22,7 +22,7 @@ export default function CombatConditioningComplete({ mission, result, cardioResu
 
   return (
     <MissionComplete
-      onBack={onFitHub}
+      onBack={onFightHub}
       variant={verdict.preset.variant}
       eyebrow={verdict.preset.eyebrow}
       title={mission.missionName || 'COMBAT CONDITIONING'}
@@ -41,8 +41,10 @@ export default function CombatConditioningComplete({ mission, result, cardioResu
       shareData={{ mode: 'Combat Conditioning', style: mission.style, completedCount: drillsCompleted, totalCount: totalDrills }}
       actions={[
         { label: 'NEW COMBAT MISSION', onClick: onNewMission, kind: 'primary' },
-        { label: 'BACK TO FIT MODE', onClick: onFitHub, kind: 'secondary' },
-        { label: 'RETURN HOME', onClick: onHome, kind: 'ghost' },
+        // A fight feature returns to Home or the Fight hub: this screen used to send the back arrow and
+        // its second button to Fit Mode, and RETURN HOME was the quietest button.
+        { label: 'RETURN HOME', onClick: onHome, kind: 'secondary' },
+        { label: 'BACK TO FIGHT MODE', onClick: onFightHub, kind: 'ghost' },
       ]}
     />
   );

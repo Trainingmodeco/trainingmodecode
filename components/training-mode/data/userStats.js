@@ -1,3 +1,4 @@
+import { noteWriteFailure } from './storageHealth';
 import { generatedMissionXp } from './quickMissionXp';
 
 const STORAGE_KEY = 'tm_user_stats';
@@ -47,8 +48,16 @@ export function loadStats() {
 
 function saveStats(stats) {
   _statsCache = null; // invalidate → next loadStats re-parses a fresh object
-  if (typeof localStorage === 'undefined') return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
+  try {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
+  } catch (e) {
+    // Storage full or blocked. This used to throw out of the end-of-session handler and leave the
+    // athlete frozen on the finished screen with nothing banked. Keep the stats for this visit,
+    // say so (data/storageHealth shows a banner), and carry on to the summary.
+    _statsCache = stats;
+    noteWriteFailure(STORAGE_KEY, e);
+  }
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event('training-mode-stats-updated'));
   }
