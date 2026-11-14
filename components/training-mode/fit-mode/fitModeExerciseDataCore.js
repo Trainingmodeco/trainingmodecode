@@ -287,7 +287,8 @@ export const FIT_MODE_CORE_EXERCISES = [
   ex('Dumbbell Snatch', 'Full Body', ['Hamstrings', 'Shoulders'], 'Weighted', 'Hard', 'Compound',
     'One dumbbell between the feet, hinge, and pull it overhead in one explosive move, alternate arms.', 'Hip snap into an overhead lockout.', { reps: '6-8', rest: 75, style: 'Power' }),
   // The owner's barbell complex: one rep is the whole chain, so the dose is
-  // low and the builder leaves it alone (fixedDose).
+  // low and stays its own (fixedDose): the builder, a set scheme and a swap
+  // change its sets only, and never rest it less than it asks.
   ex('Snatch to Zercher Squat', 'Full Body', ['Quads', 'Shoulders', 'Back'], 'Weighted', 'Hard', 'Compound',
     'Snatch the bar from the floor to overhead, lower it into the crooks of the elbows, squat deep and stand tall.', 'An explosive pull into a loaded squat: lift an opponent off the floor and drive through.', { reps: '3-5', rest: 120, style: 'Power', fixedDose: true }),
 ];

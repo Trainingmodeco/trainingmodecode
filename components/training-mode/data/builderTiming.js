@@ -87,15 +87,43 @@ export function builderWorkoutMinutes(list) {
   return Math.max(1, Math.round(builderWorkoutSeconds(list) / 60));
 }
 
+// One loaded row under a set scheme. A complex with its own dose (fixedDose:
+// one rep is a chain of lifts) takes the scheme's sets only: it keeps its reps
+// and never rests less than it asks.
+export function schemeRow(ex, scheme) {
+  const restSeconds = ex.fixedDose ? Math.max(scheme.restSeconds, ex.restSeconds || 0) : scheme.restSeconds;
+  return { ...ex, sets: scheme.sets, reps: ex.fixedDose ? ex.reps : scheme.reps, rest: `${restSeconds}s`, restSeconds };
+}
+
 // A set scheme (3×10, 5×5, …) as the Builder applies it after generating:
 // every non-bodyweight row takes the scheme's sets, reps and rest; bodyweight
-// rows keep their own numbers. The same rule as FitBuilderWorkout's
-// applyScheme, so a row already shaped here comes out of it unchanged.
+// rows keep their own numbers. FitBuilderWorkout's applyScheme is this
+// function, so a row already shaped here comes out of it unchanged.
 export function applySetScheme(list, scheme) {
   if (!scheme?.sets) return list;
   return list.map(ex =>
     String(ex.equipment || '').toLowerCase() === 'bodyweight'
       ? ex
-      : { ...ex, sets: scheme.sets, reps: scheme.reps, rest: `${scheme.restSeconds}s`, restSeconds: scheme.restSeconds }
+      : schemeRow(ex, scheme)
   );
+}
+
+// The reps and rest a slot runs after a swap. The slot keeps its own numbers,
+// except: a timed hold on either side takes the new move's reps, and a
+// fixed-dose complex brings its own reps and never rests less than it asks.
+// The slot's numbers from before the complex are kept on the row (_slotDose)
+// and come back when it is swapped out again; a complex the builder dealt
+// itself has none, so the move after it takes the library's own dose.
+export function swapDose(ex, alt) {
+  const timed = (r) => /\d\s*s$/i.test(String(r));
+  const slot = ex.fixedDose ? ex._slotDose : { reps: ex.reps, rest: ex.rest, restSeconds: ex.restSeconds };
+  if (alt.fixedDose) {
+    const restSeconds = Math.max(slot?.restSeconds ?? ex.restSeconds ?? 0, alt.restSeconds || 0);
+    return { reps: alt.reps, rest: `${restSeconds}s`, restSeconds, fixedDose: true, _slotDose: slot };
+  }
+  if (!slot) {
+    const restSeconds = alt.restSeconds || ex.restSeconds;
+    return { reps: alt.reps, rest: `${restSeconds}s`, restSeconds, fixedDose: undefined, _slotDose: undefined };
+  }
+  return { reps: timed(alt.reps) || timed(slot.reps) ? alt.reps : slot.reps, rest: slot.rest, restSeconds: slot.restSeconds, fixedDose: undefined, _slotDose: undefined };
 }

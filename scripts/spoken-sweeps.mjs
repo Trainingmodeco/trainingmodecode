@@ -18,9 +18,11 @@ const range = (lo, hi, step = 1) => { const out = []; for (let v = lo; v <= hi +
 
 // The lines that say a library exercise by its name: the Workout Builder's
 // guided player (reps, weighted window, hold, a chain round, done, straight
-// into, skip, back) and the rep coach, plus the two rest calls, so a name is
-// proven in every place a screen puts one. (A generated Quick Mission does
-// NOT deal from the library: it has its own pools, swept further down.)
+// into, skip, back) and the "Set 1, X." line of the old rep coach. The last
+// two are rest calls the guided player does not say today (it rests without
+// naming the next move); they stay so a name is proven there too if it does.
+// (A generated Quick Mission does NOT deal from the library: it has its own
+// pools, swept further down.)
 export const libraryNameLines = (n) => [
   `${n}. Set 1 of 3. 10 reps. On my count.`,
   `${n}. Set 1 of 3. 10 reps. 2 minutes to complete, with 60 seconds rest. Get into position.`,
@@ -35,39 +37,7 @@ export const libraryNameLines = (n) => [
   `Round 1 complete. Rest. 60 seconds. Up next: Round 2. ${n}. Get in position.`,
 ];
 
-// Names waiting for a recording. On 2026-11-13 and 14 the sweeps below found
-// 54 library staples and 12 more Quick Mission pool names with no clip in
-// either voice (voice:coverage read only the names typed as `name: '...'` in
-// fitModeExerciseData, and nothing swept the Quick Mission pools). All 66 were
-// recorded on 2026-11-14, so both lists are empty and should stay that way: a
-// new library exercise or pool move is NOT added here, its name is recorded.
-// A name on a list is left out of its sweep; test:spoken fails when a listed
-// name has its clip, so a list only shrinks.
-export const LIBRARY_NAMES_NOT_RECORDED = [];
-
-// The lines a generated Quick Mission says a dealt move in (QuickMissionActive:
-// the first move, each next move, and the rest calls with their three preps).
-export const quickMissionNameLines = (n) => [
-  `Round 1. ${n}. 12 reps. Ready. Begin.`,
-  `Round 1. ${n}. 12 reps. On my count. Ready. Begin.`,
-  `Round 1. ${n}. 30 seconds. Ready. Begin.`,
-  `${n}. 12 reps. Ready. Begin.`,
-  `${n}. 12 reps. On my count. Ready. Begin.`,
-  `${n}. 30 seconds. Ready. Begin.`,
-  `Rest. 30 seconds. Up next: ${n}. Get in position.`,
-  `Rest. 30 seconds. Up next: ${n}. Grab your weight and prepare.`,
-  `Rest. 30 seconds. Up next: ${n}. Prepare your setup.`,
-  `Round 1 complete. Rest. 60 seconds. Up next: Round 2. ${n}. Get in position.`,
-];
-
-export const QUICK_MISSION_NAMES_NOT_RECORDED = [];
-
-// `keepPending(name)`: on a SPOKEN_ASSUME run, test:spoken passes the names
-// its record list can say, so a list that records the pending names is proven
-// against every line shape before a credit is spent.
-export async function spokenSweeps({ keepPending = () => false } = {}) {
-  const pending = new Set([...LIBRARY_NAMES_NOT_RECORDED, ...QUICK_MISSION_NAMES_NOT_RECORDED]);
-  const swept = (n) => !pending.has(n) || keepPending(n);
+export async function spokenSweeps() {
   if (typeof globalThis.localStorage === 'undefined') {
     const store = new Map();
     globalThis.localStorage = { getItem: (k) => (store.has(k) ? store.get(k) : null), setItem: (k, v) => store.set(k, String(v)), removeItem: (k) => store.delete(k), clear: () => store.clear(), key: () => null, length: 0 };
@@ -305,12 +275,30 @@ export async function spokenSweeps({ keepPending = () => false } = {}) {
 
   // Every active library exercise, said by name the way the screens say it.
   const { FIT_MODE_EXERCISES } = await import('../components/training-mode/fit-mode/fitModeExerciseData.js');
-  const libNames = [...new Set(FIT_MODE_EXERCISES.filter((e) => e.active).map((e) => e.name))].filter(swept);
-  sweep('Workout Builder', 'a library exercise said by name (guided player, rep coach)', libNames.flatMap(libraryNameLines));
+  const libNames = [...new Set(FIT_MODE_EXERCISES.filter((e) => e.active).map((e) => e.name))];
+  sweep('Workout Builder', 'a library exercise said by name (guided player)', libNames.flatMap(libraryNameLines));
 
-  // Every move a generated Quick Mission can deal, said the way its player says it.
-  const { QUICK_MISSION_POOL_NAMES } = await import('../components/training-mode/fit-mode/quickMissionGenerator.js');
-  sweep('Quick Mission', 'a generated mission\'s move said by name (first move, next move, rest calls)', QUICK_MISSION_POOL_NAMES.filter(swept).flatMap(quickMissionNameLines));
+  // Every move a generated Quick Mission can deal, said the way its runner
+  // says it: the lead, chained, short-rest and switch lines of
+  // data/missionMoves, where a move is "14 squats" or "30 seconds" of it.
+  // Doses over every level's table (reps, and seconds in fives), for a counted
+  // move. (The line of a move the athlete paces alone, MANUAL_LINE, is not in
+  // this sweep: "Tap DONE when the set is done." has no recording yet.)
+  {
+    const { QUICK_MISSION_POOL_NAMES, DIFFICULTY_CONFIG, LOADED_CONFIG } = await import('../components/training-mode/fit-mode/quickMissionGenerator.js');
+    const tables = [...Object.values(DIFFICULTY_CONFIG), ...Object.values(LOADED_CONFIG)];
+    const lo = (k) => Math.min(...tables.map((t) => t[k]).filter(Number.isFinite)), hi = (k) => Math.max(...tables.map((t) => t[k]).filter(Number.isFinite));
+    const said = [];
+    for (const name of QUICK_MISSION_POOL_NAMES) {
+      const slots = [...range(Math.max(1, lo('repsMin') - 2), hi('repsMax') + 2).map((reps) => ({ name, mode: 'reps', reps, rest: 30 })),
+        ...range(Math.max(5, lo('workMin') - 5), hi('workMax') + 5, 5).map((work) => ({ name, mode: 'timed', work, rest: 30 }))];
+      for (const sl of slots) said.push(
+        mm.leadLine(sl, { round: 1, idx: 0, rounds: 2, slotsPerRound: 5, legacyCounted: true }),
+        mm.leadLine(sl, { round: 2, idx: 2, rounds: 2, slotsPerRound: 5, legacyCounted: true }),
+        mm.chainedLine(sl, { legacyCounted: true }), mm.shortRestLine(sl), mm.switchLine(sl), `Up next: ${mm.spokenMove(sl)}.`);
+    }
+    sweep('Quick Mission', 'a generated mission\'s move, said the way the runner says it (lead, chained, next, switch, up next)', said);
+  }
 
   return out;
 }

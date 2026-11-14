@@ -42,25 +42,30 @@ else from its plain clip, else from the fewest recorded pieces. Put names and
 numbers in their own sentence or after a colon when writing a new spoken line
 ("Up next: Goblet Squats."), so they reuse existing clips.
 
-Exercise names: the Workout Builder (guided player, rep coach) says an
-exercise of `fit-mode/fitModeExerciseData*.js` by its name, and a generated
-Quick Mission says the moves of its own pools in
-`fit-mode/quickMissionGenerator.js` (it does not deal from the library).
-`test:spoken` sweeps every active library name and every pool name
-(`libraryNameLines`, `quickMissionNameLines` in `scripts/spoken-sweeps.mjs`),
-so a new library exercise or pool move fails the test until its name is
-recorded as a plain clip in both voices (`test:spoken --json` prints the key).
-The 66 names found with no clip were recorded on 2026-11-14; the two lists
-in that file (`LIBRARY_NAMES_NOT_RECORDED`, `QUICK_MISSION_NAMES_NOT_RECORDED`)
-are empty and are not a place to park a new name.
+Exercise names: the Workout Builder's guided player says an exercise of
+`fit-mode/fitModeExerciseData*.js` by its name, and a generated Quick Mission
+says the moves of its own pools in `fit-mode/quickMissionGenerator.js` (it
+does not deal from the library) as "14 squats" or "30 seconds" of the move,
+in the lead, next, switch and up-next lines of `data/missionMoves.js`.
+`test:spoken` sweeps every active library name and every pool name through
+those lines (`scripts/spoken-sweeps.mjs`), so a new library exercise or pool
+move fails the test until its name is recorded as a plain clip in both voices
+(`test:spoken --json` prints the key). The 66 names that had no clip were
+recorded on 2026-11-14.
 
-Recording a batch of names: the generator takes about four requests every
-twenty seconds, and about one take in three comes back unusable: cut at the
-edge of the file (the voice starts or ends on the first or last frame), or
-said in two parts with a silence of 0.3 s or more in the middle (the female
-voice most of all). Order two takes of a doubtful name at once and choose by
-numbers: one voiced group, clear of both file edges, a length in line with the
-voice's own rate and with the other voice.
+Recording plain names or phrases (no carrier sentence): the generator takes
+about four requests every twenty seconds, and about one take in three comes
+back unusable: said in two parts with a silence of 0.3 s or more in the middle
+(the female voice most of all), or cut by the edge of the file. Order two or
+three takes of each at once, cut each with
+`node scripts/voice-takes/plain.mjs <take.wav> <out.mp3>` (the bank's own cut:
+it reaches back to the true start of the word, drops a click on the file edge,
+caps a pause inside at 0.10 s, sets -16 LUFS through the bank's limiter) and
+choose by the numbers it prints: `groups` 1 after clicks, `startMs` and
+`endGapMs` clear of 0, `longestPause` under 0.2, a length in line with the
+voice's rate and with the other voice. A clip cut 20 ms before the first loud
+frame, or gained without the limiter, sounds clipped at the start and quiet
+next to the rest of the bank: that was the first cut of those 66.
 
 ## Natural-sounding lines (owner's rule, 2026-11-13)
 

@@ -565,6 +565,30 @@ check('31c seededRng is deterministic and spread over [0, 1)', (() => { const a 
     }
     const snatch = fixed.find(e => e.name === 'Snatch to Zercher Squat');
     check('45b a complex with its own dose keeps it in every focus and level (Snatch to Zercher Squat: 3-5 reps, 120 s rest or more)', doseBad.length === 0 && !!snatch && snatch.reps === '3-5' && snatch.restSeconds === 120 && !plain.fixedDose, doseBad.slice(0, 4).join(' | '));
+
+    // A set scheme gives it the scheme's sets only; a swap in brings its own
+    // dose, and a swap out gives the slot back the numbers it had before.
+    const row = (e, more = {}) => ({ id: e.id, name: e.name, equipment: e.equipment, sets: 4, reps: '6-8', rest: '60s', restSeconds: 60, ...more });
+    const dealt = { ...row(snatch), ...G.builderDose(snatch, 'Hard', 'Strength', 0), fixedDose: true };
+    const [schemed, schemedPlain] = BT.applySetScheme([dealt, row(plain)], { sets: 5, reps: '5', restSeconds: 60 });
+    const longRest = BT.applySetScheme([dealt], { sets: 5, reps: '5', restSeconds: 180 })[0];
+    const curls = FIT_MODE_EXERCISES.find(e => e.name === 'Dumbbell Curls');
+    const slot = row(plain);
+    const inSwap = { ...slot, ...BT.swapDose(slot, snatch) };
+    const outSwap = { ...inSwap, ...BT.swapDose(inSwap, curls) };
+    const outDealt = { ...dealt, ...BT.swapDose(dealt, curls) };
+    const hold = FIT_MODE_EXERCISES.find(e => e.durationSeconds && e.active);
+    const toHold = { ...slot, ...BT.swapDose(slot, hold) };
+    const swapBadDose = [
+      ['a 5x5 / 60 s scheme leaves it 5 sets of 3-5 at 120 s', schemed.sets === 5 && schemed.reps === '3-5' && schemed.restSeconds === 120 && schemed.rest === '120s'],
+      ['a longer scheme rest is kept', longRest.restSeconds === 180],
+      ['a plain lift takes the whole scheme', schemedPlain.sets === 5 && schemedPlain.reps === '5' && schemedPlain.restSeconds === 60],
+      ['swapped in: 3-5 reps, 120 s, the slot\'s sets', inSwap.reps === '3-5' && inSwap.restSeconds === 120 && inSwap.rest === '120s' && inSwap.sets === 4 && inSwap.fixedDose === true],
+      ['swapped out again: the slot is back to 6-8 / 60 s', outSwap.reps === '6-8' && outSwap.restSeconds === 60 && outSwap.rest === '60s' && !outSwap.fixedDose && !outSwap._slotDose],
+      ['swapped out of a dealt complex: the new move\'s own dose', outDealt.reps === curls.reps && outDealt.restSeconds === curls.restSeconds && !outDealt.fixedDose],
+      ['a plain swap keeps the slot\'s numbers; a hold brings its seconds', BT.swapDose(slot, curls).reps === '6-8' && BT.swapDose(slot, curls).restSeconds === 60 && toHold.reps === hold.reps && toHold.restSeconds === 60],
+    ].filter(([, ok]) => !ok).map(([n]) => n);
+    check('45c a set scheme and a swap respect a complex\'s own dose, and a swap out restores the slot', swapBadDose.length === 0, swapBadDose.join(' | '));
   }
 
   // A program card prints programMinutes for the gear picked: every day, at

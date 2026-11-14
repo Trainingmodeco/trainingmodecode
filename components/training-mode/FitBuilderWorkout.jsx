@@ -6,7 +6,7 @@ import { Check, RotateCcw, Trophy, Play, ArrowRightLeft, ChevronRight, Bookmark,
 import { C, NAV_H, fixedColumnBar } from './Styles';
 import BottomSheet from './shared/BottomSheet';
 import { generateFitModeWorkout, fitsBuilderSlot } from './fit-mode/fitModeGenerator';
-import { builderWorkoutMinutes } from './data/builderTiming';
+import { builderWorkoutMinutes, applySetScheme, swapDose } from './data/builderTiming';
 import { FIT_MODE_EXERCISES } from './fit-mode/fitModeExerciseData';
 import FitBuilderGuidedPlayer, { nextOpenIdx } from './FitBuilderGuidedPlayer';
 import { saveRoutine, loadRoutines, MAX_ROUTINES } from './data/savedRoutines';
@@ -221,14 +221,8 @@ function SwapSheet({ exercise, alternates, onSelect, onInfo, onClose }) {
 // 38b — a selected set scheme (3×10 / 5×5 / …) becomes the default for every
 // WEIGHTED lift in the generated list; bodyweight rows keep the generator's
 // numbers, and a per-row edit afterwards still overrides just that row.
-function applyScheme(list, scheme) {
-  if (!scheme?.sets) return list;
-  return list.map(ex =>
-    String(ex.equipment || '').toLowerCase() === 'bodyweight'
-      ? ex
-      : { ...ex, sets: scheme.sets, reps: scheme.reps, rest: `${scheme.restSeconds}s`, restSeconds: scheme.restSeconds }
-  );
-}
+const applyScheme = applySetScheme;
+
 
 // Spec 10 (free-select map) — every row carries a stable uid so the guided
 // player can key on the EXERCISE rather than its position: reordering the
@@ -433,15 +427,10 @@ export default function FitBuilderWorkout({ cfg, onDone, onBack, onHome, profile
       name: alt.name,
       // The slot keeps ITS sets and rest (the scheme the workout was built
       // with); a swapped-in move used to arrive with the library's own
-      // 2×8-12 / 75 s next to everyone else's 4×8 / 120 s. Reps only follow
-      // the new move when one of the two is a timed hold, or a complex with
-      // its own dose (fixedDose: a snatch into a squat is 3-5 reps whatever
-      // the slot ran before, and never rests less than it asks).
+      // 2×8-12 / 75 s next to everyone else's 4×8 / 120 s. The exceptions
+      // (a timed hold, a complex with its own dose) are swapDose's.
       sets: ex.sets,
-      reps: /\d\s*s$/i.test(String(alt.reps)) || /\d\s*s$/i.test(String(ex.reps)) || alt.fixedDose || ex.fixedDose ? alt.reps : ex.reps,
-      rest: alt.fixedDose ? `${Math.max(ex.restSeconds || 0, alt.restSeconds || 0)}s` : ex.rest,
-      restSeconds: alt.fixedDose ? Math.max(ex.restSeconds || 0, alt.restSeconds || 0) : ex.restSeconds,
-      fixedDose: alt.fixedDose || undefined,
+      ...swapDose(ex, alt),
       // Keep the UPPERCASE convention the generator uses (display + colours).
       muscle: String(alt.primaryMuscle || '').toUpperCase(),
       primaryMuscle: alt.primaryMuscle,
