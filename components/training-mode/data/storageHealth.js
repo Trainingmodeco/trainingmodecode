@@ -19,7 +19,10 @@ const PROBE_KEY = '__tm_probe__';
 const SEEN_COOKIE = 'tm_seen';
 const DISMISS_KEY = 'tm_storage_notice_dismissed';
 
-let state = { writeFailed: false, failedKeys: [], probeOk: null, inapp: null, standalone: false, returning: 'new' };
+let state = { writeFailed: false, failedKeys: [], failures: 0, probeOk: null, inapp: null, standalone: false, returning: 'new' };
+// Notices the athlete dismissed this visit (kept in memory, so GOT IT works even when storage refuses writes).
+const dismissedKinds = new Set();
+let hardDismissedAt = -1;
 const listeners = new Set();
 const reportedKeys = new Set();
 let checked = false;
@@ -41,8 +44,8 @@ export function noteWriteFailure(key, err) {
     trackEvent('storage_write_failed', { key: short });
     reportError(err || new Error('storage write failed'), 'storage');
   }
-  if (!state.failedKeys.includes(short)) set({ writeFailed: true, failedKeys: [...state.failedKeys, short] });
-  else if (!state.writeFailed) set({ writeFailed: true });
+  // Every failed save counts, so a dismissed "cannot save" notice comes back when another save fails.
+  set({ writeFailed: true, failures: state.failures + 1, failedKeys: state.failedKeys.includes(short) ? state.failedKeys : [...state.failedKeys, short] });
 }
 
 /** localStorage.setItem that cannot throw. Returns whether it was saved. */
@@ -93,6 +96,9 @@ export function runStorageCheck({ onboardingDone } = {}) {
   const inapp = detectInAppBrowser();
   const standalone = isStandalone();
   const returning = onboardingDone ? 'onboarded' : hasSeenCookie() ? 'cookie_only' : 'new';
+  // An athlete who set up before this existed (or restored from an account) has no cookie yet: give
+  // them one now, so a later wipe reads as "wiped", not "new".
+  if (onboardingDone) markOnboarded();
   set({ probeOk, inapp, standalone, returning });
   trackEvent('storage_check', { ok: probeOk ? 'yes' : 'no', inapp: inapp || 'none', standalone: standalone ? 'yes' : 'no', returning });
   return state;
@@ -107,25 +113,30 @@ export function markOnboarded() {
 /** What the banner says, or null. Most serious first. */
 export function storageNotice(s = state) {
   if (s.writeFailed || s.probeOk === false) {
-    return { kind: 'cannot-save', text: "Your phone isn't letting Training Mode save. Your progress will be lost when you close it. Open it in Safari or Chrome instead." };
+    return { kind: 'cannot-save', text: "Your phone isn't letting Training Mode save, so your progress can be lost when you close it. If you're in a private tab or another app's browser, open Training Mode in Safari or Chrome." };
   }
   if (s.returning === 'cookie_only') {
-    return { kind: 'wiped', text: 'Your phone cleared your saved progress, so this is a fresh start. Open Training Mode in Safari or Chrome and add it to your Home Screen to keep it.' };
+    return { kind: 'wiped', text: "Your phone cleared Training Mode's saved progress, so this is a fresh start. If you have a Training Mode account, sign in from Profile to get it back. Adding the app to your Home Screen helps it keep your data." };
   }
   if (s.inapp) {
     const name = { instagram: 'Instagram', facebook: 'Facebook', tiktok: 'TikTok', snapchat: 'Snapchat', line: 'Line', linkedin: 'LinkedIn' }[s.inapp] || 'another app';
-    return { kind: 'inapp', text: `You opened Training Mode inside ${name}. It can forget your setup and progress. Tap the menu, choose Open in browser, then add it to your Home Screen.` };
+    return { kind: 'inapp', text: `You opened Training Mode inside ${name}. That browser can forget your setup and progress. Tap its menu, choose Open in Safari or Open in browser, then add Training Mode to your Home Screen.` };
   }
   return null;
 }
 
+// A failure to save can be dismissed, but it comes back with the next failed save; the other two stay
+// dismissed (in memory, and in storage when it works, so they do not nag on every visit).
 export function noticeDismissed(kind) {
-  if (kind === 'cannot-save') return false; // never hide a failure to save
+  if (kind === 'cannot-save') return hardDismissedAt === state.failures;
+  if (dismissedKinds.has(kind)) return true;
   try { const s = safeStorage(); return !!s && s.getItem(DISMISS_KEY) === kind; } catch { return false; }
 }
 export function dismissNotice(kind) {
-  try { const s = safeStorage(); if (s) s.setItem(DISMISS_KEY, kind); } catch { /* the banner just comes back next visit */ }
+  if (kind === 'cannot-save') { hardDismissedAt = state.failures; return; }
+  dismissedKinds.add(kind);
+  try { const s = safeStorage(); if (s) s.setItem(DISMISS_KEY, kind); } catch { /* in memory only: it comes back next visit */ }
 }
 
 /** Tests only. */
-export function _resetStorageHealth() { state = { writeFailed: false, failedKeys: [], probeOk: null, inapp: null, standalone: false, returning: 'new' }; reportedKeys.clear(); checked = false; }
+export function _resetStorageHealth() { state = { writeFailed: false, failedKeys: [], failures: 0, probeOk: null, inapp: null, standalone: false, returning: 'new' }; reportedKeys.clear(); dismissedKinds.clear(); hardDismissedAt = -1; checked = false; }

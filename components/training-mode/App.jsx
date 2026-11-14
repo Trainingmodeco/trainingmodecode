@@ -143,9 +143,11 @@ function completeDailyMissionIfDue(completedActionType) {
   const expectedType = actionMap[missionData.action];
   if (completedActionType !== expectedType) return;
 
-  localStorage.setItem('dailyMissionCompleted', 'true');
-  localStorage.setItem('dailyMissionActive', 'false');
-  localStorage.removeItem('dailyMissionActiveData');
+  // The first flag decides: if it cannot be saved the bonus would be paid again on the next completion,
+  // so nothing is paid. The other two writes cannot take the bonus away.
+  if (!safeSetItem('dailyMissionCompleted', 'true')) return;
+  safeSetItem('dailyMissionActive', 'false');
+  try { localStorage.removeItem('dailyMissionActiveData'); } catch { /* best effort */ }
   addDailyMissionBonus();
   trackEvent('daily_mission_complete', { action: completedActionType });
   if (typeof window !== 'undefined') {
@@ -190,8 +192,8 @@ const SESSION_AUTOSAVE_MS = 5000;
 const PAUSED_SLOTS = 2;
 
 function loadPausedSessions() {
-  if (typeof localStorage === 'undefined') return [];
   try {
+    if (typeof localStorage === 'undefined') return [];
     // The single-session key from before the second slot migrates once.
     let raw = localStorage.getItem(PAUSED_SESSION_KEY);
     if (raw && raw.trim().startsWith('{')) raw = `[${raw}]`;
@@ -208,7 +210,7 @@ function loadPausedSessions() {
 }
 
 function savePausedSessions(list) {
-  if (typeof localStorage === 'undefined') return;
+  try { if (typeof localStorage === 'undefined') return; } catch { return; } // blocked site data throws on access
   if (list && list.length) {
     try { localStorage.setItem(PAUSED_SESSION_KEY, JSON.stringify(list.slice(0, PAUSED_SLOTS))); }
     catch { /* quota or serialization error */ }
@@ -338,7 +340,7 @@ export default function App() {
       }
       const ch = takeHaunt(g);
       markChallengeSeen();
-      if (typeof localStorage !== 'undefined' && localStorage.getItem(ONBOARDING_KEY) === 'true') {
+      if (safeStorage()?.getItem(ONBOARDING_KEY) === 'true') {
         setGhostView({ view: 'challenge', challenge: ch });
       } else {
         // Never used the app: explain it, and the challenge, first.
@@ -349,10 +351,18 @@ export default function App() {
     prefetchStranger(loadProfile()?.discipline || 'Boxing');
   }, []);
   const afterParqRef = useRef(null);
+  // Once per open, at boot (so an athlete restored straight into a session is checked too): does this
+  // phone keep what the app saves? (data/storageHealth)
   useEffect(() => {
-    if (hauntIntro || typeof localStorage === 'undefined') return;
-    const id = localStorage.getItem(HAUNT_NEWCOMER_KEY);
-    if (!id || localStorage.getItem(ONBOARDING_KEY) === 'true' || HAUNT_BATTLE_SCREENS.has(screen)) return;
+    let done = false;
+    try { done = safeStorage()?.getItem(ONBOARDING_KEY) === 'true'; } catch { done = false; }
+    runStorageCheck({ onboardingDone: done });
+  }, []);
+  useEffect(() => {
+    const ls = safeStorage();
+    if (hauntIntro || !ls) return;
+    const id = ls.getItem(HAUNT_NEWCOMER_KEY);
+    if (!id || ls.getItem(ONBOARDING_KEY) === 'true' || HAUNT_BATTLE_SCREENS.has(screen)) return;
     const live = getActiveChallenge();
     setHauntIntro({ page: 'welcome', challenge: live || null, beaten: !live || live.id !== id });
   }, [screen, hauntIntro]);
@@ -418,11 +428,12 @@ export default function App() {
       // reaches them: without the result in the snapshot a reload during the finisher ended on a blank screen.
       ccResult,
       qmResult,
+      session,
       internalState,
       reason: reason || 'nav',
       timestamp: Date.now(),
     };
-  }, [screen, disc, cfg, comboCfg, fitCfg, qmCfg, ccMission, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, cardioContext, ccResult, qmResult]);
+  }, [screen, disc, cfg, comboCfg, fitCfg, qmCfg, ccMission, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, cardioContext, ccResult, qmResult, session]);
 
   // The setup page's opening request is used once: leaving the page clears it.
   useEffect(() => { if (screen !== 'qm_setup') setQmEntry(null); }, [screen]);
@@ -456,6 +467,7 @@ export default function App() {
     if (ps.cardioContext) setCardioContext(ps.cardioContext);
     if (ps.ccResult) setCcResult(ps.ccResult);
     if (ps.qmResult) setQmResult(ps.qmResult);
+    if (ps.session) setSession(ps.session);
     setResumeData(ps.internalState || null);
     setScreen(ps.screen);
   }, []);
@@ -665,9 +677,7 @@ export default function App() {
   // One ScreenGuide host at app level, keyed by which guide is running.
   // 'full_intro' replaces the old FeatureTour: it fires after the
   // questionnaire and from Profile → Replay intro guide, and nowhere else.
-  const markTourDone = () => {
-    if (typeof localStorage !== 'undefined') localStorage.setItem(TOUR_KEY, 'true');
-  };
+  const markTourDone = () => { safeSetItem(TOUR_KEY, 'true'); };
   const startFullIntro = () => { setScreen('home'); setPathTour('full_intro'); };
   // Practice Mode's welcome poster, for new learners, once — the last step
   // of first-run setup (after the walkthrough, so the two never overlap).
@@ -1252,15 +1262,17 @@ export default function App() {
     },
     finishCardioFinisher: (result) => {
       const ctx = cardioContext;
+      // The finisher is over: drop its saved session, or reopening the app within 90 minutes puts the
+      // athlete back in it (and could pay its XP again).
+      endSessionFor('cardio_finisher'); setResumeData(null); activeSessionStateRef.current = null;
       let hybridBonusXp = 0;
       if (result?.completed && ctx?.mainCompleted) {
         const key = ctx.hybridBonusKey;
-        const alreadyAwarded = typeof localStorage !== 'undefined' && key
-          ? localStorage.getItem(key) === 'true'
-          : false;
+        let alreadyAwarded = false;
+        try { alreadyAwarded = !!key && safeStorage()?.getItem(key) === 'true'; } catch { alreadyAwarded = false; }
         if (!alreadyAwarded) {
           hybridBonusXp = addHybridTrainingBonus();
-          if (typeof localStorage !== 'undefined' && key) localStorage.setItem(key, 'true');
+          if (key) safeSetItem(key, 'true');
           trackEvent('hybrid_bonus', { mode: ctx?.mode });
         }
       }
@@ -1273,6 +1285,7 @@ export default function App() {
       routeAfterXp(beforeLevel, dest);
     },
     skipCardioFinisher: () => {
+      endSessionFor('cardio_finisher'); setResumeData(null); activeSessionStateRef.current = null;
       const mode = cardioContext?.mode;
       setCardioResult(null);
       setCardioContext(null);
@@ -1295,10 +1308,8 @@ export default function App() {
       setScreen('practice_starthere');
     },
     goStartDailyMission: (mission) => {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem('dailyMissionActive', 'true');
-        localStorage.setItem('dailyMissionActiveData', JSON.stringify(mission));
-      }
+      safeSetItem('dailyMissionActive', 'true');
+      safeSetItem('dailyMissionActiveData', JSON.stringify(mission));
       if (mission.action === 'practice' || mission.action === 'startHere') {
         setDisc('Boxing');
         setScreen('practice_starthere');
@@ -1320,8 +1331,6 @@ export default function App() {
     goAfterSplash: () => {
       let done = false;
       try { done = safeStorage()?.getItem(ONBOARDING_KEY) === 'true'; } catch { done = false; }
-      // Once per open: does this phone keep what the app saves? (data/storageHealth)
-      runStorageCheck({ onboardingDone: done });
       setScreen(done ? 'home' : 'onboarding');
       if (!done) return;
       // One full-screen interstitial per open, most personal first: a
@@ -1348,7 +1357,7 @@ export default function App() {
       // Land on the REAL Home and run the one-time full walkthrough.
       // Never auto-show again.
       const finish = () => {
-        const tourDone = typeof localStorage !== 'undefined' && localStorage.getItem(TOUR_KEY) === 'true';
+        const tourDone = safeStorage()?.getItem(TOUR_KEY) === 'true';
         if (!tourDone) startFullIntro(); else { setScreen('home'); maybePracticeIntro(); }
       };
       // ND-06 — PAR-Q closes out onboarding (once ever), then the tour runs.
@@ -1367,7 +1376,7 @@ export default function App() {
       // The full walkthrough runs right after the questionnaire no matter how
       // it ended — skipping the wizard doesn't skip the intro (or the PAR-Q).
       const finish = () => {
-        const tourDone = typeof localStorage !== 'undefined' && localStorage.getItem(TOUR_KEY) === 'true';
+        const tourDone = safeStorage()?.getItem(TOUR_KEY) === 'true';
         if (!tourDone) startFullIntro(); else { setScreen('home'); maybePracticeIntro(); }
       };
       if (!loadParq().done) { setScreen('home'); afterParqRef.current = finish; setShowParqGate(true); }

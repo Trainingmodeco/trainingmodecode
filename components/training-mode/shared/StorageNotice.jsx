@@ -4,7 +4,7 @@ import { getStorageHealth, subscribeStorageHealth, storageNotice, noticeDismisse
 
 // Says so when this phone will not keep the athlete's progress (see data/storageHealth): storage that
 // refuses writes, storage that was wiped since onboarding, or an in-app browser (Instagram, TikTok...)
-// that tends to forget. A failure to save is never dismissible; the other two are, and stay dismissed.
+// that tends to forget. GOT IT hides it; a failure to save comes back with the next failed save.
 export default function StorageNotice() {
   const [health, setHealth] = useState(getStorageHealth());
   const [, bump] = useState(0);
@@ -25,18 +25,16 @@ export default function StorageNotice() {
       }}
     >
       <span style={{ flex: 1 }}>{notice.text}</span>
-      {!hard && (
-        <button
-          type="button"
-          onClick={() => { dismissNotice(notice.kind); bump((n) => n + 1); }}
-          style={{
-            flexShrink: 0, minWidth: 64, minHeight: 44, borderRadius: 10, border: `1px solid ${C.gold}`, background: 'transparent',
-            color: C.gold, fontFamily: "'Orbitron', sans-serif", fontSize: 12, fontWeight: 900, letterSpacing: 1, cursor: 'pointer',
-          }}
-        >
-          GOT IT
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={() => { dismissNotice(notice.kind); bump((n) => n + 1); }}
+        style={{
+          flexShrink: 0, minWidth: 64, minHeight: 44, borderRadius: 10, border: `1px solid ${hard ? C.red : C.gold}`, background: 'transparent',
+          color: hard ? C.red : C.gold, fontFamily: "'Orbitron', sans-serif", fontSize: 12, fontWeight: 900, letterSpacing: 1, cursor: 'pointer',
+        }}
+      >
+        GOT IT
+      </button>
     </div>
   );
 }

@@ -516,6 +516,7 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
       // A session restored during a drill announcement has nothing running: the phase stays 'ready'
       // ("PREPARING...") for good. Announce the drill again.
       if (phaseRef.current === 'ready' && !announcingRef.current && !doneRef.current) {
+        versionRef.current++; // the opening flow that is still waiting sees a stale version and stops
         startDrill(drillIdxRef.current === 0 && roundRef.current === 1 && drillsCompletedRef.current === 0);
       }
     } else {
@@ -569,13 +570,16 @@ export default function CombatConditioningActive({ mission, profile, onEnd, init
   // The page is hidden or closing (phone locked, app switched) before the 1.8 s timer: browsers freeze
   // timers in a hidden page, so bank the run now.
   useEffect(() => {
-    const flush = () => { if (typeof document === 'undefined' || document.visibilityState === 'hidden') handOffRef.current(); };
-    document.addEventListener('visibilitychange', flush);
-    window.addEventListener('pagehide', flush);
+    const onHidden = () => { if (typeof document === 'undefined' || document.visibilityState === 'hidden') handOffRef.current(); };
+    const onPageHide = () => handOffRef.current();
+    document.addEventListener('visibilitychange', onHidden);
+    window.addEventListener('pagehide', onPageHide);
     return () => {
-      document.removeEventListener('visibilitychange', flush);
-      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', onHidden);
+      window.removeEventListener('pagehide', onPageHide);
       clearTimeout(finishTimerRef.current);
+      // Left (the tab bar) inside the 1.8 s hand-off: the run is finished, so it is banked, once.
+      if (finishedResultRef.current && !handedOffRef.current) handOffRef.current();
     };
   }, []);
 

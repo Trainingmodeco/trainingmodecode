@@ -30,7 +30,8 @@ const P = await import('../components/training-mode/data/userProfile.js');
   const stats = S.loadStats();
   check('the visit still shows the banked run and its XP', stats.sessions.some((x) => x.mode === 'Combat Conditioning' || /combat/i.test(JSON.stringify(x))) && stats.xp > 0, `xp ${stats.xp}, sessions ${stats.sessions.length}`);
   check('the failure is recorded', H.getStorageHealth().writeFailed === true && H.getStorageHealth().failedKeys.includes('tm_user_stats'));
-  check('the dashboard is told once, with the key', events.filter((e) => e.startsWith('plausible:storage_write_failed')).length === 1);
+  const wf = events.filter((e) => e.startsWith('plausible:storage_write_failed'));
+  check('the dashboard is told once, with the key', wf.length === 1 && /"key":"tm_user_stats"/.test(wf[0]), wf[0]);
   S.addCombatConditioningSession(3, 3, 1, 1, true);
   check('a second failed save is not reported again', events.filter((e) => e.startsWith('plausible:storage_write_failed')).length === 1 && S.loadStats().sessions.length === 2);
   let t2 = null; try { P.saveProfile({ name: 'A', goal: 'Build Muscle', experience: 'Beginner' }); } catch (e) { t2 = e; }
@@ -73,7 +74,17 @@ const P = await import('../components/training-mode/data/userProfile.js');
   check('lost progress says wiped', H.storageNotice({ ...base, returning: 'cookie_only' })?.kind === 'wiped');
   check('an in-app browser gets its notice, naming the app', /Instagram/.test(H.storageNotice({ ...base, inapp: 'instagram' })?.text || ''));
   check('wiped outranks in-app', H.storageNotice({ ...base, inapp: 'instagram', returning: 'cookie_only' })?.kind === 'wiped');
-  check('a failure to save can never be dismissed', H.noticeDismissed('cannot-save') === false);
+  // dismissal: in memory, and a new failed save brings a dismissed "cannot save" back
+  H._resetStorageHealth();
+  check('nothing is dismissed to begin with', H.noticeDismissed('cannot-save') === false && H.noticeDismissed('inapp') === false);
+  store.refuse = true; H.safeSetItem('a', '1');
+  H.dismissNotice('cannot-save');
+  check('GOT IT hides a failure to save', H.noticeDismissed('cannot-save') === true);
+  H.safeSetItem('b', '1');
+  check('and the next failed save shows it again', H.noticeDismissed('cannot-save') === false);
+  H.dismissNotice('inapp');
+  check('GOT IT hides the in-app notice even though storage refuses the write', H.noticeDismissed('inapp') === true);
+  store.refuse = false;
 }
 
 // ── the once-per-open check and the cookie that survives a wipe ──────────
