@@ -171,9 +171,9 @@ async function comboCoach() {
   const DISCIPLINES = ['Boxing', 'Kickboxing', 'Muay Thai', 'MMA'];
   const DIFFS = ['Easy', 'Normal', 'Hard', 'Advanced'];
   // ComboCoachSetup.jsx:144, CADENCE stepper: min 2, max 8, step 0.5. The field is
-  // also typable, and the label is `${cadenceSec.toFixed(1)}s` (:165), so any value
-  // to one decimal can reach the intro: 2.0 to 8.0 in tenths.
-  const cadences = range(2, 8, 0.1);
+  // also typable, but a typed value is snapped to the step (Math.round(v * 2) / 2 in
+  // its onChange), so the cadence is always a whole or a half second: 2, 2.5 ... 8.
+  const cadences = range(2, 8, 0.5);
   // ComboCoachSetup.jsx:140, ROUNDS stepper: 1-12.
   const roundNos = range(1, 12);
 
@@ -216,7 +216,7 @@ async function comboCoach() {
   // the switch calls (:669) and the encouragement quotes (:510). They come from the
   // strike and combo pools, which other sweeps and the bank inventory cover.
   return [
-    { feature: 'Fight Mode', name: 'Combo Coach round intro (discipline, round 1-12, cadence 2.0-8.0 in tenths)', lines: intro },
+    { feature: 'Fight Mode', name: 'Combo Coach round intro (discipline, round 1-12, cadence 2-8 in half seconds)', lines: intro },
     { feature: 'Fight Mode', name: 'Combo Coach multiple-opponents round announce', lines: [...multi] },
     { feature: 'Fight Mode', name: 'Combo Coach count-in, rush, rest and closing calls', lines: fixed },
   ];

@@ -141,7 +141,7 @@ export default function ComboCoachSetup({ discipline, onBack, onStart, onPaywall
           <StepperRow label="ROUNDS" value={cfg.rounds} min={1} max={12} step={1} parse={toInt} onChange={v => set('rounds', v)}/>
           <StepperRow label="ROUND LENGTH" value={cfg.roundMin} min={0.5} max={8} step={0.5} display={fmtMin} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('roundMin', v)}/>
           <StepperRow label="ROUND REST" value={cfg.restSec} unit="S" min={0} max={120} step={5} parse={toInt} onChange={v => set('restSec', v)}/>
-          <StepperRow label="CADENCE" value={cfg.cadenceSec} unit="S" min={2} max={8} step={0.5} display={v => v.toFixed(1)} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('cadenceSec', v)}/>
+          <StepperRow label="CADENCE" value={cfg.cadenceSec} unit="S" min={2} max={8} step={0.5} display={v => v.toFixed(1)} editDisplay={v => String(v)} parse={parseFloat} onChange={v => set('cadenceSec', Math.round(v * 2) / 2)}/>
           <TotalRow label="TOTAL" value={`${totalEst} MIN`}/>
         </div>
 
