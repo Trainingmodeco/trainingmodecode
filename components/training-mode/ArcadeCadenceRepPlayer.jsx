@@ -165,7 +165,7 @@ export default function ArcadeCadenceRepPlayer({
     setRestTimer(0);
     const nextLabel = nextTaskTitle || 'the next exercise';
     setAnnouncerText(`Rest ${restSeconds}s. Next: ${nextLabel}`);
-    if (voiceEnabledRef.current) speakAsync(`Rest for ${restSeconds} seconds. Next workout is ${nextLabel}. If you need more rest, pause before the next session.`);
+    if (voiceEnabledRef.current) speakAsync(`Rest for ${restSeconds} seconds. Up next: ${nextLabel}. If you need more rest, pause before the next session.`);
     restRef.current = setInterval(() => {
       if (pausedRef.current) return; // rest can be paused too
       setRestTimer(t => {

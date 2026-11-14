@@ -187,7 +187,10 @@ export function generateSession(s: WeightedSetup): Prescription[] {
 
 /**
  * Build the countdown announcer line, e.g.
- * "3, 2, 1. Stage 5: The Juggernaut. 1 workout. Muscle-ups, 1 of 5 sets, 20 reps! Ready — go!"
+ * "3, 2, 1. Stage 5: The Juggernaut. 1 workout. Muscle-ups. Set 1. 20 reps. Ready, go!"
+ *
+ * Spoken from recorded clips, so each name and number sits in its own sentence ("Set 1." and "20 reps." are clips of
+ * their own) and the recordings meet only at a full stop or a comma.
  */
 export function announcerScript(args: {
   stageNumber: number;
@@ -203,9 +206,9 @@ export function announcerScript(args: {
     const dose = first.duration_sec != null
       ? `${first.duration_sec} seconds`
       : `${first.reps} reps`;
-    doseText = ` ${first.name}, 1 of ${first.sets} sets, ${dose}!`;
+    doseText = ` ${first.name}. Set 1. ${dose}.`;
   }
-  return `3, 2, 1. Stage ${args.stageNumber}: ${args.persona}. ${count} ${workoutWord}.${doseText} Ready — go!`;
+  return `3, 2, 1. Stage ${args.stageNumber}: ${args.persona}. ${count} ${workoutWord}.${doseText} Ready, go!`;
 }
 
 // ── Counting policy ────────────────────────────────────────────────────────

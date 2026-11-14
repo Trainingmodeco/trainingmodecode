@@ -46,7 +46,7 @@
 //             task and for every Back-Balance option (the option label, its
 //             reps, or 10 when it has none: targetReps is `task?.reps || 10`,
 //             ArcadeCadenceRepPlayer.jsx:96);
-//       :168  `Rest for ${restSeconds} seconds. Next workout is ${nextLabel}.
+//       :168  `Rest for ${restSeconds} seconds. Up next: ${nextLabel}.
 //             If you need more rest, pause before the next session.` with the
 //             task's own rest (20 s when it has none, 15 s for a Back-Balance
 //             option) and the title of the task after it, 'Back-Balance Work'
@@ -206,7 +206,7 @@ export default async () => {
         const scalable = blockKey === 'fit' && series.id === 'one-punch-protocol' && stage.stageType === 'cadenceCircuit';
         tasks.forEach((t, i) => {
           const next = tasks[i + 1]?.title; // ArcadeSessionPlayer.jsx:432
-          const restLine = (rest) => `Rest for ${rest} seconds. Next workout is ${next || 'the next exercise'}. If you need more rest, pause before the next session.`; // ArcadeCadenceRepPlayer.jsx:168
+          const restLine = (rest) => `Rest for ${rest} seconds. Up next: ${next || 'the next exercise'}. If you need more rest, pause before the next session.`; // ArcadeCadenceRepPlayer.jsx:168
           const introLine = (title, reps) => `${title || 'Exercise'}. ${reps || 10} reps. On my count.`; // ArcadeCadenceRepPlayer.jsx:153 (title) and :95 (reps)
           if (t.type === 'cadenceReps') {
             const authored = t.reps || 10;

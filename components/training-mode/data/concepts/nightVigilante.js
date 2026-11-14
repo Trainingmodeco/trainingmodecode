@@ -275,7 +275,7 @@ export const NIGHT_VIGILANTE = {
       {
         label: 'MULTIPLE OPPONENTS', focus: 'SWITCH · PIVOT', restSec: 60,
         rounds: [
-          { title: 'Shadow · Footwork and Pivots', prompt: 'Pivot off the line after every combination. Eyes up — see the room.',
+          { title: 'Shadow · Footwork and Pivots', prompt: 'Pivot off the line after every combination. Eyes up, see the room.',
             combos: ['Jab, cross, pivot left', 'Cross, hook, pivot right', 'Jab, low kick, dash out'],
             easyCombos: ['Jab, cross, step, pivot', 'Jab, dash out'] },
           { title: 'Multiple Opponents', prompt: 'Two bags: on switch, pivot to the other bag. One bag or shadow: turn to face the next opponent.',
