@@ -223,9 +223,13 @@ export function watchFor(move, discipline, shadowClips = []) {
   if (!move) return null;
   if (move.tutorialUrl) return { src: move.tutorialUrl, poster: move.tutorialUrl.replace(/\.mp4$/i, '.webp'), kind: 'tutorial' };
   const d = known(discipline);
-  const clips = (Array.isArray(shadowClips) ? shadowClips : []).filter((c) => c && c.discipline === d && c.videoUrl);
+  const every = (Array.isArray(shadowClips) ? shadowClips : []).filter((c) => c && c.videoUrl);
+  const clips = every.filter((c) => c.discipline === d);
   const want = plain(move.name);
-  const clip = clips.find((c) => plain(c.title) === want) || (move.kind === 'STANCE' ? stanceClip(clips, d) : null);
+  // A shared punch is the same punch in every style: with no clip filed under this style, the Boxing clip
+  // (or any other style's) of the same name is the one to watch.
+  const borrowed = () => every.find((c) => c.discipline === 'Boxing' && plain(c.title) === want) || every.find((c) => plain(c.title) === want);
+  const clip = clips.find((c) => plain(c.title) === want) || (move.kind === 'STANCE' ? stanceClip(clips, d) : null) || (move.shared ? borrowed() : null) || null;
   return clip ? { src: clip.videoUrl, poster: clip.posterUrl || '', kind: 'clip' } : null;
 }
 
