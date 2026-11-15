@@ -411,6 +411,14 @@ entry 2026-11-14) and `components/training-mode/data/shadowboxing.js`.
    levels and discipline tabs need no re-encode: change them in the editor,
    then `npm run shadow -- build` (it renames a retitled clip's files and
    writes the list again, encoding nothing), `check`, and hand off.
+   **The pull request's gates.** Its Netlify deploy preview (linked in its
+   checks) is ready in about a minute and is the production build of the
+   branch: compare its `static/practice/shadow/index.json` with
+   `exports/shadow/app/index.json` before a merge. Its `checks` run takes
+   about 50 minutes, the production smoke test last; the smoke test's Practice
+   checks bring their own clip lists, so a delivery does not change them. A
+   new push to `app` cancels the `checks` run in progress on `app`, not a pull
+   request's.
    Once it is merged, the next `git pull` in the checkout stops on the
    delivered copy (untracked files in the way of the same files arriving):
    delete `../trainingmodecode/public/static/practice/shadow/` first, then
