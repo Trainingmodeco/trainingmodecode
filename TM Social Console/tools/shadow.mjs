@@ -4,19 +4,25 @@
 //
 //   npm run shadow -- scan        add new clips to shadow/manifest.json (labels from
 //                                 shadow/seed-*.csv, else what you said on camera via Whisper)
+//   npm run shadow -- split "<long video>" [--disc "Muay Thai+Kickboxing"] [--group Teeps] [--into <folder>] [--dry]
+//                                 one long take of many moves → 12–40 s parts in raw-footage/<folder>/
 //   npm run shadow -- build       previews for the editor + the app's 720p videos,
 //                                 posters and index.json in exports/shadow/app/
 //                                 [--jobs 3] [--only <file>] [--force]
 //   npm run shadow -- edit        the clip editor: http://localhost:4610
 //                                 (label, trim, framing, poster; rebuild one clip)
 //   npm run shadow -- status      what's labelled, built, waiting
+//   npm run shadow -- check       looks at every app video: the right clip under each name, as
+//                                 long as its trim, 720p, muted, and index.json matching the manifest
 //   npm run shadow -- deliver     copy exports/shadow/app/ into the app checkout's
 //                                 public/static/practice/shadow/ (to preview the app locally)
-//   npm run shadow -- handoff --push
+//   npm run shadow -- handoff --push [--note "<a line for the log entry>"]
 //                                 the app chat's route (HANDOFF.md): a
 //                                 claude/console-handoff-<date>-shadowboxing branch cut
 //                                 from origin/app with only those files, pushed to GitHub.
 //                                 Owner's OK first: the repo is public.
+//                                 --commit instead of --push makes the branch in the app
+//                                 checkout without pushing, to look at it first.
 //
 // The app's format is documented in components/training-mode/data/shadowboxing.js
 // on the app branch: <name>.mp4 (720p, ~1 MB per 25 s, muted), <name>.webp
@@ -52,6 +58,8 @@ const WHISPER_EXE = path.join(ROOT, 'whisper.cpp', process.platform === 'win32' 
 const WHISPER_MODEL = path.join(ROOT, 'whisper.cpp', 'ggml-base.en.bin');
 const PORT = Number(process.env.TM_SHADOW_PORT || 4610);
 const PRACTICE_INDEX = path.join(ROOT, 'exports', '_practice_index', 'practice_index.csv');
+// The handoff commit's co-author line: whichever chat runs the handoff sets its own with TM_COAUTHOR.
+const COAUTHOR = process.env.TM_COAUTHOR || 'Claude Fable 5.2 <noreply@anthropic.com>';
 
 export const DISCIPLINES = ['Boxing', 'Kickboxing', 'Muay Thai', 'MMA'];
 export const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
@@ -236,12 +244,12 @@ async function scan() {
     const info = await probe(file);
     const name = path.posix.basename(key).toLowerCase();
     const seed = seeds.get(name);
-    let heard = heardIdx.get(name) ?? '';
+    let heard = seed?.heard || heardIdx.get(name) || '';
     if (!seed && !heard) { heard = await hear(file); listened++; }
     const comment = [seed?.comment, seed?.comment2].filter(Boolean).join(' · ');
     const clip = {
       key, batch: path.posix.dirname(key) === '.' ? '' : path.posix.dirname(key), ...info,
-      heard, guess: seed ? '' : guessTitle(heard), comment,
+      heard, guess: seed?.title ? '' : guessTitle(heard), comment,
       include: seed ? !/^(no|n|false|0)$/i.test(seed.include) : true,
       disciplines: (seed?.disciplines || '').split('+').map(normDiscipline).filter(Boolean),
       group: seed?.group || '', title: seed?.title || '', level: LEVELS.find((l) => l.toLowerCase() === (seed?.level || '').toLowerCase()) || '',
@@ -256,6 +264,122 @@ async function scan() {
   console.log(`\n${fresh.length} new clip(s)${listened ? `, ${listened} labelled from what you said on camera` : ''}. ${m.clips.length} in the manifest.`);
   if (gone.length) console.log(`${gone.length} clip(s) in the manifest are no longer in raw-footage/: ${gone.slice(0, 5).map(nameOf).join(', ')}${gone.length > 5 ? '…' : ''}`);
   return m;
+}
+
+// ─── long takes: split into clips ────────────────────────────────────────────
+// A long recording of many moves becomes parts of 12–40 s: a cut wherever you
+// call a move out (Whisper), else at the stillest moment in the window. Video
+// is copied as-is (no quality loss); sound becomes AAC (camera PCM won't fit an
+// MP4). The original is only read. Parts land in raw-footage/<folder>/ with a
+// seed CSV (discipline, group, what was heard), then scan adds them.
+
+// Copy [a, b] of a file into its own clip.
+async function cutCopy(src, a, b, out) {
+  fs.mkdirSync(path.dirname(out), { recursive: true });
+  const tmp = `${out}.part.mp4`;
+  await run('ffmpeg', ['-v', 'error', '-y', '-ss', String(round(a, 3)), '-i', src, '-t', String(round(b - a, 3)),
+    '-map', '0:v:0', '-map', '0:a:0?', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', '-avoid_negative_ts', 'make_zero', tmp]);
+  fs.renameSync(tmp, out);
+}
+
+// Whisper over the whole take, with times (cached per file).
+async function transcribeLong(src, cache) {
+  if (exists(cache)) return readJson(cache);
+  if (!exists(WHISPER_EXE) || !exists(WHISPER_MODEL)) return [];
+  const wav = cache.replace(/\.json$/, '.wav');
+  await run('ffmpeg', ['-v', 'error', '-y', '-i', src, '-vn', '-ac', '1', '-ar', '16000', wav]);
+  await run(WHISPER_EXE, ['-m', WHISPER_MODEL, '-f', wav, '-t', String(Math.min(12, os.cpus().length)), '-np', '-oj', '-of', cache.replace(/\.json$/, '')]);
+  fs.rmSync(wav, { force: true });
+  return readJson(cache);
+}
+const spoken = (j) => (j?.transcription ?? []).map((s) => ({ t: s.offsets.from / 1000, text: s.text.replace(/\[[^\]]*\]|\([^)]*\)/g, '').trim() }))
+  .filter((s) => /[A-Za-z]{2,}/.test(s.text));
+
+// How much changes frame to frame, 5 times a second, smoothed over a second.
+async function motionSeries(src) {
+  const W = 96, H = 54, P = W * H, FPS = 5;
+  const { stdout } = await run('ffmpeg', ['-v', 'error', '-i', src, '-an', '-vf', `fps=${FPS},scale=${W}:${H}:flags=area,format=gray`, '-f', 'rawvideo', '-'], { capture: true });
+  const n = Math.floor(stdout.length / P);
+  const e = [0];
+  for (let i = 1; i < n; i++) { let s = 0; for (let k = 0; k < P; k++) s += Math.abs(stdout[i * P + k] - stdout[(i - 1) * P + k]); e.push(s / P); }
+  return { fps: FPS, e: e.map((_, i) => { let s = 0, c = 0; for (let j = Math.max(0, i - 2); j <= Math.min(n - 1, i + 2); j++) { s += e[j]; c++; } return s / c; }) };
+}
+
+async function splitLong(file, { into, disciplines = '', group = '', min = 12, max = 40, dry = false } = {}) {
+  const src = path.resolve(file);
+  if (!exists(src)) throw new Error(`Not found: ${src}`);
+  if (src.startsWith(RAW + path.sep) && !path.relative(RAW, src).split(path.sep).some((p) => p.startsWith('_'))) {
+    throw new Error('Keep the long original outside raw-footage/ (or in a folder starting with _), or scan would add it as one clip.');
+  }
+  const info = await probe(src);
+  const prefix = slugify(path.basename(src).replace(VIDEO_EXT, ''));
+  const folder = into || `${path.basename(src).replace(VIDEO_EXT, '')} (split)`;
+  fs.mkdirSync(path.join(OUT, 'split'), { recursive: true });
+  console.log(`${path.basename(src)}: ${Math.round(info.duration)} s. Listening for call-outs…`);
+  const calls = spoken(await transcribeLong(src, path.join(OUT, 'split', `${prefix}.json`)));
+  console.log(`${calls.length} call-out(s). Measuring movement…`);
+  const { fps, e } = await motionSeries(src);
+  const cuts = [0];
+  let cur = 0;
+  while (info.duration - cur > max) {
+    const lo = cur + min, hi = cur + max;
+    const call = calls.find((c) => c.t - 0.3 >= lo && c.t - 0.3 <= hi);
+    let t = hi, best = Infinity;
+    if (call) t = call.t - 0.3;
+    else for (let i = Math.ceil(lo * fps); i <= Math.floor(hi * fps) && i < e.length; i++) if (e[i] < best) { best = e[i]; t = i / fps; }
+    cuts.push(round(t, 2));
+    cur = t;
+  }
+  if (cuts.length > 1 && info.duration - cuts[cuts.length - 1] < 6) cuts.pop();
+  const parts = cuts.map((a, i) => ({ a, b: i + 1 < cuts.length ? cuts[i + 1] : info.duration }))
+    .map((p, i) => ({ ...p, name: `${prefix}-${String(i + 1).padStart(2, '0')}.mp4`, heard: calls.filter((c) => c.t >= p.a - 0.3 && c.t < p.b - 0.3).map((c) => c.text).join(' · ') }));
+  const clock2 = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  for (const p of parts) console.log(`  ${p.name}  ${clock2(p.a)}–${clock2(p.b)}  (${Math.round(p.b - p.a)} s)${p.heard ? `  heard "${p.heard.slice(0, 50)}"` : ''}`);
+  if (dry) { console.log(`\n${parts.length} parts (dry run: nothing written).`); return; }
+  const dir = path.join(RAW, folder);
+  let i = 0;
+  for (const p of parts) {
+    const out = path.join(dir, p.name);
+    if (!exists(out)) await cutCopy(src, p.a, p.b, out);
+    process.stdout.write(`\r  cut ${++i}/${parts.length}`);
+  }
+  const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const rows = parts.map((p) => [p.name, 'yes', disciplines, group, '', '', `part of ${path.basename(src)} from ${clock2(p.a)} to ${clock2(p.b)}`, '', p.heard].map(q).join(','));
+  fs.writeFileSync(path.join(SHADOW, `seed-split-${prefix}.csv`), ['file,include,disciplines,group,title,level,comment,comment2,heard', ...rows].join('\n') + '\n');
+  console.log(`\n${parts.length} parts in raw-footage/${folder}/. Adding them…`);
+  await scan();
+}
+
+// The editor's "Split here": two new clips from one, the old entry kept but hidden.
+async function splitClip(key, at) {
+  const m0 = loadManifest();
+  const c = m0.clips.find((x) => x.key === key);
+  if (!c || c.split) throw new Error('no such clip');
+  const t = round(Number(at), 2);
+  if (!(t >= 1 && t <= c.duration - 1)) throw new Error('Split at least 1 s from either end');
+  const dir = path.posix.dirname(c.key), name = path.posix.basename(c.key).replace(VIDEO_EXT, '');
+  const keyFor = (s) => (dir === '.' ? `${name}${s}.mp4` : `${dir}/${name}${s}.mp4`);
+  const made = [];
+  for (const [a, b, s] of [[0, t, 'a'], [t, c.duration, 'b']]) {
+    let k = keyFor(s);
+    for (let n = 2; exists(path.join(RAW, ...k.split('/'))) || m0.clips.some((x) => x.key === k); n++) k = keyFor(`${s}${n}`);
+    await cutCopy(srcOf(c), a, b, path.join(RAW, ...k.split('/')));
+    made.push(k);
+  }
+  const m = loadManifest(); // fresh: you may have typed while it cut
+  const orig = m.clips.find((x) => x.key === key);
+  orig.split = true; orig.include = false; orig.splitAt = t;
+  for (const k of made) {
+    const info = await probe(path.join(RAW, ...k.split('/')));
+    m.clips.push({
+      key: k, batch: orig.batch, ...info, heard: orig.heard, guess: orig.guess || '', comment: [orig.comment, `split from ${name} at ${t} s`].filter(Boolean).join(' · '),
+      include: true, disciplines: orig.disciplines ?? [], group: orig.group ?? '', title: orig.title ?? '', level: orig.level ?? '', note: '',
+      in: null, out: null, poster: null, frame: null, added: new Date().toISOString(), from: key,
+    });
+  }
+  m.clips.sort((x, y) => x.key.localeCompare(y.key));
+  saveManifest(m);
+  return made;
 }
 
 // ─── motion analysis: auto trim, auto framing, poster moment ────────────────
@@ -536,6 +660,58 @@ function status() {
   if (need.length) console.log(`need a label: ${need.slice(0, 12).map((r) => nameOf(r.c)).join(', ')}${need.length > 12 ? '…' : ''}`);
 }
 
+// ─── check ───────────────────────────────────────────────────────────────────
+// Is every app video the clip its name says, cut as the manifest says, and is
+// index.json the list the manifest asks for? `status` only compares records: a
+// file renamed under the wrong clip once put a 38 s video behind a 6 s move and
+// status still read "up to date". Run before deliver; handoff runs it itself.
+async function probeApp(file) {
+  const { stdout } = await run('ffprobe', ['-v', 'error', '-show_entries', 'stream=codec_type,width,height:format=duration', '-of', 'json', file], { capture: true });
+  const j = JSON.parse(stdout.toString() || '{}');
+  const v = j.streams?.find((s) => s.codec_type === 'video') ?? {};
+  return { duration: Number(j.format?.duration ?? 0), width: v.width || 0, height: v.height || 0, audio: !!j.streams?.some((s) => s.codec_type === 'audio') };
+}
+
+async function check({ quiet = false } = {}) {
+  const m = loadManifest();
+  const slugs = slugMap(m);
+  const index = readJson(path.join(D.app, 'index.json'))?.clips ?? [];
+  const listed = new Set(index.map((c) => c.video));
+  const problems = [];
+  const ready = m.clips.filter((c) => slugs.has(c.key));
+  await pool(ready, 4, async (c) => {
+    const slug = slugs.get(c.key);
+    const say = (what) => problems.push(`${slug} (${nameOf(c)}): ${what}`);
+    if (/\b(bad|wrong|false)\s+(take|start)\b/i.test(c.title)) say(`its title "${c.title.trim()}" reads like a note to yourself: leave it out of the app, or give it the move's name`);
+    if (!exists(srcOf(c))) { say('its footage is no longer in raw-footage/'); return; }
+    const b = readJson(builtFile(c));
+    const video = path.join(D.app, `${slug}.mp4`), poster = path.join(D.app, `${slug}.webp`);
+    const e = effective(c);
+    if (!b || b.slug !== slug || !exists(video) || !exists(poster) || b.hash !== appHash(c, e)) { say('not built since its last edit: npm run shadow -- build'); return; }
+    const redo = `npm run shadow -- build --only ${nameOf(c)} --force`;
+    if (fs.statSync(video).size !== b.bytes) { say(`the file under this name is not the one built for it: ${redo}`); return; }
+    const v = await probeApp(video);
+    if (Math.abs(v.duration - (e.out - e.in)) > 0.25) say(`the video runs ${v.duration.toFixed(1)} s but its trim is ${(e.out - e.in).toFixed(1)} s: ${redo}`);
+    if (v.width !== 1280 || v.height !== 720 || v.audio) say(`the video is ${v.width}×${v.height}${v.audio ? ' with sound' : ''}, not 1280×720 muted: ${redo}`);
+    if (!listed.has(`${slug}.mp4`)) say('missing from index.json: npm run shadow -- index');
+  });
+  const want = new Set(ready.map((c) => `${slugs.get(c.key)}.mp4`));
+  const ids = new Set();
+  for (const e of index) {
+    if (ids.has(e.id)) problems.push(`index.json lists the id ${e.id} twice: npm run shadow -- index`);
+    ids.add(e.id);
+    if (!want.has(e.video)) problems.push(`index.json still lists ${e.video}, which the manifest no longer sends to the app: npm run shadow -- index`);
+  }
+  const unlabelled = m.clips.filter((c) => c.include && !isReady(c));
+  const found = [...new Set(problems)].sort(); // a clip in two disciplines is listed twice
+  if (found.length) console.log(found.map((p) => `  ✗ ${p}`).join('\n'));
+  if (!quiet || found.length) {
+    console.log(`${found.length ? `${found.length} problem(s)` : 'All good'}: ${ready.length} clips for the app, ${index.length} entries in index.json.${
+      unlabelled.length ? ` ${unlabelled.length} ticked for the app still need a label and are not in it: ${unlabelled.slice(0, 6).map(nameOf).join(', ')}${unlabelled.length > 6 ? '…' : ''}.` : ''}`);
+  }
+  return found.length === 0;
+}
+
 function mirror(from, to) {
   fs.mkdirSync(to, { recursive: true });
   const want = new Set(fs.readdirSync(from).filter((f) => !f.includes('.part.')));
@@ -559,23 +735,27 @@ function deliver(to) {
   console.log(`${target}\n${r.copied} copied, ${r.removed} removed, ${r.total} files in place.`);
 }
 
-function handoff({ push }) {
+function handoff({ push, commit, note }) {
   const git = (args, cwd = REPO) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
   if (!exists(path.join(REPO, '.git'))) throw new Error(`No app checkout at ${REPO}`);
   const index = readJson(path.join(D.app, 'index.json'));
   if (!index?.clips?.length) throw new Error('Nothing built yet: npm run shadow -- build');
   const files = fs.readdirSync(D.app).filter((f) => !f.includes('.part.'));
   const mb = files.reduce((s, f) => s + fs.statSync(path.join(D.app, f)).size, 0) / 1e6;
-  const date = new Date().toISOString().slice(0, 10);
-  if (!push) {
-    console.log(`Would push ${index.clips.length} entries (${files.length} files, ${mb.toFixed(0)} MB) on claude/console-handoff-${date}-shadowboxing, cut from origin/app, with a HANDOFF.md log entry. Run with --push once the owner says yes.`);
+  const videos = new Set(index.clips.map((c) => c.video)).size; // a clip in two disciplines is one video, two entries
+  // Today on this PC's calendar, not UTC: an evening handoff must not be dated tomorrow.
+  const now = new Date();
+  const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  if (!push && !commit) {
+    console.log(`Would push ${videos} clips (${index.clips.length} entries, ${files.length} files, ${mb.toFixed(0)} MB) on claude/console-handoff-${date}-shadowboxing, cut from origin/app, with a HANDOFF.md log entry. Run with --commit to make that branch here and look at it first, or with --push once the owner says yes.`);
     return;
   }
   git(['fetch', 'origin', 'app']);
   let branch = `claude/console-handoff-${date}-shadowboxing`;
   for (let n = 2; git(['ls-remote', '--heads', 'origin', branch]); n++) branch = `claude/console-handoff-${date}-shadowboxing-${n}`;
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tm-shadow-handoff-'));
-  git(['worktree', 'add', '-q', '-b', branch, dir, 'origin/app']);
+  // -B: a branch of this name left here by an earlier --commit run starts again from origin/app.
+  git(['worktree', 'add', '-q', '-B', branch, dir, 'origin/app']);
   try {
     const r = mirror(D.app, APP_SHADOW(dir));
     execFileSync('node', ['scripts/lock-assets.mjs', '--write'], { cwd: dir, stdio: 'inherit' });
@@ -583,9 +763,10 @@ function handoff({ push }) {
     const handoffMd = path.join(dir, 'HANDOFF.md');
     if (exists(handoffMd)) {
       const entry = [`### ${date} · console → app · Shadowboxing clips (\`${branch}\`)`, '',
-        `- **Delivered:** ${index.clips.length} entries in \`public/static/practice/shadow/index.json\` (${per}), 720p muted H.264 with .webp posters, ${mb.toFixed(0)} MB. Assets only, per the format in the log entry below.`,
+        `- **Delivered:** ${videos} clips as ${index.clips.length} entries in \`public/static/practice/shadow/index.json\` (${per}), 720p muted H.264 with .webp posters, ${mb.toFixed(0)} MB. Assets only, per the format in the log entry below.`,
         '- **Made locally** on the owner\'s PC by `TM Social Console/tools/shadow.mjs` (scan → label/trim/frame in the clip editor → build → handoff). Clips in two disciplines are one video with two entries (`<slug>--<discipline>` ids).',
-        '- **Not linked** to Technique Library entries or lessons (no `videoUrl` changes).', '', ''];
+        '- **Not linked** to Technique Library entries or lessons (no `videoUrl` changes).',
+        ...(note ? [`- **Note:** ${String(note).replace(/\s+/g, ' ').trim()}`] : []), '', ''];
       // Git for Windows checks files out with CRLF: match either, and write the entry the same way.
       const md = fs.readFileSync(handoffMd, 'utf8');
       const eol = md.includes('\r\n') ? '\r\n' : '\n';
@@ -595,9 +776,17 @@ function handoff({ push }) {
       fs.writeFileSync(handoffMd, md.slice(0, cut) + entry.join(eol) + md.slice(cut));
     }
     git(['add', '-A'], dir);
-    git(['commit', '-q', '-m', `Console handoff ${date}: ${index.clips.length} shadowboxing clips for Practice\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`], dir);
-    git(['push', '-u', 'origin', branch], dir);
-    console.log(`Pushed ${branch} (${r.total} files). The app chat (or the owner) merges it into app.`);
+    // A PC with no git identity signs as the repo's other commits do.
+    let me = '';
+    try { me = git(['config', 'user.email'], dir); } catch { /* not set */ }
+    const ident = me ? [] : ['-c', 'user.name=Claude', '-c', 'user.email=noreply@anthropic.com'];
+    git([...ident, 'commit', '-q', '-m', `Console handoff ${date}: ${videos} shadowboxing clips for Practice (${index.clips.length} entries)\n\nCo-Authored-By: ${COAUTHOR}`], dir);
+    if (push) {
+      git(['push', '-u', 'origin', branch], dir);
+      console.log(`Pushed ${branch} (${r.total} files). The app chat (or the owner) merges it into app.`);
+    } else {
+      console.log(`Committed ${branch} in ${REPO} (${r.total} files). Not pushed.\n  look:  git -C "${REPO}" show --stat ${branch}\n  push:  git -C "${REPO}" push -u origin ${branch}   (owner's OK first: the repo is public)`);
+    }
   } finally {
     try { git(['worktree', 'remove', '--force', dir]); } catch { /* left for git worktree prune */ }
   }
@@ -699,6 +888,13 @@ function serve({ open = false } = {}) {
         json(res, 200, await done);
         return;
       }
+      if (p === '/api/split' && req.method === 'POST') {
+        const made = await splitClip(url.searchParams.get('key'), url.searchParams.get('t'));
+        for (const k of made) queue.push({ key: k, resolve() {}, reject() {} }); // previews follow in the background
+        pump();
+        json(res, 200, { made });
+        return;
+      }
       const media = /^\/media\/(proxy|thumbs|app)\/(.+)$/.exec(p);
       if (media && req.method === 'GET') {
         const f = inside(D[media[1]], media[2]);
@@ -722,12 +918,25 @@ const has = (name) => rest.includes(name);
 try {
   if (cmd === 'scan') await scan();
   else if (cmd === 'build') await build({ only: opt('--only'), jobs: Number(opt('--jobs') || 3), force: has('--force') });
+  else if (cmd === 'split') {
+    const file = rest.find((a, i) => !a.startsWith('--') && !(rest[i - 1] || '').startsWith('--'));
+    if (!file) throw new Error('usage: npm run shadow -- split "<long video>" [--disc "Muay Thai+Kickboxing"] [--group Teeps] [--into "<folder>"] [--min 12] [--max 40] [--dry]');
+    await splitLong(file, { into: opt('--into'), disciplines: opt('--disc') || '', group: opt('--group') || '', min: Number(opt('--min') || 12), max: Number(opt('--max') || 40), dry: has('--dry') });
+  }
   else if (cmd === 'index') console.log(`${writeIndex().length} entries in exports/shadow/app/index.json`);
   else if (cmd === 'status') status();
   else if (cmd === 'deliver') deliver(opt('--to'));
-  else if (cmd === 'handoff') handoff({ push: has('--push') });
+  else if (cmd === 'check') { if (!(await check())) process.exitCode = 1; }
+  else if (cmd === 'handoff') {
+    // Nothing leaves this PC unchecked: the list is made again from the manifest, then every video is looked at.
+    if (has('--push') || has('--commit')) {
+      writeIndex();
+      if (!(await check({ quiet: true }))) throw new Error('Not handed off: fix what is listed above, then run it again.');
+    }
+    handoff({ push: has('--push'), commit: has('--commit'), note: opt('--note') });
+  }
   else if (cmd === 'edit') serve({ open: has('--open') });
-  else { console.log('npm run shadow -- scan | build [--jobs 3] [--only <file>] [--force] | edit | status | deliver [--to <folder>] | handoff [--push]'); process.exitCode = 1; }
+  else { console.log('npm run shadow -- scan | split "<long video>" [--disc …] [--group …] [--dry] | build [--jobs 3] [--only <file>] [--force] | edit | status | check | deliver [--to <folder>] | handoff [--commit | --push] [--note "…"]'); process.exitCode = 1; }
 } catch (err) {
   console.error(err.message);
   process.exitCode = 1;

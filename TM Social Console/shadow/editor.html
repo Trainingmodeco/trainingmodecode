@@ -102,6 +102,7 @@ h1 span { color: var(--gold); }
       <button class="chip" data-f="app">For the app</button>
       <button class="chip" data-f="out">Left out</button>
       <select class="chip" id="disc" aria-label="Discipline"><option value="">Every discipline</option></select>
+      <select class="chip" id="grp" aria-label="Group"><option value="">Every group</option></select>
       <input class="search" id="q" type="search" placeholder="Search title, group, file…" aria-label="Search">
     </div>
   </header>
@@ -120,9 +121,11 @@ const store = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? 
 let S = { clips: [], disciplines: [], levels: [], groups: {}, building: [] };
 let filter = store.get('tm-shadow-filter', 'all');
 let disc = store.get('tm-shadow-disc', '');
+let grp = store.get('tm-shadow-group', '');
 let query = '';
 let sel = decodeURIComponent(location.hash.slice(1)) || null;
-let appView = false;
+let wantApp = store.get('tm-shadow-view', 'full') === 'app'; // stays on from clip to clip
+let appView = false; // what this clip shows: the app version only when it's built
 let pending = null, saving = false;
 
 async function api(path, opts = {}) {
@@ -142,25 +145,28 @@ const replace = (c) => { const i = S.clips.findIndex((x) => x.key === c.key); if
 function visible() {
   const q = query.trim().toLowerCase();
   return S.clips.filter((c) => {
+    if (c.split) return false; // replaced by its two parts
     if (filter === 'need' && !c.needsLabel) return false;
     if (filter === 'app' && !c.ready) return false;
     if (filter === 'out' && c.include) return false;
     if (disc && !(c.disciplines || []).includes(disc)) return false;
+    if (grp && (c.group || '').trim().toLowerCase() !== grp) return false;
     if (q && ![c.title, c.group, c.name, c.heard, c.comment, c.guess].join(' ').toLowerCase().includes(q)) return false;
     return true;
   });
 }
 
 function renderStats() {
-  const n = (f) => S.clips.filter(f).length;
-  const ready = S.clips.filter((c) => c.ready);
+  const all = S.clips.filter((c) => !c.split);
+  const n = (f) => all.filter(f).length;
+  const ready = all.filter((c) => c.ready);
   const mb = ready.reduce((s, c) => s + (c.app?.bytes || 0), 0) / 1e6;
   $('#stats').innerHTML = [
-    `<span class="pill"><b>${S.clips.length}</b> clips</span>`,
+    `<span class="pill"><b>${all.length}</b> clips</span>`,
     `<span class="pill"><b>${ready.length}</b> for the app</span>`,
     `<span class="pill" style="border-color:rgba(242,190,69,.6)"><b>${n((c) => c.needsLabel)}</b> need a label</span>`,
     `<span class="pill"><b>${n((c) => c.app?.upToDate)}</b>/${ready.length} built · ${mb.toFixed(0)} MB</span>`,
-    `<span class="pill"><b>${n((c) => c.preview)}</b>/${S.clips.length} previews</span>`,
+    `<span class="pill"><b>${n((c) => c.preview)}</b>/${all.length} previews</span>`,
     S.building.length ? `<span class="pill" style="color:var(--gold)">building…</span>` : '',
   ].join('');
   document.querySelectorAll('[data-f]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.f === filter)));
@@ -191,6 +197,7 @@ function renderList() {
 function renderMain() {
   const c = cur();
   if (!c) { $('#main').innerHTML = '<div class="empty">No clips yet. Drop footage in raw-footage/ and run <b>npm run shadow -- scan</b>.</div>'; return; }
+  appView = wantApp && !!c.app;
   const e = c.effective;
   const groupsAll = [...new Set(Object.values(S.groups).flat())].sort();
   $('#groups').innerHTML = groupsAll.map((g) => `<option value="${esc(g)}">`).join('');
@@ -217,7 +224,8 @@ function renderMain() {
           <button class="btn" id="setIn">Start here <span class="kbd">I</span></button>
           <button class="btn" id="setOut">End here <span class="kbd">O</span></button>
           <button class="btn" id="setPoster">Poster here <span class="kbd">P</span></button>
-          <button class="btn" id="resetTrim" ${c.in == null && c.out == null ? 'disabled' : ''}>Auto trim</button>`}
+          <button class="btn" id="resetTrim" ${c.in == null && c.out == null ? 'disabled' : ''}>Auto trim</button>
+          <button class="btn" id="splitHere" title="Two moves in one clip? Split it at the playhead into two clips">Split here <span class="kbd">S</span></button>`}
           <span class="sep"></span>
           <div class="switch" role="group" aria-label="Which video">
             <button id="viewFull" aria-pressed="${!appView}">Full clip</button>
@@ -248,7 +256,7 @@ function renderMain() {
         <div class="status" id="st"></div>
       </section>
     </div>
-    <div class="keys">Keys: Space play · I start · O end · P poster · ← → 1 s (Shift 0.1 s) · J next · K previous · A app version. Changes save as you go; the build uses them.</div>`;
+    <div class="keys">Keys: Space play · I start · O end · P poster · S split here · ← → 1 s (Shift 0.1 s) · J next · K previous · A app version. Changes save as you go; the build uses them.</div>`;
   wire(c);
 }
 
@@ -293,13 +301,30 @@ function wire(c) {
   $('#play').onclick = () => v && (v.paused ? v.play() : v.pause());
   $('#prev').onclick = () => step(-1);
   $('#next').onclick = () => step(1);
-  $('#viewFull').onclick = () => { appView = false; renderMain(); };
-  $('#viewApp').onclick = () => { if (c.app) { appView = true; renderMain(); } };
+  $('#viewFull').onclick = () => { wantApp = false; store.set('tm-shadow-view', 'full'); renderMain(); };
+  $('#viewApp').onclick = () => { if (c.app) { wantApp = true; store.set('tm-shadow-view', 'app'); renderMain(); } };
   if ($('#tl')) $('#tl').onclick = (ev) => { if (!v) return; const r = ev.currentTarget.getBoundingClientRect(); v.currentTime = ((ev.clientX - r.left) / r.width) * c.duration; };
   if ($('#setIn')) $('#setIn').onclick = () => v && save({ in: +v.currentTime.toFixed(2), ...(e && v.currentTime >= e.out - 0.5 ? { out: null } : {}) });
   if ($('#setOut')) $('#setOut').onclick = () => v && save({ out: +v.currentTime.toFixed(2) });
   if ($('#setPoster')) $('#setPoster').onclick = () => v && save({ poster: +v.currentTime.toFixed(2) });
   if ($('#resetTrim')) $('#resetTrim').onclick = () => save({ in: null, out: null, poster: null });
+  if ($('#splitHere')) $('#splitHere').onclick = async () => {
+    if (!v) return;
+    const t = +v.currentTime.toFixed(2);
+    if (t < 1 || t > c.duration - 1) { setStatus('Move the playhead at least 1 s from either end to split.', true); return; }
+    v.pause();
+    await flush();
+    setStatus(`Splitting at ${clock(t)}…`);
+    $('#splitHere').disabled = true;
+    try {
+      const { made } = await api(`/api/split?key=${encodeURIComponent(c.key)}&t=${t}`, { method: 'POST' });
+      S = await api('/api/state');
+      sel = made[0];
+      history.replaceState(null, '', `#${encodeURIComponent(sel)}`);
+      renderAll();
+      setStatus(`Split into ${made.map((k) => k.split('/').pop()).join(' and ')}. Their previews are on the way (about a minute).`);
+    } catch (err) { setStatus(`Not split: ${err.message}`, true); $('#splitHere').disabled = false; }
+  };
   if ($('#resetFrame')) $('#resetFrame').onclick = () => save({ frame: null });
   const zoom = $('#zoom');
   if (zoom) {
@@ -347,7 +372,7 @@ async function flush() {
     const key = sel;
     const c = await api(`/api/clip?key=${encodeURIComponent(key)}`, { method: 'PUT', body: JSON.stringify(patch) });
     replace(c);
-    renderStats(); renderList();
+    renderStats(); renderGroups(); renderList();
     if (key === sel) {
       // keep focus and typing where they are; refresh the parts that follow from the save
       const t = document.activeElement?.id;
@@ -381,18 +406,31 @@ async function buildIt() {
 function select(key) {
   if (!key || key === sel) return;
   flush();
-  sel = key; appView = false;
+  sel = key;
   history.replaceState(null, '', `#${encodeURIComponent(key)}`);
   renderList(); renderMain();
   $(`.row[data-k="${CSS.escape(key)}"]`)?.scrollIntoView({ block: 'nearest' });
 }
 function step(d) { const list = visible(); const i = list.findIndex((c) => c.key === sel); const n = list[(i + d + list.length) % list.length]; if (n) select(n.key); }
-function renderAll() { renderStats(); renderList(); renderMain(); }
+// The Group menu: every heading in use (Knees, Teeps, Hooks…), in shoot order, with a count.
+function renderGroups() {
+  const seen = new Map();
+  for (const c of S.clips) {
+    if (c.split || !c.group?.trim()) continue;
+    const k = c.group.trim().toLowerCase();
+    if (!seen.has(k)) seen.set(k, { label: c.group.trim(), n: 0 });
+    seen.get(k).n++;
+  }
+  if (grp && !seen.has(grp)) grp = '';
+  $('#grp').innerHTML = `<option value="">Every group</option>` + [...seen].map(([k, g]) => `<option value="${esc(k)}" ${k === grp ? 'selected' : ''}>${esc(g.label)} (${g.n})</option>`).join('');
+}
+function renderAll() { renderStats(); renderGroups(); renderList(); renderMain(); }
 
 $('#list').addEventListener('click', (ev) => { const b = ev.target.closest('.row'); if (b) select(b.dataset.k); });
 document.querySelectorAll('[data-f]').forEach((b) => { b.onclick = () => { filter = b.dataset.f; store.set('tm-shadow-filter', filter); renderStats(); renderList(); }; });
 $('#disc').innerHTML += ['Boxing', 'Kickboxing', 'Muay Thai', 'MMA'].map((d) => `<option ${d === disc ? 'selected' : ''}>${d}</option>`).join('');
 $('#disc').onchange = (ev) => { disc = ev.target.value; store.set('tm-shadow-disc', disc); renderList(); };
+$('#grp').onchange = (ev) => { grp = ev.target.value; store.set('tm-shadow-group', grp); renderList(); const v = visible(); if (v.length && !v.some((c) => c.key === sel)) select(v[0].key); };
 $('#q').oninput = (ev) => { query = ev.target.value; renderList(); };
 document.addEventListener('keydown', (ev) => {
   if (ev.target.closest('input, select, textarea') || ev.ctrlKey || ev.metaKey || ev.altKey) return;
@@ -402,9 +440,10 @@ document.addEventListener('keydown', (ev) => {
   else if (k === 'i') $('#setIn')?.click();
   else if (k === 'o') $('#setOut')?.click();
   else if (k === 'p') $('#setPoster')?.click();
+  else if (k === 's') $('#splitHere')?.click();
   else if (k === 'j') step(1);
   else if (k === 'k') step(-1);
-  else if (k === 'a') { const c = cur(); if (c?.app) { appView = !appView; renderMain(); } }
+  else if (k === 'a') { const c = cur(); if (c?.app) { wantApp = !appView; store.set('tm-shadow-view', wantApp ? 'app' : 'full'); renderMain(); } }
   else if (k === 'arrowright' && v) { ev.preventDefault(); v.currentTime = Math.min(v.duration, v.currentTime + (ev.shiftKey ? 0.1 : 1)); }
   else if (k === 'arrowleft' && v) { ev.preventDefault(); v.currentTime = Math.max(0, v.currentTime - (ev.shiftKey ? 0.1 : 1)); }
 });

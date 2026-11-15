@@ -348,6 +348,21 @@ entry 2026-11-14) and `components/training-mode/data/shadowboxing.js`.
 1. **Drop** a shoot's clips in `raw-footage/<shoot name>/` (folders starting
    with `_` are skipped). Saying the move's name at the start of each clip
    lets Whisper label it.
+   **One long take of many moves** stays outside `raw-footage/` (e.g. `../TM
+   Social Console folder/`): `npm run shadow -- split "<file>" --disc
+   "Muay Thai+Kickboxing" --group Teeps [--into "<folder>"] [--dry]` cuts it
+   into 12–40 s parts in `raw-footage/<folder>/` (a cut at every move called
+   out, else at the stillest moment; video copied, sound to AAC), writes
+   `shadow/seed-split-<name>.csv` and scans. In the editor, **Split here** (S)
+   cuts a part that still holds two moves; the old entry is kept, hidden
+   (`split: true`).
+   **The owner's call (2026-11-14): Shadowboxing uses only the Nov 13 set**,
+   `../TM Social Console folder/Shadowbox training mode practice mode/` (141
+   clips, also in the `.zip` beside it; `raw-footage/Shadowbox training mode
+   practice mode/` is an identical copy). The long takes in that folder
+   (`all punches in kickbox.MP4`, `teeps.MP4` = `C0406.MP4`, `all elboe
+   strikes.mp4`) are too blurry: they were split once and removed again. Don't
+   use them.
 2. `npm run shadow -- scan` adds new clips to `shadow/manifest.json`. First
    labels come from `shadow/seed-*.csv` if one names the file, else from
    what was said on camera (a guess the owner confirms).
@@ -360,13 +375,36 @@ entry 2026-11-14) and `components/training-mode/data/shadowboxing.js`.
 4. `npm run shadow:edit` opens the clip editor (http://localhost:4610): title,
    discipline tab(s), group, level, note, in/out, poster, framing; "Build this
    clip" re-encodes just that one. A clip in two disciplines is one video with
-   two index entries.
-5. `npm run shadow -- deliver` copies the build into the app checkout
-   (`../trainingmodecode/public/static/practice/shadow/`) to preview the app
-   locally (`npm run dev:web` there).
-6. `npm run shadow -- handoff --push` **only after the owner says yes** (the
-   repo is public): branch `claude/console-handoff-<date>-shadowboxing` from
-   `origin/app` with only those files, the image lock and a HANDOFF.md log entry.
+   two index entries. A link the owner sends,
+   `http://localhost:4610/#<folder>/<file>.mp4`, is that clip open in the
+   editor (the part after `#` is its key in the manifest). The editor runs the
+   code it started with: restart it after `tools/shadow.mjs` changes.
+5. **When the owner says the edits are done:** `npm run shadow -- build` (their
+   last trims), then `npm run shadow -- check`. Check looks at every app video
+   (the right clip under each name, as long as its trim, 720p, muted) and at
+   `index.json` against the manifest; `status` only compares records and has
+   missed a wrong video. Read the labels too: the owner marks a bad take by
+   typing "bad take" as the title and can forget **Left out** (check flags
+   those), and a clip with a title but no discipline tab stays out of the app.
+   Fix those through the running editor, so its open page and the file agree
+   (`PUT /api/clip?key=<key>` with `{"include":false}` or
+   `{"disciplines":["Boxing"]}`), and tell the owner each one.
+6. `npm run shadow -- deliver` copies the build into the app checkout
+   (`../trainingmodecode/public/static/practice/shadow/`). There: `npm run -s
+   test:shadow` (the app's own test reads the delivered list), then look at
+   Fight Mode › Practice › SHADOWBOXING in the app (`npm run dev:web`; a fresh
+   browser needs an athlete first: the `seedPage` keys in `tools/app-broll.mjs`).
+7. `npm run shadow -- handoff --push --note "<what the app chat should know>"`
+   **only after the owner says yes** (the repo is public). It runs check again
+   and refuses on a problem, then pushes
+   `claude/console-handoff-<date>-shadowboxing`, cut from `origin/app`, with
+   only those files, the image lock and a HANDOFF.md log entry. `--commit`
+   instead of `--push` makes the branch in the checkout without pushing, to
+   look first (`git show --stat <branch>`, then `git push -u origin <branch>`).
+   Then open the pull request into `app` (`gh pr create --base app`), as #16
+   and #17 were: the owner or the app chat merges it, and Netlify puts it in
+   the app. Every handoff carries the whole set, so a later batch of edits is a
+   new branch and pull request that replaces an earlier one still open.
 
 `shadow/manifest.json` is the owner's work (labels, trims, framing): keep it.
 Everything in `exports/shadow/` can be deleted and rebuilt. Titles are
@@ -380,6 +418,35 @@ chat) merge into. Before working: `git -C ../trainingmodecode pull`, then read
 its `HANDOFF.md` (*Needs* and the newest *Log* entries). Send work back the
 same way: a `claude/console-handoff-*` branch plus a HANDOFF.md log line. The
 app's code belongs to the app chat; don't edit it from here.
+
+**The console's own code on the laptop.** This folder on the laptop is a plain
+copy, not a git checkout. Its code reaches the console branch as a commit made
+from `../trainingmodecode` (a temporary index and `git commit-tree`, so that
+checkout stays on `app`); the branch's changes come back by merging each file
+here. Before changing `tools/shadow.mjs` or `shadow/editor.html` on the laptop,
+compare them with the branch (`git -C ../trainingmodecode fetch origin`, then
+`git -C ../trainingmodecode show "origin/claude/training-mode-social-console-zfcf8f:TM
+Social Console/tools/shadow.mjs"`), and push laptop changes back the same day.
+On 2026-11-14 the two had drifted apart: a fix that was only on the branch (a
+retitle renaming another clip's files) put the wrong video under a clip's name
+in the laptop's build. `shadow/manifest.json` and `shadow/seed-*.csv` stay on
+the laptop (the owner's call for the manifest, 2026-11-14: it holds what was
+said on camera).
+
+**Where the tools find the app on the laptop.** The tools that read the app's
+facts (`npm run sync`, `app-broll`, `sync-broll`, `test:sync`, the sync sheets)
+and `tools/shadow.mjs` use `../trainingmodecode` when it is a git checkout
+(`REPO` in `tools/lib.mjs`; `TM_APP_REPO` overrides). The parent folder itself
+holds an old unzipped copy of the app (October): never read or edit it.
+`npm run app-video` and `npm run handoff` (the tutorials' delivery) still
+expect the console inside the repo: run those from a checkout of the console
+branch, not from this folder.
+
+**Desktop sessions.** A Claude session opened in the parent folder (`TM APP
+2026`, where the pinned chats live) starts the clip editor and the app preview
+by name: `shadow-editor` (port 4610) and `app-web` (port 8081, the app from
+`trainingmodecode`) in that folder's `.claude/launch.json`. The map of what
+each folder and branch is sits in that folder's `CLAUDE.md`.
 
 ## Cloud vs laptop
 
