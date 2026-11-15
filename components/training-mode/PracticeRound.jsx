@@ -24,9 +24,15 @@ const V = '#B794FF', MUTED = '#A9A3C4';
 const CSS = `
 @keyframes pr-call-in { from { opacity: 0; transform: scale(1.18) } to { opacity: 1; transform: none } }
 .pr-hit { transition: border-color .18s ease, color .18s ease, filter .18s ease; }
-.pr-hit:hover, .pr-hit:focus-visible { border-color: ${GOLD} !important; }
-.pr-back:hover, .pr-back:focus-visible { color: ${GOLD} !important; }
-.pr-gold:hover, .pr-gold:focus-visible { filter: brightness(1.1); }
+.pr-hit:focus-visible { border-color: ${GOLD} !important; }
+.pr-back:focus-visible { color: ${GOLD} !important; }
+.pr-gold:focus-visible { filter: brightness(1.1); }
+/* Only with a pointer: on a phone the button under the last tap would stay lit. */
+@media (hover: hover) {
+  .pr-hit:hover { border-color: ${GOLD} !important; }
+  .pr-back:hover { color: ${GOLD} !important; }
+  .pr-gold:hover { filter: brightness(1.1); }
+}
 .pr-done { scrollbar-width: thin; scrollbar-color: rgba(183,148,255,.35) transparent; }
 /* A short phone keeps the picture and the call; the coaching cue steps aside. */
 @media (max-height: 620px) { .pr-cue { display: none !important; } }
