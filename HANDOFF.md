@@ -50,6 +50,13 @@ and the app chat doesn't edit `TM Social Console/`.
 
 ## Log
 
+### 2026-11-14 · console → app · Shadowboxing clips (`claude/console-handoff-2026-11-14-shadowboxing`)
+
+- **Delivered:** 125 clips as 172 entries in `public/static/practice/shadow/index.json` (Boxing 62, Kickboxing 47, Muay Thai 52, MMA 11), 720p muted H.264 with .webp posters, 57 MB. Assets only, per the format in the log entry below.
+- **Made locally** on the owner's PC by `TM Social Console/tools/shadow.mjs` (scan → label/trim/frame in the clip editor → build → handoff). Clips in two disciplines are one video with two entries (`<slug>--<discipline>` ids).
+- **Not linked** to Technique Library entries or lessons (no `videoUrl` changes).
+- **Note:** From the owner's Nov 13 shoot, trimmed, framed and labelled by the owner in the clip editor (20 more clips of that shoot are left out: false starts, second takes, bad takes, and two originals replaced by their split parts). This answers the open *Needs* line "App needs from the console, shadowboxing": strike it on merge. Checked before the push: `npm run test:shadow` passes on the delivery (172 of 172 entries usable, every video and poster in the folder), every video is 1280x720 H.264 with no audio track and as long as its trim, and in the app run locally (Expo web) the Shadowboxing screen lists Boxing 62, Kickboxing 47, Muay Thai 52, MMA 11 and plays a clip. Three titles show twice under Kickboxing, in different groups (Jab, Cross, Lead Hook: the Boxing clip shared into Kickboxing plus a Kickboxing take): the owner's labels, delivered as they are.
+
 ### 2026-11-14 · app → console · Shadowboxing section in Practice (format for the delivery)
 
 - **Where.** Fight Mode › Practice shows a SHADOWBOXING row (under the

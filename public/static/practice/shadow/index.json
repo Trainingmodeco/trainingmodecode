@@ -1,0 +1,1606 @@
+{
+  "clips": [
+    {
+      "id": "boxing-l-turn",
+      "discipline": "Boxing",
+      "group": "Footwork",
+      "title": "L Turn",
+      "video": "boxing-l-turn.mp4",
+      "seconds": 6,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-l-turn--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Footwork",
+      "title": "L Turn",
+      "video": "boxing-l-turn.mp4",
+      "seconds": 6,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-stance",
+      "discipline": "Boxing",
+      "group": "Stance & Guard",
+      "title": "Boxing Stance",
+      "video": "boxing-stance.mp4",
+      "seconds": 25,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-peek-a-boo-stance",
+      "discipline": "Boxing",
+      "group": "Stance & Guard",
+      "title": "Peek-a-boo Stance",
+      "video": "boxing-peek-a-boo-stance.mp4",
+      "seconds": 35,
+      "level": "Intermediate",
+      "note": "Boxing style made popular by iron mike, high guard and bent knees. Requires explosive movement and striking"
+    },
+    {
+      "id": "boxing-bladed-and-pendulum-stance",
+      "discipline": "Boxing",
+      "group": "Stance & Guard",
+      "title": "Bladed and Pendulum Stance",
+      "video": "boxing-bladed-and-pendulum-stance.mp4",
+      "seconds": 19,
+      "level": "Intermediate",
+      "note": "Soviet Boxing style, shifting weight from rear to lead foot in bladed stance"
+    },
+    {
+      "id": "boxing-philly-shell",
+      "discipline": "Boxing",
+      "group": "Stance & Guard",
+      "title": "Philly Shell",
+      "video": "boxing-philly-shell.mp4",
+      "seconds": 35,
+      "level": "Advanced",
+      "note": "Make popular by Floyd Maywhether, counter styled boxing stance"
+    },
+    {
+      "id": "boxing-fight-footwork",
+      "discipline": "Boxing",
+      "group": "Footwork",
+      "title": "Fight Footwork",
+      "video": "boxing-fight-footwork.mp4",
+      "seconds": 55,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-fight-footwork--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Footwork",
+      "title": "Fight Footwork",
+      "video": "boxing-fight-footwork.mp4",
+      "seconds": 55,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-fight-footwork--muay-thai",
+      "discipline": "Muay Thai",
+      "group": "Footwork",
+      "title": "Fight Footwork",
+      "video": "boxing-fight-footwork.mp4",
+      "seconds": 55,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-fight-footwork--mma",
+      "discipline": "MMA",
+      "group": "Footwork",
+      "title": "Fight Footwork",
+      "video": "boxing-fight-footwork.mp4",
+      "seconds": 55,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-l-turn-drill",
+      "discipline": "Boxing",
+      "group": "Footwork",
+      "title": "L Turn Drill",
+      "video": "boxing-l-turn-drill.mp4",
+      "seconds": 16,
+      "level": "Intermediate"
+    },
+    {
+      "id": "boxing-l-turn-drill--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Footwork",
+      "title": "L Turn Drill",
+      "video": "boxing-l-turn-drill.mp4",
+      "seconds": 16,
+      "level": "Intermediate"
+    },
+    {
+      "id": "boxing-cut-turn",
+      "discipline": "Boxing",
+      "group": "Footwork",
+      "title": "Cut Turn",
+      "video": "boxing-cut-turn.mp4",
+      "seconds": 11,
+      "level": "Intermediate"
+    },
+    {
+      "id": "boxing-cut-turn--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Footwork",
+      "title": "Cut Turn",
+      "video": "boxing-cut-turn.mp4",
+      "seconds": 11,
+      "level": "Intermediate"
+    },
+    {
+      "id": "boxing-shifting",
+      "discipline": "Boxing",
+      "group": "Footwork",
+      "title": "Shifting",
+      "video": "boxing-shifting.mp4",
+      "seconds": 15,
+      "level": "Advanced",
+      "note": "Explosive angle movement"
+    },
+    {
+      "id": "boxing-shifting--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Footwork",
+      "title": "Shifting",
+      "video": "boxing-shifting.mp4",
+      "seconds": 15,
+      "level": "Advanced",
+      "note": "Explosive angle movement"
+    },
+    {
+      "id": "boxing-shuffle-steps",
+      "discipline": "Boxing",
+      "group": "Footwork",
+      "title": "Shuffle Steps",
+      "video": "boxing-shuffle-steps.mp4",
+      "seconds": 8,
+      "level": "Advanced"
+    },
+    {
+      "id": "boxing-switch-stance",
+      "discipline": "Boxing",
+      "group": "Footwork",
+      "title": "Switch Stance",
+      "video": "boxing-switch-stance.mp4",
+      "seconds": 10,
+      "level": "Intermediate",
+      "note": "Changing fighting stance"
+    },
+    {
+      "id": "boxing-switch-stance--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Footwork",
+      "title": "Switch Stance",
+      "video": "boxing-switch-stance.mp4",
+      "seconds": 10,
+      "level": "Intermediate",
+      "note": "Changing fighting stance"
+    },
+    {
+      "id": "boxing-switch-stance--muay-thai",
+      "discipline": "Muay Thai",
+      "group": "Footwork",
+      "title": "Switch Stance",
+      "video": "boxing-switch-stance.mp4",
+      "seconds": 10,
+      "level": "Intermediate",
+      "note": "Changing fighting stance"
+    },
+    {
+      "id": "boxing-slip",
+      "discipline": "Boxing",
+      "group": "Defense",
+      "title": "Slip",
+      "video": "boxing-slip.mp4",
+      "seconds": 18,
+      "level": "Beginner",
+      "note": "Step out at angle and slight lean torso to side"
+    },
+    {
+      "id": "boxing-duck",
+      "discipline": "Boxing",
+      "group": "Defense",
+      "title": "Duck",
+      "video": "boxing-duck.mp4",
+      "seconds": 23,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-bob-and-weave",
+      "discipline": "Boxing",
+      "group": "Defense",
+      "title": "Bob & Weave",
+      "video": "boxing-bob-and-weave.mp4",
+      "seconds": 29,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-jab",
+      "discipline": "Boxing",
+      "group": "Jab",
+      "title": "Jab",
+      "video": "boxing-jab.mp4",
+      "seconds": 11
+    },
+    {
+      "id": "boxing-jab--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Jab",
+      "title": "Jab",
+      "video": "boxing-jab.mp4",
+      "seconds": 11
+    },
+    {
+      "id": "boxing-jab--muay-thai",
+      "discipline": "Muay Thai",
+      "group": "Jab",
+      "title": "Jab",
+      "video": "boxing-jab.mp4",
+      "seconds": 11
+    },
+    {
+      "id": "boxing-jab--mma",
+      "discipline": "MMA",
+      "group": "Jab",
+      "title": "Jab",
+      "video": "boxing-jab.mp4",
+      "seconds": 11
+    },
+    {
+      "id": "boxing-jab-to-the-body",
+      "discipline": "Boxing",
+      "group": "Jab",
+      "title": "Jab to the Body",
+      "video": "boxing-jab-to-the-body.mp4",
+      "seconds": 6,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-flicker-jab",
+      "discipline": "Boxing",
+      "group": "Jab",
+      "title": "Flicker Jab",
+      "video": "boxing-flicker-jab.mp4",
+      "seconds": 11,
+      "level": "Intermediate",
+      "note": "Whip style jab, throwing from the elbow, good in Philly shell style"
+    },
+    {
+      "id": "boxing-stiff-jab",
+      "discipline": "Boxing",
+      "group": "Jab",
+      "title": "Stiff Jab",
+      "video": "boxing-stiff-jab.mp4",
+      "seconds": 13,
+      "level": "Beginner",
+      "note": "Stiff meant to keep distance or blind opponent from incoming strike"
+    },
+    {
+      "id": "boxing-stiff-jab--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Jab",
+      "title": "Stiff Jab",
+      "video": "boxing-stiff-jab.mp4",
+      "seconds": 13,
+      "level": "Beginner",
+      "note": "Stiff meant to keep distance or blind opponent from incoming strike"
+    },
+    {
+      "id": "boxing-power-jab",
+      "discipline": "Boxing",
+      "group": "Jab",
+      "title": "Power Jab",
+      "video": "boxing-power-jab.mp4",
+      "seconds": 11,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-power-jab--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Jab",
+      "title": "Power Jab",
+      "video": "boxing-power-jab.mp4",
+      "seconds": 11,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-cuban-jab",
+      "discipline": "Boxing",
+      "group": "Jab",
+      "title": "Cuban Jab",
+      "video": "boxing-cuban-jab.mp4",
+      "seconds": 8,
+      "level": "Advanced",
+      "note": "Wrist in narrow to pierce through guard"
+    },
+    {
+      "id": "boxing-cuban-jab--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Jab",
+      "title": "Cuban Jab",
+      "video": "boxing-cuban-jab.mp4",
+      "seconds": 8,
+      "level": "Advanced",
+      "note": "Wrist in narrow to pierce through guard"
+    },
+    {
+      "id": "boxing-corkscrew-jab",
+      "discipline": "Boxing",
+      "group": "Jab",
+      "title": "Corkscrew Jab",
+      "video": "boxing-corkscrew-jab.mp4",
+      "seconds": 10,
+      "level": "Intermediate",
+      "note": "Jab with full rotation to generate power and break through guard"
+    },
+    {
+      "id": "boxing-corkscrew-jab--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Jab",
+      "title": "Corkscrew Jab",
+      "video": "boxing-corkscrew-jab.mp4",
+      "seconds": 10,
+      "level": "Intermediate",
+      "note": "Jab with full rotation to generate power and break through guard"
+    },
+    {
+      "id": "boxing-cross",
+      "discipline": "Boxing",
+      "group": "Cross",
+      "title": "Cross",
+      "video": "boxing-cross.mp4",
+      "seconds": 16,
+      "level": "Beginner",
+      "note": "Rear strike, generate power from twisting rear foot"
+    },
+    {
+      "id": "boxing-cross--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Cross",
+      "title": "Cross",
+      "video": "boxing-cross.mp4",
+      "seconds": 16,
+      "level": "Beginner",
+      "note": "Rear strike, generate power from twisting rear foot"
+    },
+    {
+      "id": "boxing-cross--muay-thai",
+      "discipline": "Muay Thai",
+      "group": "Cross",
+      "title": "Cross",
+      "video": "boxing-cross.mp4",
+      "seconds": 16,
+      "level": "Beginner",
+      "note": "Rear strike, generate power from twisting rear foot"
+    },
+    {
+      "id": "boxing-cross--mma",
+      "discipline": "MMA",
+      "group": "Cross",
+      "title": "Cross",
+      "video": "boxing-cross.mp4",
+      "seconds": 16,
+      "level": "Beginner",
+      "note": "Rear strike, generate power from twisting rear foot"
+    },
+    {
+      "id": "boxing-cross-to-the-body",
+      "discipline": "Boxing",
+      "group": "Cross",
+      "title": "Cross to the Body",
+      "video": "boxing-cross-to-the-body.mp4",
+      "seconds": 7,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-hammer-cross",
+      "discipline": "Boxing",
+      "group": "Cross",
+      "title": "Hammer Cross",
+      "video": "boxing-hammer-cross.mp4",
+      "seconds": 11,
+      "level": "Intermediate",
+      "note": "Split of a hard cross and a slight overhand. Landing strike on the top knuckles"
+    },
+    {
+      "id": "boxing-power-cross",
+      "discipline": "Boxing",
+      "group": "Cross",
+      "title": "Power Cross",
+      "video": "boxing-power-cross.mp4",
+      "seconds": 8,
+      "level": "Intermediate",
+      "note": "Explosive slight jumping Cross"
+    },
+    {
+      "id": "boxing-power-cross--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Cross",
+      "title": "Power Cross",
+      "video": "boxing-power-cross.mp4",
+      "seconds": 8,
+      "level": "Intermediate",
+      "note": "Explosive slight jumping Cross"
+    },
+    {
+      "id": "boxing-lead-hook",
+      "discipline": "Boxing",
+      "group": "Hooks",
+      "title": "Lead Hook",
+      "video": "boxing-lead-hook.mp4",
+      "seconds": 7,
+      "level": "Beginner",
+      "note": "looping punch to hit side of target"
+    },
+    {
+      "id": "boxing-lead-hook--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Hooks",
+      "title": "Lead Hook",
+      "video": "boxing-lead-hook.mp4",
+      "seconds": 7,
+      "level": "Beginner",
+      "note": "looping punch to hit side of target"
+    },
+    {
+      "id": "boxing-lead-hook--muay-thai",
+      "discipline": "Muay Thai",
+      "group": "Hooks",
+      "title": "Lead Hook",
+      "video": "boxing-lead-hook.mp4",
+      "seconds": 7,
+      "level": "Beginner",
+      "note": "looping punch to hit side of target"
+    },
+    {
+      "id": "boxing-lead-hook-to-the-body",
+      "discipline": "Boxing",
+      "group": "Hooks",
+      "title": "Lead Hook to the Body",
+      "video": "boxing-lead-hook-to-the-body.mp4",
+      "seconds": 6,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-wide-lead-hook",
+      "discipline": "Boxing",
+      "group": "Hooks",
+      "title": "Wide Lead Hook",
+      "video": "boxing-wide-lead-hook.mp4",
+      "seconds": 6,
+      "level": "Intermediate"
+    },
+    {
+      "id": "boxing-close-lead-hook",
+      "discipline": "Boxing",
+      "group": "Hooks",
+      "title": "Close Lead Hook",
+      "video": "boxing-close-lead-hook.mp4",
+      "seconds": 7,
+      "level": "Intermediate"
+    },
+    {
+      "id": "boxing-rear-hook",
+      "discipline": "Boxing",
+      "group": "Hooks",
+      "title": "Rear Hook",
+      "video": "boxing-rear-hook.mp4",
+      "seconds": 8,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-rear-hook-to-the-body",
+      "discipline": "Boxing",
+      "group": "Hooks",
+      "title": "Rear Hook to the Body",
+      "video": "boxing-rear-hook-to-the-body.mp4",
+      "seconds": 9,
+      "level": "Beginner",
+      "note": "Also called shuffle hooks"
+    },
+    {
+      "id": "boxing-wide-rear-hook",
+      "discipline": "Boxing",
+      "group": "Hooks",
+      "title": "Wide Rear Hook",
+      "video": "boxing-wide-rear-hook.mp4",
+      "seconds": 6,
+      "level": "Intermediate"
+    },
+    {
+      "id": "boxing-short-rear-hook",
+      "discipline": "Boxing",
+      "group": "Hooks",
+      "title": "Short Rear Hook",
+      "video": "boxing-short-rear-hook.mp4",
+      "seconds": 7,
+      "level": "Intermediate"
+    },
+    {
+      "id": "boxing-lead-uppercut",
+      "discipline": "Boxing",
+      "group": "Uppercuts",
+      "title": "Lead Uppercut",
+      "video": "boxing-lead-uppercut.mp4",
+      "seconds": 7,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-gazelle-uppercut",
+      "discipline": "Boxing",
+      "group": "Uppercuts",
+      "title": "Gazelle Uppercut",
+      "video": "boxing-gazelle-uppercut.mp4",
+      "seconds": 11,
+      "level": "Advanced"
+    },
+    {
+      "id": "boxing-gazelle-uppercut--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Uppercuts",
+      "title": "Gazelle Uppercut",
+      "video": "boxing-gazelle-uppercut.mp4",
+      "seconds": 11,
+      "level": "Advanced"
+    },
+    {
+      "id": "boxing-wide-uppercut",
+      "discipline": "Boxing",
+      "group": "Uppercuts",
+      "title": "Wide Uppercut",
+      "video": "boxing-wide-uppercut.mp4",
+      "seconds": 7,
+      "level": "Intermediate"
+    },
+    {
+      "id": "boxing-rear-uppercut",
+      "discipline": "Boxing",
+      "group": "Uppercuts",
+      "title": "Rear Uppercut",
+      "video": "boxing-rear-uppercut.mp4",
+      "seconds": 6,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-gazelle-punch-hook",
+      "discipline": "Boxing",
+      "group": "Hooks",
+      "title": "Gazelle Punch (Hook)",
+      "video": "boxing-gazelle-punch-hook.mp4",
+      "seconds": 9,
+      "level": "Advanced"
+    },
+    {
+      "id": "boxing-gazelle-punch-hook--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Hooks",
+      "title": "Gazelle Punch (Hook)",
+      "video": "boxing-gazelle-punch-hook.mp4",
+      "seconds": 9,
+      "level": "Advanced"
+    },
+    {
+      "id": "boxing-rear-gazelle-hook",
+      "discipline": "Boxing",
+      "group": "Hooks",
+      "title": "Rear Gazelle Hook",
+      "video": "boxing-rear-gazelle-hook.mp4",
+      "seconds": 4,
+      "level": "Advanced"
+    },
+    {
+      "id": "boxing-lead-overhand",
+      "discipline": "Boxing",
+      "group": "Overhands",
+      "title": "Lead Overhand",
+      "video": "boxing-lead-overhand.mp4",
+      "seconds": 10,
+      "level": "Intermediate"
+    },
+    {
+      "id": "boxing-rear-overhand",
+      "discipline": "Boxing",
+      "group": "Overhands",
+      "title": "Rear Overhand",
+      "video": "boxing-rear-overhand.mp4",
+      "seconds": 7,
+      "level": "Intermediate"
+    },
+    {
+      "id": "boxing-fang-uppercut",
+      "discipline": "Boxing",
+      "group": "Uppercuts",
+      "title": "Fang Uppercut",
+      "video": "boxing-fang-uppercut.mp4",
+      "seconds": 11,
+      "level": "Advanced"
+    },
+    {
+      "id": "boxing-fang-uppercut--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Uppercuts",
+      "title": "Fang Uppercut",
+      "video": "boxing-fang-uppercut.mp4",
+      "seconds": 11,
+      "level": "Advanced"
+    },
+    {
+      "id": "boxing-fang-uppercut--mma",
+      "discipline": "MMA",
+      "group": "Uppercuts",
+      "title": "Fang Uppercut",
+      "video": "boxing-fang-uppercut.mp4",
+      "seconds": 11,
+      "level": "Advanced"
+    },
+    {
+      "id": "boxing-lead-parry",
+      "discipline": "Boxing",
+      "group": "Defense",
+      "title": "Lead Parry",
+      "video": "boxing-lead-parry.mp4",
+      "seconds": 29,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-catch-straight-punches",
+      "discipline": "Boxing",
+      "group": "Defense",
+      "title": "Catch - Straight Punches",
+      "video": "boxing-catch-straight-punches.mp4",
+      "seconds": 7,
+      "level": "Beginner",
+      "note": "Stopping straight punches"
+    },
+    {
+      "id": "boxing-catch-hooks",
+      "discipline": "Boxing",
+      "group": "Defense",
+      "title": "Catch - Hooks",
+      "video": "boxing-catch-hooks.mp4",
+      "seconds": 6,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-catch",
+      "discipline": "Boxing",
+      "group": "Defense",
+      "title": "Catch",
+      "video": "boxing-catch.mp4",
+      "seconds": 38,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-shell",
+      "discipline": "Boxing",
+      "group": "Defense",
+      "title": "Shell",
+      "video": "boxing-shell.mp4",
+      "seconds": 14,
+      "level": "Beginner",
+      "note": "full frontal coverage from frontal attacks"
+    },
+    {
+      "id": "boxing-blocking-straights",
+      "discipline": "Boxing",
+      "group": "Blocks",
+      "title": "Blocking Straights",
+      "video": "boxing-blocking-straights.mp4",
+      "seconds": 13,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-blocking-hooks",
+      "discipline": "Boxing",
+      "group": "Blocks",
+      "title": "Blocking Hooks",
+      "video": "boxing-blocking-hooks.mp4",
+      "seconds": 13,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-blocking-uppercuts",
+      "discipline": "Boxing",
+      "group": "Blocks",
+      "title": "Blocking Uppercuts",
+      "video": "boxing-blocking-uppercuts.mp4",
+      "seconds": 14,
+      "level": "Intermediate"
+    },
+    {
+      "id": "boxing-blocking-body-shots",
+      "discipline": "Boxing",
+      "group": "Blocks",
+      "title": "Blocking Body Shots",
+      "video": "boxing-blocking-body-shots.mp4",
+      "seconds": 8,
+      "level": "Intermediate"
+    },
+    {
+      "id": "boxing-blocking-body-hooks",
+      "discipline": "Boxing",
+      "group": "Blocks",
+      "title": "Blocking Body Hooks",
+      "video": "boxing-blocking-body-hooks.mp4",
+      "seconds": 12,
+      "level": "Intermediate"
+    },
+    {
+      "id": "boxing-step-back",
+      "discipline": "Boxing",
+      "group": "Footwork",
+      "title": "Step Back",
+      "video": "boxing-step-back.mp4",
+      "seconds": 7,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-step-forward",
+      "discipline": "Boxing",
+      "group": "Footwork",
+      "title": "Step Forward",
+      "video": "boxing-step-forward.mp4",
+      "seconds": 7,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-side-step-left",
+      "discipline": "Boxing",
+      "group": "Footwork",
+      "title": "Side Step Left",
+      "video": "boxing-side-step-left.mp4",
+      "seconds": 5,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-side-step-right",
+      "discipline": "Boxing",
+      "group": "Footwork",
+      "title": "Side Step Right",
+      "video": "boxing-side-step-right.mp4",
+      "seconds": 6,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-lead-pivot",
+      "discipline": "Boxing",
+      "group": "Footwork",
+      "title": "Lead Pivot",
+      "video": "boxing-lead-pivot.mp4",
+      "seconds": 7,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-rear-pivot",
+      "discipline": "Boxing",
+      "group": "Footwork",
+      "title": "Rear Pivot",
+      "video": "boxing-rear-pivot.mp4",
+      "seconds": 8,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-lead-step-right-pivot",
+      "discipline": "Boxing",
+      "group": "Footwork",
+      "title": "Lead Step, Right Pivot",
+      "video": "boxing-lead-step-right-pivot.mp4",
+      "seconds": 9,
+      "level": "Intermediate"
+    },
+    {
+      "id": "boxing-rear-step-left-pivot",
+      "discipline": "Boxing",
+      "group": "Footwork",
+      "title": "Rear Step, Left Pivot",
+      "video": "boxing-rear-step-left-pivot.mp4",
+      "seconds": 10,
+      "level": "Intermediate"
+    },
+    {
+      "id": "boxing-toro-pivot",
+      "discipline": "Boxing",
+      "group": "Footwork",
+      "title": "Toro Pivot",
+      "video": "boxing-toro-pivot.mp4",
+      "seconds": 8,
+      "level": "Advanced"
+    },
+    {
+      "id": "boxing-toro-pivot--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Footwork",
+      "title": "Toro Pivot",
+      "video": "boxing-toro-pivot.mp4",
+      "seconds": 8,
+      "level": "Advanced"
+    },
+    {
+      "id": "kickboxing-stance",
+      "discipline": "Kickboxing",
+      "group": "Stance & Guard",
+      "title": "Kickboxing Stance",
+      "video": "kickboxing-stance.mp4",
+      "seconds": 14,
+      "level": "Beginner"
+    },
+    {
+      "id": "muay-thai-stance",
+      "discipline": "Muay Thai",
+      "group": "Stance & Guard",
+      "title": "Muay Thai Stance",
+      "video": "muay-thai-stance.mp4",
+      "seconds": 14,
+      "level": "Beginner"
+    },
+    {
+      "id": "kickboxing-jab",
+      "discipline": "Kickboxing",
+      "group": "Punches",
+      "title": "Jab",
+      "video": "kickboxing-jab.mp4",
+      "seconds": 8,
+      "level": "Beginner"
+    },
+    {
+      "id": "kickboxing-cross",
+      "discipline": "Kickboxing",
+      "group": "Punches",
+      "title": "Cross",
+      "video": "kickboxing-cross.mp4",
+      "seconds": 8,
+      "level": "Beginner"
+    },
+    {
+      "id": "kickboxing-lead-hook",
+      "discipline": "Kickboxing",
+      "group": "Punches",
+      "title": "Lead Hook",
+      "video": "kickboxing-lead-hook.mp4",
+      "seconds": 6,
+      "level": "Beginner"
+    },
+    {
+      "id": "boxing-japanese-fake-hook",
+      "discipline": "Boxing",
+      "group": "Hooks",
+      "title": "Japanese Fake Hook",
+      "video": "boxing-japanese-fake-hook.mp4",
+      "seconds": 7,
+      "level": "Advanced",
+      "note": "Fake a jab to a Wide Hook"
+    },
+    {
+      "id": "boxing-japanese-fake-hook--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Hooks",
+      "title": "Japanese Fake Hook",
+      "video": "boxing-japanese-fake-hook.mp4",
+      "seconds": 7,
+      "level": "Advanced",
+      "note": "Fake a jab to a Wide Hook"
+    },
+    {
+      "id": "boxing-japanese-fake-hook--muay-thai",
+      "discipline": "Muay Thai",
+      "group": "Hooks",
+      "title": "Japanese Fake Hook",
+      "video": "boxing-japanese-fake-hook.mp4",
+      "seconds": 7,
+      "level": "Advanced",
+      "note": "Fake a jab to a Wide Hook"
+    },
+    {
+      "id": "kickboxing-rear-hook",
+      "discipline": "Kickboxing",
+      "group": "Punches",
+      "title": "Rear Hook",
+      "video": "kickboxing-rear-hook.mp4",
+      "seconds": 9,
+      "level": "Beginner"
+    },
+    {
+      "id": "kickboxing-lead-uppercut",
+      "discipline": "Kickboxing",
+      "group": "Punches",
+      "title": "Lead Uppercut",
+      "video": "kickboxing-lead-uppercut.mp4",
+      "seconds": 5,
+      "level": "Beginner"
+    },
+    {
+      "id": "kickboxing-rear-uppercut",
+      "discipline": "Kickboxing",
+      "group": "Punches",
+      "title": "Rear Uppercut",
+      "video": "kickboxing-rear-uppercut.mp4",
+      "seconds": 7,
+      "level": "Beginner"
+    },
+    {
+      "id": "kickboxing-jab-to-the-body",
+      "discipline": "Kickboxing",
+      "group": "Body Shots",
+      "title": "Jab to the Body",
+      "video": "kickboxing-jab-to-the-body.mp4",
+      "seconds": 7,
+      "level": "Beginner"
+    },
+    {
+      "id": "kickboxing-cross-to-the-body",
+      "discipline": "Kickboxing",
+      "group": "Body Shots",
+      "title": "Cross to the Body",
+      "video": "kickboxing-cross-to-the-body.mp4",
+      "seconds": 13,
+      "level": "Beginner"
+    },
+    {
+      "id": "kickboxing-hooks-to-the-body",
+      "discipline": "Kickboxing",
+      "group": "Body Shots",
+      "title": "Hooks to the Body",
+      "video": "kickboxing-hooks-to-the-body.mp4",
+      "seconds": 9,
+      "level": "Beginner"
+    },
+    {
+      "id": "kickboxing-spinning-back-fist",
+      "discipline": "Kickboxing",
+      "group": "Specials",
+      "title": "Spinning Back Fist",
+      "video": "kickboxing-spinning-back-fist.mp4",
+      "seconds": 6,
+      "level": "Advanced"
+    },
+    {
+      "id": "muay-thai-lead-teep",
+      "discipline": "Muay Thai",
+      "group": "Teeps",
+      "title": "Lead Teep",
+      "video": "muay-thai-lead-teep.mp4",
+      "seconds": 6,
+      "level": "Beginner"
+    },
+    {
+      "id": "muay-thai-lead-teep--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Teeps",
+      "title": "Lead Teep",
+      "video": "muay-thai-lead-teep.mp4",
+      "seconds": 6,
+      "level": "Beginner"
+    },
+    {
+      "id": "muay-thai-push-teep",
+      "discipline": "Muay Thai",
+      "group": "Teeps",
+      "title": "Push Teep",
+      "video": "muay-thai-push-teep.mp4",
+      "seconds": 6,
+      "level": "Beginner"
+    },
+    {
+      "id": "muay-thai-step-teep",
+      "discipline": "Muay Thai",
+      "group": "Teeps",
+      "title": "Step Teep",
+      "video": "muay-thai-step-teep.mp4",
+      "seconds": 7,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-scissor-teep",
+      "discipline": "Muay Thai",
+      "group": "Teeps",
+      "title": "Scissor Teep",
+      "video": "muay-thai-scissor-teep.mp4",
+      "seconds": 5,
+      "level": "Advanced"
+    },
+    {
+      "id": "muay-thai-fake-switch-teep",
+      "discipline": "Muay Thai",
+      "group": "Teeps",
+      "title": "Fake Switch Teep",
+      "video": "muay-thai-fake-switch-teep.mp4",
+      "seconds": 12,
+      "level": "Advanced"
+    },
+    {
+      "id": "muay-thai-jumping-scissor-teep",
+      "discipline": "Muay Thai",
+      "group": "Teeps",
+      "title": "Jumping Scissor Teep",
+      "video": "muay-thai-jumping-scissor-teep.mp4",
+      "seconds": 7,
+      "level": "Advanced"
+    },
+    {
+      "id": "muay-thai-rear-teep",
+      "discipline": "Muay Thai",
+      "group": "Teeps",
+      "title": "Rear Teep",
+      "video": "muay-thai-rear-teep.mp4",
+      "seconds": 8,
+      "level": "Beginner"
+    },
+    {
+      "id": "muay-thai-rear-push-kick",
+      "discipline": "Muay Thai",
+      "group": "Teeps",
+      "title": "Rear Push Kick",
+      "video": "muay-thai-rear-push-kick.mp4",
+      "seconds": 7,
+      "level": "Beginner"
+    },
+    {
+      "id": "muay-thai-scissor-rear-teep",
+      "discipline": "Muay Thai",
+      "group": "Teeps",
+      "title": "Scissor Rear Teep",
+      "video": "muay-thai-scissor-rear-teep.mp4",
+      "seconds": 4,
+      "level": "Advanced"
+    },
+    {
+      "id": "muay-thai-scissor-rear-teep-lead",
+      "discipline": "Muay Thai",
+      "group": "Teeps",
+      "title": "Scissor Rear Teep (lead)",
+      "video": "muay-thai-scissor-rear-teep-lead.mp4",
+      "seconds": 8,
+      "level": "Advanced"
+    },
+    {
+      "id": "muay-thai-explosive-side-teep",
+      "discipline": "Muay Thai",
+      "group": "Teeps",
+      "title": "Explosive Side Teep",
+      "video": "muay-thai-explosive-side-teep.mp4",
+      "seconds": 8,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-fake-roundhouse-to-teep",
+      "discipline": "Muay Thai",
+      "group": "Teeps",
+      "title": "Fake Roundhouse to Teep",
+      "video": "muay-thai-fake-roundhouse-to-teep.mp4",
+      "seconds": 6,
+      "level": "Advanced"
+    },
+    {
+      "id": "muay-thai-teep-to-the-head",
+      "discipline": "Muay Thai",
+      "group": "Teeps",
+      "title": "Teep to the Head",
+      "video": "muay-thai-teep-to-the-head.mp4",
+      "seconds": 6,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-check",
+      "discipline": "Muay Thai",
+      "group": "Kick Defense",
+      "title": "Check",
+      "video": "muay-thai-check.mp4",
+      "seconds": 9,
+      "level": "Beginner"
+    },
+    {
+      "id": "muay-thai-check--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Kick Defense",
+      "title": "Check",
+      "video": "muay-thai-check.mp4",
+      "seconds": 9,
+      "level": "Beginner"
+    },
+    {
+      "id": "muay-thai-check-to-teep",
+      "discipline": "Muay Thai",
+      "group": "Kick Defense",
+      "title": "Check to Teep",
+      "video": "muay-thai-check-to-teep.mp4",
+      "seconds": 6,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-chamber-teep",
+      "discipline": "Muay Thai",
+      "group": "Teeps",
+      "title": "Chamber Teep",
+      "video": "muay-thai-chamber-teep.mp4",
+      "seconds": 18,
+      "level": "Intermediate"
+    },
+    {
+      "id": "kickboxing-rear-side-kick",
+      "discipline": "Kickboxing",
+      "group": "Kicks",
+      "title": "Rear Side Kick",
+      "video": "kickboxing-rear-side-kick.mp4",
+      "seconds": 11,
+      "level": "Intermediate"
+    },
+    {
+      "id": "kickboxing-knee-block",
+      "discipline": "Kickboxing",
+      "group": "Kick Defense",
+      "title": "Knee Block",
+      "video": "kickboxing-knee-block.mp4",
+      "seconds": 10,
+      "level": "Advanced"
+    },
+    {
+      "id": "kickboxing-knee-block--muay-thai",
+      "discipline": "Muay Thai",
+      "group": "Kick Defense",
+      "title": "Knee Block",
+      "video": "kickboxing-knee-block.mp4",
+      "seconds": 10,
+      "level": "Advanced"
+    },
+    {
+      "id": "kickboxing-knee-block--mma",
+      "discipline": "MMA",
+      "group": "Kick Defense",
+      "title": "Knee Block",
+      "video": "kickboxing-knee-block.mp4",
+      "seconds": 10,
+      "level": "Advanced"
+    },
+    {
+      "id": "muay-thai-lead-knee",
+      "discipline": "Muay Thai",
+      "group": "Knees",
+      "title": "Lead Knee",
+      "video": "muay-thai-lead-knee.mp4",
+      "seconds": 3,
+      "level": "Beginner"
+    },
+    {
+      "id": "muay-thai-lead-knee--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Knees",
+      "title": "Lead Knee",
+      "video": "muay-thai-lead-knee.mp4",
+      "seconds": 3,
+      "level": "Beginner"
+    },
+    {
+      "id": "muay-thai-rear-knee",
+      "discipline": "Muay Thai",
+      "group": "Knees",
+      "title": "Rear Knee",
+      "video": "muay-thai-rear-knee.mp4",
+      "seconds": 5,
+      "level": "Beginner"
+    },
+    {
+      "id": "muay-thai-rear-knee--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Knees",
+      "title": "Rear Knee",
+      "video": "muay-thai-rear-knee.mp4",
+      "seconds": 5,
+      "level": "Beginner"
+    },
+    {
+      "id": "muay-thai-scissor-knee",
+      "discipline": "Muay Thai",
+      "group": "Knees",
+      "title": "Scissor Knee",
+      "video": "muay-thai-scissor-knee.mp4",
+      "seconds": 8,
+      "level": "Advanced"
+    },
+    {
+      "id": "muay-thai-hug-knee",
+      "discipline": "Muay Thai",
+      "group": "Knees",
+      "title": "Hug Knee",
+      "video": "muay-thai-hug-knee.mp4",
+      "seconds": 3,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-knee-to-the-head",
+      "discipline": "Muay Thai",
+      "group": "Knees",
+      "title": "Knee to the Head",
+      "video": "muay-thai-knee-to-the-head.mp4",
+      "seconds": 8,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-clinch-knee-to-the-body",
+      "discipline": "Muay Thai",
+      "group": "Clinch",
+      "title": "Clinch Knee to the Body",
+      "video": "muay-thai-clinch-knee-to-the-body.mp4",
+      "seconds": 7,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-knee-drive",
+      "discipline": "Muay Thai",
+      "group": "Knees",
+      "title": "Knee Drive",
+      "video": "muay-thai-knee-drive.mp4",
+      "seconds": 6,
+      "level": "Beginner"
+    },
+    {
+      "id": "muay-thai-swimming-for-the-clinch",
+      "discipline": "Muay Thai",
+      "group": "Clinch",
+      "title": "Swimming for the Clinch",
+      "video": "muay-thai-swimming-for-the-clinch.mp4",
+      "seconds": 69,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-lead-spear-elbow",
+      "discipline": "Muay Thai",
+      "group": "Elbows",
+      "title": "Lead Spear Elbow",
+      "video": "muay-thai-lead-spear-elbow.mp4",
+      "seconds": 6,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-rear-spear-elbow",
+      "discipline": "Muay Thai",
+      "group": "Elbows",
+      "title": "Rear Spear Elbow",
+      "video": "muay-thai-rear-spear-elbow.mp4",
+      "seconds": 5,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-elbow-to-the-body",
+      "discipline": "Muay Thai",
+      "group": "Elbows",
+      "title": "Elbow to the Body",
+      "video": "muay-thai-elbow-to-the-body.mp4",
+      "seconds": 11,
+      "level": "Intermediate",
+      "note": "Throwing elbows to the solar plexus, & ribs"
+    },
+    {
+      "id": "muay-thai-pull-back-elbow",
+      "discipline": "Muay Thai",
+      "group": "Elbows",
+      "title": "Pull-back Elbow",
+      "video": "muay-thai-pull-back-elbow.mp4",
+      "seconds": 10,
+      "level": "Advanced"
+    },
+    {
+      "id": "muay-thai-fake-jab",
+      "discipline": "Muay Thai",
+      "group": "Fakes",
+      "title": "Fake Jab",
+      "video": "muay-thai-fake-jab.mp4",
+      "seconds": 4,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-fake-jab--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Fakes",
+      "title": "Fake Jab",
+      "video": "muay-thai-fake-jab.mp4",
+      "seconds": 4,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-fake-to-big-cross",
+      "discipline": "Muay Thai",
+      "group": "Fakes",
+      "title": "Fake to Big Cross",
+      "video": "muay-thai-fake-to-big-cross.mp4",
+      "seconds": 4,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-fake-to-big-cross--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Fakes",
+      "title": "Fake to Big Cross",
+      "video": "muay-thai-fake-to-big-cross.mp4",
+      "seconds": 4,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-fake-punches",
+      "discipline": "Muay Thai",
+      "group": "Fakes",
+      "title": "Fake Punches",
+      "video": "muay-thai-fake-punches.mp4",
+      "seconds": 14,
+      "level": "Intermediate",
+      "note": "Feint hand strike to confuse opponents"
+    },
+    {
+      "id": "muay-thai-fake-punches--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Fakes",
+      "title": "Fake Punches",
+      "video": "muay-thai-fake-punches.mp4",
+      "seconds": 14,
+      "level": "Intermediate",
+      "note": "Feint hand strike to confuse opponents"
+    },
+    {
+      "id": "muay-thai-fake-roundhouse",
+      "discipline": "Muay Thai",
+      "group": "Fakes",
+      "title": "Fake Roundhouse",
+      "video": "muay-thai-fake-roundhouse.mp4",
+      "seconds": 5,
+      "level": "Intermediate",
+      "note": "Fake action to kick to build opponent's reaction"
+    },
+    {
+      "id": "muay-thai-fake-roundhouse--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Fakes",
+      "title": "Fake Roundhouse",
+      "video": "muay-thai-fake-roundhouse.mp4",
+      "seconds": 5,
+      "level": "Intermediate",
+      "note": "Fake action to kick to build opponent's reaction"
+    },
+    {
+      "id": "muay-thai-fake-switch",
+      "discipline": "Muay Thai",
+      "group": "Fakes",
+      "title": "Fake Switch",
+      "video": "muay-thai-fake-switch.mp4",
+      "seconds": 9,
+      "level": "Intermediate",
+      "note": "Fake action to kick to build opponent's reaction"
+    },
+    {
+      "id": "muay-thai-fake-switch--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Fakes",
+      "title": "Fake Switch",
+      "video": "muay-thai-fake-switch.mp4",
+      "seconds": 9,
+      "level": "Intermediate",
+      "note": "Fake action to kick to build opponent's reaction"
+    },
+    {
+      "id": "muay-thai-fake-teep-to-sliding-elbow",
+      "discipline": "Muay Thai",
+      "group": "Specials",
+      "title": "Fake Teep to Sliding Elbow",
+      "video": "muay-thai-fake-teep-to-sliding-elbow.mp4",
+      "seconds": 16,
+      "level": "Advanced",
+      "note": "Fake a teep to close distance to opponent"
+    },
+    {
+      "id": "kickboxing-low-kick-defense",
+      "discipline": "Kickboxing",
+      "group": "Kick Defense",
+      "title": "Low Kick Defense",
+      "video": "kickboxing-low-kick-defense.mp4",
+      "seconds": 8,
+      "level": "Intermediate",
+      "note": "move lead foot from opponent's low kick"
+    },
+    {
+      "id": "muay-thai-hip-out-vs-roundhouse",
+      "discipline": "Muay Thai",
+      "group": "Kick Defense",
+      "title": "Hip-out vs Roundhouse",
+      "video": "muay-thai-hip-out-vs-roundhouse.mp4",
+      "seconds": 5,
+      "level": "Intermediate",
+      "note": "move body out the way of a incoming roundhouse"
+    },
+    {
+      "id": "muay-thai-check-and-return",
+      "discipline": "Muay Thai",
+      "group": "Kick Defense",
+      "title": "Check and Return",
+      "video": "muay-thai-check-and-return.mp4",
+      "seconds": 7,
+      "level": "Intermediate",
+      "note": "Block the kick and return fire with roundhouse"
+    },
+    {
+      "id": "muay-thai-check-and-return--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Kick Defense",
+      "title": "Check and Return",
+      "video": "muay-thai-check-and-return.mp4",
+      "seconds": 7,
+      "level": "Intermediate",
+      "note": "Block the kick and return fire with roundhouse"
+    },
+    {
+      "id": "muay-thai-teep-parry",
+      "discipline": "Muay Thai",
+      "group": "Kick Defense",
+      "title": "Teep Parry",
+      "video": "muay-thai-teep-parry.mp4",
+      "seconds": 7,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-teep-catch",
+      "discipline": "Muay Thai",
+      "group": "Kick Defense",
+      "title": "Teep Catch",
+      "video": "muay-thai-teep-catch.mp4",
+      "seconds": 7,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-roundhouse-catch",
+      "discipline": "Muay Thai",
+      "group": "Kick Defense",
+      "title": "Roundhouse Catch",
+      "video": "muay-thai-roundhouse-catch.mp4",
+      "seconds": 8,
+      "level": "Intermediate"
+    },
+    {
+      "id": "muay-thai-catch-and-throw",
+      "discipline": "Muay Thai",
+      "group": "Kick Defense",
+      "title": "Catch and Throw",
+      "video": "muay-thai-catch-and-throw.mp4",
+      "seconds": 9,
+      "level": "Advanced",
+      "note": "catch the roundhouse kick, throw away from you"
+    },
+    {
+      "id": "muay-thai-catch-and-return-fire",
+      "discipline": "Muay Thai",
+      "group": "Kick Defense",
+      "title": "Catch and Return Fire",
+      "video": "muay-thai-catch-and-return-fire.mp4",
+      "seconds": 9,
+      "level": "Advanced",
+      "note": "Catch the foot of the kick, throw away and counter kick"
+    },
+    {
+      "id": "muay-thai-catch-and-return-fire--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Kick Defense",
+      "title": "Catch and Return Fire",
+      "video": "muay-thai-catch-and-return-fire.mp4",
+      "seconds": 9,
+      "level": "Advanced",
+      "note": "Catch the foot of the kick, throw away and counter kick"
+    },
+    {
+      "id": "kickboxing-low-roundhouse-kicks",
+      "discipline": "Kickboxing",
+      "group": "Kicks",
+      "title": "Low Roundhouse Kicks",
+      "video": "kickboxing-low-roundhouse-kicks.mp4",
+      "seconds": 10,
+      "level": "Beginner",
+      "note": "kicks to the leg"
+    },
+    {
+      "id": "kickboxing-low-roundhouse-kicks--muay-thai",
+      "discipline": "Muay Thai",
+      "group": "Kicks",
+      "title": "Low Roundhouse Kicks",
+      "video": "kickboxing-low-roundhouse-kicks.mp4",
+      "seconds": 10,
+      "level": "Beginner",
+      "note": "kicks to the leg"
+    },
+    {
+      "id": "kickboxing-low-roundhouse-kicks--mma",
+      "discipline": "MMA",
+      "group": "Kicks",
+      "title": "Low Roundhouse Kicks",
+      "video": "kickboxing-low-roundhouse-kicks.mp4",
+      "seconds": 10,
+      "level": "Beginner",
+      "note": "kicks to the leg"
+    },
+    {
+      "id": "muay-thai-up-roundhouse-kick",
+      "discipline": "Muay Thai",
+      "group": "Kicks",
+      "title": "Up Roundhouse Kick",
+      "video": "muay-thai-up-roundhouse-kick.mp4",
+      "seconds": 8,
+      "level": "Intermediate",
+      "note": "meant to scope out opponent's foot to take off balance and counter"
+    },
+    {
+      "id": "muay-thai-up-roundhouse-kick--kickboxing",
+      "discipline": "Kickboxing",
+      "group": "Kicks",
+      "title": "Up Roundhouse Kick",
+      "video": "muay-thai-up-roundhouse-kick.mp4",
+      "seconds": 8,
+      "level": "Intermediate",
+      "note": "meant to scope out opponent's foot to take off balance and counter"
+    },
+    {
+      "id": "kickboxing-calf-kick-counter-roundhouse-kick",
+      "discipline": "Kickboxing",
+      "group": "Kicks",
+      "title": "Calf Kick + Counter Roundhouse kick",
+      "video": "kickboxing-calf-kick-counter-roundhouse-kick.mp4",
+      "seconds": 14,
+      "level": "Beginner",
+      "note": "kick opponent off balance and counter with roundhouse"
+    },
+    {
+      "id": "kickboxing-calf-kick-counter-roundhouse-kick--muay-thai",
+      "discipline": "Muay Thai",
+      "group": "Kicks",
+      "title": "Calf Kick + Counter Roundhouse kick",
+      "video": "kickboxing-calf-kick-counter-roundhouse-kick.mp4",
+      "seconds": 14,
+      "level": "Beginner",
+      "note": "kick opponent off balance and counter with roundhouse"
+    },
+    {
+      "id": "kickboxing-calf-kick-counter-roundhouse-kick--mma",
+      "discipline": "MMA",
+      "group": "Kicks",
+      "title": "Calf Kick + Counter Roundhouse kick",
+      "video": "kickboxing-calf-kick-counter-roundhouse-kick.mp4",
+      "seconds": 14,
+      "level": "Beginner",
+      "note": "kick opponent off balance and counter with roundhouse"
+    },
+    {
+      "id": "mma-stance",
+      "discipline": "MMA",
+      "group": "Footwork",
+      "title": "MMA Stance",
+      "video": "mma-stance.mp4",
+      "seconds": 20,
+      "level": "Beginner",
+      "note": "Wide stance to defend takedowns."
+    },
+    {
+      "id": "mma-bladed-mma-stance",
+      "discipline": "MMA",
+      "group": "Footwork",
+      "title": "Bladed MMA Stance",
+      "video": "mma-bladed-mma-stance.mp4",
+      "seconds": 8,
+      "note": "Boxing / TKD Style MMA style"
+    },
+    {
+      "id": "mma-level-change-mma",
+      "discipline": "MMA",
+      "group": "Footwork",
+      "title": "Level Change MMA",
+      "video": "mma-level-change-mma.mp4",
+      "seconds": 6,
+      "level": "Intermediate",
+      "note": "Meant to defend from takedowns"
+    },
+    {
+      "id": "mma-sprawl",
+      "discipline": "MMA",
+      "group": "Takedown Defense",
+      "title": "Sprawl",
+      "video": "mma-sprawl.mp4",
+      "seconds": 8,
+      "level": "Beginner",
+      "note": "Defense from Wrestling takedowns"
+    }
+  ]
+}
