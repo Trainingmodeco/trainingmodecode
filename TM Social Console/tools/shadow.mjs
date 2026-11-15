@@ -712,14 +712,17 @@ async function check({ quiet = false } = {}) {
   return found.length === 0;
 }
 
+// The same bytes? Size first (cheap), then the contents. Size and date alone once skipped a changed
+// list: a corrected note kept the file's length, and a fresh checkout is always newer than the build.
+const sameFile = (a, b) => fs.statSync(a).size === fs.statSync(b).size && fs.readFileSync(a).equals(fs.readFileSync(b));
+
 function mirror(from, to) {
   fs.mkdirSync(to, { recursive: true });
   const want = new Set(fs.readdirSync(from).filter((f) => !f.includes('.part.')));
   let copied = 0, removed = 0;
   for (const f of want) {
-    const s = fs.statSync(path.join(from, f));
     const t = path.join(to, f);
-    if (exists(t)) { const ts = fs.statSync(t); if (ts.size === s.size && ts.mtimeMs >= s.mtimeMs) continue; }
+    if (exists(t) && sameFile(path.join(from, f), t)) continue;
     fs.copyFileSync(path.join(from, f), t);
     copied++;
   }
@@ -756,14 +759,19 @@ function handoff({ push, commit, note }) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tm-shadow-handoff-'));
   // -B: a branch of this name left here by an earlier --commit run starts again from origin/app.
   git(['worktree', 'add', '-q', '-B', branch, dir, 'origin/app']);
+  let made = false;
   try {
     const r = mirror(D.app, APP_SHADOW(dir));
     execFileSync('node', ['scripts/lock-assets.mjs', '--write'], { cwd: dir, stdio: 'inherit' });
+    // What this handoff changes on app. The same set again is nothing to send, and gets no log entry.
+    const differ = git(['status', '--porcelain', '--untracked-files=all', '--', 'public/static/practice/shadow'], dir).split('\n').filter(Boolean).length;
+    if (!differ) throw new Error('Nothing to hand off: origin/app already has exactly this set of clips.');
+    const update = differ < r.total ? ` An update: ${differ} of ${r.total} files ${differ === 1 ? 'differs' : 'differ'} from what \`app\` had.` : '';
     const per = DISCIPLINES.map((d) => `${d} ${index.clips.filter((c) => c.discipline === d).length}`).join(', ');
     const handoffMd = path.join(dir, 'HANDOFF.md');
     if (exists(handoffMd)) {
       const entry = [`### ${date} · console → app · Shadowboxing clips (\`${branch}\`)`, '',
-        `- **Delivered:** ${videos} clips as ${index.clips.length} entries in \`public/static/practice/shadow/index.json\` (${per}), 720p muted H.264 with .webp posters, ${mb.toFixed(0)} MB. Assets only, per the format in the log entry below.`,
+        `- **Delivered:** ${videos} clips as ${index.clips.length} entries in \`public/static/practice/shadow/index.json\` (${per}), 720p muted H.264 with .webp posters, ${mb.toFixed(0)} MB. Assets only, in the format the app chat set out in this log (2026-11-14, app → console).${update}`,
         '- **Made locally** on the owner\'s PC by `TM Social Console/tools/shadow.mjs` (scan → label/trim/frame in the clip editor → build → handoff). Clips in two disciplines are one video with two entries (`<slug>--<discipline>` ids).',
         '- **Not linked** to Technique Library entries or lessons (no `videoUrl` changes).',
         ...(note ? [`- **Note:** ${String(note).replace(/\s+/g, ' ').trim()}`] : []), '', ''];
@@ -780,15 +788,21 @@ function handoff({ push, commit, note }) {
     let me = '';
     try { me = git(['config', 'user.email'], dir); } catch { /* not set */ }
     const ident = me ? [] : ['-c', 'user.name=Claude', '-c', 'user.email=noreply@anthropic.com'];
-    git([...ident, 'commit', '-q', '-m', `Console handoff ${date}: ${videos} shadowboxing clips for Practice (${index.clips.length} entries)\n\nCo-Authored-By: ${COAUTHOR}`], dir);
+    const title = differ < r.total
+      ? `Console handoff ${date}: shadowboxing clips updated, ${differ} of ${r.total} files (${videos} clips, ${index.clips.length} entries)`
+      : `Console handoff ${date}: ${videos} shadowboxing clips for Practice (${index.clips.length} entries)`;
+    git([...ident, 'commit', '-q', '-m', `${title}\n\nCo-Authored-By: ${COAUTHOR}`], dir);
+    made = true;
     if (push) {
       git(['push', '-u', 'origin', branch], dir);
-      console.log(`Pushed ${branch} (${r.total} files). The app chat (or the owner) merges it into app.`);
+      console.log(`Pushed ${branch} (${differ} of ${r.total} files changed on app). The app chat (or the owner) merges it into app.`);
     } else {
-      console.log(`Committed ${branch} in ${REPO} (${r.total} files). Not pushed.\n  look:  git -C "${REPO}" show --stat ${branch}\n  push:  git -C "${REPO}" push -u origin ${branch}   (owner's OK first: the repo is public)`);
+      console.log(`Committed ${branch} in ${REPO} (${differ} of ${r.total} files changed on app). Not pushed.\n  look:  git -C "${REPO}" show --stat ${branch}\n  push:  git -C "${REPO}" push -u origin ${branch}   (owner's OK first: the repo is public)`);
     }
   } finally {
     try { git(['worktree', 'remove', '--force', dir]); } catch { /* left for git worktree prune */ }
+    // A handoff that stopped before its commit leaves no empty branch behind.
+    if (!made) try { git(['branch', '-D', branch]); } catch { /* nothing to tidy */ }
   }
 }
 
