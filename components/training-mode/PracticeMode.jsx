@@ -184,7 +184,7 @@ export default function PracticeMode({ openLesson = false, onBack, onComboCoach 
             <div role="progressbar" aria-label="Moves learned" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done} style={{ height: 6, borderRadius: 3, background: 'rgba(255,255,255,.1)', overflow: 'hidden' }}>
               <div style={{ width: `${total ? (done / total) * 100 : 0}%`, height: '100%', borderRadius: 3, background: GOLD, transition: 'width .3s ease' }}/>
             </div>
-            {beginner && upNext && <span data-testid="pm-rule" style={{ fontSize: 12, color: SOFT, lineHeight: 1.3 }}>Drill a move once and Combo Coach starts calling it.</span>}
+            {beginner && upNext && <span data-testid="pm-rule" style={{ fontSize: 12, color: SOFT, lineHeight: 1.3 }}>Drill a strike once and Combo Coach starts calling it.</span>}
           </div>
 
           {upNext ? (

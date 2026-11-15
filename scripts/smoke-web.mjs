@@ -2091,7 +2091,7 @@ await check('practice: the Ladder shows UP NEXT, the progress count and the firs
   await asBeginner(); await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1500);
   await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await S(1200);
   await page.locator('.ft.prac').click(); await S(1500);
-  if (!/Drill a move once and Combo Coach starts calling it\./.test(await text())) throw new Error('a beginner learner does not read the rule');
+  if (!/Drill a strike once and Combo Coach starts calling it\./.test(await text())) throw new Error('a beginner learner does not read the rule');
 }), /PRACTICE MODE/);
 
 // A move with a tutorial (practiceData videoUrl) plays it on its card: Muay Thai › Rear Knee.
@@ -2271,7 +2271,7 @@ await check('practice: a beginner learner\'s Combo Coach calls only jab and cros
     await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1500);
     await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await S(1200);
     await page.locator('.ft.prac').click(); await S(1800);
-    if (!/Drill a move once and Combo Coach starts calling it\./.test(await text())) throw new Error('the rule is not on the Ladder');
+    if (!/Drill a strike once and Combo Coach starts calling it\./.test(await text())) throw new Error('the rule is not on the Ladder');
     await row('shared:lead-hook').click({ timeout: 4000 }); await S(700);
     await page.locator('[data-testid="pm-card"] [data-testid="pm-drill"]').click({ timeout: 4000 }); await S(1500);
     await speedUpDrills(); await drillDone();
