@@ -405,22 +405,27 @@ async function buildClip(clip, slug, { force = false } = {}) {
   const e = effective(clip, a);
   const proxy = proxyFile(clip);
   const needProxy = force || !exists(proxy);
-  const prev = readJson(builtFile(clip));
+  let prev = readJson(builtFile(clip));
   const video = slug && path.join(D.app, `${slug}.mp4`);
   const poster = slug && path.join(D.app, `${slug}.webp`);
   const hash = slug ? appHash(clip, e) : null;
-  // A new title only changes the file name: rename what's built instead of encoding again.
+  // A new title only changes the file name: rename what's built instead of encoding again. Not when
+  // another clip now has the old name (two clips with one title): those files may already be its own.
   if (slug && !force && prev?.hash === hash && prev.slug !== slug && !exists(video)
-      && exists(path.join(D.app, `${prev.slug}.mp4`)) && exists(path.join(D.app, `${prev.slug}.webp`))) {
-    writeJson(builtFile(clip), { ...prev, slug });
-    fs.renameSync(path.join(D.app, `${prev.slug}.mp4`), video);
-    fs.renameSync(path.join(D.app, `${prev.slug}.webp`), poster);
+      && exists(path.join(D.app, `${prev.slug}.mp4`)) && exists(path.join(D.app, `${prev.slug}.webp`))
+      && ![...slugMap(loadManifest()).values()].includes(prev.slug)) {
+    const old = prev.slug;
+    prev = { ...prev, slug };
+    writeJson(builtFile(clip), prev);
+    fs.renameSync(path.join(D.app, `${old}.mp4`), video);
+    fs.renameSync(path.join(D.app, `${old}.webp`), poster);
   }
   const needApp = !!slug && (force || !prev || prev.hash !== hash || prev.slug !== slug || !exists(video) || !exists(poster));
   const c = cropFor(clip, e.frame);
   const appChain = `fps=30,crop=${c.w}:${c.h}:${c.x}:${c.y},scale=1280:720:flags=lanczos,format=yuv420p`;
   const proxyChain = 'fps=30,scale=-2:540:flags=bilinear,format=yuv420p';
-  const tmpProxy = `${proxy}.part.mp4`, tmpVideo = video && `${video}.part.mp4`;
+  // Temp names per process: the editor and a background build (SHADOW EDITOR.bat starts both) can reach one clip together.
+  const tmpProxy = `${proxy}.${process.pid}.part.mp4`, tmpVideo = video && `${video}.${process.pid}.part.mp4`, tmpPoster = poster && `${poster}.${process.pid}.part.webp`;
   const did = [];
 
   if (needProxy && needApp) {
@@ -443,12 +448,12 @@ async function buildClip(clip, slug, { force = false } = {}) {
     await run('ffmpeg', ['-v', 'error', '-y', '-ss', String(round(e.poster - e.in, 3)), '-i', tmpVideo, '-frames:v', '1',
       // RGB in and -q:v: ffmpeg's libwebp ignores -quality (posters came out ~7 KB and blocky) and
       // misreads BT.709 YUV.
-      '-vf', 'scale=960:540:flags=lanczos,format=bgra', '-c:v', 'libwebp', '-q:v', '72', `${poster}.part.webp`]);
+      '-vf', 'scale=960:540:flags=lanczos,format=bgra', '-c:v', 'libwebp', '-q:v', '72', tmpPoster]);
     const bytes = fs.statSync(tmpVideo).size;
     // The record goes first, so a tidy-up running elsewhere never takes the new file for a stray.
     writeJson(builtFile(clip), { slug, hash, seconds: Math.max(1, Math.round(e.out - e.in)), bytes, at: new Date().toISOString() });
     fs.renameSync(tmpVideo, video);
-    fs.renameSync(`${poster}.part.webp`, poster);
+    fs.renameSync(tmpPoster, poster);
     did.push(`app ${(bytes / 1e6).toFixed(1)} MB`);
   }
   return did;
@@ -580,8 +585,14 @@ function handoff({ push }) {
       const entry = [`### ${date} · console → app · Shadowboxing clips (\`${branch}\`)`, '',
         `- **Delivered:** ${index.clips.length} entries in \`public/static/practice/shadow/index.json\` (${per}), 720p muted H.264 with .webp posters, ${mb.toFixed(0)} MB. Assets only, per the format in the log entry below.`,
         '- **Made locally** on the owner\'s PC by `TM Social Console/tools/shadow.mjs` (scan → label/trim/frame in the clip editor → build → handoff). Clips in two disciplines are one video with two entries (`<slug>--<discipline>` ids).',
-        '- **Not linked** to Technique Library entries or lessons (no `videoUrl` changes).', '', ''].join('\n');
-      fs.writeFileSync(handoffMd, fs.readFileSync(handoffMd, 'utf8').replace('## Log\n\n', `## Log\n\n${entry}`));
+        '- **Not linked** to Technique Library entries or lessons (no `videoUrl` changes).', '', ''];
+      // Git for Windows checks files out with CRLF: match either, and write the entry the same way.
+      const md = fs.readFileSync(handoffMd, 'utf8');
+      const eol = md.includes('\r\n') ? '\r\n' : '\n';
+      const at = /## Log\r?\n\r?\n/.exec(md);
+      if (!at) throw new Error('HANDOFF.md has no "## Log" heading: add the log entry by hand.');
+      const cut = at.index + at[0].length;
+      fs.writeFileSync(handoffMd, md.slice(0, cut) + entry.join(eol) + md.slice(cut));
     }
     git(['add', '-A'], dir);
     git(['commit', '-q', '-m', `Console handoff ${date}: ${index.clips.length} shadowboxing clips for Practice\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`], dir);
