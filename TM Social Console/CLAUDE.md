@@ -405,6 +405,10 @@ entry 2026-11-14) and `components/training-mode/data/shadowboxing.js`.
    and #17 were: the owner or the app chat merges it, and Netlify puts it in
    the app. Every handoff carries the whole set, so a later batch of edits is a
    new branch and pull request that replaces an earlier one still open.
+   Once it is merged, the next `git pull` in the checkout stops on the
+   delivered copy (untracked files in the way of the same files arriving):
+   delete `../trainingmodecode/public/static/practice/shadow/` first, then
+   pull.
 
 `shadow/manifest.json` is the owner's work (labels, trims, framing): keep it.
 Everything in `exports/shadow/` can be deleted and rebuilt. Titles are
