@@ -164,10 +164,14 @@ export function Thumb({ watch }) {
       <span aria-hidden="true" style={{ ...box, display: 'flex', alignItems: 'center', justifyContent: 'center', font: "700 8px 'Chakra Petch',sans-serif", letterSpacing: '0.1em', color: '#7E88AC' }}>GUIDE</span>
     );
   }
-  // A tutorial's poster has its title panel on the right: show the athlete.
+  // A tutorial's poster has its title panel on the right (the athlete is in
+  // the left ~42%): enlarge it from the left edge so only the athlete shows.
+  const tutorial = watch.kind === 'tutorial';
   return (
-    <span aria-hidden="true" style={box}>
-      <img src={src} alt="" loading="lazy" decoding="async" onError={() => setOk(false)} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: watch.kind === 'tutorial' ? '12% center' : 'center', display: 'block' }}/>
+    <span aria-hidden="true" style={{ ...box, position: 'relative' }}>
+      <img src={src} alt="" loading="lazy" decoding="async" onError={() => setOk(false)} style={tutorial
+        ? { position: 'absolute', left: 0, top: '50%', width: '240%', height: 'auto', transform: 'translateY(-50%)', display: 'block' }
+        : { width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }}/>
     </span>
   );
 }

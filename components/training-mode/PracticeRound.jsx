@@ -193,6 +193,8 @@ export default function PracticeRound({ discipline, drill, move, watch, points, 
     if (lastPhase.current !== key) {
       const first = lastPhase.current === null;
       lastPhase.current = key;
+      // A rest or a new round starts clean: no stale call or clip on screen.
+      setNow(n => (n.call || n.plan ? { ...n, call: null, plan: null } : n));
       if (phase.resting) {
         playBell(2);
         say(`Rest. Round ${phase.round + 1} next.`);

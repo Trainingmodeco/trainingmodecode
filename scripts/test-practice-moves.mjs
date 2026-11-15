@@ -512,5 +512,13 @@ check('an unknown discipline gets Boxing, and a list is the same list every call
   check('cloud sync carries the learned key, and still the older ones and the arsenal', [LEARNED_KEY, LESSONS_KEY, DRILLED_KEY, ARSENAL_KEY, FIRST_KEY].every((k) => keys.includes(k)) && LEARNED_KEY === 'tm_practice_learned_v1', keys.join());
 }
 
+// ── screen fixes (source checks: the screens have no unit harness) ─────────
+{
+  const round = read('components/training-mode/PracticeRound.jsx');
+  check('a rest or new round clears the old call and clip', /lastPhase\.current = key;\s*\/\/[^\n]*\n\s*setNow\(n => \(n\.call \|\| n\.plan \? \{ \.\.\.n, call: null, plan: null \} : n\)\);/.test(round));
+  const parts = read('components/training-mode/PracticeParts.jsx');
+  check('a tutorial row thumbnail is cropped to the athlete side', /tutorial\s*\?\s*\{ position: 'absolute', left: 0, top: '50%', width: '2\d\d%'/.test(parts) && !/12% center/.test(parts));
+}
+
 console.log(`\npractice moves: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
