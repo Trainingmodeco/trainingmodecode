@@ -52,8 +52,13 @@ export function callParts(call) {
 
 const isStanceFocus = (focus) => !!focus && focus.group === STANCE_GROUP;
 
-function clipOf(table, key) {
-  const c = table && table.clips ? table.clips[key] : null;
+// A cut may be filmed for some styles only: { ..., "styles": ["boxing"] } is used in Boxing drills alone, and a
+// second cut of the same strike for other styles sits beside it as "<key>#<anything>" with its own styles.
+// A cut with no styles serves every style.
+function clipOf(table, key, slug) {
+  const all = table && table.clips ? table.clips : null;
+  const fits = (c) => c && (!Array.isArray(c.styles) || c.styles.includes(slug));
+  const c = all ? Object.keys(all).filter((k) => k === key || k.startsWith(`${key}#`)).map((k) => all[k]).find(fits) : null;
   if (!c || typeof c.file !== 'string' || !FILE.test(c.file)) return null;
   const ms = Number(c.ms);
   if (!Number.isFinite(ms) || ms <= 0) return null;
@@ -98,7 +103,7 @@ export function planCall(call, options, table = CALL_CLIPS) {
   const clips = parts.map((part) => {
     const stance = stanceCall || /STANCE|GUARD/.test(part);
     const key = stance ? stanceKey : (ALONE[part.toLowerCase()] || part.toLowerCase());
-    const clip = clipOf(table, key);
+    const clip = clipOf(table, key, disciplineSlug(discipline));
     return clip ? { ...clip, label: stance ? 'STANCE' : key.toUpperCase(), stance } : null;
   });
 

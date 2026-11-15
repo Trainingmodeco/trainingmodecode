@@ -216,6 +216,8 @@ function stanceClip(clips, discipline) {
   return group.find((c) => plain(c.title) === 'stance')
     || group.find((c) => plain(c.title) === `${style} stance`)
     || group.find((c) => plain(c.title).includes('stance'))
+    // MMA's stance clip is filed under Footwork: the style's own "<Style> Stance" counts wherever it sits.
+    || clips.find((c) => plain(c.title) === `${style} stance`)
     || null;
 }
 
@@ -229,7 +231,10 @@ export function watchFor(move, discipline, shadowClips = []) {
   // A shared punch is the same punch in every style: with no clip filed under this style, the Boxing clip
   // (or any other style's) of the same name is the one to watch.
   const borrowed = () => every.find((c) => c.discipline === 'Boxing' && plain(c.title) === want) || every.find((c) => plain(c.title) === want);
-  const clip = clips.find((c) => plain(c.title) === want) || (move.kind === 'STANCE' ? stanceClip(clips, d) : null) || (move.shared ? borrowed() : null) || null;
+  // The owner's rule: outside Boxing a shared punch is shown from the kickboxing stance, so Kickboxing, Muay Thai
+  // and MMA all use Kickboxing's own punch clips (its "Punches" group), not the Boxing clip filed under them.
+  const kickPunch = () => every.find((c) => c.discipline === 'Kickboxing' && plain(c.title) === want && (plain(c.group) === 'punches' || /\/kickboxing-[^/]*$/i.test(c.videoUrl)));
+  const clip = (move.shared && d !== 'Boxing' ? kickPunch() : null) || clips.find((c) => plain(c.title) === want) || (move.kind === 'STANCE' ? stanceClip(clips, d) : null) || (move.shared ? borrowed() : null) || null;
   return clip ? { src: clip.videoUrl, poster: clip.posterUrl || '', kind: 'clip' } : null;
 }
 

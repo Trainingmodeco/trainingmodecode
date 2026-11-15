@@ -234,7 +234,13 @@ check('an unknown discipline gets Boxing, and a list is the same list every call
   check('no tutorial: the delivered clip of the same discipline with the same title, in any letter case', same(P.watchFor(jab, 'Boxing', [clip('Kickboxing', 'Jab'), clip('Boxing', 'jAB', 'Jab', 'b-jab')]), { src: '/static/practice/shadow/b-jab.mp4', poster: '/static/practice/shadow/b-jab.webp', kind: 'clip' }));
   check('never a clip of another title; a move of one style never borrows another style\'s clip', P.watchFor(jab, 'Boxing', [clip('Boxing', 'Stiff Jab'), clip('Boxing', 'Jab to the Body')]) === null && P.watchFor(by('Muay Thai', 'Lead Teep'), 'Muay Thai', [clip('Kickboxing', 'Lead Teep', 'Teeps', 'kb-teep')]) === null);
   check('a shared punch with no clip in its own style borrows the Boxing clip, else any style\'s', P.watchFor(by('Muay Thai', 'Rear Hook'), 'Muay Thai', [clip('Kickboxing', 'Rear Hook', 'Hooks', 'kb-rh'), clip('Boxing', 'Rear Hook', 'Hooks', 'b-rh')])?.src.endsWith('/b-rh.mp4') && P.watchFor(by('MMA', 'Lead Hook'), 'MMA', [clip('Kickboxing', 'Lead Hook', 'Hooks', 'kb-lh')])?.src.endsWith('/kb-lh.mp4') && P.watchFor(by('Muay Thai', 'Jab'), 'Muay Thai', [clip('Boxing', 'Jab', 'Jab', 'b-jab'), clip('Muay Thai', 'Jab', 'Jab', 'mt-jab')])?.src.endsWith('/mt-jab.mp4'));
-  check('two clips with the title: the first in the file', P.watchFor(by('Kickboxing', 'Jab'), 'Kickboxing', [clip('Kickboxing', 'Jab', 'Jab', 'one'), clip('Kickboxing', 'Jab', 'Punches', 'two')]).src.endsWith('/one.mp4'));
+  check('two clips with the title: the first in the file', P.watchFor(by('Muay Thai', 'Lead Teep'), 'Muay Thai', [clip('Muay Thai', 'Lead Teep', 'Teeps', 'one'), clip('Muay Thai', 'Lead Teep', 'Kicks', 'two')]).src.endsWith('/one.mp4'));
+  {
+    const delivered = [clip('Boxing', 'Jab', 'Jab', 'boxing-jab'), clip('Kickboxing', 'Jab', 'Jab', 'boxing-jab'), clip('Muay Thai', 'Jab', 'Jab', 'boxing-jab'), clip('MMA', 'Jab', 'Jab', 'boxing-jab'), clip('Kickboxing', 'Jab', 'Punches', 'kickboxing-jab')];
+    check('outside Boxing a shared punch is Kickboxing\'s own punch clip, in Kickboxing, Muay Thai and MMA', ['Kickboxing', 'Muay Thai', 'MMA'].every((d) => P.watchFor(by(d, 'Jab'), d, delivered)?.src.endsWith('/kickboxing-jab.mp4')));
+    check('Boxing keeps the Boxing clip of the punch', P.watchFor(by('Boxing', 'Jab'), 'Boxing', delivered)?.src.endsWith('/boxing-jab.mp4'));
+    check('with no Kickboxing punch clip delivered the style\'s own listing is used', P.watchFor(by('Muay Thai', 'Jab'), 'Muay Thai', delivered.slice(0, 4))?.src.endsWith('/boxing-jab.mp4'));
+  }
   check('"&" and "and" are the same title', P.watchFor(by('Boxing', 'Bob and Weave'), 'Boxing', [clip('Boxing', 'Bob & Weave', 'Defense', 'bw')])?.src.endsWith('/bw.mp4'));
   check('nothing delivered: no video (the move is GUIDE only)', P.watchFor(jab, 'Boxing', []) === null && P.watchFor(jab, 'Boxing') === null && P.watchFor(jab, 'Boxing', null) === null && P.watchFor(null, 'Boxing', []) === null);
   const boxStance = by('Boxing', 'Boxing Stance');
@@ -298,6 +304,17 @@ check('an unknown discipline gets Boxing, and a list is the same list every call
   check('a call that cannot be read: no plan', [null, undefined, '', '→', '9', 'JAB →'].every((c) => plan(c) === null) && planCall('JAB') !== undefined);
   check('a bad entry of the file is not played', plan('BAD FILE') === null && plan('NO MS') === null && plan('ZERO MS') === null && plan('JAB', {}, {}) === null && plan('JAB', {}, { clips: null }) === null && plan('JAB', {}, null) === null);
   check('a file with no dir uses the calls folder, and a dir without its slash still works', planCall('JAB', {}, { clips: { jab: { file: 'j.mp4', ms: 1000 } } }).clips[0].src === '/static/practice/calls/j.mp4' && planCall('JAB', {}, { dir: '/y', clips: { jab: { file: 'j.mp4', ms: 1000 } } }).clips[0].src === '/y/j.mp4');
+  {
+    const S = { dir: '/c/', clips: { jab: { file: 'box-jab.mp4', ms: 1000, styles: ['boxing'] }, 'jab#kick': { file: 'kick-jab.mp4', ms: 900, styles: ['kickboxing', 'muay-thai', 'mma'] }, cross: { file: 'box-cross.mp4', ms: 1200, styles: ['boxing'] }, 'lead hook': { file: 'any-hook.mp4', ms: 1300 } } };
+    const src = (call, discipline) => (planCall(call, { discipline, callMs: 3000 }, S)?.clips || []).map((c) => c.src);
+    check('a cut filmed for Boxing is used in Boxing drills only; another style takes its own cut of the strike', same(src('JAB', 'Boxing'), ['/c/box-jab.mp4']) && ['Kickboxing', 'Muay Thai', 'MMA'].every((d) => same(src('JAB', d), ['/c/kick-jab.mp4'])));
+    check('a style with no cut of a strike gets no clip for it, never the other style\'s', planCall('CROSS', { discipline: 'Muay Thai', callMs: 3000 }, S) === null && planCall('JAB → CROSS', { discipline: 'Kickboxing', callMs: 3000 }, S) === null && same(src('JAB → CROSS', 'Boxing'), ['/c/box-jab.mp4', '/c/box-cross.mp4']));
+    check('a cut with no styles serves every style', ['Boxing', 'Kickboxing', 'Muay Thai', 'MMA'].every((d) => same(src('LEAD HOOK', d), ['/c/any-hook.mp4'])));
+    const jabK = by('Kickboxing', 'Jab'); const w = { src: '/static/practice/shadow/kickboxing-jab.mp4', poster: '', kind: 'clip' };
+    const own = planCall('JAB', { discipline: 'Kickboxing', focus: { name: jabK.name, calls: jabK.calls }, watch: w, callMs: 3000 }, { dir: '/c/', clips: { jab: { file: 'box-jab.mp4', ms: 1000, styles: ['boxing'] } } });
+    check('the live table: the boxing cuts of jab, cross and lead hook are for Boxing; a Kickboxing jab drill loops its own watch video', own?.clips[0].whole === true && own.clips[0].src === w.src
+      && ['jab', 'cross', 'lead hook'].every((k) => planCall(k.toUpperCase(), { discipline: 'Boxing', callMs: 3000 })?.clips.length === 1 && planCall(k.toUpperCase(), { discipline: 'Muay Thai', callMs: 3000 }) === null));
+  }
   check('a cut added later is used at once (no fixed set of keys)', srcs(plan('SPINNING BACK KICK → JAB', {}, { ...T, clips: { ...T.clips, 'spinning back kick': { file: 'sbk.mp4', ms: 1600 } } })) === 'sbk,jab'
     && srcs(plan('STANCE', { discipline: 'Muay Thai' }, { ...T, clips: { ...T.clips, 'stance:muay-thai': { file: 'smt.mp4', ms: 5000 } } })) === 'smt');
 

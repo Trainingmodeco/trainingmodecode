@@ -2,9 +2,9 @@
   "version": 1,
   "dir": "/static/practice/calls/",
   "clips": {
-    "jab": { "file": "jab.mp4", "ms": 1100 },
-    "cross": { "file": "cross.mp4", "ms": 1500 },
-    "lead hook": { "file": "lead-hook.mp4", "ms": 1400 },
+    "jab": { "file": "jab.mp4", "ms": 1100, "styles": ["boxing"] },
+    "cross": { "file": "cross.mp4", "ms": 1500, "styles": ["boxing"] },
+    "lead hook": { "file": "lead-hook.mp4", "ms": 1400, "styles": ["boxing"] },
     "stance:boxing": { "file": "stance-boxing.mp4", "ms": 4500 }
   }
 }

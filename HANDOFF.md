@@ -78,6 +78,14 @@ and the app chat doesn't edit `TM Social Console/`.
   guard, 1 to 1.5 s, square, tight on the athlete, the same camera spot for all
   strikes, silent. A stance clip plays once (4 to 5 s). Add the file and its
   `ms` to `callClips.json`; no code change is needed.
+  The owner's rule (2026-11-15): Kickboxing, Muay Thai and MMA show the punches
+  from the kickboxing stance. The watch video of jab, cross, both hooks and
+  both uppercuts in those three styles is Kickboxing's own clip (its "Punches"
+  group), and the three boxing cuts carry `"styles": ["boxing"]`, so they play
+  in Boxing drills only. A kickboxing cut of a punch goes in as
+  `"jab#kick": { "file": ..., "ms": ..., "styles": ["kickboxing", "muay-thai", "mma"] }`.
+  Until those exist, a punch drill in those styles loops the kickboxing clip
+  for a single call and shows a combination as text.
 - **Watch video of a move.** Its tutorial (`videoUrl` of the Technique Library
   entry or lesson) first, then a shadowboxing clip of the same discipline
   titled for the move. Moves with neither show a GUIDE plate and READ ALOUD.
