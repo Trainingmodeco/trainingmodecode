@@ -1,9 +1,9 @@
 import { NUMBER_DRILL } from './strikeNumbering';
-import { PRACTICE_DISCIPLINES } from '../practiceData';
 
-// The Fundamentals Path — seven lessons per discipline, in order. Moved here
-// from PracticeMode.jsx so the Practice invite and weekly reminder can read
-// the same path the screen shows.
+// The Fundamentals Path — seven lessons per discipline, in order. Practice
+// Mode now lists MOVES (data/practiceMoves.js): each lesson there stands for
+// the moves it taught (LESSON_TO_MOVES), and its steps, calls and stored
+// completion are still read from here.
 //
 // `calls` is what a lesson's Practice Round shouts: the lesson's own moves,
 // short enough to read at a glance and to say out loud. Earlier lessons'
@@ -69,9 +69,20 @@ const COMPLETION_KEY = 'tm_starthere_completed';
 export function getCompletedLessons() {
   if (typeof localStorage === 'undefined') return [];
   try {
-    const raw = localStorage.getItem(COMPLETION_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const list = JSON.parse(localStorage.getItem(COMPLETION_KEY) || '[]');
+    return Array.isArray(list) ? list : [];
   } catch { return []; }
+}
+
+// The Fight hub sends a beginner to Practice until this is set
+// (data/recommendations hasCompletedFirstLesson). Learning any move sets it.
+export function markFirstLessonDone() {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    if (!localStorage.getItem('trainingModeStartHereFirstLessonComplete')) {
+      localStorage.setItem('trainingModeStartHereFirstLessonComplete', 'true');
+    }
+  } catch { /* best-effort */ }
 }
 
 export function markLessonComplete(lessonId) {
@@ -81,24 +92,7 @@ export function markLessonComplete(lessonId) {
     completed.push(lessonId);
     localStorage.setItem(COMPLETION_KEY, JSON.stringify(completed));
   }
-  if (!localStorage.getItem('trainingModeStartHereFirstLessonComplete')) {
-    localStorage.setItem('trainingModeStartHereFirstLessonComplete', 'true');
-  }
-}
-
-// Where a discipline's path stands. `next` is the first lesson not done, so
-// someone who opened lessons out of order still gets pointed at the gap.
-// Know Your Numbers is shared by every discipline, so finishing it once
-// counts on all four paths.
-export function basicsProgress(discipline, completed = getCompletedLessons()) {
-  const lessons = basicsFor(discipline);
-  const done = lessons.filter(l => completed.includes(l.id)).length;
-  const nextIndex = lessons.findIndex(l => !completed.includes(l.id));
-  return { lessons, done, total: lessons.length, nextIndex, next: nextIndex >= 0 ? lessons[nextIndex] : null };
-}
-
-export function anyBasicsComplete(completed = getCompletedLessons()) {
-  return PRACTICE_DISCIPLINES.some(d => basicsProgress(d, completed).next === null);
+  markFirstLessonDone();
 }
 
 // Technique Library moves drilled to the end of a Practice Round, per

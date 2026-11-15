@@ -1,6 +1,6 @@
 import FIGHT_FOCUS_POOL from './fightFocusData';
 import COMBO_POOL, { SINGLE_STRIKES, ADVANCED_STRIKES } from './comboCoachData';
-import { filterCombosToArsenal } from './arsenal';
+import { filterCombosToArsenal, comboUsesOnlyLearned } from './arsenal';
 import { prepareCombos, tierPool, dealMixRound, capCalls } from './comboMix';
 
 const DIFFICULTY_LEVELS = ['easy', 'normal', 'hard', 'advanced'];
@@ -259,14 +259,21 @@ const TECH_WEIGHTS = {
   advanced: { base: 0.22, advStrike: 0.20, basic: 0.08, normal: 0.22, adv: 0.28 },
 };
 
-function buildTechnicalComboList(discipline, difficulty) {
+// `arsenal` (a beginner learner's learned strikes, see data/arsenal): the list
+// is then drawn only from calls made of those strikes. The draw is random, so
+// narrowing it afterwards could leave nothing; narrowing each source first
+// cannot, as long as one single strike is learned (Jab and Cross always are).
+function buildTechnicalComboList(discipline, difficulty, arsenal) {
   const disc = normalizeDiscipline(discipline);
-  const singles = SINGLE_STRIKES[disc] || SINGLE_STRIKES.boxing;
-  const advStrikes = ADVANCED_STRIKES[disc] || ADVANCED_STRIKES.boxing;
+  const allSingles = SINGLE_STRIKES[disc] || SINGLE_STRIKES.boxing;
+  const learned = (list) => list.filter(c => comboUsesOnlyLearned(c, arsenal));
+  const keep = arsenal && arsenal.length && learned(allSingles).length ? learned : (list) => list;
+  const singles = keep(allSingles);
+  const advStrikes = keep(ADVANCED_STRIKES[disc] || ADVANCED_STRIKES.boxing);
   const all = COMBO_POOL.filter(c => c.discipline === disc);
-  const basics = all.filter(c => c.category === 'basic' || c.category === 'single').map(c => c.comboText);
-  const normals = all.filter(c => ['combination', 'counter'].includes(c.category)).map(c => c.comboText);
-  const advs = all.filter(c => ['advanced', 'elite'].includes(c.category)).map(c => c.comboText);
+  const basics = keep(all.filter(c => c.category === 'basic' || c.category === 'single').map(c => c.comboText));
+  const normals = keep(all.filter(c => ['combination', 'counter'].includes(c.category)).map(c => c.comboText));
+  const advs = keep(all.filter(c => ['advanced', 'elite'].includes(c.category)).map(c => c.comboText));
 
   const W = TECH_WEIGHTS[normalizeDifficulty(difficulty)] || TECH_WEIGHTS.normal;
   const buckets = [
@@ -303,7 +310,7 @@ export function generateComboCoachSession({ discipline, difficulty, speed, round
   // 1.2 — beginners drill only strikes they've learned in Practice (never empty).
   const gate = (list) => (arsenalOnly ? filterCombosToArsenal(list, arsenal) : list);
   if (String(mode).toLowerCase() === 'technical') {
-    return gate(buildTechnicalComboList(discipline, difficulty));
+    return gate(buildTechnicalComboList(discipline, difficulty, arsenalOnly ? arsenal : null));
   }
   let eligible = byLevel ? levelEligible(discipline, difficulty) : filterPool(COMBO_POOL, discipline, difficulty);
   if (eligible.length === 0 && byLevel) eligible = filterPool(COMBO_POOL, discipline, difficulty);

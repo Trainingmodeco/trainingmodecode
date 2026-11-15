@@ -1,4 +1,5 @@
 import { FIT_GOALS } from './profileOptions';
+import { basicsProgress } from './practiceMoves';
 
 const START_HERE_KEY = 'tm_starthere_completed';
 const FIRST_LESSON_KEY = 'trainingModeStartHereFirstLessonComplete';
@@ -59,21 +60,16 @@ export function getFightMiniSuggestion({ profile, stats, dailyMission }) {
     };
   }
 
-  // Beginner who has done first lesson — suggest next lesson
+  // Beginner who has done first lesson — suggest the next basic move: Boxing's
+  // stance, guard and Beginner strikes (data/practiceMoves basicMoves). Someone
+  // who finished the six lessons of the old Boxing path is done too; one of
+  // them (Basic Defense) is no longer shown, so it can no longer be asked for.
   if (isBeginner && isCombatGoal(goal) && firstLessonDone) {
-    const lessonOrder = ['boxing_stance', 'boxing_guard', 'boxing_jab', 'boxing_cross', 'boxing_jab_cross', 'boxing_defense'];
-    const lessonTitles = {
-      boxing_stance: 'Boxing Stance',
-      boxing_guard: 'Guard + Footwork',
-      boxing_jab: 'Jab',
-      boxing_cross: 'Cross',
-      boxing_jab_cross: 'Jab-Cross',
-      boxing_defense: 'Basic Defense',
-    };
-    const next = lessonOrder.find(l => !completedLessons.includes(l));
+    const oldPath = ['boxing_stance', 'boxing_guard', 'boxing_jab', 'boxing_cross', 'boxing_jab_cross', 'boxing_defense'];
+    const next = oldPath.every(l => completedLessons.includes(l)) ? null : basicsProgress('Boxing').next;
     if (next) {
       return {
-        title: `Basic — ${lessonTitles[next]}`,
+        title: `Basic — ${next.name}`,
         subtitle: 'Continue your beginner combat training.',
         reason: 'Next beginner lesson',
         actionType: 'startHere',

@@ -1,9 +1,10 @@
-// Practice Round — the short drill after a lesson, built from what the
-// athlete has learned so far (Simplify revamp, PracticeRound.dc.html).
+// Practice Round — the short drill of a move, built from what the athlete
+// has learned so far (Simplify revamp, PracticeRound.dc.html).
 //
-// Rounds grow with the number of techniques learned: basics done on the
-// discipline's path, plus Technique Library moves drilled to the end of a
-// round. The focus mix and the calls follow the design: early rounds lean on
+// Rounds grow with the number of moves learned in the discipline.
+// data/practiceMoves drillFor gives what buildRound takes: the move, the
+// learned moves before it, and that count (groupDrill for a whole group).
+// The focus mix and the calls follow the design: early rounds lean on
 // what is already known and keep coming back to the stance; later rounds
 // turn into combinations.
 
@@ -31,7 +32,7 @@ const single = (item) => item.calls.find(c => !isCombo(c)) || null;
 const NUMBERS_SINGLES = ['1', '2', '3'];
 const NUMBERS_COMBOS = ['1-2', '1-2-3', '1-1-2', '2-3-2', '1-2 → 3 TO THE BODY'];
 
-// focus: { id?, name, calls }  — the lesson or technique being drilled.
+// focus: { id?, name, calls }  — the move being drilled.
 // prior: [{ name, calls }]     — what came before it, oldest first.
 export function buildRound({ focus, prior = [], learned = 1 }) {
   const tier = tierFor(learned);
