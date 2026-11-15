@@ -871,6 +871,506 @@
     "size": 37280,
     "sha1": "080e07cfd338a0a775a4964e8edd2676b6f10e26"
   },
+  "static/practice/shadow/boxing-bladed-and-pendulum-stance.webp": {
+    "size": 41296,
+    "sha1": "ecd2124da6ec5869ebb682334848a4c2ff01c0fc"
+  },
+  "static/practice/shadow/boxing-blocking-body-hooks.webp": {
+    "size": 42180,
+    "sha1": "8ea3d7280a4e5b800c6b6f15407803ef2ebfd79d"
+  },
+  "static/practice/shadow/boxing-blocking-body-shots.webp": {
+    "size": 41938,
+    "sha1": "617449997247d3566d493bee5feff0cd26a3bb7f"
+  },
+  "static/practice/shadow/boxing-blocking-hooks.webp": {
+    "size": 41970,
+    "sha1": "415b28fbc8d06ce975af7e6fcb91bbcb6e597b35"
+  },
+  "static/practice/shadow/boxing-blocking-straights.webp": {
+    "size": 42518,
+    "sha1": "a21e83adabf67921d555f0a679480e4e103f2956"
+  },
+  "static/practice/shadow/boxing-blocking-uppercuts.webp": {
+    "size": 42292,
+    "sha1": "8715cda2e1dcf96a68940bd6f518c51193f625c2"
+  },
+  "static/practice/shadow/boxing-bob-and-weave.webp": {
+    "size": 38432,
+    "sha1": "ae304d7a50e0cf6f18b1af748fa922b9d457012c"
+  },
+  "static/practice/shadow/boxing-catch-hooks.webp": {
+    "size": 38578,
+    "sha1": "c8065b748e1d8d860c6758b65f3f8bb4ef510058"
+  },
+  "static/practice/shadow/boxing-catch-straight-punches.webp": {
+    "size": 39918,
+    "sha1": "2573a542a699741944e5dfdda0664f9ba41d9607"
+  },
+  "static/practice/shadow/boxing-catch.webp": {
+    "size": 36930,
+    "sha1": "234811253b9e19d6be40e438ce60fe725e7eb955"
+  },
+  "static/practice/shadow/boxing-close-lead-hook.webp": {
+    "size": 42956,
+    "sha1": "112f861ecd225b8f343f02cb9643804dfd73e611"
+  },
+  "static/practice/shadow/boxing-corkscrew-jab.webp": {
+    "size": 41984,
+    "sha1": "039020788a8af1b4fa299920d3238674da5a6512"
+  },
+  "static/practice/shadow/boxing-cross-to-the-body.webp": {
+    "size": 42696,
+    "sha1": "5eb9fe2697c99e007d7793bbbaeafb2d2e31d2d2"
+  },
+  "static/practice/shadow/boxing-cross.webp": {
+    "size": 42828,
+    "sha1": "5f48dc7d64984089ca6f96677919dd29aefae7ac"
+  },
+  "static/practice/shadow/boxing-cuban-jab.webp": {
+    "size": 41924,
+    "sha1": "3af6cd9b761fab6ee504d85f079266e3aea0154c"
+  },
+  "static/practice/shadow/boxing-cut-turn.webp": {
+    "size": 38898,
+    "sha1": "bcb4a5e47cc198c32df2c5a4c9336233b57c9efe"
+  },
+  "static/practice/shadow/boxing-duck.webp": {
+    "size": 40756,
+    "sha1": "8414aa5f2467bdebcd22c25f6c1c2b02aa3a47ee"
+  },
+  "static/practice/shadow/boxing-fang-uppercut.webp": {
+    "size": 42360,
+    "sha1": "458d83c6ab68d8595d4df0a645a1bacb55c86683"
+  },
+  "static/practice/shadow/boxing-fight-footwork.webp": {
+    "size": 39282,
+    "sha1": "40b6487080b5c6731ebadff76dc9403968c036d5"
+  },
+  "static/practice/shadow/boxing-flicker-jab.webp": {
+    "size": 42586,
+    "sha1": "a178f0ab73945de8f241822afc8ec3339f2fa898"
+  },
+  "static/practice/shadow/boxing-gazelle-punch-hook.webp": {
+    "size": 40076,
+    "sha1": "89aa9beb71eb0273c6734d1995d8521b6fdc9a64"
+  },
+  "static/practice/shadow/boxing-gazelle-uppercut.webp": {
+    "size": 40136,
+    "sha1": "0c1f37b460269df2238a213621247e5e8ac6d775"
+  },
+  "static/practice/shadow/boxing-hammer-cross.webp": {
+    "size": 41150,
+    "sha1": "6266aa10fb8b47d796f7b5e34d5cdc10ceeb3c7c"
+  },
+  "static/practice/shadow/boxing-jab-to-the-body.webp": {
+    "size": 40534,
+    "sha1": "cf29ea60259bc9948db0da24994e01e84eee47d6"
+  },
+  "static/practice/shadow/boxing-jab.webp": {
+    "size": 39504,
+    "sha1": "4b50552b6e00a537ce460db1cbe27b60a8991c96"
+  },
+  "static/practice/shadow/boxing-japanese-fake-hook.webp": {
+    "size": 43312,
+    "sha1": "ac73d0f4edfbe178ddfd60753b085664b830d17f"
+  },
+  "static/practice/shadow/boxing-l-turn-drill.webp": {
+    "size": 43068,
+    "sha1": "cf2eda21f745d6a4d92636724a6fba17bc80e914"
+  },
+  "static/practice/shadow/boxing-l-turn.webp": {
+    "size": 38376,
+    "sha1": "7ccac6e2f064bff7179d90c2e00b736f2dce2197"
+  },
+  "static/practice/shadow/boxing-lead-hook-to-the-body.webp": {
+    "size": 41664,
+    "sha1": "2a709b3c6158ea0f2bbfe763a3eac0c954ddca6e"
+  },
+  "static/practice/shadow/boxing-lead-hook.webp": {
+    "size": 43116,
+    "sha1": "5261176c02294bdb199442c154e2747006d99e0f"
+  },
+  "static/practice/shadow/boxing-lead-overhand.webp": {
+    "size": 39648,
+    "sha1": "8ef4ccc5de57753614a280f26dbb221b53c67083"
+  },
+  "static/practice/shadow/boxing-lead-parry.webp": {
+    "size": 43768,
+    "sha1": "7aa5f5cff824729a888159e462282d70b16c6872"
+  },
+  "static/practice/shadow/boxing-lead-pivot.webp": {
+    "size": 40622,
+    "sha1": "82a81fc8fe41400381b92367e4523d4d8eff4ece"
+  },
+  "static/practice/shadow/boxing-lead-step-right-pivot.webp": {
+    "size": 41376,
+    "sha1": "a7b579f8f7cc8eed0c678fc8ccdbcf32d8a83268"
+  },
+  "static/practice/shadow/boxing-lead-uppercut.webp": {
+    "size": 42870,
+    "sha1": "e4be00c15d91d66a55988b93ae6bfd68f591989a"
+  },
+  "static/practice/shadow/boxing-peek-a-boo-stance.webp": {
+    "size": 41934,
+    "sha1": "da1477dc6630e287e57b5dca8c1689102ff1b27c"
+  },
+  "static/practice/shadow/boxing-philly-shell.webp": {
+    "size": 40972,
+    "sha1": "cc4a925036e5d973d054d93f7fe7e3be3d0ce4d4"
+  },
+  "static/practice/shadow/boxing-power-cross.webp": {
+    "size": 41966,
+    "sha1": "10d012ec839dce28da8456ec7f9648e4b2df5a6f"
+  },
+  "static/practice/shadow/boxing-power-jab.webp": {
+    "size": 41778,
+    "sha1": "6fa674debcc340f25d0fb0e9619c8d1af2f6b541"
+  },
+  "static/practice/shadow/boxing-rear-gazelle-hook.webp": {
+    "size": 39434,
+    "sha1": "eafc320de6a5c35913c08c79d40961c5d970b9d8"
+  },
+  "static/practice/shadow/boxing-rear-hook-to-the-body.webp": {
+    "size": 43428,
+    "sha1": "33165d2759b5d2936978ad1ca2003cfbca0e6c27"
+  },
+  "static/practice/shadow/boxing-rear-hook.webp": {
+    "size": 41416,
+    "sha1": "ce46fb8249e67bc0e12691ceb6c6c9f76f99f550"
+  },
+  "static/practice/shadow/boxing-rear-overhand.webp": {
+    "size": 41166,
+    "sha1": "70849d112b23dc6f93b0102490f62618785a2ae9"
+  },
+  "static/practice/shadow/boxing-rear-pivot.webp": {
+    "size": 36940,
+    "sha1": "7c962c7754158ad949ce790ed5b46a54c71d228a"
+  },
+  "static/practice/shadow/boxing-rear-step-left-pivot.webp": {
+    "size": 41330,
+    "sha1": "ec6a7934630eecf775416c208f44ac630fa92a21"
+  },
+  "static/practice/shadow/boxing-rear-uppercut.webp": {
+    "size": 41560,
+    "sha1": "381f151a71219360d98303d8c31b62ddfd21c6a4"
+  },
+  "static/practice/shadow/boxing-shell.webp": {
+    "size": 42212,
+    "sha1": "f8c805be04a48d30c4d411bab68400295f0aa148"
+  },
+  "static/practice/shadow/boxing-shifting.webp": {
+    "size": 38436,
+    "sha1": "5da5ecdd211c36370f994d0594e1e5ac6ca9eb05"
+  },
+  "static/practice/shadow/boxing-short-rear-hook.webp": {
+    "size": 43382,
+    "sha1": "61bd9bf96b639657ed94b638c7ddcc22b4f6c15f"
+  },
+  "static/practice/shadow/boxing-shuffle-steps.webp": {
+    "size": 41624,
+    "sha1": "fb60739f72a04c4b2708f31ff22d9d61e0813c32"
+  },
+  "static/practice/shadow/boxing-side-step-left.webp": {
+    "size": 41298,
+    "sha1": "11e1daff36cd8f463d2e959df853d3dcafe9157a"
+  },
+  "static/practice/shadow/boxing-side-step-right.webp": {
+    "size": 43682,
+    "sha1": "627a738a9ed116f857d89223d8dd27dfa8b1f166"
+  },
+  "static/practice/shadow/boxing-slip.webp": {
+    "size": 43386,
+    "sha1": "3ef6a2e9e35dffc59b4d5c26163e478932595c50"
+  },
+  "static/practice/shadow/boxing-stance.webp": {
+    "size": 42562,
+    "sha1": "bd9bc33908da9a24726010807e098361896845d3"
+  },
+  "static/practice/shadow/boxing-step-back.webp": {
+    "size": 42648,
+    "sha1": "81b1abc3dd312ed3b686a8b28708ee7290e14a17"
+  },
+  "static/practice/shadow/boxing-step-forward.webp": {
+    "size": 40048,
+    "sha1": "c6b37adfb919533ffc4c58adfbb7c7796617a0c4"
+  },
+  "static/practice/shadow/boxing-stiff-jab.webp": {
+    "size": 39858,
+    "sha1": "3c02979580ae8289a8fbad0707c24c78fe096949"
+  },
+  "static/practice/shadow/boxing-switch-stance.webp": {
+    "size": 41736,
+    "sha1": "3f5352ab090a2fdc750bf763a4471b5ddcff2876"
+  },
+  "static/practice/shadow/boxing-toro-pivot.webp": {
+    "size": 39664,
+    "sha1": "4bf04fde4a1ece52b9be283f9977728e0825faf7"
+  },
+  "static/practice/shadow/boxing-wide-lead-hook.webp": {
+    "size": 43192,
+    "sha1": "e87a33ac6c33f63803e3e735a171f5ab900e0d4b"
+  },
+  "static/practice/shadow/boxing-wide-rear-hook.webp": {
+    "size": 41574,
+    "sha1": "a5fc0f2a0872ffb155ea5f64ec1d18849dd3e165"
+  },
+  "static/practice/shadow/boxing-wide-uppercut.webp": {
+    "size": 41136,
+    "sha1": "b030247ed6e4f2d98f0bafff0578fd815bd0bc55"
+  },
+  "static/practice/shadow/kickboxing-calf-kick-counter-roundhouse-kick.webp": {
+    "size": 41472,
+    "sha1": "d4f2065c16dd2cad77299c532807b8b129a40eba"
+  },
+  "static/practice/shadow/kickboxing-cross-to-the-body.webp": {
+    "size": 43382,
+    "sha1": "386d37a027ad082499ddd1a966f332f6fad64487"
+  },
+  "static/practice/shadow/kickboxing-cross.webp": {
+    "size": 41788,
+    "sha1": "b32f657694820509b008eadaa5eec386c8638742"
+  },
+  "static/practice/shadow/kickboxing-hooks-to-the-body.webp": {
+    "size": 44034,
+    "sha1": "c0a00c46b3cbcdde94d6066c55c8d211891b8a39"
+  },
+  "static/practice/shadow/kickboxing-jab-to-the-body.webp": {
+    "size": 43654,
+    "sha1": "d6b91e8d7f1cb8d06cca67d05ef7715523cafab3"
+  },
+  "static/practice/shadow/kickboxing-jab.webp": {
+    "size": 44058,
+    "sha1": "f9b1161e9a29bce36525c007c641620139377e68"
+  },
+  "static/practice/shadow/kickboxing-knee-block.webp": {
+    "size": 44592,
+    "sha1": "46bf4b7faae9d75dca3a7070f7aa63fc29735939"
+  },
+  "static/practice/shadow/kickboxing-lead-hook.webp": {
+    "size": 44134,
+    "sha1": "cca11368c0fce0b7d63f5f27e057feb86f94eb3b"
+  },
+  "static/practice/shadow/kickboxing-lead-uppercut.webp": {
+    "size": 43830,
+    "sha1": "25ee1b6d126ae717bfce631804a09a944d1814b0"
+  },
+  "static/practice/shadow/kickboxing-low-kick-defense.webp": {
+    "size": 42786,
+    "sha1": "42b14ee8c09dbdd1fba68059d20d2ffb0c3ce917"
+  },
+  "static/practice/shadow/kickboxing-low-roundhouse-kicks.webp": {
+    "size": 41428,
+    "sha1": "b3eb99e5e2cec36aadd71238b8adb3b9d2253afd"
+  },
+  "static/practice/shadow/kickboxing-rear-hook.webp": {
+    "size": 42818,
+    "sha1": "10e3627532a18ed2d05fef657a0196359019eaa5"
+  },
+  "static/practice/shadow/kickboxing-rear-side-kick.webp": {
+    "size": 39038,
+    "sha1": "8e081c1f400cd396b716dfe503eb69052c30aac6"
+  },
+  "static/practice/shadow/kickboxing-rear-uppercut.webp": {
+    "size": 43958,
+    "sha1": "1a68d456436382bf4c2fbdf5aab8fdc8f8634cda"
+  },
+  "static/practice/shadow/kickboxing-spinning-back-fist.webp": {
+    "size": 43214,
+    "sha1": "7f15351ab704edbe2f6511e98308273f212f1a95"
+  },
+  "static/practice/shadow/kickboxing-stance.webp": {
+    "size": 46518,
+    "sha1": "95fa6e6d6664afba0d8a9418f046c1ba44a1c521"
+  },
+  "static/practice/shadow/mma-bladed-mma-stance.webp": {
+    "size": 40730,
+    "sha1": "ee91cb449d2abb9e1b2e16ca1c21817c55cbec40"
+  },
+  "static/practice/shadow/mma-level-change-mma.webp": {
+    "size": 40636,
+    "sha1": "51b460e932fa1e687e360f92795b6e796e446cb2"
+  },
+  "static/practice/shadow/mma-sprawl.webp": {
+    "size": 43492,
+    "sha1": "8515566e93f3b1ff074386ecb9cb957af4d5cf6e"
+  },
+  "static/practice/shadow/mma-stance.webp": {
+    "size": 42396,
+    "sha1": "f4462adbde3744b518118cc1f85f991a659fbcc5"
+  },
+  "static/practice/shadow/muay-thai-catch-and-return-fire.webp": {
+    "size": 41156,
+    "sha1": "6fb4192991e8b8022c0fbdc19a4e39bd09dd459d"
+  },
+  "static/practice/shadow/muay-thai-catch-and-throw.webp": {
+    "size": 42500,
+    "sha1": "1ceb3e528003dd64242de19e2e2038da422797a0"
+  },
+  "static/practice/shadow/muay-thai-chamber-teep.webp": {
+    "size": 41116,
+    "sha1": "646894b4f6c6463460396caad8461400c3c233b4"
+  },
+  "static/practice/shadow/muay-thai-check-and-return.webp": {
+    "size": 42528,
+    "sha1": "bd6be86a094982e0771d91ac8e2fa3e74276a4de"
+  },
+  "static/practice/shadow/muay-thai-check-to-teep.webp": {
+    "size": 44342,
+    "sha1": "ac7c7c999d2fb4fc923d807e5a7e0fe4aefdbf22"
+  },
+  "static/practice/shadow/muay-thai-check.webp": {
+    "size": 43992,
+    "sha1": "e3ae5e9c80118ddb9bb9cb070a378e1e625a6776"
+  },
+  "static/practice/shadow/muay-thai-clinch-knee-to-the-body.webp": {
+    "size": 41488,
+    "sha1": "88e96f28a4a8c11a77c5159e8dedd94385a79645"
+  },
+  "static/practice/shadow/muay-thai-elbow-to-the-body.webp": {
+    "size": 46332,
+    "sha1": "3286f60da1915a1192b3f2da268d666425f729dd"
+  },
+  "static/practice/shadow/muay-thai-explosive-side-teep.webp": {
+    "size": 42238,
+    "sha1": "7be3a98c511ad0a7242b8c254215a7e900f694ce"
+  },
+  "static/practice/shadow/muay-thai-fake-jab.webp": {
+    "size": 43822,
+    "sha1": "71ee136397de18582a432fefc76d2393f308eaa2"
+  },
+  "static/practice/shadow/muay-thai-fake-punches.webp": {
+    "size": 44844,
+    "sha1": "a0660bf42cb92b47f6864ca2ac0ee148cc20dcad"
+  },
+  "static/practice/shadow/muay-thai-fake-roundhouse-to-teep.webp": {
+    "size": 42840,
+    "sha1": "95614f3501562c350d8bd34e120cb87c0531d00f"
+  },
+  "static/practice/shadow/muay-thai-fake-roundhouse.webp": {
+    "size": 42544,
+    "sha1": "aa5abb7a7b09f5a2ac2496f139e5f06d5263964e"
+  },
+  "static/practice/shadow/muay-thai-fake-switch-teep.webp": {
+    "size": 40814,
+    "sha1": "5e58579c0cfcae8056dd2ac804ba838b075d558c"
+  },
+  "static/practice/shadow/muay-thai-fake-switch.webp": {
+    "size": 41372,
+    "sha1": "15dc2279b906ac86391b486a8959b6e7f139a2af"
+  },
+  "static/practice/shadow/muay-thai-fake-teep-to-sliding-elbow.webp": {
+    "size": 42334,
+    "sha1": "fe68ce67cae986b03f6a68f3ed406027ddb4693d"
+  },
+  "static/practice/shadow/muay-thai-fake-to-big-cross.webp": {
+    "size": 45604,
+    "sha1": "55ef2375aeab9f26965032a8713cbdd0650933ee"
+  },
+  "static/practice/shadow/muay-thai-hip-out-vs-roundhouse.webp": {
+    "size": 43722,
+    "sha1": "948a158aa1e3b9d40316e47aaa5f2b7c04fbba96"
+  },
+  "static/practice/shadow/muay-thai-hug-knee.webp": {
+    "size": 42706,
+    "sha1": "6f7d9b033196b65d78cb5d1b0f2bc8501ba56021"
+  },
+  "static/practice/shadow/muay-thai-jumping-scissor-teep.webp": {
+    "size": 40570,
+    "sha1": "92a537a2b9c92a116b1843cfcbfd770293b9d19c"
+  },
+  "static/practice/shadow/muay-thai-knee-drive.webp": {
+    "size": 41600,
+    "sha1": "88f285d8d739dc1ce8506335be032bb0233a2c6f"
+  },
+  "static/practice/shadow/muay-thai-knee-to-the-head.webp": {
+    "size": 44200,
+    "sha1": "5af44f6db07444f179f1dd674f637ab5ff101641"
+  },
+  "static/practice/shadow/muay-thai-lead-knee.webp": {
+    "size": 43972,
+    "sha1": "83b361ca6238fcbd0d31aa5512a808fc72f188f4"
+  },
+  "static/practice/shadow/muay-thai-lead-spear-elbow.webp": {
+    "size": 44312,
+    "sha1": "91e662636c3a91e9116a441a890b761ea6cfe6ef"
+  },
+  "static/practice/shadow/muay-thai-lead-teep.webp": {
+    "size": 44226,
+    "sha1": "3d1d95481e4899a34f88347c7724048164f6f332"
+  },
+  "static/practice/shadow/muay-thai-pull-back-elbow.webp": {
+    "size": 45346,
+    "sha1": "078261b85618f2b1c753adaee0c2d5022260220a"
+  },
+  "static/practice/shadow/muay-thai-push-teep.webp": {
+    "size": 40372,
+    "sha1": "0b2df245d306fea3a3b51a562a52b4f0a9983fd7"
+  },
+  "static/practice/shadow/muay-thai-rear-knee.webp": {
+    "size": 44582,
+    "sha1": "a985bb9f1cf414548afbd9aa004260584d36f4f1"
+  },
+  "static/practice/shadow/muay-thai-rear-push-kick.webp": {
+    "size": 37810,
+    "sha1": "5abf2c3964416acbea5d437451a5d2ce38c7534b"
+  },
+  "static/practice/shadow/muay-thai-rear-spear-elbow.webp": {
+    "size": 43514,
+    "sha1": "b7bfe0fcaf1b03c91bb04ff912d3c7c0f53bd216"
+  },
+  "static/practice/shadow/muay-thai-rear-teep.webp": {
+    "size": 41416,
+    "sha1": "99fd4922cf1c7c095c0937915405f987b5164222"
+  },
+  "static/practice/shadow/muay-thai-roundhouse-catch.webp": {
+    "size": 43278,
+    "sha1": "b4f03029e7a62fa513c0e8055488eff958b799b8"
+  },
+  "static/practice/shadow/muay-thai-scissor-knee.webp": {
+    "size": 41604,
+    "sha1": "ae0ca50134abb0039c1e35b8a1506e0ec57147d1"
+  },
+  "static/practice/shadow/muay-thai-scissor-rear-teep-lead.webp": {
+    "size": 43142,
+    "sha1": "c501a07d7e6f490c46eba4fc907c8f07ac1941ad"
+  },
+  "static/practice/shadow/muay-thai-scissor-rear-teep.webp": {
+    "size": 40518,
+    "sha1": "a9be842a4b58d01dc7cfe6cd7ba96a963fb82e99"
+  },
+  "static/practice/shadow/muay-thai-scissor-teep.webp": {
+    "size": 40102,
+    "sha1": "50066d8e91acd0573aed2c28e93148d104dd71f2"
+  },
+  "static/practice/shadow/muay-thai-stance.webp": {
+    "size": 46504,
+    "sha1": "5b94e02d61adf01810fc031273d552bb24aca925"
+  },
+  "static/practice/shadow/muay-thai-step-teep.webp": {
+    "size": 42856,
+    "sha1": "d339229c3c406ab62783970a3e90c10fbb18ce1c"
+  },
+  "static/practice/shadow/muay-thai-swimming-for-the-clinch.webp": {
+    "size": 42982,
+    "sha1": "7bf7c0e985c3f29717c1db7a6f87b63ff447215b"
+  },
+  "static/practice/shadow/muay-thai-teep-catch.webp": {
+    "size": 44808,
+    "sha1": "7189b290e1f88f4bf931175143af1950f44bfe36"
+  },
+  "static/practice/shadow/muay-thai-teep-parry.webp": {
+    "size": 42508,
+    "sha1": "9ada5e26425f404d95dcdcc21afcaf3c23f36cfb"
+  },
+  "static/practice/shadow/muay-thai-teep-to-the-head.webp": {
+    "size": 43090,
+    "sha1": "5419dd161657a1c9b61ee0d4cea16dd21f66f6ab"
+  },
+  "static/practice/shadow/muay-thai-up-roundhouse-kick.webp": {
+    "size": 40802,
+    "sha1": "c9135b6fb7f1c63a2feee557a4955696bd375e00"
+  },
   "static/practice/spinning-back-elbow.webp": {
     "size": 33422,
     "sha1": "5c87731d52278f2fdb448642db18518912a6ad7e"
