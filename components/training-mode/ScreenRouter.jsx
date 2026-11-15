@@ -441,8 +441,8 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     );
   }
   if (screen === 'start_here' || screen === 'practice_starthere' || screen === 'practice') {
-    // One screen (Simplify revamp): locked, the technique grid scrolls on
-    // its own. The Start Here entries open straight onto the current lesson.
+    // The Ladder: locked, its list of moves scrolls on its own. The Start
+    // Here entries open straight onto the next move's card.
     // Keyed so switching between the two entries remounts onto the right view.
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>

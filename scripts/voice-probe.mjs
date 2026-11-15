@@ -313,15 +313,14 @@ const SCREENS = {
     },
   },
   practice_round: {
-    // PracticeMode.jsx:429 opens the current basic lesson; :192 READ ALOUD; :258 START PRACTICE ROUND; PracticeRound.jsx:228 START ROUND 1.
+    // The Ladder's first move with no video (Boxing: Guard + Footwork) has READ ALOUD on its card; DRILL IT there starts the drill at once.
     expected: [/^1\. /],
     async drive(a) {
       await a.fight(); await a.tap(a.page.locator('.ft.prac'), 'PRACTICE tile'); await a.wait(1500);
-      await a.tap(a.page.locator('[data-guide="pm-continue"]'), 'CONTINUE LEARNING (lesson card)'); await a.wait(700);
-      await a.tap(a.page.getByRole('button', { name: /Play the step-by-step guide/ }), 'READ ALOUD');
+      await a.tap(a.page.locator('[data-testid="pm-move"][data-state="guide"]').first(), 'a GUIDE move (its card)'); await a.wait(700);
+      await a.tap(a.page.getByRole('button', { name: /READ ALOUD/ }), 'READ ALOUD');
       await a.record(Math.min(9000, Math.floor(a.seconds / 2)));
-      await a.tap(a.page.locator('[data-guide="pm-start-round"]'), 'START PRACTICE ROUND'); await a.wait(700);
-      await a.tap(a.page.locator('[data-guide="pr-start"]'), 'START ROUND 1');
+      await a.tap(a.page.locator('[data-testid="pm-card"] [data-testid="pm-drill"]'), 'DRILL IT');
       await a.record(a.seconds - Math.min(9000, Math.floor(a.seconds / 2)));
     },
   },

@@ -7,7 +7,7 @@ import { PRACTICE_DISCIPLINES, TECHNIQUES } from '../components/training-mode/pr
 import { basicsFor } from '../components/training-mode/data/practiceLessons.js';
 import * as P from '../components/training-mode/data/practiceMoves.js';
 import { planCall, callParts, drillSources } from '../components/training-mode/data/drillClips.js';
-import { buildRound, spokenCall, tierFor } from '../components/training-mode/data/practiceRound.js';
+import { buildRound, spokenCall, tierFor, PLANS, planSeconds, mmss } from '../components/training-mode/data/practiceRound.js';
 import { STARTER_ARSENAL, getEffectiveArsenal, getArsenal, strikesFrom, countStrikes, comboUsesOnlyLearned, disciplineSlug } from '../components/training-mode/data/arsenal.js';
 import { generateComboCoachSession, generateComboCoachRoundPlans } from '../components/training-mode/data/sessionGenerator.js';
 import * as M from '../components/training-mode/data/comboMix.js';
@@ -419,6 +419,9 @@ check('an unknown discipline gets Boxing, and a list is the same list every call
     ok = ok && r.groups.every((x) => x.calls.length > 0) && typeof r.pick() === 'string';
   }
   check('every group of every discipline builds a round', ok);
+  // DRILL IT shows the whole drill, rests included: 1:00, 3:30, 7:00, 10:00.
+  check('planSeconds: the rounds and the rests between them', same(PLANS.map((p) => mmss(planSeconds(p))), ['1:00', '3:30', '7:00', '10:00']) && planSeconds(round.plan) === 210);
+  check('the level ladder names its rungs by moves learned, where tierFor changes level', same(PLANS.map((p) => p.when), ['Your first 2 moves', '3 to 6 moves learned', '7 to 10 moves learned', '11 moves or more']) && same([2, 3, 6, 7, 10, 11].map(tierFor), [0, 1, 1, 2, 2, 3]));
 }
 
 // ── what the coach says: nothing new to record ─────────────────────────────

@@ -1300,7 +1300,7 @@ export default function App() {
       setScreen(dest);
     },
     goPractice:    (d) => { if (d) setDisc(d); setScreen('practice'); },
-    // Practice, opened on the current lesson of the shared discipline.
+    // Practice, opened on the card of the next move of the shared discipline.
     goStartHere:   (d) => { if (d) setDisc(d); setScreen('practice_starthere'); },
     // The same, switching the shared discipline first (the Practice posters).
     goPracticeLesson: (d) => {
