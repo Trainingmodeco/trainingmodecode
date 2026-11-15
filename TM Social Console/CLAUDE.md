@@ -404,7 +404,13 @@ entry 2026-11-14) and `components/training-mode/data/shadowboxing.js`.
    Then open the pull request into `app` (`gh pr create --base app`), as #16
    and #17 were: the owner or the app chat merges it, and Netlify puts it in
    the app. Every handoff carries the whole set, so a later batch of edits is a
-   new branch and pull request that replaces an earlier one still open.
+   new branch and pull request that replaces an earlier one still open. After
+   a merge, a handoff changes only what differs from `app` (a corrected note
+   is `index.json` alone; the commit and the log entry say "an update, 1 of
+   251 files"), and with nothing different it refuses. Notes, titles, groups,
+   levels and discipline tabs need no re-encode: change them in the editor,
+   then `npm run shadow -- build` (it renames a retitled clip's files and
+   writes the list again, encoding nothing), `check`, and hand off.
    Once it is merged, the next `git pull` in the checkout stops on the
    delivered copy (untracked files in the way of the same files arriving):
    delete `../trainingmodecode/public/static/practice/shadow/` first, then
