@@ -115,6 +115,10 @@ export default function PracticeRound({ discipline, drill, move, watch, points, 
       round: idx + 1, resting,
       left: Math.max(0, Math.ceil(resting ? cycle - into : plan.lenSec - into)),
       frac: resting ? 0 : Math.min(1, into / plan.lenSec),
+      // Exact (unrounded) seconds left of work before the bell, win or rest.
+      // Guards the next call: starting one with too little of this left means
+      // the bell cuts the coach off mid-word.
+      workingLeft: Math.max(0, plan.lenSec - into),
     };
   }, [elapsed, plan]);
 
@@ -204,7 +208,14 @@ export default function PracticeRound({ discipline, drill, move, watch, points, 
       }
       return;
     }
-    if (!phase.resting && elapsed >= nextCallAt.current) {
+    // MIN_CALL_LEAD mirrors the 1.2 s a round already waits after its own
+    // bell before the first call: a call needs at least that much of the
+    // round left, or the rest/finish bell cuts the coach off mid-word (seen
+    // in the promo recording as "CROSS × 2" and "JAB × 2" starting under a
+    // second before a bell). Short of that, the current call just stays up
+    // until the bell takes over.
+    const MIN_CALL_LEAD = 1.2;
+    if (!phase.resting && elapsed >= nextCallAt.current && phase.workingLeft >= MIN_CALL_LEAD) {
       nextCallAt.current = elapsed + advanceCall() / 1000;
     }
   }, [elapsed, view, started, phase, workTotal, advanceCall, say, xp, plan, onFinish]);

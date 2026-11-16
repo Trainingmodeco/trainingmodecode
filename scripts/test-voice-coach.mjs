@@ -126,7 +126,7 @@ await test('dead: silent mode after two no-start lines; the count-in costs littl
   const t0 = nowMs();
   const prime = await vc.primeSpeech();
   const primeMs = nowMs() - t0;
-  assert.ok(primeMs < 3600, `primeSpeech took ${primeMs.toFixed(0)} ms (voices wait 2.5 s + primer 0.6 s at most)`);
+  assert.ok(primeMs < 2200, `primeSpeech took ${primeMs.toFixed(0)} ms (voices wait 0.8 s + primer 0.6 s at most)`);
   const t1 = nowMs();
   for (const n of ['3', '2', '1', 'round 1. straight punches only.', 'go!']) await vc.speakOrDelay(n, 0);
   const total = nowMs() - t1;

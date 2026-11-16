@@ -53,6 +53,13 @@ export const CANCEL_GAP_MS = 250;       // gap from synth.cancel() to the next s
 const PRIMER_WAIT_MS = 600;             // how long the primer may take to start before we move on
 const SILENT_AFTER = 2;                 // consecutive lines with no 'start' → silent mode
 const SILENT_RESOLVE_MS = 350;          // in silent mode a line resolves this long after speak()
+// How long ensureVoicesReady() waits for a first getVoices()/'voiceschanged'
+// before giving up on an engine that reports none (no TTS voice installed).
+// Recorded clips are the real voice; this is only how long a DRILL IT/START
+// COMBOS/hub tap stalls behind a synth that will never answer. It used to be
+// 2500, which is most of the 2.5-3.7 s a promo recording measured on such an
+// engine; 800 still gives a slow-but-real engine time to report voices.
+const VOICES_READY_WAIT_MS = 800;
 const RETRY_ERRORS = /voice-unavailable|synthesis-failed|language-unavailable|invalid-argument|synthesis-unavailable|audio-hardware/;
 
 let voicesReady = false;
@@ -267,7 +274,7 @@ export function ensureVoicesReady() {
       voicesReady = true;
       synth.removeEventListener('voiceschanged', onVoicesChanged);
       resolve();
-    }, 2500);
+    }, VOICES_READY_WAIT_MS);
   });
 
   return voicesPromise;
