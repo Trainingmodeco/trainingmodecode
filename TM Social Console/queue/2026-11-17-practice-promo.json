@@ -65,7 +65,7 @@
         "kind": "use",
         "sec": 3.6,
         "src": "raw-footage/promo/c3-combo.mp4",
-        "from": 0.3,
+        "from": 0.6,
         "voice": "raw-footage/promo/vo4.wav",
         "voiceAt": 0.1
       },
