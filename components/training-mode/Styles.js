@@ -23,7 +23,7 @@ export const BOTTOM_NAV_SAFE_PADDING = 'calc(160px + env(safe-area-inset-bottom,
 export const BOTTOM_NAV_CTA_PADDING = 'calc(180px + env(safe-area-inset-bottom, 0px))';
 
 export const STYLE = `
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;600;700&family=Chakra+Petch:wght@400;500;600;700&family=Barlow:wght@400;500;600;700&display=swap');
 
 html, body, #root, #__next {
   min-height: 100%;

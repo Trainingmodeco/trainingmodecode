@@ -1,0 +1,3390 @@
+{
+ "method": "Score = 3*programs + 2*quick + 1.5*builder + 1*missions + 0.5*camp + 0.5*warmup, every term read from the real code/data (modules imported and run, not guessed). programs = number of program DAYS (68 in all) that contain the move. Fixed plans (workoutLibrary PLAN_PROGRAMS: 16 plans, 57 days, each distinct move counted once per day, warm-up block included because it runs every day) are exact; the 4 Programs-screen splits (workoutPrograms PROGRAMS: 11 days, muscle chips -> generator) are the expected number of days the move is dealt, from 250 seeded runs of generateFitModeWorkout per day and gear (Weighted 50% / Bodyweight 25% / Hybrid 25%: the screen default counts half). quick = expected appearances in 100 generated Quick Missions: generateQuickMission run seeded over gear (Bodyweight 50 / Weighted 25 / Hybrid 25) x 5 focus tags x 4 levels x minutes 5,10,15,20,30,45,60 (420 combos x 24 runs, cardio finisher on in 1 run in 10), so pool membership, focus tags and the pool size are all in it. builder = expected appearances in 100 Workout Builder workouts (Programs excluded): generateFitModeWorkout over single muscle chips + the default CHEST+BACK + all chips, gear (Bodyweight 50 / Weighted 25 / Hybrid 25) x Easy/Normal/Hard, 30 min (120 runs per config), plus 0.5 for each membership of the two hand-curated cardio lists (the generator's 8-move finisher list and the shared CARDIO add-on menu). missions = number of v2 loadout missions (36 defs, authored base moves across beginner/standard/elite, swap alternatives not counted) + 7 other named workouts (Murph, Deadly Seven ...) + 10 library classics (53 mission sources) whose moves include it, once per mission. camp = number of open Arcade stages (One Hundred, Gravity Chamber, Martial Monster, Destroyer, Grappler: fit prescriptions and fight finishers; locked sagas excluded) + Combat Conditioning prebuilts and library entries + Rush explosive pool entries + concept-drop fit days that name it. Training Camp levels name no exercises (goal strings only). warmup = number of warm-up suggestion lists naming it (the 4 warm-up chips under the ring timer, the 6-move mobility block, the Combat Conditioning warm-up category); the 6-move warm-up block that opens 38 plan days is counted under programs because it runs inside those days. Names are matched to the library by normalised name (case, hyphens, plural, parentheticals ignored) plus a short hand alias list for obvious synonyms; compound names (\"V-Ups and Flutter Kicks\") credit each part that matches. QUICK pool names that are not library names are separate ids \"quick:<kebab>\" (with sameAs pointing at the nearest library move where one is obvious). Names that match neither are listed in usage-unmatched.json.",
+ "weights": {
+  "programs": 3,
+  "quick": 2,
+  "builder": 1.5,
+  "missions": 1,
+  "camp": 0.5,
+  "warmup": 0.5
+ },
+ "byId": {
+  "chest_alligator_push_ups_0001": {
+   "name": "Alligator Push-Ups",
+   "score": 13.83,
+   "where": {
+    "programs": 1.62,
+    "builder": 5.99,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_alternating_dumbbell_press_0002": {
+   "name": "Alternating Dumbbell Press",
+   "score": 9.53,
+   "where": {
+    "programs": 1.02,
+    "builder": 4.31,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_alternating_single_leg_push_ups_0003": {
+   "name": "Alternating Single-Leg Push-Ups",
+   "score": 11.09,
+   "where": {
+    "programs": 0.6,
+    "builder": 6.2,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_archer_push_ups_0004": {
+   "name": "Archer Push-Ups",
+   "score": 18.78,
+   "where": {
+    "programs": 2.61,
+    "builder": 6.3,
+    "quick": 0,
+    "missions": 1,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_around_the_world_push_ups_0005": {
+   "name": "Around the World Push-Ups",
+   "score": 11.25,
+   "where": {
+    "programs": 0.61,
+    "builder": 6.28,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_assisted_wall_handstand_push_up_0006": {
+   "name": "Assisted Wall Handstand Push-Up",
+   "score": 5.9,
+   "where": {
+    "programs": 0,
+    "builder": 3.94,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_aztec_push_ups_0007": {
+   "name": "Aztec Push-Ups",
+   "score": 11.2,
+   "where": {
+    "programs": 0.61,
+    "builder": 6.26,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_back_lever_push_up_0008": {
+   "name": "Back Lever Push-Up",
+   "score": 11.24,
+   "where": {
+    "programs": 0.61,
+    "builder": 6.28,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_band_assisted_push_ups_0009": {
+   "name": "Band-Assisted Push-Ups",
+   "score": 9.02,
+   "where": {
+    "programs": 0.97,
+    "builder": 4.07,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_barbell_bench_press_flat_incline_0010": {
+   "name": "Barbell Bench Press (Flat/Incline/Decline)",
+   "score": 9.18,
+   "where": {
+    "programs": 0.97,
+    "builder": 4.18,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "back_3_level_pull_ups_0201": {
+   "name": "3 Level Pull-Ups",
+   "score": 11.62,
+   "where": {
+    "programs": 0.64,
+    "builder": 6.47,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_90_degree_angle_half_chin_ups_0202": {
+   "name": "90 Degree Angle Half Chin-Ups",
+   "score": 11.5,
+   "where": {
+    "programs": 0.66,
+    "builder": 6.35,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_archer_inverted_rows_0203": {
+   "name": "Archer Inverted Rows",
+   "score": 12.06,
+   "where": {
+    "programs": 0.64,
+    "builder": 6.77,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_archer_pull_ups_0204": {
+   "name": "Archer Pull-Ups",
+   "score": 15.81,
+   "where": {
+    "programs": 1.65,
+    "builder": 6.91,
+    "quick": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_arm_circles_forward_backward_0205": {
+   "name": "Arm Circles (Forward/Backward)",
+   "score": 11.74,
+   "where": {
+    "programs": 0,
+    "builder": 7.82,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_arm_haulers_0206": {
+   "name": "Arm Haulers",
+   "score": 11.59,
+   "where": {
+    "programs": 0.67,
+    "builder": 6.39,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_around_the_world_pull_ups_0208": {
+   "name": "Around The World Pull-Ups",
+   "score": 11.89,
+   "where": {
+    "programs": 0.62,
+    "builder": 6.69,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_assisted_pull_ups_0209": {
+   "name": "Assisted Pull-Ups",
+   "score": 9.48,
+   "where": {
+    "programs": 1.04,
+    "builder": 3.9,
+    "quick": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_assisted_pull_ups_using_a_band_0210": {
+   "name": "Assisted Pull-Ups (using a band)",
+   "score": 9.27,
+   "where": {
+    "programs": 1.09,
+    "builder": 4.01,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "shoulders_arm_circles_0426": {
+   "name": "Arm Circles",
+   "score": 6.5,
+   "where": {
+    "programs": 2,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 1
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_arnold_press_0428": {
+   "name": "Arnold Press",
+   "score": 11.56,
+   "where": {
+    "programs": 1.25,
+    "builder": 4.87,
+    "quick": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_barbell_overhead_press_military__0429": {
+   "name": "Barbell Overhead Press (Military Press)",
+   "score": 14.93,
+   "where": {
+    "programs": 2.2,
+    "builder": 4.88,
+    "quick": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_bear_crawls_0430": {
+   "name": "Bear Crawls",
+   "score": 40.63,
+   "where": {
+    "programs": 2.99,
+    "builder": 7.59,
+    "quick": 8.88,
+    "missions": 0,
+    "camp": 5,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_bent_over_rear_delt_raises_0431": {
+   "name": "Bent-Over Rear Delt Raises",
+   "score": 1.03,
+   "where": {
+    "programs": 0.23,
+    "builder": 0.23,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_bradford_press_0432": {
+   "name": "Bradford Press",
+   "score": 11.04,
+   "where": {
+    "programs": 1.23,
+    "builder": 4.91,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_cable_front_raises_0433": {
+   "name": "Cable Front Raises",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_cable_shrugs_0434": {
+   "name": "Cable Shrugs",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_crab_walk_0435": {
+   "name": "Crab Walk",
+   "score": 14.41,
+   "where": {
+    "programs": 1.03,
+    "builder": 7.54,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "biceps_alternating_hammer_curl_to_press_0475": {
+   "name": "Alternating Hammer Curl to Press",
+   "score": 4.36,
+   "where": {
+    "programs": 0.77,
+    "builder": 1.36,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "biceps_barbell_curl_to_press_0476": {
+   "name": "Barbell Curl to Press",
+   "score": 4.54,
+   "where": {
+    "programs": 0.77,
+    "builder": 1.48,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "biceps_barbell_curls_0477": {
+   "name": "Barbell Curls",
+   "score": 4.21,
+   "where": {
+    "programs": 0.74,
+    "builder": 1.33,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "biceps_bicep_curl_21s_barbell_0478": {
+   "name": "Bicep Curl 21s (Barbell)",
+   "score": 4.24,
+   "where": {
+    "programs": 0.76,
+    "builder": 1.31,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "biceps_bicep_curl_with_static_hold_usin_0479": {
+   "name": "Bicep Curl with Static Hold (using dumbbells)",
+   "score": 4.36,
+   "where": {
+    "programs": 0.74,
+    "builder": 1.44,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "biceps_bodyweight_curls_0480": {
+   "name": "Bodyweight curls",
+   "score": 16.13,
+   "where": {
+    "programs": 1.48,
+    "builder": 7.8,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "biceps_cable_bicep_curl_with_straight_b_0481": {
+   "name": "Cable Bicep Curl with Straight Bar",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "biceps_cable_bicep_curls_0482": {
+   "name": "Cable Bicep Curls",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "biceps_cable_concentration_curls_0483": {
+   "name": "Cable Concentration Curls",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "biceps_cable_curl_drop_set_0484": {
+   "name": "Cable Curl Drop Set",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "triceps_archer_push_ups_focusing_on_one__0530": {
+   "name": "Archer Push-Ups (focusing on one arm's triceps at a time)",
+   "score": 8.59,
+   "where": {
+    "programs": 0.88,
+    "builder": 3.97,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "triceps_aztec_push_ups_focusing_on_explo_0531": {
+   "name": "Aztec Push-Ups (focusing on explosive movement with triceps)",
+   "score": 6.84,
+   "where": {
+    "programs": 0,
+    "builder": 4.56,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "triceps_barbell_overhead_triceps_extensi_0532": {
+   "name": "Barbell Overhead Triceps Extension",
+   "score": 0.37,
+   "where": {
+    "programs": 0.09,
+    "builder": 0.07,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "triceps_barbell_skull_crushers_0533": {
+   "name": "Barbell Skull Crushers",
+   "score": 9.9,
+   "where": {
+    "programs": 1.75,
+    "builder": 3.1,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "triceps_bench_or_step_triceps_dips_0534": {
+   "name": "Bench or Step Triceps Dips",
+   "score": 8.67,
+   "where": {
+    "programs": 0.93,
+    "builder": 3.92,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "triceps_bodyweight_skull_crushers_using__0535": {
+   "name": "Bodyweight Skull Crushers (using a low bar or rings)",
+   "score": 11.63,
+   "where": {
+    "programs": 1.84,
+    "builder": 4.07,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "triceps_bodyweight_triceps_extensions_us_0536": {
+   "name": "Bodyweight Triceps Extensions (using a bar or rings)",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "triceps_cable_rope_overhead_triceps_exte_0537": {
+   "name": "Cable Rope Overhead Triceps Extension",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "triceps_cable_v_bar_pushdown_0538": {
+   "name": "Cable V-Bar Pushdown",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "triceps_chain_skull_crushers_0539": {
+   "name": "Chain Skull Crushers",
+   "score": 9.7,
+   "where": {
+    "programs": 1.68,
+    "builder": 3.11,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "core_ab_rollouts_0595": {
+   "name": "Ab Rollouts",
+   "score": 6.75,
+   "where": {
+    "programs": 0,
+    "builder": 4.5,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_adductor_plank_0596": {
+   "name": "Adductor Plank",
+   "score": 4.81,
+   "where": {
+    "programs": 0,
+    "builder": 3.21,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_alternating_toe_taps_0597": {
+   "name": "Alternating Toe Taps",
+   "score": 4.72,
+   "where": {
+    "programs": 0,
+    "builder": 3.15,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_arnold_press_incorporates_core_f_0598": {
+   "name": "Arnold Press (incorporates core for stabilization)",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_barbell_landmine_rotations_0599": {
+   "name": "Barbell Landmine Rotations",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_barbell_torque_0600": {
+   "name": "Barbell Torque",
+   "score": 4.68,
+   "where": {
+    "programs": 0,
+    "builder": 3.12,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_bicycle_crunches_0601": {
+   "name": "Bicycle Crunches",
+   "score": 26.26,
+   "where": {
+    "programs": 2,
+    "builder": 0,
+    "quick": 9.38,
+    "missions": 0,
+    "camp": 3,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_boat_pose_0602": {
+   "name": "Boat Pose",
+   "score": 4.17,
+   "where": {
+    "programs": 0,
+    "builder": 2.78,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_cable_crunches_0603": {
+   "name": "Cable Crunches",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_cable_oblique_pushdown_0604": {
+   "name": "Cable Oblique Pushdown",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "quads_alt_one_leg_wall_sit_0731": {
+   "name": "Alt One Leg Wall Sit",
+   "score": 3.75,
+   "where": {
+    "programs": 0,
+    "builder": 2.5,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_alternating_reverse_lunge_with_h_0732": {
+   "name": "Alternating Reverse Lunge with Hop",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_barbell_forward_lunges_0733": {
+   "name": "Barbell Forward Lunges",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_barbell_overhead_lunges_0734": {
+   "name": "Barbell Overhead Lunges",
+   "score": 5.31,
+   "where": {
+    "programs": 0.92,
+    "builder": 1.7,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_barbell_reverse_lunges_0735": {
+   "name": "Barbell Reverse Lunges",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_barbell_walking_lunges_0736": {
+   "name": "Barbell Walking Lunges",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_battle_ropes_x_jump_lunge_0737": {
+   "name": "Battle Ropes x Jump Lunge",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_bear_squat_0738": {
+   "name": "Bear Squat",
+   "score": 8.11,
+   "where": {
+    "programs": 0.82,
+    "builder": 3.77,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_bike_sprints_0739": {
+   "name": "Bike Sprints",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "hamstrings_barbell_good_mornings_0868": {
+   "name": "Barbell Good Mornings",
+   "score": 4.84,
+   "where": {
+    "programs": 0.79,
+    "builder": 1.64,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_cable_pull_throughs_0871": {
+   "name": "Cable Pull Throughs",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_crab_walks_0872": {
+   "name": "Crab Walks",
+   "score": 9.98,
+   "where": {
+    "programs": 1.54,
+    "builder": 3.25,
+    "quick": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_depth_jumps_0873": {
+   "name": "Depth Jumps",
+   "score": 13.09,
+   "where": {
+    "programs": 2.56,
+    "builder": 2.95,
+    "quick": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_falling_tower_0874": {
+   "name": "Falling Tower",
+   "score": 6.45,
+   "where": {
+    "programs": 0.56,
+    "builder": 3.17,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_fire_hydrants_0875": {
+   "name": "Fire Hydrants",
+   "score": 6.27,
+   "where": {
+    "programs": 0.52,
+    "builder": 3.14,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_horse_stance_0876": {
+   "name": "Horse Stance",
+   "score": 6.8,
+   "where": {
+    "programs": 0.56,
+    "builder": 3.09,
+    "quick": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_sandbag_good_mornings_0877": {
+   "name": "Sandbag Good Mornings",
+   "score": 4.97,
+   "where": {
+    "programs": 0.76,
+    "builder": 1.78,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "glutes_elevated_hip_bridges_0881": {
+   "name": "Elevated Hip Bridges",
+   "score": 10.94,
+   "where": {
+    "programs": 0.34,
+    "builder": 6.62,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_elevated_single_leg_hip_bridge_0882": {
+   "name": "Elevated Single Leg Hip Bridge",
+   "score": 11.24,
+   "where": {
+    "programs": 0.37,
+    "builder": 6.76,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_glute_bridges_0883": {
+   "name": "Glute Bridges",
+   "score": 42.29,
+   "where": {
+    "programs": 3.37,
+    "builder": 6.67,
+    "quick": 10.6,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_glute_ham_developer_raises_0884": {
+   "name": "Glute-Ham Developer Raises",
+   "score": 1.39,
+   "where": {
+    "programs": 0,
+    "builder": 0.93,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_single_leg_glute_bridges_0885": {
+   "name": "Single-Leg Glute Bridges",
+   "score": 10.9,
+   "where": {
+    "programs": 0.35,
+    "builder": 6.57,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_weighted_glute_bridges_0886": {
+   "name": "Weighted Glute Bridges",
+   "score": 7.16,
+   "where": {
+    "programs": 0.47,
+    "builder": 3.83,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_weighted_hip_thrusts_0887": {
+   "name": "Weighted Hip Thrusts",
+   "score": 7.3,
+   "where": {
+    "programs": 0.47,
+    "builder": 3.92,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "calves_calf_raises_0888": {
+   "name": "Calf Raises",
+   "score": 27.76,
+   "where": {
+    "programs": 2,
+    "builder": 0,
+    "quick": 10.63,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Calves"
+  },
+  "calves_calf_raises_standing_on_the_bars_0889": {
+   "name": "Calf Raises (standing on the bars or using them for balance)",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Calves"
+  },
+  "calves_single_leg_calf_raises_0890": {
+   "name": "Single Leg Calf Raises",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Calves"
+  },
+  "full_body_air_boxing_combos_0892": {
+   "name": "Air Boxing Combos",
+   "score": 1,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Full Body"
+  },
+  "full_body_battle_bike_0897": {
+   "name": "Battle Bike",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Full Body"
+  },
+  "full_body_battle_ropes_0898": {
+   "name": "Battle Ropes",
+   "score": 9.77,
+   "where": {
+    "programs": 1,
+    "builder": 0,
+    "quick": 3.39,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Full Body"
+  },
+  "full_body_box_jumps_0900": {
+   "name": "Box Jumps",
+   "score": 2,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 4,
+    "warmup": 0
+   },
+   "group": "Full Body"
+  },
+  "full_body_box_jumps_onto_the_bars_if_they__0901": {
+   "name": "Box Jumps (onto the bars, if they are sturdy and safe for jumping)",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Full Body"
+  },
+  "full_body_box_jumps_burpees_0902": {
+   "name": "Box Jumps + Burpees",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Full Body"
+  },
+  "chest_wall_push_ups_easy_1001": {
+   "name": "Wall Push-Ups",
+   "score": 9.25,
+   "where": {
+    "programs": 0,
+    "builder": 6.17,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_incline_push_ups_easy_1002": {
+   "name": "Incline Push-Ups",
+   "score": 22.57,
+   "where": {
+    "programs": 2,
+    "builder": 6.05,
+    "quick": 0,
+    "missions": 7,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_knee_push_ups_easy_1003": {
+   "name": "Knee Push-Ups",
+   "score": 13.1,
+   "where": {
+    "programs": 0,
+    "builder": 6.06,
+    "quick": 0,
+    "missions": 4,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "shoulders_scapular_push_ups_easy_1004": {
+   "name": "Scapular Push-Ups",
+   "score": 9.14,
+   "where": {
+    "programs": 0.25,
+    "builder": 5.26,
+    "quick": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_wall_arm_raises_easy_1005": {
+   "name": "Wall Arm Raises",
+   "score": 8.46,
+   "where": {
+    "programs": 0.25,
+    "builder": 5.14,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "biceps_isometric_towel_curls_easy_1006": {
+   "name": "Isometric Towel Curls",
+   "score": 10.86,
+   "where": {
+    "programs": 0.51,
+    "builder": 6.22,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "biceps_towel_curls_easy_1007": {
+   "name": "Resistance Towel Curls",
+   "score": 11.44,
+   "where": {
+    "programs": 0.54,
+    "builder": 6.56,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "triceps_bench_dips_easy_1008": {
+   "name": "Bench Dips (Feet Down)",
+   "score": 9.11,
+   "where": {
+    "programs": 0,
+    "builder": 5.41,
+    "quick": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "triceps_wall_extensions_easy_1009": {
+   "name": "Wall Triceps Extensions",
+   "score": 6.85,
+   "where": {
+    "programs": 1,
+    "builder": 2.57,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "core_dead_bugs_easy_1010": {
+   "name": "Dead Bugs",
+   "score": 11.02,
+   "where": {
+    "programs": 1,
+    "builder": 3.35,
+    "quick": 0,
+    "missions": 2,
+    "camp": 2,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_bird_dogs_easy_1011": {
+   "name": "Bird Dogs",
+   "score": 7.99,
+   "where": {
+    "programs": 1,
+    "builder": 3.33,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_modified_plank_easy_1012": {
+   "name": "Knee Plank Hold",
+   "score": 5.07,
+   "where": {
+    "programs": 0,
+    "builder": 3.38,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "hamstrings_bw_good_mornings_easy_1013": {
+   "name": "Bodyweight Good Mornings",
+   "score": 8.74,
+   "where": {
+    "programs": 1,
+    "builder": 3.83,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_lying_bridge_easy_1014": {
+   "name": "Lying Hamstring Bridge",
+   "score": 5.65,
+   "where": {
+    "programs": 0,
+    "builder": 3.77,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "glutes_glute_bridge_hold_easy_1015": {
+   "name": "Glute Bridge Hold",
+   "score": 13.01,
+   "where": {
+    "programs": 0,
+    "builder": 8.34,
+    "quick": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_standing_kickbacks_easy_1016": {
+   "name": "Standing Glute Kickbacks",
+   "score": 5.07,
+   "where": {
+    "programs": 0,
+    "builder": 3.38,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "chest_light_db_press_easy_1017": {
+   "name": "Light Dumbbell Chest Press",
+   "score": 5.64,
+   "where": {
+    "programs": 0,
+    "builder": 3.76,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_light_db_floor_press_easy_1018": {
+   "name": "Light Dumbbell Floor Press",
+   "score": 5.76,
+   "where": {
+    "programs": 0,
+    "builder": 3.84,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "back_light_db_row_easy_1019": {
+   "name": "Light Dumbbell Row",
+   "score": 6.87,
+   "where": {
+    "programs": 0.1,
+    "builder": 4.38,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_supported_db_row_easy_1020": {
+   "name": "Supported Dumbbell Row",
+   "score": 6.84,
+   "where": {
+    "programs": 0.09,
+    "builder": 4.38,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "shoulders_light_lateral_raise_easy_1021": {
+   "name": "Light Dumbbell Lateral Raise",
+   "score": 2.78,
+   "where": {
+    "programs": 0,
+    "builder": 1.85,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_seated_light_press_easy_1022": {
+   "name": "Seated Light Shoulder Press",
+   "score": 4.5,
+   "where": {
+    "programs": 0,
+    "builder": 3,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "biceps_light_db_curls_easy_1023": {
+   "name": "Light Dumbbell Curls",
+   "score": 3.16,
+   "where": {
+    "programs": 0,
+    "builder": 2.11,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "biceps_seated_light_curls_easy_1024": {
+   "name": "Seated Light Curls",
+   "score": 3.1,
+   "where": {
+    "programs": 0,
+    "builder": 2.07,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "triceps_light_overhead_ext_easy_1025": {
+   "name": "Light Overhead Dumbbell Extension",
+   "score": 2.69,
+   "where": {
+    "programs": 0,
+    "builder": 1.79,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "triceps_light_kickbacks_easy_1026": {
+   "name": "Light Dumbbell Kickbacks",
+   "score": 2.94,
+   "where": {
+    "programs": 0,
+    "builder": 1.96,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "quads_light_goblet_squat_easy_1027": {
+   "name": "Light Goblet Squat",
+   "score": 3.41,
+   "where": {
+    "programs": 0,
+    "builder": 2.28,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_supported_split_squat_easy_1028": {
+   "name": "Supported Split Squat",
+   "score": 3.25,
+   "where": {
+    "programs": 0,
+    "builder": 2.17,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "hamstrings_light_rdl_easy_1029": {
+   "name": "Light Romanian Deadlift",
+   "score": 3.66,
+   "where": {
+    "programs": 0,
+    "builder": 2.44,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_light_db_good_mornings_easy_1030": {
+   "name": "Light Dumbbell Good Mornings",
+   "score": 3.74,
+   "where": {
+    "programs": 0,
+    "builder": 2.49,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "glutes_light_hip_thrust_easy_1031": {
+   "name": "Light Dumbbell Hip Thrust",
+   "score": 3.4,
+   "where": {
+    "programs": 0,
+    "builder": 2.27,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_light_step_ups_easy_1032": {
+   "name": "Light Step-Ups",
+   "score": 3.47,
+   "where": {
+    "programs": 0,
+    "builder": 2.31,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "chest_push_ups_core": {
+   "name": "Push-Ups",
+   "score": 101.6,
+   "where": {
+    "programs": 12.6,
+    "builder": 6,
+    "quick": 13.9,
+    "missions": 16,
+    "camp": 22,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_wide_push_ups_core": {
+   "name": "Wide Push-Ups",
+   "score": 22,
+   "where": {
+    "programs": 3.62,
+    "builder": 5.77,
+    "quick": 0,
+    "missions": 1,
+    "camp": 3,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_diamond_push_ups_core": {
+   "name": "Diamond Push-Ups",
+   "score": 48.81,
+   "where": {
+    "programs": 3,
+    "builder": 5.74,
+    "quick": 13.6,
+    "missions": 2,
+    "camp": 4,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_decline_push_ups_core": {
+   "name": "Decline Push-Ups",
+   "score": 11.6,
+   "where": {
+    "programs": 1,
+    "builder": 5.73,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_plyo_push_ups_core": {
+   "name": "Plyo Push-Ups",
+   "score": 14.37,
+   "where": {
+    "programs": 0,
+    "builder": 5.91,
+    "quick": 0,
+    "missions": 0,
+    "camp": 11,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_dumbbell_bench_press_core": {
+   "name": "Dumbbell Bench Press",
+   "score": 9.43,
+   "where": {
+    "programs": 1.01,
+    "builder": 4.26,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_incline_dumbbell_press_core": {
+   "name": "Incline Dumbbell Press",
+   "score": 10.14,
+   "where": {
+    "programs": 1.03,
+    "builder": 4.37,
+    "quick": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_dumbbell_flyes_core": {
+   "name": "Dumbbell Flyes",
+   "score": 1.5,
+   "where": {
+    "programs": 0.5,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_dumbbell_floor_press_core": {
+   "name": "Dumbbell Floor Press",
+   "score": 6.63,
+   "where": {
+    "programs": 0,
+    "builder": 3.75,
+    "quick": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "chest_dumbbell_pullover_core": {
+   "name": "Dumbbell Pullover",
+   "score": 9.21,
+   "where": {
+    "programs": 0.98,
+    "builder": 4.19,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Chest"
+  },
+  "back_pull_ups_core": {
+   "name": "Pull-Ups",
+   "score": 26.13,
+   "where": {
+    "programs": 2,
+    "builder": 5.76,
+    "quick": 0,
+    "missions": 8,
+    "camp": 7,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_chin_ups_core": {
+   "name": "Chin-Ups",
+   "score": 13.02,
+   "where": {
+    "programs": 0.65,
+    "builder": 6.72,
+    "quick": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_close_grip_pull_ups_core": {
+   "name": "Close-Grip Pull-Ups",
+   "score": 8.94,
+   "where": {
+    "programs": 0,
+    "builder": 5.96,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_inverted_rows_core": {
+   "name": "Inverted Rows",
+   "score": 19.32,
+   "where": {
+    "programs": 1.62,
+    "builder": 6.64,
+    "quick": 0,
+    "missions": 1,
+    "camp": 7,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_superman_hold_core": {
+   "name": "Superman Hold",
+   "score": 44.19,
+   "where": {
+    "programs": 3,
+    "builder": 4.92,
+    "quick": 13.91,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_reverse_snow_angels_core": {
+   "name": "Reverse Snow Angels",
+   "score": 13.91,
+   "where": {
+    "programs": 2,
+    "builder": 4.94,
+    "quick": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_dumbbell_bent_over_rows_core": {
+   "name": "Dumbbell Bent-Over Rows",
+   "score": 10.33,
+   "where": {
+    "programs": 1.06,
+    "builder": 3.77,
+    "quick": 0,
+    "missions": 1,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_single_arm_dumbbell_row_core": {
+   "name": "Single-Arm Dumbbell Row",
+   "score": 9.61,
+   "where": {
+    "programs": 1.02,
+    "builder": 3.7,
+    "quick": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_barbell_rows_core": {
+   "name": "Barbell Rows",
+   "score": 5.38,
+   "where": {
+    "programs": 0.13,
+    "builder": 3.33,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_deadlifts_core": {
+   "name": "Deadlifts",
+   "score": 31.35,
+   "where": {
+    "programs": 0.09,
+    "builder": 3.45,
+    "quick": 9.7,
+    "missions": 5,
+    "camp": 3,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_dumbbell_deadlifts_core": {
+   "name": "Dumbbell Deadlifts",
+   "score": 8.58,
+   "where": {
+    "programs": 1.08,
+    "builder": 3.57,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_renegade_rows_core": {
+   "name": "Renegade Rows",
+   "score": 5.42,
+   "where": {
+    "programs": 0.09,
+    "builder": 3.43,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_band_pull_aparts_core": {
+   "name": "Band Pull-Aparts",
+   "score": 5.16,
+   "where": {
+    "programs": 0,
+    "builder": 3.11,
+    "quick": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "back_band_lat_pulldown_core": {
+   "name": "Band Lat Pulldown",
+   "score": 8.55,
+   "where": {
+    "programs": 1.02,
+    "builder": 3.66,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Back"
+  },
+  "shoulders_pike_push_ups_core": {
+   "name": "Pike Push-Ups",
+   "score": 54.49,
+   "where": {
+    "programs": 4.02,
+    "builder": 7.79,
+    "quick": 13.62,
+    "missions": 2,
+    "camp": 3,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_shoulder_taps_core": {
+   "name": "Shoulder Taps",
+   "score": 36.05,
+   "where": {
+    "programs": 0.25,
+    "builder": 5.34,
+    "quick": 13.65,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_handstand_hold_core": {
+   "name": "Handstand Hold",
+   "score": 13.4,
+   "where": {
+    "programs": 1.25,
+    "builder": 6.44,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_plank_to_down_dog_core": {
+   "name": "Plank to Down Dog",
+   "score": 13.63,
+   "where": {
+    "programs": 0.25,
+    "builder": 8.59,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_dumbbell_shoulder_press_core": {
+   "name": "Dumbbell Shoulder Press",
+   "score": 10.29,
+   "where": {
+    "programs": 1.21,
+    "builder": 4.44,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_lateral_raises_core": {
+   "name": "Lateral Raises",
+   "score": 14.72,
+   "where": {
+    "programs": 1.25,
+    "builder": 0.21,
+    "quick": 5.08,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_front_raises_core": {
+   "name": "Front Raises",
+   "score": 1.14,
+   "where": {
+    "programs": 0.26,
+    "builder": 0.24,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_rear_delt_flyes_core": {
+   "name": "Rear Delt Flyes",
+   "score": 1.16,
+   "where": {
+    "programs": 0.26,
+    "builder": 0.25,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_dumbbell_upright_rows_core": {
+   "name": "Dumbbell Upright Rows",
+   "score": 10.15,
+   "where": {
+    "programs": 1.19,
+    "builder": 4.38,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "shoulders_dumbbell_shrugs_core": {
+   "name": "Dumbbell Shrugs",
+   "score": 3.28,
+   "where": {
+    "programs": 0,
+    "builder": 1.85,
+    "quick": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Shoulders"
+  },
+  "biceps_dumbbell_curls_core": {
+   "name": "Dumbbell Curls",
+   "score": 4.4,
+   "where": {
+    "programs": 0.78,
+    "builder": 1.37,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "biceps_hammer_curls_core": {
+   "name": "Hammer Curls",
+   "score": 14.05,
+   "where": {
+    "programs": 0.69,
+    "builder": 1.31,
+    "quick": 5.01,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "biceps_concentration_curls_core": {
+   "name": "Concentration Curls",
+   "score": 4.31,
+   "where": {
+    "programs": 0.76,
+    "builder": 1.36,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "biceps_incline_dumbbell_curls_core": {
+   "name": "Incline Dumbbell Curls",
+   "score": 4.54,
+   "where": {
+    "programs": 0.83,
+    "builder": 1.37,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "biceps_band_curls_core": {
+   "name": "Band Curls",
+   "score": 3.19,
+   "where": {
+    "programs": 0,
+    "builder": 2.13,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "biceps_chin_up_hold_core": {
+   "name": "Chin-Up Hold",
+   "score": 14.22,
+   "where": {
+    "programs": 1.52,
+    "builder": 6.44,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Biceps"
+  },
+  "triceps_triceps_dips_core": {
+   "name": "Triceps Dips",
+   "score": 9.76,
+   "where": {
+    "programs": 0.89,
+    "builder": 4.07,
+    "quick": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "triceps_close_grip_push_ups_core": {
+   "name": "Close-Grip Push-Ups",
+   "score": 11.88,
+   "where": {
+    "programs": 1.89,
+    "builder": 4.14,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "triceps_dumbbell_skull_crushers_core": {
+   "name": "Dumbbell Skull Crushers",
+   "score": 0.29,
+   "where": {
+    "programs": 0.07,
+    "builder": 0.05,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "triceps_overhead_dumbbell_extension_core": {
+   "name": "Overhead Dumbbell Extension",
+   "score": 0.29,
+   "where": {
+    "programs": 0.08,
+    "builder": 0.03,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "triceps_dumbbell_kickbacks_core": {
+   "name": "Dumbbell Kickbacks",
+   "score": 2.81,
+   "where": {
+    "programs": 0,
+    "builder": 1.88,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "triceps_close_grip_dumbbell_press_core": {
+   "name": "Close-Grip Dumbbell Press",
+   "score": 9.92,
+   "where": {
+    "programs": 1.75,
+    "builder": 3.12,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Triceps"
+  },
+  "core_plank_hold_core": {
+   "name": "Plank Hold",
+   "score": 47.24,
+   "where": {
+    "programs": 5,
+    "builder": 2.92,
+    "quick": 8.93,
+    "missions": 3,
+    "camp": 14,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_side_plank_core": {
+   "name": "Side Plank",
+   "score": 28.86,
+   "where": {
+    "programs": 2,
+    "builder": 2.69,
+    "quick": 9.16,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_hollow_body_hold_core": {
+   "name": "Hollow Body Hold",
+   "score": 9.17,
+   "where": {
+    "programs": 1,
+    "builder": 2.78,
+    "quick": 0,
+    "missions": 0,
+    "camp": 4,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_crunches_core": {
+   "name": "Crunches",
+   "score": 43.37,
+   "where": {
+    "programs": 4,
+    "builder": 3.01,
+    "quick": 9.68,
+    "missions": 5,
+    "camp": 5,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_sit_ups_core": {
+   "name": "Sit-Ups",
+   "score": 53.13,
+   "where": {
+    "programs": 5.99,
+    "builder": 7.76,
+    "quick": 7.51,
+    "missions": 2,
+    "camp": 13,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_reverse_crunches_core": {
+   "name": "Reverse Crunches",
+   "score": 12.47,
+   "where": {
+    "programs": 2,
+    "builder": 2.98,
+    "quick": 0,
+    "missions": 1,
+    "camp": 2,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_leg_raises_core": {
+   "name": "Leg Raises",
+   "score": 24.13,
+   "where": {
+    "programs": 0,
+    "builder": 2.71,
+    "quick": 9.78,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_flutter_kicks_core": {
+   "name": "Flutter Kicks",
+   "score": 27.35,
+   "where": {
+    "programs": 1,
+    "builder": 2.71,
+    "quick": 9.14,
+    "missions": 1,
+    "camp": 2,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_russian_twists_core": {
+   "name": "Russian Twists",
+   "score": 32.26,
+   "where": {
+    "programs": 3,
+    "builder": 2.63,
+    "quick": 8.15,
+    "missions": 1,
+    "camp": 4,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_v_ups_core": {
+   "name": "V-Ups",
+   "score": 22.28,
+   "where": {
+    "programs": 4,
+    "builder": 4.52,
+    "quick": 0,
+    "missions": 1,
+    "camp": 5,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_mountain_climbers_core": {
+   "name": "Mountain Climbers",
+   "score": 58.48,
+   "where": {
+    "programs": 2.99,
+    "builder": 8.97,
+    "quick": 13.78,
+    "missions": 5,
+    "camp": 7,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_weighted_russian_twists_core": {
+   "name": "Weighted Russian Twists",
+   "score": 38.78,
+   "where": {
+    "programs": 0.38,
+    "builder": 3.27,
+    "quick": 16.36,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_weighted_sit_ups_core": {
+   "name": "Weighted Sit-Ups",
+   "score": 35.69,
+   "where": {
+    "programs": 1.84,
+    "builder": 4.88,
+    "quick": 11.18,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_dumbbell_side_bends_core": {
+   "name": "Dumbbell Side Bends",
+   "score": 26.68,
+   "where": {
+    "programs": 0,
+    "builder": 2.99,
+    "quick": 11.09,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "core_weighted_plank_core": {
+   "name": "Weighted Plank",
+   "score": 4.48,
+   "where": {
+    "programs": 0,
+    "builder": 2.99,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Core"
+  },
+  "quads_squats_core": {
+   "name": "Squats",
+   "score": 44.67,
+   "where": {
+    "programs": 2,
+    "builder": 2.47,
+    "quick": 7.98,
+    "missions": 10,
+    "camp": 18,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_jump_squats_core": {
+   "name": "Jump Squats",
+   "score": 48.05,
+   "where": {
+    "programs": 2.79,
+    "builder": 4.53,
+    "quick": 11.2,
+    "missions": 4,
+    "camp": 13,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_lunges_core": {
+   "name": "Lunges",
+   "score": 26.04,
+   "where": {
+    "programs": 1,
+    "builder": 2.42,
+    "quick": 8.96,
+    "missions": 1,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_walking_lunges_core": {
+   "name": "Walking Lunges",
+   "score": 10.86,
+   "where": {
+    "programs": 1.79,
+    "builder": 3.66,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_reverse_lunges_core": {
+   "name": "Reverse Lunges",
+   "score": 35.34,
+   "where": {
+    "programs": 2,
+    "builder": 2.48,
+    "quick": 10.56,
+    "missions": 3,
+    "camp": 3,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_split_squats_core": {
+   "name": "Split Squats",
+   "score": 9.62,
+   "where": {
+    "programs": 0.78,
+    "builder": 3.53,
+    "quick": 0,
+    "missions": 1,
+    "camp": 2,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_wall_sit_core": {
+   "name": "Wall Sit",
+   "score": 25.49,
+   "where": {
+    "programs": 1,
+    "builder": 0,
+    "quick": 9.99,
+    "missions": 0,
+    "camp": 5,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_pistol_squats_core": {
+   "name": "Pistol Squats",
+   "score": 6.09,
+   "where": {
+    "programs": 0,
+    "builder": 4.06,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_step_ups_core": {
+   "name": "Step-Ups",
+   "score": 25.01,
+   "where": {
+    "programs": 0,
+    "builder": 2.88,
+    "quick": 10.35,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_goblet_squats_core": {
+   "name": "Goblet Squats",
+   "score": 32.01,
+   "where": {
+    "programs": 1,
+    "builder": 2.18,
+    "quick": 9.63,
+    "missions": 6,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_dumbbell_front_squats_core": {
+   "name": "Dumbbell Front Squats",
+   "score": 5.82,
+   "where": {
+    "programs": 0.96,
+    "builder": 1.96,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_barbell_back_squats_core": {
+   "name": "Barbell Back Squats",
+   "score": 8.11,
+   "where": {
+    "programs": 1,
+    "builder": 2.08,
+    "quick": 0,
+    "missions": 1,
+    "camp": 2,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_dumbbell_lunges_core": {
+   "name": "Dumbbell Lunges",
+   "score": 4.81,
+   "where": {
+    "programs": 0.91,
+    "builder": 1.38,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_bulgarian_split_squats_core": {
+   "name": "Bulgarian Split Squats",
+   "score": 12.81,
+   "where": {
+    "programs": 2,
+    "builder": 2.21,
+    "quick": 0,
+    "missions": 2,
+    "camp": 3,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "quads_dumbbell_step_ups_core": {
+   "name": "Dumbbell Step-Ups",
+   "score": 5.11,
+   "where": {
+    "programs": 0.95,
+    "builder": 1.51,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Quads"
+  },
+  "hamstrings_single_leg_romanian_deadlift_core": {
+   "name": "Single-Leg Romanian Deadlift",
+   "score": 9.08,
+   "where": {
+    "programs": 1.54,
+    "builder": 2.98,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_nordic_curl_negatives_core": {
+   "name": "Nordic Curl Negatives",
+   "score": 8.2,
+   "where": {
+    "programs": 1,
+    "builder": 3.46,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_hamstring_walkouts_core": {
+   "name": "Hamstring Walkouts",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_sliding_leg_curls_core": {
+   "name": "Sliding Leg Curls",
+   "score": 3,
+   "where": {
+    "programs": 1,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_romanian_deadlifts_core": {
+   "name": "Romanian Deadlifts",
+   "score": 20.9,
+   "where": {
+    "programs": 0.75,
+    "builder": 1.22,
+    "quick": 7.91,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_dumbbell_romanian_deadlifts_core": {
+   "name": "Dumbbell Romanian Deadlifts",
+   "score": 5.2,
+   "where": {
+    "programs": 0.83,
+    "builder": 1.14,
+    "quick": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_kettlebell_swings_core": {
+   "name": "Kettlebell Swings",
+   "score": 48.77,
+   "where": {
+    "programs": 1.78,
+    "builder": 2.18,
+    "quick": 14.83,
+    "missions": 8,
+    "camp": 5,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_stiff_leg_deadlifts_core": {
+   "name": "Stiff-Leg Deadlifts",
+   "score": 3.5,
+   "where": {
+    "programs": 0,
+    "builder": 2.33,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_zercher_good_mornings_core": {
+   "name": "Zercher Good Mornings",
+   "score": 3.58,
+   "where": {
+    "programs": 0,
+    "builder": 2.38,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "hamstrings_sumo_deadlifts_core": {
+   "name": "Sumo Deadlifts",
+   "score": 20.41,
+   "where": {
+    "programs": 0.74,
+    "builder": 1.36,
+    "quick": 7.82,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Hamstrings"
+  },
+  "glutes_donkey_kicks_core": {
+   "name": "Donkey Kicks",
+   "score": 8.19,
+   "where": {
+    "programs": 1,
+    "builder": 3.46,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_clamshells_core": {
+   "name": "Clamshells",
+   "score": 4.95,
+   "where": {
+    "programs": 0,
+    "builder": 3.3,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_frog_pumps_core": {
+   "name": "Frog Pumps",
+   "score": 5.23,
+   "where": {
+    "programs": 0,
+    "builder": 3.49,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_single_leg_hip_thrusts_core": {
+   "name": "Single-Leg Hip Thrusts",
+   "score": 13.82,
+   "where": {
+    "programs": 1.37,
+    "builder": 6.47,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_dumbbell_sumo_squats_core": {
+   "name": "Dumbbell Sumo Squats",
+   "score": 8,
+   "where": {
+    "programs": 0.45,
+    "builder": 4.1,
+    "quick": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_dumbbell_hip_thrusts_core": {
+   "name": "Dumbbell Hip Thrusts",
+   "score": 8.16,
+   "where": {
+    "programs": 0.48,
+    "builder": 3.82,
+    "quick": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_kettlebell_deadlifts_core": {
+   "name": "Kettlebell Deadlifts",
+   "score": 4.11,
+   "where": {
+    "programs": 0,
+    "builder": 2.41,
+    "quick": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_weighted_step_ups_core": {
+   "name": "Weighted Step-Ups",
+   "score": 7.15,
+   "where": {
+    "programs": 0.49,
+    "builder": 3.78,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_banded_glute_bridges_core": {
+   "name": "Banded Glute Bridges",
+   "score": 2.22,
+   "where": {
+    "programs": 0,
+    "builder": 1.48,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "glutes_band_lateral_walks_core": {
+   "name": "Band Lateral Walks",
+   "score": 2.34,
+   "where": {
+    "programs": 0,
+    "builder": 1.56,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Glutes"
+  },
+  "calves_dumbbell_calf_raises_core": {
+   "name": "Dumbbell Calf Raises",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Calves"
+  },
+  "full_body_burpees_core": {
+   "name": "Burpees",
+   "score": 50.15,
+   "where": {
+    "programs": 6,
+    "builder": 1,
+    "quick": 5.83,
+    "missions": 9,
+    "camp": 20,
+    "warmup": 0
+   },
+   "group": "Full Body"
+  },
+  "full_body_jumping_jacks_core": {
+   "name": "Jumping Jacks",
+   "score": 128.37,
+   "where": {
+    "programs": 38,
+    "builder": 0.56,
+    "quick": 5.01,
+    "missions": 1,
+    "camp": 3,
+    "warmup": 2
+   },
+   "group": "Full Body"
+  },
+  "full_body_high_knees_core": {
+   "name": "High Knees",
+   "score": 130.39,
+   "where": {
+    "programs": 39,
+    "builder": 1,
+    "quick": 5.45,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "group": "Full Body"
+  },
+  "full_body_sprawls_core": {
+   "name": "Sprawls",
+   "score": 45.93,
+   "where": {
+    "programs": 3,
+    "builder": 0,
+    "quick": 14.72,
+    "missions": 4,
+    "camp": 7,
+    "warmup": 0
+   },
+   "group": "Full Body"
+  },
+  "full_body_squat_thrusts_core": {
+   "name": "Squat Thrusts",
+   "score": 5.37,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 1.93,
+    "missions": 1,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Full Body"
+  },
+  "full_body_thrusters_core": {
+   "name": "Thrusters",
+   "score": 22.24,
+   "where": {
+    "programs": 1,
+    "builder": 0,
+    "quick": 8.37,
+    "missions": 2,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Full Body"
+  },
+  "full_body_clean_and_press_core": {
+   "name": "Clean and Press",
+   "score": 18.87,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 8.44,
+    "missions": 2,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Full Body"
+  },
+  "full_body_farmer_carries_core": {
+   "name": "Farmer Carries",
+   "score": 31.19,
+   "where": {
+    "programs": 2,
+    "builder": 0.33,
+    "quick": 11.85,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "group": "Full Body"
+  },
+  "full_body_man_makers_core": {
+   "name": "Man Makers",
+   "score": 0.5,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "Full Body"
+  },
+  "full_body_dumbbell_snatch_core": {
+   "name": "Dumbbell Snatch",
+   "score": 16.68,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 8.34,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Full Body"
+  },
+  "full_body_snatch_to_zercher_squat_core": {
+   "name": "Snatch to Zercher Squat",
+   "score": 0,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "Full Body"
+  },
+  "quick:dips": {
+   "name": "Dips",
+   "score": 37.13,
+   "where": {
+    "programs": 3,
+    "builder": 0,
+    "quick": 13.07,
+    "missions": 1,
+    "camp": 2,
+    "warmup": 0
+   },
+   "group": "quick-only",
+   "sameAs": [
+    "triceps_triceps_dips_core"
+   ]
+  },
+  "quick:inchworms": {
+   "name": "Inchworms",
+   "score": 30.49,
+   "where": {
+    "programs": 1,
+    "builder": 0,
+    "quick": 13.74,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "quick-only"
+  },
+  "quick:lateral-lunges": {
+   "name": "Lateral Lunges",
+   "score": 21.01,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 10.25,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "quick-only"
+  },
+  "quick:skater-hops": {
+   "name": "Skater Hops",
+   "score": 23.19,
+   "where": {
+    "programs": 0,
+    "builder": 0.5,
+    "quick": 10.47,
+    "missions": 0,
+    "camp": 3,
+    "warmup": 0
+   },
+   "group": "quick-only"
+  },
+  "quick:tuck-jumps": {
+   "name": "Tuck Jumps",
+   "score": 34.64,
+   "where": {
+    "programs": 1,
+    "builder": 0,
+    "quick": 11.57,
+    "missions": 1,
+    "camp": 15,
+    "warmup": 0
+   },
+   "group": "quick-only"
+  },
+  "quick:hollow-hold": {
+   "name": "Hollow Hold",
+   "score": 18.79,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 9.14,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "quick-only",
+   "sameAs": [
+    "core_hollow_body_hold_core"
+   ]
+  },
+  "quick:plank-jacks": {
+   "name": "Plank Jacks",
+   "score": 21.99,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 10.74,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "quick-only"
+  },
+  "quick:shadowbox-sprint": {
+   "name": "Shadowbox Sprint",
+   "score": 21.76,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 10.38,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "quick-only"
+  },
+  "quick:knee-strikes": {
+   "name": "Knee Strikes",
+   "score": 27.46,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 12.23,
+    "missions": 3,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "quick-only"
+  },
+  "quick:squat-to-front-kick": {
+   "name": "Squat to Front Kick",
+   "score": 24.76,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 12.38,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "quick-only"
+  },
+  "quick:sprawl-to-jab-cross": {
+   "name": "Sprawl to Jab-Cross",
+   "score": 23.65,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 11.82,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "quick-only"
+  },
+  "quick:elbow-strikes": {
+   "name": "Elbow Strikes",
+   "score": 29.68,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 14.34,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "quick-only"
+  },
+  "quick:slip-and-rip": {
+   "name": "Slip and Rip",
+   "score": 23.05,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 11.53,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "quick-only"
+  },
+  "quick:speed-punches": {
+   "name": "Speed Punches",
+   "score": 30.57,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 15.28,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "quick-only"
+  },
+  "quick:dumbbell-press": {
+   "name": "Dumbbell Press",
+   "score": 10.22,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 5.11,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "quick-only",
+   "sameAs": [
+    "chest_dumbbell_bench_press_core"
+   ]
+  },
+  "quick:bent-over-rows": {
+   "name": "Bent-Over Rows",
+   "score": 15.81,
+   "where": {
+    "programs": 1,
+    "builder": 0,
+    "quick": 5.16,
+    "missions": 2,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "quick-only",
+   "sameAs": [
+    "back_dumbbell_bent_over_rows_core"
+   ]
+  },
+  "quick:shoulder-press": {
+   "name": "Shoulder Press",
+   "score": 9.93,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 4.96,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "quick-only",
+   "sameAs": [
+    "shoulders_dumbbell_shoulder_press_core"
+   ]
+  },
+  "quick:bicep-curls": {
+   "name": "Bicep Curls",
+   "score": 10.42,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 5.21,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "quick-only",
+   "sameAs": [
+    "biceps_dumbbell_curls_core"
+   ]
+  },
+  "quick:triceps-extensions": {
+   "name": "Triceps Extensions",
+   "score": 10.54,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 5.27,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "quick-only",
+   "sameAs": [
+    "triceps_overhead_dumbbell_extension_core"
+   ]
+  },
+  "quick:floor-press": {
+   "name": "Floor Press",
+   "score": 10.62,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 5.06,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "quick-only",
+   "sameAs": [
+    "chest_dumbbell_floor_press_core"
+   ]
+  },
+  "quick:chest-flys": {
+   "name": "Chest Flys",
+   "score": 9.97,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 4.99,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "quick-only",
+   "sameAs": [
+    "chest_dumbbell_flyes_core"
+   ]
+  },
+  "quick:dumbbell-rows": {
+   "name": "Dumbbell Rows",
+   "score": 10.71,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 5.36,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "quick-only",
+   "sameAs": [
+    "back_single_arm_dumbbell_row_core"
+   ]
+  },
+  "quick:weighted-lunges": {
+   "name": "Weighted Lunges",
+   "score": 15.33,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 7.66,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "quick-only",
+   "sameAs": [
+    "quads_dumbbell_lunges_core"
+   ]
+  },
+  "quick:front-squats": {
+   "name": "Front Squats",
+   "score": 23.07,
+   "where": {
+    "programs": 1,
+    "builder": 0,
+    "quick": 7.54,
+    "missions": 4,
+    "camp": 2,
+    "warmup": 0
+   },
+   "group": "quick-only",
+   "sameAs": [
+    "quads_dumbbell_front_squats_core"
+   ]
+  },
+  "quick:weighted-punches": {
+   "name": "Weighted Punches",
+   "score": 22.76,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 11.13,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "group": "quick-only"
+  },
+  "quick:shuttle-runs": {
+   "name": "Shuttle Runs",
+   "score": 6.92,
+   "where": {
+    "programs": 0,
+    "builder": 0,
+    "quick": 3.46,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "group": "quick-only"
+  }
+ }
+}

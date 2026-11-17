@@ -983,7 +983,7 @@ export default function ComboCoachActive({ discipline, cfg, onEnd, initialPaused
                   {comboStreak > 0 ? `STREAK ×${comboStreak}` : 'STAY IN RHYTHM'}
                 </div>
                 {/* Current call — combos gold, defense calls violet (1.3) */}
-                <div className="anim-fade-up" key={callTick} style={{
+                <div className="anim-fade-up" data-testid="cc-call" key={callTick} style={{
                   fontFamily: "'Orbitron',sans-serif", fontWeight: 900,
                   fontSize: isDefense ? 34 : (currentCombo?.display || '').length > 20 ? 22 : 28,
                   color: isSwitch ? '#5eead4' : isDefense ? '#a855f7' : '#fde047', lineHeight: 1.2, textAlign: 'center',

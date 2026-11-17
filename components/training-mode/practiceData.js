@@ -2,7 +2,9 @@ export const PRACTICE_DISCIPLINES = ['Boxing', 'Kickboxing', 'Muay Thai', 'MMA']
 export const PRACTICE_CATEGORIES = ['Strikes', 'Defense', 'Footwork'];
 
 // Each technique: discipline, category, name, description, level, duration,
-// videoUrl (blank until videos are added), cues, mistakes, next, locked
+// videoUrl (its tutorial, '' when there is none yet), cues, mistakes.
+// Practice Mode lists them as moves, in learning order (data/practiceMoves.js).
+// Nothing here is locked: every move opens.
 export const TECHNIQUES = [
   // ── Boxing / Strikes ──────────────────────────────────────────────────────
   {
@@ -11,7 +13,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Hands high', 'Step with the jab', 'Return to guard'],
     mistakes: ['Dropping the rear hand', 'Reaching too far', 'Chin up'],
-    next: 'Cross', locked: true,
   },
   {
     discipline: 'Boxing', category: 'Strikes', name: 'Cross',
@@ -19,7 +20,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Rotate the hip', 'Drive off the back foot', 'Tuck the chin'],
     mistakes: ['Telegraphing with the shoulder', 'Leaning forward', 'Leaving guard open'],
-    next: 'Lead Hook', locked: true,
   },
   {
     discipline: 'Boxing', category: 'Strikes', name: 'Lead Hook',
@@ -27,7 +27,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Pivot on the lead foot', 'Elbow at shoulder height', 'Snap and return'],
     mistakes: ['Arm swinging wide', 'Dropping the rear hand', 'Standing upright'],
-    next: 'Rear Hook', locked: true,
   },
   {
     discipline: 'Boxing', category: 'Strikes', name: 'Rear Hook',
@@ -35,7 +34,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Rotate the rear hip', 'Elbow parallel to floor', 'Return to guard fast'],
     mistakes: ['Over-rotating', 'Leaving the chin exposed', 'Looping the arm'],
-    next: 'Lead Uppercut', locked: true,
   },
   {
     discipline: 'Boxing', category: 'Strikes', name: 'Lead Uppercut',
@@ -43,7 +41,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Dip the lead shoulder', 'Drive upward with the legs', 'Palm facing you'],
     mistakes: ['Telegraphing the dip', 'Swinging wide', 'Dropping the rear guard'],
-    next: 'Rear Uppercut', locked: true,
   },
   {
     discipline: 'Boxing', category: 'Strikes', name: 'Rear Uppercut',
@@ -51,7 +48,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Pivot on the rear foot', 'Use leg drive', 'Stay compact'],
     mistakes: ['Winding up too wide', 'Leaning into it', 'Forgetting the guard'],
-    next: 'Overhand', locked: true,
   },
   {
     discipline: 'Boxing', category: 'Strikes', name: 'Overhand',
@@ -59,7 +55,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Loop over the guard', 'Come in at an angle', 'Commit weight forward'],
     mistakes: ['Throwing it too wide', 'No head movement', 'Slow return'],
-    next: 'Body Jab', locked: true,
   },
   {
     discipline: 'Boxing', category: 'Strikes', name: 'Body Jab',
@@ -67,7 +62,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Bend the knees to level change', 'Aim at the liver or solar plexus', 'Return quickly'],
     mistakes: ['Bending at the waist', 'Slapping instead of jabbing', 'Not protecting the head'],
-    next: 'Body Cross', locked: true,
   },
   {
     discipline: 'Boxing', category: 'Strikes', name: 'Body Cross',
@@ -75,7 +69,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Rotate and dip', 'Target the liver', 'Stay explosive on the return'],
     mistakes: ['Telegraphing with a big dip', 'Leaving the head exposed', 'Punching down instead of through'],
-    next: 'Jab', locked: true,
   },
 
   // ── Boxing / Defense ──────────────────────────────────────────────────────
@@ -85,7 +78,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Small bend at the waist', 'Head moves offline', 'Return to center fast'],
     mistakes: ['Moving too wide', 'Dropping hands', 'Slipping late'],
-    next: 'Slip Inside', locked: true,
   },
   {
     discipline: 'Boxing', category: 'Defense', name: 'Slip Inside',
@@ -93,7 +85,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Dip to the inside angle', 'Eyes stay on opponent', 'Hands stay up'],
     mistakes: ['Over-rotating', 'Going too deep', 'Forgetting the counter'],
-    next: 'Bob and Weave', locked: true,
   },
   {
     discipline: 'Boxing', category: 'Defense', name: 'Bob and Weave',
@@ -101,7 +92,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['U-shaped movement', 'Bend the knees not the back', 'Explode back up'],
     mistakes: ['Too slow on the rise', 'Bending at waist only', 'Hands dropping'],
-    next: 'Parry', locked: true,
   },
   {
     discipline: 'Boxing', category: 'Defense', name: 'Parry',
@@ -109,7 +99,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Small tap with the rear hand', 'Redirect not block', 'Stay relaxed'],
     mistakes: ['Reaching out too far', 'Over-committing', 'Parrying too early'],
-    next: 'Slip Outside', locked: true,
   },
 
   // ── Boxing / Footwork ─────────────────────────────────────────────────────
@@ -119,7 +108,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Step and punch at the same time', 'Land balanced', 'Return guard on the way back'],
     mistakes: ['Stepping before punching', 'Overstepping', 'Flat-footed landing'],
-    next: 'Lateral Step', locked: true,
   },
   {
     discipline: 'Boxing', category: 'Footwork', name: 'Lateral Step',
@@ -127,7 +115,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Step-drag pattern', 'Stay on the balls of your feet', 'Keep stance width'],
     mistakes: ['Crossing the feet', 'Standing up too tall', 'Moving too slow'],
-    next: 'Pivot', locked: true,
   },
   {
     discipline: 'Boxing', category: 'Footwork', name: 'Pivot',
@@ -135,7 +122,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Pivot on the ball of the lead foot', 'Rear foot follows', 'End in stance'],
     mistakes: ['Pivoting on the heel', 'Losing balance', 'Not exiting to an angle'],
-    next: 'Step and Jab', locked: true,
   },
 
   // ── Kickboxing / Strikes ───────────────────────────────────────────────────
@@ -148,7 +134,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Hands high', 'Step with the jab', 'Return to guard'],
     mistakes: ['Dropping the rear hand', 'Reaching too far', 'Chin up'],
-    next: 'Lead Teep', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Lead Teep',
@@ -156,7 +141,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Chamber the knee first', 'Push through with the heel', 'Return the foot fast'],
     mistakes: ['Skipping the chamber', 'Pushing too low', 'Landing off-balance'],
-    next: 'Cross', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Cross',
@@ -164,7 +148,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Rotate the hip', 'Drive off the back foot', 'Tuck the chin'],
     mistakes: ['Telegraphing with the shoulder', 'Leaning forward', 'Leaving guard open'],
-    next: 'Rear Teep', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Rear Teep',
@@ -172,7 +155,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Step in slightly', 'Drive the hip through', 'Land back in stance'],
     mistakes: ['Telegraphing with a lean', 'Locking the knee', 'Kicking too high'],
-    next: 'Lead Hook', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Lead Hook',
@@ -180,7 +162,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Pivot on the lead foot', 'Elbow at shoulder height', 'Snap and return'],
     mistakes: ['Arm swinging wide', 'Dropping the rear hand', 'Standing upright'],
-    next: 'Switch Kick', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Switch Kick',
@@ -188,7 +169,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/switch-kick.mp4',
     cues: ['Small hop to switch', 'Disguise the switch', 'Kick immediately after switch'],
     mistakes: ['Big telegraphing hop', 'Slow switch', 'Landing wrong stance after'],
-    next: 'Rear Hook', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Rear Hook',
@@ -196,7 +176,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Rotate the rear hip', 'Elbow parallel to floor', 'Return to guard fast'],
     mistakes: ['Over-rotating', 'Leaving the chin exposed', 'Looping the arm'],
-    next: 'Rear Roundhouse Kick', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Rear Roundhouse Kick',
@@ -204,7 +183,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/rear-roundhouse-kick.mp4',
     cues: ['Full hip rotation', 'Strike with the shin', 'Swing the arm for power'],
     mistakes: ['Kicking with the foot', 'No pivot', 'Forgetting the follow-through'],
-    next: 'Lead Uppercut', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Lead Uppercut',
@@ -212,7 +190,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Dip the lead shoulder', 'Drive upward with the legs', 'Palm facing you'],
     mistakes: ['Telegraphing the dip', 'Swinging wide', 'Dropping the rear guard'],
-    next: 'Lead Knee', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Lead Knee',
@@ -220,7 +197,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Drive hip forward', 'Pull opponent in if possible', 'Strike with the tip of the knee'],
     mistakes: ['No hip engagement', 'Kneeing with the thigh', 'Losing balance on impact'],
-    next: 'Rear Uppercut', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Rear Uppercut',
@@ -228,7 +204,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Pivot on the rear foot', 'Use leg drive', 'Stay compact'],
     mistakes: ['Winding up too wide', 'Leaning into it', 'Forgetting the guard'],
-    next: 'Rear Knee', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Rear Knee',
@@ -236,7 +211,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/rear-knee.mp4',
     cues: ['Step in to close distance', 'Drive the hip through', 'Target the body'],
     mistakes: ['No hip drive', 'Staying too far away', 'Losing guard on entry'],
-    next: 'Lead Side Kick', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Lead Side Kick',
@@ -244,7 +218,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/lead-side-kick.mp4',
     cues: ['Chamber at the hip', 'Thrust heel-first', 'Lean away for power'],
     mistakes: ['Kicking with the toe', 'Not chambering', 'No lean for range'],
-    next: 'Rear Side Kick', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Rear Side Kick',
@@ -252,7 +225,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Turn the hip over', 'Drive through the heel', 'Keep guard hand high'],
     mistakes: ['Kicking with the ball of the foot', 'Not turning the hip', 'Slow recovery'],
-    next: 'Stepping Side Kick', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Stepping Side Kick',
@@ -260,7 +232,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/stepping-side-kick.mp4',
     cues: ['Shuffle the rear foot up first', 'Chamber as you step', 'Thrust the heel, hips behind it'],
     mistakes: ['Kicking before the step lands', 'Telegraphing the shuffle', 'Dropping the hands on the step'],
-    next: 'Spinning Back Kick', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Spinning Back Kick',
@@ -268,7 +239,6 @@ export const TECHNIQUES = [
     level: 'Advanced', duration: '20–30 sec', videoUrl: '/static/practice/spinning-back-kick.mp4',
     cues: ['Look over the shoulder first', 'Chamber tight as you turn', 'Drive the heel straight back'],
     mistakes: ['Spinning without spotting the target', 'Kicking in an arc instead of straight', 'Finishing with your back turned'],
-    next: 'Low Kick', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Low Kick',
@@ -276,7 +246,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Pivot the base foot', 'Strike with the shin', 'Return to stance fast'],
     mistakes: ['Kicking with the foot', 'No pivot', 'Kicking too high'],
-    next: 'Check', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Strikes', name: 'Check',
@@ -284,7 +253,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Raise the knee and tilt', 'Meet the incoming shin', 'Keep hands high'],
     mistakes: ['Late reaction', 'Checking with the ankle', 'Dropping the guard'],
-    next: 'Jab', locked: true,
   },
 
   // ── Kickboxing / Defense ──────────────────────────────────────────────────
@@ -294,7 +262,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Lift the knee', 'Turn the shin out', 'Keep hands up'],
     mistakes: ['Checking too late', 'Dropping the guard', 'Checking with the foot'],
-    next: 'Catch and Return', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Defense', name: 'Catch and Return',
@@ -302,7 +269,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Scoop the kick with both arms', 'Step in to unbalance', 'Return immediately'],
     mistakes: ['Catching only with one arm', 'Hesitating on the return', 'Not stepping in'],
-    next: 'Low Kick Check', locked: true,
   },
 
   // ── Kickboxing / Footwork ─────────────────────────────────────────────────
@@ -312,7 +278,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Plant the kicking leg at an angle', 'Exit away from counter', 'Reset in stance'],
     mistakes: ['Stepping straight back', 'Planting too close', 'Standing still after kick'],
-    next: 'Kick Entry', locked: true,
   },
   {
     discipline: 'Kickboxing', category: 'Footwork', name: 'Kick Entry',
@@ -320,7 +285,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Feint to close distance', 'Keep hands up on the way in', 'Strike on the step'],
     mistakes: ['Running in straight', 'Dropping guard', 'Kicking from too far'],
-    next: 'Kick Exit', locked: true,
   },
 
   // ── Muay Thai / Strikes ───────────────────────────────────────────────────
@@ -333,7 +297,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Hands high', 'Step with the jab', 'Return to guard'],
     mistakes: ['Dropping the rear hand', 'Reaching too far', 'Chin up'],
-    next: 'Lead Teep', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Lead Teep',
@@ -341,7 +304,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Drive the hip forward', 'Push with the ball of the foot', 'Use it as a range tool'],
     mistakes: ['Kicking too low', 'No hip drive', 'Telegraphing'],
-    next: 'Cross', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Cross',
@@ -349,7 +311,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Rotate the hip', 'Drive off the back foot', 'Tuck the chin'],
     mistakes: ['Telegraphing with the shoulder', 'Leaning forward', 'Leaving guard open'],
-    next: 'Rear Teep', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Rear Teep',
@@ -357,7 +318,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Step in slightly', 'Drive the hip through', 'Land back in stance'],
     mistakes: ['Telegraphing with a lean', 'Locking the knee', 'Kicking too high'],
-    next: 'Lead Hook', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Lead Hook',
@@ -365,7 +325,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Pivot on the lead foot', 'Elbow at shoulder height', 'Snap and return'],
     mistakes: ['Arm swinging wide', 'Dropping the rear hand', 'Standing upright'],
-    next: 'Lead Hook Elbow', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Lead Hook Elbow',
@@ -373,7 +332,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/lead-hook-elbow.mp4',
     cues: ['Close the distance first', 'Strike with the tip of the elbow', 'Swing through the target'],
     mistakes: ['Too much wind-up', 'Striking with the forearm', 'Leaving chin exposed'],
-    next: 'Lead Diagonal Elbow', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Lead Diagonal Elbow',
@@ -381,7 +339,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/lead-diagonal-elbow.mp4',
     cues: ['Close the distance first', 'Cut down and across at an angle', 'Strike with the tip, hip behind it'],
     mistakes: ['Too much wind-up', 'Striking with the forearm', 'Dropping the rear hand'],
-    next: 'Rear Hook Elbow', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Rear Hook Elbow',
@@ -389,7 +346,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/rear-hook-elbow.mp4',
     cues: ['Step in as the elbow comes up', 'Slash level across the face', 'Shoulder covers the chin'],
     mistakes: ['Winding up behind the head', 'Striking with the forearm', 'Staying out of range'],
-    next: 'Lead Uppercut Elbow', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Lead Uppercut Elbow',
@@ -397,7 +353,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/lead-uppercut-elbow.mp4',
     cues: ['Drop the hand, point the elbow up', 'Drive up through the legs', 'Hand finishes past your ear'],
     mistakes: ['Lifting with the shoulder only', 'Leaning back as it rises', 'Reaching from too far'],
-    next: 'Rear Uppercut Elbow', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Rear Uppercut Elbow',
@@ -405,7 +360,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/rear-uppercut-elbow.mp4',
     cues: ['Drop the hand, point the elbow up', 'Drive up through the legs', 'Hand finishes past your ear'],
     mistakes: ['Lifting with the shoulder only', 'Leaning back as it rises', 'Reaching from too far'],
-    next: 'Rear Diagonal Elbow', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Rear Diagonal Elbow',
@@ -413,7 +367,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/rear-diagonal-elbow.mp4',
     cues: ['Close the distance first', 'Cut down and across at an angle', 'Strike with the tip, hip behind it'],
     mistakes: ['Too much wind-up', 'Striking with the forearm', 'Dropping the lead hand'],
-    next: 'Tomahawk Elbow', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Tomahawk Elbow',
@@ -421,7 +374,6 @@ export const TECHNIQUES = [
     level: 'Advanced', duration: '20–30 sec', videoUrl: '/static/practice/tomahawk-elbow.mp4',
     cues: ['Drive the knee up to jump', 'Elbow high at the top of the jump', 'Land it on the way down'],
     mistakes: ['Jumping without the knee drive', 'Striking before the top of the jump', 'Landing off balance'],
-    next: 'Spinning Back Elbow', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Spinning Back Elbow',
@@ -429,7 +381,6 @@ export const TECHNIQUES = [
     level: 'Advanced', duration: '20–30 sec', videoUrl: '/static/practice/spinning-back-elbow.mp4',
     cues: ['Step across to start the turn', 'Spot the target over your shoulder', 'Whip the elbow through on the turn'],
     mistakes: ['Spinning blind', 'Leaning away as you turn', 'Arm wide instead of tight'],
-    next: 'Rear Hook', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Rear Hook',
@@ -437,7 +388,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Rotate the rear hip', 'Elbow parallel to floor', 'Return to guard fast'],
     mistakes: ['Over-rotating', 'Leaving the chin exposed', 'Looping the arm'],
-    next: 'Rear Roundhouse Kick', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Rear Roundhouse Kick',
@@ -445,7 +395,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '/static/practice/rear-roundhouse-kick.mp4',
     cues: ['Full hip rotation', 'Strike with the shin', 'Swing the arm for power'],
     mistakes: ['Kicking with the foot', 'No pivot', 'Forgetting the follow-through'],
-    next: 'Switch Kick', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Switch Kick',
@@ -453,7 +402,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/switch-kick.mp4',
     cues: ['Small hop to switch', 'Disguise the switch', 'Kick immediately after switch'],
     mistakes: ['Big telegraphing hop', 'Slow switch', 'Landing wrong stance after'],
-    next: 'Machine Gun Kick', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Machine Gun Kick',
@@ -461,7 +409,6 @@ export const TECHNIQUES = [
     level: 'Advanced', duration: '20–30 sec', videoUrl: '/static/practice/machine-gun-kick.mp4',
     cues: ['Land and reload off the same foot', 'The hip drives every kick', 'Hands stay up between kicks'],
     mistakes: ['Resetting the foot too far back', 'Swinging the arm instead of turning the hip', 'Losing balance on the base leg'],
-    next: 'Lead Uppercut', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Lead Uppercut',
@@ -469,7 +416,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Dip the lead shoulder', 'Drive upward with the legs', 'Palm facing you'],
     mistakes: ['Telegraphing the dip', 'Swinging wide', 'Dropping the rear guard'],
-    next: 'Lead Knee', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Lead Knee',
@@ -477,7 +423,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Pull the opponent in', 'Drive the hip forward', 'Target the body or head'],
     mistakes: ['No hip drive', 'Kneeing with the kneecap', 'Losing the clinch grip'],
-    next: 'Lead Shuffle Knee', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Lead Shuffle Knee',
@@ -485,7 +430,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/lead-shuffle-knee.mp4',
     cues: ['Shuffle the rear foot up', 'Drive the hip forward', 'Spear with the point of the knee'],
     mistakes: ['No hip drive', 'Kneeing with the kneecap', 'Hands drop on the shuffle'],
-    next: 'Rear Uppercut', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Rear Uppercut',
@@ -493,7 +437,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Pivot on the rear foot', 'Use leg drive', 'Stay compact'],
     mistakes: ['Winding up too wide', 'Leaning into it', 'Forgetting the guard'],
-    next: 'Rear Knee', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Rear Knee',
@@ -501,7 +444,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/rear-knee.mp4',
     cues: ['Step in to close distance', 'Drive the hip through', 'Target the body'],
     mistakes: ['No hip drive', 'Staying too far away', 'Losing guard on entry'],
-    next: 'Roundhouse Knee', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Roundhouse Knee',
@@ -509,7 +451,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/roundhouse-knee.mp4',
     cues: ['Start it like a low kick', 'Turn the knee in over the top', 'Drive the point into the ribs'],
     mistakes: ['Lifting the knee too early', 'Kneeing with the thigh, not the point', 'Dropping the hands'],
-    next: 'Lead Spear Elbow', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Lead Spear Elbow',
@@ -517,7 +458,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Raise the elbow high', 'Drive downward through the target', 'Use in clinch range'],
     mistakes: ['Missing the angle', 'Not closing distance', 'Telegraphing the raise'],
-    next: 'Rear Spear Elbow', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Rear Spear Elbow',
@@ -525,7 +465,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Step in with the rear foot', 'Drive the elbow tip downward', 'Follow through completely'],
     mistakes: ['Too far away', 'Hitting with the forearm', 'No weight shift'],
-    next: 'Check', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Check',
@@ -533,7 +472,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Raise the knee and tilt', 'Meet the incoming shin', 'Keep hands high'],
     mistakes: ['Late reaction', 'Checking with the ankle', 'Dropping the guard'],
-    next: 'Clinch Entry', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Strikes', name: 'Clinch Entry',
@@ -541,7 +479,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Step to inside position', 'Control the neck', 'Strike from the clinch'],
     mistakes: ['Entering with no guard', 'Grabbing the arms only', 'Standing too upright'],
-    next: 'Jab', locked: true,
   },
 
   // ── Muay Thai / Defense ───────────────────────────────────────────────────
@@ -551,7 +488,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Step offline', 'Catch with both hands', 'Counter immediately'],
     mistakes: ['Standing flat-footed', 'One-hand catch', 'No counter'],
-    next: 'Elbow Cover', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Defense', name: 'Elbow Cover',
@@ -559,7 +495,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Tuck the elbow to cover', 'Move offline', 'Return fire'],
     mistakes: ['Standing still', 'Covering with the hand only', 'Not countering'],
-    next: 'Teep Defense', locked: true,
   },
 
   // ── Muay Thai / Footwork ──────────────────────────────────────────────────
@@ -569,7 +504,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Step to the outside angle', 'Pivot away', 'Reset with hands up'],
     mistakes: ['Stepping back in a line', 'Pausing after exit', 'Losing guard'],
-    next: 'Clinch Walk', locked: true,
   },
   {
     discipline: 'Muay Thai', category: 'Footwork', name: 'Clinch Walk',
@@ -577,7 +511,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Small steps to stay balanced', 'Control the position', 'Set up knees'],
     mistakes: ['Big steps that lose balance', 'Letting go of clinch control', 'Flat feet'],
-    next: 'Angle Exit', locked: true,
   },
 
   // ── MMA / Strikes ─────────────────────────────────────────────────────────
@@ -591,7 +524,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Hands high', 'Step with the jab', 'Return to guard'],
     mistakes: ['Dropping the rear hand', 'Reaching too far', 'Chin up'],
-    next: 'Lead Teep', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Lead Teep',
@@ -599,7 +531,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Chamber the knee', 'Push through with the heel', 'Return to stance quickly'],
     mistakes: ['No chamber', 'Leaning back too far', 'Slow recovery'],
-    next: 'Cross', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Cross',
@@ -607,7 +538,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Rotate hip and shoulder', 'Drive off the rear foot', 'Protect the chin'],
     mistakes: ['Telegraphing', 'No rotation', 'Forgetting rear hand after'],
-    next: 'Rear Teep', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Rear Teep',
@@ -615,7 +545,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Step in slightly', 'Drive the hip through', 'Land back in stance'],
     mistakes: ['Telegraphing with a lean', 'Locking the knee', 'Kicking too high'],
-    next: 'Lead Hook', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Lead Hook',
@@ -623,7 +552,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Pivot on the lead foot', 'Elbow at shoulder height', 'Snap and return'],
     mistakes: ['Arm swinging wide', 'Dropping the rear hand', 'Standing upright'],
-    next: 'Low Kick', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Low Kick',
@@ -631,7 +559,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Pivot the base foot', 'Strike with the shin', 'Return to stance fast'],
     mistakes: ['Kicking with the foot', 'No pivot', 'Kicking too high'],
-    next: 'Rear Hook', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Rear Hook',
@@ -639,7 +566,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Rotate the rear hip', 'Elbow parallel to floor', 'Return to guard fast'],
     mistakes: ['Over-rotating', 'Leaving the chin exposed', 'Looping the arm'],
-    next: 'Rear Roundhouse Kick', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Rear Roundhouse Kick',
@@ -647,7 +573,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/rear-roundhouse-kick.mp4',
     cues: ['Full hip rotation', 'Strike with the shin', 'Swing the arm for power'],
     mistakes: ['Kicking with the foot', 'No pivot', 'Forgetting the follow-through'],
-    next: 'Switch Kick', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Switch Kick',
@@ -655,7 +580,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/switch-kick.mp4',
     cues: ['Small hop to switch', 'Disguise the switch', 'Kick immediately after switch'],
     mistakes: ['Big telegraphing hop', 'Slow switch', 'Landing wrong stance after'],
-    next: 'Lead Uppercut', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Lead Uppercut',
@@ -663,7 +587,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Dip the lead shoulder', 'Drive upward with the legs', 'Palm facing you'],
     mistakes: ['Telegraphing the dip', 'Swinging wide', 'Dropping the rear guard'],
-    next: 'Lead Knee', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Lead Knee',
@@ -671,7 +594,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Drive hip forward', 'Pull opponent in if possible', 'Strike with the tip of the knee'],
     mistakes: ['No hip engagement', 'Kneeing with the thigh', 'Losing balance on impact'],
-    next: 'Rear Uppercut', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Rear Uppercut',
@@ -679,7 +601,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Pivot on the rear foot', 'Use leg drive', 'Stay compact'],
     mistakes: ['Winding up too wide', 'Leaning into it', 'Forgetting the guard'],
-    next: 'Rear Knee', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Rear Knee',
@@ -687,7 +608,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '/static/practice/rear-knee.mp4',
     cues: ['Step in to close distance', 'Drive the hip through', 'Target the body'],
     mistakes: ['No hip drive', 'Staying too far away', 'Losing guard on entry'],
-    next: 'Overhand', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Overhand',
@@ -695,7 +615,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Angle in', 'Loop over the guard', 'Commit weight'],
     mistakes: ['Telegraphing with shoulder', 'Too wide arc', 'Slow return'],
-    next: 'Sprawl', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Sprawl',
@@ -703,7 +622,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Shoot the hips back and down', 'Flatten the opponent', 'Crossface or back-take'],
     mistakes: ['Jumping back instead of sprawling', 'Not driving the hips', 'Losing the head position'],
-    next: 'Level Change', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Level Change',
@@ -711,7 +629,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Bend the knees not the back', 'Keep head off center', 'Drive through on entry'],
     mistakes: ['Telegraphing with a dip', 'Ducking the head only', 'Slow penetration step'],
-    next: 'Basic Shoot Entry', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Basic Shoot Entry',
@@ -719,7 +636,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Drop level first', 'Penetration step deep', 'Head on the inside'],
     mistakes: ['Reaching without stepping', 'Head down on entry', 'No level change before shoot'],
-    next: 'Ground-and-Pound Posture', locked: true,
   },
   {
     discipline: 'MMA', category: 'Strikes', name: 'Ground-and-Pound Posture',
@@ -727,7 +643,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Posture up with hips forward', 'Use short strikes', 'Control the position first'],
     mistakes: ['Leaning too far forward', 'Wild swings from top', 'Letting opponent control posture'],
-    next: 'Jab', locked: true,
   },
 
   // ── MMA / Defense ─────────────────────────────────────────────────────────
@@ -737,7 +652,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Hips back and down', 'Crossface immediately', 'Stay heavy on top'],
     mistakes: ['Sprawling too late', 'Letting the hips get under', 'No crossface'],
-    next: 'Clinch Defense', locked: true,
   },
   {
     discipline: 'MMA', category: 'Defense', name: 'Clinch Defense',
@@ -745,7 +659,6 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Frame with the forearm', 'Create space', 'Exit to an angle'],
     mistakes: ['Pulling away without framing', 'Staying in front', 'Letting go of position control'],
-    next: 'Sprawl Defense', locked: true,
   },
 
   // ── MMA / Footwork ────────────────────────────────────────────────────────
@@ -755,7 +668,6 @@ export const TECHNIQUES = [
     level: 'Beginner', duration: '20–30 sec', videoUrl: '',
     cues: ['Circle away from the cage', 'Never back straight in', 'Use lateral movement'],
     mistakes: ['Stepping back in a straight line', 'Ignoring cage position', 'Flat feet'],
-    next: 'Level Change Entry', locked: true,
   },
   {
     discipline: 'MMA', category: 'Footwork', name: 'Level Change Entry',
@@ -763,6 +675,5 @@ export const TECHNIQUES = [
     level: 'Intermediate', duration: '20–30 sec', videoUrl: '',
     cues: ['Feint high to drop low', 'Penetration step on entry', 'Head offline on entry'],
     mistakes: ['Ducking straight in', 'No level change deception', 'Chin down but head straight'],
-    next: 'Cage Awareness', locked: true,
   },
 ];

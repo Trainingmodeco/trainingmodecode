@@ -45,10 +45,50 @@ and the app chat doesn't edit `TM Social Console/`.
   SHADOWBOXING**. Deliver them as assets only, in the format below. Aim for
   720p at about 1 MB per 25 s (or 540p if the set runs heavy: 141 clips is
   well over 100 MB in the repo), muted is fine, and a poster per clip.
+- **App needs from the console, strike call clips:** Practice's drill now shows
+  the clip of the strike being called. The app reads `public/static/practice/calls/*.mp4`
+  and the list `components/training-mode/data/callClips.json`
+  (`{ dir, clips: { "<key>": { file, ms } } }`; keys are the lower-case strike
+  names of the Technique Library, "jab", "lead hook", and `stance:<discipline>`
+  such as `stance:boxing`). More keys can be added at any time; the app assumes
+  no fixed set. A call with no clip is shown as text, never as a wrong strike.
+  A console-cut call clip: one rep, guard to guard, 1 to 1.5 s (a stance clip
+  4 to 5 s), square, tight on the athlete, the same camera spot for every
+  strike, silent, H.264. Still to cut: rear hook, the uppercuts, then kicks,
+  knees and elbows, and a stance per other style.
 - **Console needs from the app:** nothing right now (the shadowboxing format is
   in the log, newest entry).
 
 ## Log
+
+### 2026-11-15 · app → console · Practice Ladder and the strike call clips
+
+- **What changed in the app.** Practice Mode is one ladder of moves per
+  discipline (stance, punches, kicks, ...). UP NEXT plays its video on top; DRILL
+  IT starts the drill at once and the drill shows the clip of each strike as the
+  coach calls it. Finishing a drill marks the move LEARNED. The SHADOWBOXING row
+  is now the SHADOWBOX side of a LEARN | SHADOWBOX switch; the clips format below
+  is unchanged. A shadowboxing clip titled like a move (for example "Boxing
+  Stance", or a clip named "Lead Hook" in the same discipline) is also that
+  move's watch video when it has no tutorial of its own.
+- **Call clips.** `public/static/practice/calls/*.mp4` plus
+  `components/training-mode/data/callClips.json`. The first four (stance for
+  Boxing, jab, cross, lead hook) were cut in the app chat from the delivered
+  shadowboxing clips. What a console-cut call clip should be: one rep, guard to
+  guard, 1 to 1.5 s, square, tight on the athlete, the same camera spot for all
+  strikes, silent. A stance clip plays once (4 to 5 s). Add the file and its
+  `ms` to `callClips.json`; no code change is needed.
+  The owner's rule (2026-11-15): Kickboxing, Muay Thai and MMA show the punches
+  from the kickboxing stance. The watch video of jab, cross, both hooks and
+  both uppercuts in those three styles is Kickboxing's own clip (its "Punches"
+  group), and the three boxing cuts carry `"styles": ["boxing"]`, so they play
+  in Boxing drills only. A kickboxing cut of a punch goes in as
+  `"jab#kick": { "file": ..., "ms": ..., "styles": ["kickboxing", "muay-thai", "mma"] }`.
+  Until those exist, a punch drill in those styles loops the kickboxing clip
+  for a single call and shows a combination as text.
+- **Watch video of a move.** Its tutorial (`videoUrl` of the Technique Library
+  entry or lesson) first, then a shadowboxing clip of the same discipline
+  titled for the move. Moves with neither show a GUIDE plate and READ ALOUD.
 
 ### 2026-11-14 · console → app · Shadowboxing clips (`claude/console-handoff-2026-11-14-shadowboxing`)
 

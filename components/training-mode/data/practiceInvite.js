@@ -1,5 +1,5 @@
 import { PRACTICE_DISCIPLINES } from '../practiceData';
-import { basicsProgress, anyBasicsComplete, getCompletedLessons } from './practiceLessons';
+import { basicsProgress, anyBasicsDone, getLearned } from './practiceMoves';
 
 // When to show the Practice posters (PracticeInvite.dc.html):
 //
@@ -9,6 +9,11 @@ import { basicsProgress, anyBasicsComplete, getCompletedLessons } from './practi
 //   one discipline are done. It goes to the same new learners, plus anyone
 //   who has finished a Practice Round: people who have shown they want the
 //   lessons. Experienced fighters who never practise are not nagged.
+//
+// The basics of a discipline are its stance and every Beginner-level strike,
+// each learned by finishing one drill (data/practiceMoves basicMoves). The old
+// seven-lesson path held lessons that are no longer shown, so it could never
+// be finished; someone who did finish it still counts as done.
 //
 // Finishing a lesson within a week of the reminder pays WEEKLY_BONUS_XP,
 // once per reminder — the "+100 XP" the poster promises.
@@ -32,7 +37,7 @@ export function isNewLearner(profile) {
 }
 
 export function shouldShowIntro(profile) {
-  return isNewLearner(profile) && !load().introShownAt && !anyBasicsComplete();
+  return isNewLearner(profile) && !load().introShownAt && !anyBasicsDone();
 }
 
 export function markIntroShown() {
@@ -46,7 +51,7 @@ export function notePracticed() {
 export function shouldShowWeekly(profile, now = Date.now()) {
   const s = load();
   if (!isNewLearner(profile) && !s.practiced) return false;
-  if (anyBasicsComplete()) return false;
+  if (anyBasicsDone()) return false;
   // The intro poster counts as this week's nudge.
   const last = Math.max(Date.parse(s.introShownAt || 0) || 0, Date.parse(s.weeklyShownAt || 0) || 0);
   return now - last >= WEEK_MS;
@@ -68,9 +73,15 @@ export function claimWeeklyBonus(now = Date.now()) {
 
 // What the weekly poster shows: every discipline's basics, and the one to
 // continue — the athlete's own discipline, unless another is further along.
+// The poster reads each basic move as a lesson: `lessons` and `next` carry
+// the move with its name as `title`.
 export function weeklySummary(preferred = 'Boxing') {
-  const completed = getCompletedLessons();
-  const discs = PRACTICE_DISCIPLINES.map(d => ({ disc: d, ...basicsProgress(d, completed) }));
+  const learned = getLearned();
+  const asLesson = (m) => (m ? { ...m, title: m.name } : null);
+  const discs = PRACTICE_DISCIPLINES.map(d => {
+    const p = basicsProgress(d, learned);
+    return { disc: d, lessons: p.moves.map(asLesson), done: p.done, total: p.total, nextIndex: p.nextIndex, next: asLesson(p.next) };
+  });
   const own = discs.find(d => d.disc === preferred) || discs[0];
   const lead = discs.reduce((best, d) => (d.done > best.done ? d : best), own);
   return { discs, focus: lead };

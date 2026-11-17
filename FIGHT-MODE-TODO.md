@@ -354,6 +354,32 @@ HOW MUCH TO MAKE (guidance):
       DRILL A COMBO). The console delivers files only (format in HANDOFF.md,
       2026-11-14); `npm run test:shadow` and two smoke checks cover it. Open:
       the footage, and what each clip is called and grouped under.
+      Nov 15: the SHADOWBOXING row became the LEARN | SHADOWBOX switch of 1.9.
+- [ ] 1.9 Practice Mode: the Ladder (Nov 15, owner approved). The 7-lesson
+      path and the 91-entry Technique Library are one ordered list of MOVES
+      per discipline (`data/practiceMoves.js`): STANCE & GUARD, PUNCHES, KICKS,
+      KNEES, ELBOWS, MORE, DEFENSE, FOOTWORK. One word for progress: LEARNED =
+      the athlete finished one drill of that move (END before the bell banks
+      nothing). The six shared punches are learned once for all four
+      disciplines. Free in Combo Coach from day one: Jab and Cross only
+      (`STARTER_ARSENAL`); drilling a move banks it (beginner learners only).
+      Nothing in Practice is locked.
+      Screens: `PracticeMode.jsx` (header, tabs, LEARN | SHADOWBOX, N OF M
+      LEARNED, UP NEXT card with its video, groups that fold when done, TEST
+      OUT per group), `PracticeMoveCard.jsx` (1 WATCH, 2 DRILL, 3 LEARNED, a
+      looping video or the GUIDE plate with one READ ALOUD, KEY POINTS, WATCH
+      FOR), `PracticeRound.jsx` (DRILL IT starts round 1 at once; the call in
+      large type; LEARNED on the done view) and `PracticeDrillVideo.jsx` (the
+      clip of the strike being called, from `public/static/practice/calls/`
+      listed in `data/callClips.json`; `data/drillClips.js` plans each call;
+      a call with no clip, or a clip that will not load, stays text).
+      No new spoken line: the drill says what it said before, so the voice
+      checks stay green. Tests: `npm run test:practice-moves` (190), the
+      sweeps in `scripts/sweeps/practice-and-extras.mjs`, and the smoke checks
+      named "practice..." in `scripts/smoke-web.mjs`.
+      Open: more call clips (the console cuts them, see HANDOFF.md); kick,
+      knee and elbow clips as the console delivers them; Kickboxing Easy has
+      one Jab/Cross call and HARD one or two in every discipline.
 
 ## PHASE 2 — TRAINING CAMP + ARCADE v2 (protocol-driven; PRO tier)
 > PROTOCOL LANDED Jul 21 (`protocol-src/` on `app`, merged via PR #2 from the
