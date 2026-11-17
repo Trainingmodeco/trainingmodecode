@@ -7,7 +7,11 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-export const REPO = path.join(ROOT, '..');
+// The app's code, which the tools read facts from. In the repo the console sits inside it (..). On the
+// owner's laptop the console is a plain folder beside a checkout of the app (../trainingmodecode), and
+// .. is an old unzipped copy: reading that gave October's facts in November. TM_APP_REPO overrides both.
+const BESIDE = path.join(ROOT, '..', 'trainingmodecode');
+export const REPO = process.env.TM_APP_REPO || (fs.existsSync(path.join(BESIDE, '.git')) ? BESIDE : path.join(ROOT, '..'));
 export const QUEUE = path.join(ROOT, 'queue');
 export const EXPORTS = path.join(ROOT, 'exports');
 export const RAW = path.join(ROOT, 'raw-footage');

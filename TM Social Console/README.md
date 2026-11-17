@@ -226,6 +226,27 @@ Head tracking (`npm run track`) needs Python once: `winget install
 Python.Python.3.12`, then `py -m pip install mediapipe`. The pose model
 downloads itself the first time.
 
+## Shadowboxing clips for the app
+
+1. Put a shoot's clips in `raw-footage\<shoot name>\`.
+2. Double-click **SHADOW EDITOR.bat** (or ask Claude: "scan and build the new clips").
+3. In the editor: fix titles, pick the discipline tab, trim, check the app frame.
+   A clip with two moves in it: play to where the second starts and press
+   **Split here** (S). A bad take: click **Left out** (a title of "bad take"
+   on its own still sends the clip to the app).
+4. Tell Claude when you're happy. It checks every clip, shows them in the app
+   on this PC, and once you say yes sends them as a pull request that you or
+   the app chat merges.
+
+| | |
+|---|---|
+| `npm run shadow -- scan` | find new clips |
+| `npm run shadow -- split "<long video>"` | cut one long take of many moves into clips (keep the original outside `raw-footage`) |
+| `npm run shadow -- build` | make previews + app videos (only what changed) |
+| `npm run shadow:edit` | open the clip editor |
+| `npm run shadow -- status` | what's labelled and built |
+| `npm run shadow -- check` | looks at every app video before a delivery (the right clip under each name, the right length, 720p, muted) |
+
 ## What's inside
 
 - `brain/`: your Drive scripts as a searchable library, the content formats,

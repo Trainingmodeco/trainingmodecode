@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "shadow-editor",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["tools/shadow.mjs", "edit"],
+      "port": 4610
+    }
+  ]
+}

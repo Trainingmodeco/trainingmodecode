@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shadowbox Clip Editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0A0716; --panel: #120C24; --panel2: #0F0B1F; --line: rgba(168,85,247,.32); --line2: rgba(168,85,247,.6);
+  --text: #EDE9FE; --soft: #A9A3C4; --dim: #6E6890; --gold: #F2BE45; --gold2: #FFE9A8; --violet: #A855F7; --lilac: #C4A8FF;
+  --red: #F87171; --green: #4ADE80; --blue: #8FB4FF;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 600 15px/1.3 Rajdhani, system-ui, sans-serif; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.app { display: grid; grid-template-rows: auto 1fr; height: 100vh; }
+header { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); background: linear-gradient(180deg, #160E2E, var(--bg)); }
+h1 { margin: 0; font: 800 17px Orbitron, sans-serif; letter-spacing: .08em; }
+h1 span { color: var(--gold); }
+.stats { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill { padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--soft); font-size: 13px; white-space: nowrap; }
+.pill b { color: var(--text); }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; align-items: center; }
+.chip { padding: 4px 10px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--soft); font-size: 13px; letter-spacing: .04em; }
+.chip[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); background: rgba(242,190,69,.08); }
+.search { width: 170px; padding: 4px 9px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel2); }
+.body { display: grid; grid-template-columns: 340px 1fr; min-height: 0; }
+.list { overflow-y: auto; border-right: 1px solid var(--line); padding: 6px; scrollbar-width: thin; scrollbar-color: rgba(143,180,255,.3) transparent; }
+.row { display: grid; grid-template-columns: 96px 1fr; gap: 9px; width: 100%; padding: 6px; border-radius: 9px; border: 1px solid transparent; background: transparent; text-align: left; }
+.row:hover { background: rgba(168,85,247,.08); }
+.row[aria-current="true"] { border-color: var(--gold); background: rgba(242,190,69,.07); }
+.thumb { position: relative; width: 96px; aspect-ratio: 16/9; border-radius: 6px; overflow: hidden; background: repeating-linear-gradient(135deg, #1A1030 0 8px, #150C28 8px 16px); }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb .dur { position: absolute; right: 3px; bottom: 3px; font-size: 11px; padding: 0 4px; border-radius: 4px; background: rgba(0,0,0,.7); }
+.meta { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.meta .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; }
+.meta .f { font-size: 12px; color: var(--dim); }
+.tags { display: flex; gap: 4px; flex-wrap: wrap; font-size: 11px; }
+.tag { padding: 0 5px; border-radius: 4px; border: 1px solid var(--line); color: var(--lilac); }
+.tag.need { border-color: rgba(242,190,69,.7); color: var(--gold); }
+.tag.out { border-color: rgba(255,255,255,.2); color: var(--dim); }
+.tag.ok { border-color: rgba(74,222,128,.5); color: var(--green); }
+.tag.stale { border-color: rgba(143,180,255,.5); color: var(--blue); }
+.main { overflow-y: auto; padding: 14px 18px 30px; min-width: 0; }
+.empty { color: var(--soft); padding: 40px; text-align: center; }
+.top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.top h2 { margin: 0; font: 800 18px Orbitron, sans-serif; letter-spacing: .05em; }
+.top .file { color: var(--dim); font-size: 13px; }
+.top .nav { margin-left: auto; display: flex; gap: 6px; }
+.btn { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line2); background: var(--panel); color: var(--text); font-size: 13px; letter-spacing: .05em; }
+.btn:hover { border-color: var(--lilac); }
+.btn.gold { border: 0; color: #1A1204; font-weight: 700; background: linear-gradient(180deg, var(--gold2), var(--gold) 55%, #C98A1C); }
+.btn:disabled { opacity: .45; cursor: default; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 18px; align-items: start; }
+.stage { position: relative; aspect-ratio: 16/9; background: #000; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); user-select: none; }
+.stage video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.crop { position: absolute; border: 2px solid var(--gold); box-shadow: 0 0 0 9999px rgba(5,3,12,.55); cursor: move; touch-action: none; }
+.crop::after { content: 'APP FRAME'; position: absolute; left: 6px; top: 4px; font: 700 10px Orbitron, sans-serif; letter-spacing: .12em; color: var(--gold); text-shadow: 0 1px 2px #000; }
+.stage .hint { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: var(--soft); text-align: center; }
+.badge { position: absolute; right: 8px; top: 8px; font: 700 10px Orbitron, sans-serif; letter-spacing: .12em; padding: 3px 7px; border-radius: 5px; background: rgba(0,0,0,.6); border: 1px solid var(--line2); color: var(--lilac); }
+.timeline { position: relative; height: 34px; margin-top: 8px; border-radius: 7px; background: var(--panel2); border: 1px solid var(--line); cursor: pointer; }
+.timeline .keep { position: absolute; top: 0; bottom: 0; background: rgba(168,85,247,.28); border-left: 2px solid var(--green); border-right: 2px solid var(--red); }
+.timeline .head { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #fff; pointer-events: none; }
+.timeline .poster { position: absolute; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; transform: rotate(45deg); background: var(--gold); pointer-events: none; }
+.timeline .lab { position: absolute; bottom: 2px; font-size: 11px; color: var(--soft); pointer-events: none; }
+.tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
+.tools .sep { flex: 1; }
+.kbd { font-size: 11px; color: var(--dim); margin-left: 3px; }
+.zoom { display: flex; align-items: center; gap: 8px; margin-top: 10px; color: var(--soft); font-size: 13px; }
+.zoom input { flex: 1; accent-color: var(--gold); }
+.form { display: flex; flex-direction: column; gap: 11px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.form label, .lbl { font: 700 10px Orbitron, sans-serif; letter-spacing: .14em; color: var(--lilac); display: block; margin-bottom: 4px; }
+.form input[type=text] { width: 100%; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel2); }
+.form input[type=text]:focus { border-color: var(--gold); outline: none; }
+.chips { display: flex; gap: 5px; flex-wrap: wrap; }
+.heard { font-size: 13px; color: var(--soft); background: var(--panel2); border-radius: 8px; padding: 7px 9px; border: 1px dashed var(--line); }
+.heard button { margin-left: 4px; }
+.switch { display: flex; gap: 0; border: 1px solid var(--line2); border-radius: 9px; overflow: hidden; }
+.switch button { flex: 1; padding: 7px; border: 0; background: transparent; color: var(--soft); }
+.switch button[aria-pressed="true"] { background: rgba(242,190,69,.14); color: var(--gold); }
+.status { font-size: 13px; color: var(--soft); min-height: 18px; }
+.status.err { color: var(--red); }
+.facts { font-size: 13px; color: var(--soft); display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; }
+.facts b { color: var(--text); font-weight: 600; }
+.keys { margin-top: 14px; font-size: 12px; color: var(--dim); }
+@media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .body { grid-template-columns: 1fr; } .list { max-height: 34vh; border-right: 0; border-bottom: 1px solid var(--line); } .filters { margin-left: 0; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>SHADOWBOX <span>CLIPS</span></h1>
+    <div class="stats" id="stats"></div>
+    <div class="filters">
+      <button class="chip" data-f="all">All</button>
+      <button class="chip" data-f="need">Needs a label</button>
+      <button class="chip" data-f="app">For the app</button>
+      <button class="chip" data-f="out">Left out</button>
+      <select class="chip" id="disc" aria-label="Discipline"><option value="">Every discipline</option></select>
+      <select class="chip" id="grp" aria-label="Group"><option value="">Every group</option></select>
+      <input class="search" id="q" type="search" placeholder="Search title, group, file…" aria-label="Search">
+    </div>
+  </header>
+  <div class="body">
+    <nav class="list" id="list" aria-label="Clips"></nav>
+    <main class="main" id="main"><div class="empty">Loading…</div></main>
+  </div>
+</div>
+<datalist id="groups"></datalist>
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const clock = (s) => { s = Math.max(0, s || 0); const m = Math.floor(s / 60); return `${m}:${(s - m * 60).toFixed(1).padStart(4, '0')}`; };
+const store = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+
+let S = { clips: [], disciplines: [], levels: [], groups: {}, building: [] };
+let filter = store.get('tm-shadow-filter', 'all');
+let disc = store.get('tm-shadow-disc', '');
+let grp = store.get('tm-shadow-group', '');
+let query = '';
+let sel = decodeURIComponent(location.hash.slice(1)) || null;
+let wantApp = store.get('tm-shadow-view', 'full') === 'app'; // stays on from clip to clip
+let appView = false; // what this clip shows: the app version only when it's built
+let pending = null, saving = false;
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, { ...opts, headers: { 'Content-Type': 'application/json' } });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+async function load() {
+  S = await api('/api/state');
+  if (!sel || !S.clips.some((c) => c.key === sel)) sel = (visible()[0] || S.clips[0] || {}).key || null;
+  renderAll();
+}
+const cur = () => S.clips.find((c) => c.key === sel);
+const replace = (c) => { const i = S.clips.findIndex((x) => x.key === c.key); if (i >= 0) S.clips[i] = c; };
+
+function visible() {
+  const q = query.trim().toLowerCase();
+  return S.clips.filter((c) => {
+    if (c.split) return false; // replaced by its two parts
+    if (filter === 'need' && !c.needsLabel) return false;
+    if (filter === 'app' && !c.ready) return false;
+    if (filter === 'out' && c.include) return false;
+    if (disc && !(c.disciplines || []).includes(disc)) return false;
+    if (grp && (c.group || '').trim().toLowerCase() !== grp) return false;
+    if (q && ![c.title, c.group, c.name, c.heard, c.comment, c.guess].join(' ').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderStats() {
+  const all = S.clips.filter((c) => !c.split);
+  const n = (f) => all.filter(f).length;
+  const ready = all.filter((c) => c.ready);
+  const mb = ready.reduce((s, c) => s + (c.app?.bytes || 0), 0) / 1e6;
+  $('#stats').innerHTML = [
+    `<span class="pill"><b>${all.length}</b> clips</span>`,
+    `<span class="pill"><b>${ready.length}</b> for the app</span>`,
+    `<span class="pill" style="border-color:rgba(242,190,69,.6)"><b>${n((c) => c.needsLabel)}</b> need a label</span>`,
+    `<span class="pill"><b>${n((c) => c.app?.upToDate)}</b>/${ready.length} built · ${mb.toFixed(0)} MB</span>`,
+    `<span class="pill"><b>${n((c) => c.preview)}</b>/${all.length} previews</span>`,
+    S.building.length ? `<span class="pill" style="color:var(--gold)">building…</span>` : '',
+  ].join('');
+  document.querySelectorAll('[data-f]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.f === filter)));
+}
+
+function tagsFor(c) {
+  const t = [];
+  if (!c.include) t.push('<span class="tag out">left out</span>');
+  else if (c.needsLabel) t.push('<span class="tag need">needs a label</span>');
+  (c.disciplines || []).forEach((d) => t.push(`<span class="tag">${esc(d)}</span>`));
+  if (c.ready) t.push(c.app?.upToDate ? '<span class="tag ok">built</span>' : '<span class="tag stale">to build</span>');
+  return t.join('');
+}
+
+function renderList() {
+  const list = visible();
+  $('#list').innerHTML = list.length ? list.map((c) => `
+    <button class="row" data-k="${esc(c.key)}" aria-current="${c.key === sel}">
+      <span class="thumb">${c.thumb ? `<img loading="lazy" src="/media/thumbs/${encodeURIComponent(c.base)}.jpg?v=${c.preview ? 1 : 0}" alt="">` : ''}<span class="dur">${Math.round(c.duration)}s</span></span>
+      <span class="meta">
+        <span class="t">${esc(c.title || c.guess || '—')}</span>
+        <span class="f">${esc(c.group ? c.group + ' · ' : '')}${esc(c.name)}</span>
+        <span class="tags">${tagsFor(c)}</span>
+      </span>
+    </button>`).join('') : '<div class="empty">No clips match.</div>';
+}
+
+function renderMain() {
+  const c = cur();
+  if (!c) { $('#main').innerHTML = '<div class="empty">No clips yet. Drop footage in raw-footage/ and run <b>npm run shadow -- scan</b>.</div>'; return; }
+  appView = wantApp && !!c.app;
+  const e = c.effective;
+  const groupsAll = [...new Set(Object.values(S.groups).flat())].sort();
+  $('#groups').innerHTML = groupsAll.map((g) => `<option value="${esc(g)}">`).join('');
+  const src = appView && c.app ? `/media/app/${encodeURIComponent(c.slug)}.mp4?h=${c.app.bytes}` : c.preview ? `/media/proxy/${encodeURIComponent(c.base)}.mp4` : '';
+  $('#main').innerHTML = `
+    <div class="top">
+      <h2>${esc(c.title || 'Untitled clip')}</h2><span class="file">${esc(c.key)}</span>
+      <div class="nav"><button class="btn" id="prev">◀ Prev <span class="kbd">K</span></button><button class="btn" id="next">Next ▶ <span class="kbd">J</span></button></div>
+    </div>
+    <div class="grid">
+      <section>
+        <div class="stage" id="stage">
+          ${src ? `<video id="v" src="${src}" preload="auto" playsinline ${appView ? 'muted' : ''}></video>` : `<div class="hint">No preview yet.<br>It appears when <b>npm run shadow -- build</b> reaches this clip.</div>`}
+          ${src && !appView ? '<div class="crop" id="crop" title="Drag to move the app frame"></div>' : ''}
+          <span class="badge">${appView ? 'APP VERSION · 720p, muted' : 'FULL CLIP · with sound'}</span>
+        </div>
+        ${appView ? '' : `<div class="timeline" id="tl" title="Click to jump">
+          <div class="keep" id="keep"></div><div class="poster" id="pmark"></div><div class="head" id="head"></div>
+          <span class="lab" style="left:6px">0:00</span><span class="lab" style="right:6px">${clock(c.duration)}</span>
+        </div>`}
+        <div class="tools">
+          <button class="btn" id="play">▶ Play <span class="kbd">Space</span></button>
+          ${appView ? '' : `
+          <button class="btn" id="setIn">Start here <span class="kbd">I</span></button>
+          <button class="btn" id="setOut">End here <span class="kbd">O</span></button>
+          <button class="btn" id="setPoster">Poster here <span class="kbd">P</span></button>
+          <button class="btn" id="resetTrim" ${c.in == null && c.out == null ? 'disabled' : ''}>Auto trim</button>
+          <button class="btn" id="splitHere" title="Two moves in one clip? Split it at the playhead into two clips">Split here <span class="kbd">S</span></button>`}
+          <span class="sep"></span>
+          <div class="switch" role="group" aria-label="Which video">
+            <button id="viewFull" aria-pressed="${!appView}">Full clip</button>
+            <button id="viewApp" aria-pressed="${appView}" ${c.app ? '' : 'disabled title="Build the clip first"'}>App version</button>
+          </div>
+        </div>
+        ${appView ? '' : `<div class="zoom"><span>Framing</span>
+          <input type="range" id="zoom" min="1" max="2" step="0.01" value="${e ? e.frame.zoom : 1}" aria-label="Zoom">
+          <b id="zoomv">${e ? e.frame.zoom.toFixed(2) : '1.00'}×</b>
+          <button class="btn" id="resetFrame" ${c.frame ? '' : 'disabled'}>${c.frame ? 'Auto framing' : 'Auto framing on'}</button></div>`}
+        <div class="facts" style="margin-top:12px">
+          <span>Keeps</span><b>${e ? `${clock(e.in)} → ${clock(e.out)} (${Math.round(e.out - e.in)} s)` : '—'}${c.in == null && c.out == null ? ' · auto' : ''}</b>
+          <span>App file</span><b>${c.slug ? esc(c.slug) + '.mp4' : 'not for the app until it has a title and a discipline'}${c.app ? ` · ${(c.app.bytes / 1e6).toFixed(1)} MB${c.app.upToDate ? '' : ' · changed since the last build'}` : ''}</b>
+        </div>
+      </section>
+      <section class="form">
+        <div class="switch" role="group" aria-label="In the app">
+          <button id="incYes" aria-pressed="${!!c.include}">In the app</button>
+          <button id="incNo" aria-pressed="${!c.include}">Left out</button>
+        </div>
+        ${(c.heard || c.comment || c.guess) ? `<div class="heard">${c.heard ? `Heard on camera: “${esc(c.heard)}”` : ''}${c.comment ? `<div>${esc(c.comment)}</div>` : ''}${c.guess && !c.title ? `<div>Guess: <b>${esc(c.guess)}</b><button class="btn" id="useGuess">Use it</button></div>` : ''}</div>` : ''}
+        <div><label for="title">Title</label><input type="text" id="title" value="${esc(c.title)}" maxlength="80" placeholder="e.g. Lead Hook to the Body" autocomplete="off"></div>
+        <div><span class="lbl">Discipline (tab in the app)</span><div class="chips">${S.disciplines.map((d) => `<button class="chip" data-d="${esc(d)}" aria-pressed="${(c.disciplines || []).includes(d)}">${esc(d)}</button>`).join('')}</div></div>
+        <div><label for="group">Group (heading it sits under)</label><input type="text" id="group" list="groups" value="${esc(c.group)}" maxlength="40" placeholder="e.g. Hooks" autocomplete="off"></div>
+        <div><span class="lbl">Level</span><div class="chips">${S.levels.map((l) => `<button class="chip" data-l="${esc(l)}" aria-pressed="${c.level === l}">${esc(l)}</button>`).join('')}</div></div>
+        <div><label for="note">Note under the video (optional)</label><input type="text" id="note" value="${esc(c.note)}" maxlength="140" placeholder="e.g. Turn the rear foot as you throw" autocomplete="off"></div>
+        <button class="btn gold" id="build" ${c.ready && !c.missing ? '' : 'disabled'}>${S.building.includes(c.key) ? 'Building…' : c.app?.upToDate ? 'Built ✓ Rebuild' : 'Build this clip'}</button>
+        <div class="status" id="st"></div>
+      </section>
+    </div>
+    <div class="keys">Keys: Space play · I start · O end · P poster · S split here · ← → 1 s (Shift 0.1 s) · J next · K previous · A app version. Changes save as you go; the build uses them.</div>`;
+  wire(c);
+}
+
+function geom(c, frame) {
+  const W = c.width, H = c.height; // rotation is 0 or 180 for this footage; 90° clips are swapped server-side
+  const [w0, h0] = Math.abs(c.rotation || 0) % 180 === 90 ? [H, W] : [W, H];
+  const bw = Math.min(w0, h0 * 16 / 9), bh = bw * 9 / 16;
+  const w = bw / frame.zoom, h = bh / frame.zoom;
+  const x = Math.min(Math.max(frame.cx * w0 - w / 2, 0), w0 - w), y = Math.min(Math.max(frame.cy * h0 - h / 2, 0), h0 - h);
+  return { x: x / w0, y: y / h0, w: w / w0, h: h / h0, W: w0, H: h0 };
+}
+
+function wire(c) {
+  const v = $('#v');
+  const e = c.effective;
+  let frame = e ? { ...e.frame } : { zoom: 1, cx: .5, cy: .5 };
+  const crop = $('#crop');
+  const placeCrop = () => {
+    if (!crop) return;
+    const g = geom(c, frame);
+    Object.assign(crop.style, { left: `${g.x * 100}%`, top: `${g.y * 100}%`, width: `${g.w * 100}%`, height: `${g.h * 100}%` });
+  };
+  placeCrop();
+  const placeTl = () => {
+    if (!$('#tl') || !e) return;
+    const d = c.duration;
+    Object.assign($('#keep').style, { left: `${(e.in / d) * 100}%`, width: `${((e.out - e.in) / d) * 100}%` });
+    $('#pmark').style.left = `${(e.poster / d) * 100}%`;
+  };
+  placeTl();
+
+  if (v) {
+    v.addEventListener('loadedmetadata', () => { if (!appView && e && e.in > 0.2) v.currentTime = e.in; });
+    v.addEventListener('timeupdate', () => {
+      if ($('#head')) $('#head').style.left = `${(v.currentTime / c.duration) * 100}%`;
+      if (!appView && e && !v.paused && v.currentTime >= e.out) v.currentTime = e.in;
+    });
+    v.addEventListener('play', () => { $('#play').innerHTML = '❚❚ Pause <span class="kbd">Space</span>'; });
+    v.addEventListener('pause', () => { $('#play').innerHTML = '▶ Play <span class="kbd">Space</span>'; });
+    v.addEventListener('click', () => (v.paused ? v.play() : v.pause()));
+  }
+  $('#play').onclick = () => v && (v.paused ? v.play() : v.pause());
+  $('#prev').onclick = () => step(-1);
+  $('#next').onclick = () => step(1);
+  $('#viewFull').onclick = () => { wantApp = false; store.set('tm-shadow-view', 'full'); renderMain(); };
+  $('#viewApp').onclick = () => { if (c.app) { wantApp = true; store.set('tm-shadow-view', 'app'); renderMain(); } };
+  if ($('#tl')) $('#tl').onclick = (ev) => { if (!v) return; const r = ev.currentTarget.getBoundingClientRect(); v.currentTime = ((ev.clientX - r.left) / r.width) * c.duration; };
+  if ($('#setIn')) $('#setIn').onclick = () => v && save({ in: +v.currentTime.toFixed(2), ...(e && v.currentTime >= e.out - 0.5 ? { out: null } : {}) });
+  if ($('#setOut')) $('#setOut').onclick = () => v && save({ out: +v.currentTime.toFixed(2) });
+  if ($('#setPoster')) $('#setPoster').onclick = () => v && save({ poster: +v.currentTime.toFixed(2) });
+  if ($('#resetTrim')) $('#resetTrim').onclick = () => save({ in: null, out: null, poster: null });
+  if ($('#splitHere')) $('#splitHere').onclick = async () => {
+    if (!v) return;
+    const t = +v.currentTime.toFixed(2);
+    if (t < 1 || t > c.duration - 1) { setStatus('Move the playhead at least 1 s from either end to split.', true); return; }
+    v.pause();
+    await flush();
+    setStatus(`Splitting at ${clock(t)}…`);
+    $('#splitHere').disabled = true;
+    try {
+      const { made } = await api(`/api/split?key=${encodeURIComponent(c.key)}&t=${t}`, { method: 'POST' });
+      S = await api('/api/state');
+      sel = made[0];
+      history.replaceState(null, '', `#${encodeURIComponent(sel)}`);
+      renderAll();
+      setStatus(`Split into ${made.map((k) => k.split('/').pop()).join(' and ')}. Their previews are on the way (about a minute).`);
+    } catch (err) { setStatus(`Not split: ${err.message}`, true); $('#splitHere').disabled = false; }
+  };
+  if ($('#resetFrame')) $('#resetFrame').onclick = () => save({ frame: null });
+  const zoom = $('#zoom');
+  if (zoom) {
+    zoom.oninput = () => { frame.zoom = +zoom.value; $('#zoomv').textContent = `${frame.zoom.toFixed(2)}×`; placeCrop(); };
+    zoom.onchange = () => save({ frame });
+  }
+  if (crop) {
+    let start = null;
+    crop.onpointerdown = (ev) => { crop.setPointerCapture(ev.pointerId); start = { x: ev.clientX, y: ev.clientY, f: { ...frame } }; };
+    crop.onpointermove = (ev) => {
+      if (!start) return;
+      const r = $('#stage').getBoundingClientRect();
+      frame.cx = Math.min(1, Math.max(0, start.f.cx + (ev.clientX - start.x) / r.width));
+      frame.cy = Math.min(1, Math.max(0, start.f.cy + (ev.clientY - start.y) / r.height));
+      const g = geom(c, frame); // keep the centre where the box can really go
+      frame.cx = g.x + g.w / 2; frame.cy = g.y + g.h / 2;
+      placeCrop();
+    };
+    crop.onpointerup = () => { if (start) { start = null; save({ frame }); } };
+  }
+  $('#incYes').onclick = () => save({ include: true });
+  $('#incNo').onclick = () => save({ include: false });
+  if ($('#useGuess')) $('#useGuess').onclick = () => save({ title: c.guess }, true);
+  document.querySelectorAll('[data-d]').forEach((b) => { b.onclick = () => {
+    const set = new Set(c.disciplines || []); set.has(b.dataset.d) ? set.delete(b.dataset.d) : set.add(b.dataset.d);
+    save({ disciplines: S.disciplines.filter((d) => set.has(d)) }, true);
+  }; });
+  document.querySelectorAll('[data-l]').forEach((b) => { b.onclick = () => save({ level: c.level === b.dataset.l ? '' : b.dataset.l }, true); });
+  for (const id of ['title', 'group', 'note']) {
+    const el = $(`#${id}`);
+    el.oninput = () => queue({ [id]: el.value });
+    el.onblur = () => flush();
+    el.onkeydown = (ev) => { if (ev.key === 'Enter') { el.blur(); } };
+  }
+  $('#build').onclick = buildIt;
+}
+
+function setStatus(msg, err) { const st = $('#st'); if (st) { st.textContent = msg; st.className = `status${err ? ' err' : ''}`; } }
+function queue(patch) { pending = { ...(pending || {}), ...patch }; clearTimeout(queue.t); queue.t = setTimeout(flush, 500); setStatus('Editing…'); }
+async function flush() {
+  clearTimeout(queue.t);
+  if (!pending || saving) return;
+  const patch = pending; pending = null; saving = true;
+  try {
+    const key = sel;
+    const c = await api(`/api/clip?key=${encodeURIComponent(key)}`, { method: 'PUT', body: JSON.stringify(patch) });
+    replace(c);
+    renderStats(); renderGroups(); renderList();
+    if (key === sel) {
+      // keep focus and typing where they are; refresh the parts that follow from the save
+      const t = document.activeElement?.id;
+      if (!['title', 'group', 'note'].includes(t)) renderMain(); else { const h2 = $('.top h2'); if (h2) h2.textContent = c.title || 'Untitled clip'; const b = $('#build'); if (b) { b.disabled = !(c.ready && !c.missing); } }
+      setStatus('Saved');
+    }
+  } catch (err) { setStatus(`Not saved: ${err.message}`, true); } finally { saving = false; if (pending) flush(); }
+}
+async function save(patch, keepTime) {
+  const v = $('#v'); const t = v ? v.currentTime : 0; const playing = v && !v.paused;
+  pending = { ...(pending || {}), ...patch };
+  await flush();
+  const nv = $('#v');
+  if (nv && keepTime !== false) { nv.addEventListener('loadedmetadata', () => { nv.currentTime = t; if (playing) nv.play(); }, { once: true }); }
+}
+async function buildIt() {
+  await flush();
+  const key = sel;
+  S.building = [...S.building, key];
+  renderStats(); renderMain();
+  setStatus('Building the 720p app video and poster… (about a minute)');
+  try {
+    const c = await api(`/api/build?key=${encodeURIComponent(key)}`, { method: 'POST' });
+    replace(c);
+    S.building = S.building.filter((k) => k !== key);
+    renderStats(); renderList();
+    if (key === sel) { renderMain(); setStatus(`Built: ${c.slug}.mp4, ${(c.app.bytes / 1e6).toFixed(1)} MB. Switch to "App version" to watch it.`); }
+  } catch (err) { S.building = S.building.filter((k) => k !== key); renderMain(); setStatus(`Build failed: ${err.message}`, true); }
+}
+
+function select(key) {
+  if (!key || key === sel) return;
+  flush();
+  sel = key;
+  history.replaceState(null, '', `#${encodeURIComponent(key)}`);
+  renderList(); renderMain();
+  $(`.row[data-k="${CSS.escape(key)}"]`)?.scrollIntoView({ block: 'nearest' });
+}
+function step(d) { const list = visible(); const i = list.findIndex((c) => c.key === sel); const n = list[(i + d + list.length) % list.length]; if (n) select(n.key); }
+// The Group menu: every heading in use (Knees, Teeps, Hooks…), in shoot order, with a count.
+function renderGroups() {
+  const seen = new Map();
+  for (const c of S.clips) {
+    if (c.split || !c.group?.trim()) continue;
+    const k = c.group.trim().toLowerCase();
+    if (!seen.has(k)) seen.set(k, { label: c.group.trim(), n: 0 });
+    seen.get(k).n++;
+  }
+  if (grp && !seen.has(grp)) grp = '';
+  $('#grp').innerHTML = `<option value="">Every group</option>` + [...seen].map(([k, g]) => `<option value="${esc(k)}" ${k === grp ? 'selected' : ''}>${esc(g.label)} (${g.n})</option>`).join('');
+}
+function renderAll() { renderStats(); renderGroups(); renderList(); renderMain(); }
+
+$('#list').addEventListener('click', (ev) => { const b = ev.target.closest('.row'); if (b) select(b.dataset.k); });
+document.querySelectorAll('[data-f]').forEach((b) => { b.onclick = () => { filter = b.dataset.f; store.set('tm-shadow-filter', filter); renderStats(); renderList(); }; });
+$('#disc').innerHTML += ['Boxing', 'Kickboxing', 'Muay Thai', 'MMA'].map((d) => `<option ${d === disc ? 'selected' : ''}>${d}</option>`).join('');
+$('#disc').onchange = (ev) => { disc = ev.target.value; store.set('tm-shadow-disc', disc); renderList(); };
+$('#grp').onchange = (ev) => { grp = ev.target.value; store.set('tm-shadow-group', grp); renderList(); const v = visible(); if (v.length && !v.some((c) => c.key === sel)) select(v[0].key); };
+$('#q').oninput = (ev) => { query = ev.target.value; renderList(); };
+document.addEventListener('keydown', (ev) => {
+  if (ev.target.closest('input, select, textarea') || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+  const v = $('#v');
+  const k = ev.key.toLowerCase();
+  if (k === ' ') { ev.preventDefault(); v && (v.paused ? v.play() : v.pause()); }
+  else if (k === 'i') $('#setIn')?.click();
+  else if (k === 'o') $('#setOut')?.click();
+  else if (k === 'p') $('#setPoster')?.click();
+  else if (k === 's') $('#splitHere')?.click();
+  else if (k === 'j') step(1);
+  else if (k === 'k') step(-1);
+  else if (k === 'a') { const c = cur(); if (c?.app) { wantApp = !appView; store.set('tm-shadow-view', wantApp ? 'app' : 'full'); renderMain(); } }
+  else if (k === 'arrowright' && v) { ev.preventDefault(); v.currentTime = Math.min(v.duration, v.currentTime + (ev.shiftKey ? 0.1 : 1)); }
+  else if (k === 'arrowleft' && v) { ev.preventDefault(); v.currentTime = Math.max(0, v.currentTime - (ev.shiftKey ? 0.1 : 1)); }
+});
+window.addEventListener('beforeunload', () => flush());
+
+// While a build runs in the background, pick up new previews without disturbing the clip you're on.
+setInterval(async () => {
+  if (pending || saving || document.hidden) return;
+  if (S.clips.length && S.clips.every((c) => c.preview && (!c.ready || c.app?.upToDate)) && !S.building.length) return;
+  try {
+    const next = await api('/api/state');
+    const was = cur();
+    S = next;
+    renderStats(); renderList();
+    const now = cur();
+    if (was && now && (was.preview !== now.preview || !!was.app !== !!now.app)) renderMain();
+  } catch {}
+}, 15000);
+
+load().catch((err) => { $('#main').innerHTML = `<div class="empty">Couldn't reach the editor server: ${esc(err.message)}</div>`; });
+</script>
+</body>
+</html>
