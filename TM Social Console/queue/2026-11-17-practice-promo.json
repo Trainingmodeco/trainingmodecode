@@ -26,7 +26,7 @@
         "kind": "hook",
         "sec": 2.6,
         "src": "raw-footage/promo/c0-hook.mp4",
-        "from": 0.4,
+        "from": 2.2,
         "voice": "raw-footage/promo/vo0.wav",
         "voiceAt": 0.3
       },

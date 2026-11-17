@@ -129,7 +129,7 @@ const Hook: React.FC<{ b: PromoBeat }> = ({ b }) => {
   return (
     <>
       <Clip b={b} push={0.1} />
-      <div style={{ position: 'absolute', top: 230, left: SAFE.left, right: SAFE.right, fontFamily: FONT.display, fontWeight: 900, lineHeight: 1.02 }}>
+      <div style={{ position: 'absolute', top: 1220, left: SAFE.left, right: SAFE.right, fontFamily: FONT.display, fontWeight: 900, lineHeight: 1.02 }}>
         <div style={{ fontSize: 110, color: C.text, opacity: a, transform: `translateY(${(1 - a) * 40}px)`, textShadow: `0 6px 0 ${C.bg}` }}>ONE STRIKE</div>
         <div style={{ fontSize: 110, color: C.gold, opacity: c, transform: `translateY(${(1 - c) * 40}px) skewX(-8deg)`, textShadow: `0 0 40px ${C.gold}99, 0 6px 0 ${C.bg}` }}>AT A TIME.</div>
       </div>
