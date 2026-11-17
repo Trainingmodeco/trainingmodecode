@@ -1,0 +1,575 @@
+<title>Exercise Loop Board</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: a working board. Four sections: what still needs a video, the loops made so far, the new exercises, and the squats to name. One editor opens in place per row. */
+:root { --bg: #F5F2FB; --surface: #FFFFFF; --sunk: #ECE7F7; --ink: #1B1230; --muted: #5E5478; --line: #D9D1EA; --line-strong: #8579A6; --accent: #6D3FD1; --gold: #8A6100; --good: #1E7B46; --warn: #B4491F; --on-accent: #FFFFFF; --stage: #0A0014;
+  --display: 'Chakra Petch', 'Trebuchet MS', sans-serif; --body: 'Inter', system-ui, sans-serif; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #0B0614; --surface: #140D24; --sunk: #1B1230; --ink: #EFE8FB; --muted: #AB9FC8; --line: #2D2147; --line-strong: #7A6BA3; --accent: #C4A3FF; --gold: #F2BE45; --good: #4ADE80; --warn: #FF9A6B; --on-accent: #0B0614; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #0B0614; --surface: #140D24; --sunk: #1B1230; --ink: #EFE8FB; --muted: #AB9FC8; --line: #2D2147; --line-strong: #7A6BA3; --accent: #C4A3FF; --gold: #F2BE45; --good: #4ADE80; --warn: #FF9A6B; --on-accent: #0B0614; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 400 15px/1.5 var(--body); }
+.wrap { max-width: 920px; margin: 0 auto; padding-block: 20px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 12px; }
+header { display: flex; flex-direction: column; gap: 8px; }
+main { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+h1 { font: 700 clamp(24px, 5vw, 32px)/1.15 var(--display); margin: 0; text-wrap: balance; }
+h2.grp { font: 600 12px var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 10px 0 0; }
+h3.nm { font: 600 15px var(--display); letter-spacing: .03em; margin: 0; min-width: 0; overflow-wrap: anywhere; }
+p { margin: 0; max-width: 68ch; }
+.muted { color: var(--muted); } .small { font-size: 13px; }
+.state { font-size: 13px; padding: 8px 12px; border-radius: 8px; background: var(--sunk); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
+.state .sum { font-variant-numeric: tabular-nums; }
+.state .sum b { font: 700 15px var(--display); }
+.tabs, .bar, .seg { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.tabs button, .seg button, .chip { font: 700 12px var(--display); letter-spacing: .1em; min-height: 44px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--muted); cursor: pointer; }
+.tabs button[aria-current="page"], .seg button[aria-pressed="true"], .chip[aria-pressed="true"] { border-color: var(--accent); color: var(--ink); background: var(--sunk); }
+.seg button[aria-pressed="true"]::before, .chip[aria-pressed="true"]::before { content: '\2713\00a0'; }
+.tabs button:hover, .seg button:hover, .chip:hover, .btn:hover { border-color: var(--accent); }
+.tabs button:active, .seg button:active, .chip:active, .btn:active { transform: translateY(1px); }
+button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.bar label { font: 600 12px var(--body); color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.bar select, .bar input[type="search"] { font: 400 16px var(--body); min-height: 44px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); max-width: 100%; box-sizing: border-box; }
+.bar input[type="search"] { width: min(240px, 100%); }
+::placeholder { color: var(--muted); opacity: .85; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+details.more { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 0 10px 8px; box-sizing: border-box; }
+details.more summary { cursor: pointer; font: 600 12px var(--display); letter-spacing: .1em; color: var(--muted); min-height: 44px; display: flex; align-items: center; list-style: none; }
+details.more summary::-webkit-details-marker { display: none; }
+details.more summary::before { content: '+\00a0'; font-weight: 700; }
+details.more[open] summary::before { content: '\2212\00a0'; }
+.list { display: flex; flex-direction: column; gap: 8px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; }
+.slot { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.slot.has { flex-direction: row; flex-wrap: wrap; gap: 8px 12px; align-items: flex-start; }
+.slot.has > .body { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1 1 150px; }
+.slot.has > .ed { flex: 1 1 100%; }
+.head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 10px; flex-wrap: wrap; }
+.ln { font-size: 13px; min-width: 0; overflow-wrap: anywhere; }
+.nt { display: block; color: var(--muted); }
+.warnnote { color: var(--gold); }
+.pill { display: inline-block; font: 600 11px var(--display); letter-spacing: .1em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; border: 1px solid currentColor; white-space: nowrap; }
+.ok { color: var(--good); } .mine { color: var(--gold); } .none { color: var(--warn); } .stand { color: var(--accent); } .text { color: var(--muted); }
+.acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn { font: 600 13px var(--body); min-height: 44px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--sunk); color: var(--ink); cursor: pointer; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.danger { color: var(--warn); background: transparent; }
+.btn:disabled { opacity: .5; cursor: default; }
+.ed { border-top: 1px solid var(--line); padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.ed label, .ed legend { font: 600 12px var(--body); color: var(--muted); }
+.ed input:not([type="checkbox"]):not([type="file"]), .ed select, .ed textarea { font: 400 16px var(--body); width: 100%; min-height: 44px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--bg); color: var(--ink); box-sizing: border-box; }
+.ed input[type="file"] { font: 400 14px var(--body); max-width: 100%; color: var(--ink); }
+.ed input[type="file"]::file-selector-button { min-height: 44px; padding: 0 16px; margin-right: 10px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--sunk); color: var(--ink); font: 600 13px var(--body); cursor: pointer; }
+.ck { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font: 400 14px var(--body); color: var(--ink); }
+.ck input { width: 22px; height: 22px; accent-color: var(--accent); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.two > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.err { color: var(--warn); font-size: 13px; font-weight: 600; }
+.err:empty { display: none; }
+.stage { position: relative; background: var(--stage); border-radius: 10px; overflow: hidden; flex: none; }
+.stage video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.stage.md { width: 120px; height: 120px; }
+.stage .pp { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.stage .ind { display: none; position: absolute; right: 6px; bottom: 6px; width: 28px; height: 28px; border-radius: 14px; background: rgba(10, 0, 20, .75); color: #fff; font-size: 12px; align-items: center; justify-content: center; }
+.stage .ind::before { content: '\25B6'; }
+.stage.paused .ind { display: flex; }
+.stage .pp:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+video.pv { width: 100%; max-width: 320px; max-height: 240px; object-fit: contain; border-radius: 8px; background: #000; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.copybox { width: 100%; min-height: 140px; font: 400 13px/1.4 var(--body); border-radius: 8px; border: 1px solid var(--line-strong); background: var(--bg); color: var(--ink); box-sizing: border-box; padding: 8px 10px; }
+@media (max-width: 480px) { .grid { grid-template-columns: 1fr; } .stage.md { width: 96px; height: 96px; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Exercise Loop Board</h1>
+    <p class="muted">Which exercises have a violet animated loop, which still need a video from you, the new exercises to approve and the squats to name. Nothing goes into the app until you say push.</p>
+    <div class="state" id="state" role="status">Opening the board…</div>
+  </header>
+  <main>
+    <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+    <div class="bar" id="bar"></div>
+    <div id="out" class="list"><p class="muted">Loading the exercises…</p></div>
+  </main>
+  <div class="sr" id="live" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var MAX = 20 * 1024 * 1024, LINKMAX = 2000;
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); };
+  var kebab = function (s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); };
+  var exKey = function (id) { return 'ex.' + kebab(id); };
+  var repKey = function (slug) { return 'rep.' + slug; };
+  var lpKey = function (slug) { return 'loop.' + slug; };
+  var isAsset = function (id) { return /^[A-Za-z0-9]{32}$/.test(id || ''); };
+  var reduced = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+
+  var D = null, byId = {}, E = new Map(), db = null, assets = null, known = false, dead = false, synced = false, slow = false;
+  var TABS = [['submit', 'TO SUBMIT'], ['loops', 'LOOPS MADE'], ['new', 'NEW EXERCISES'], ['squats', 'SQUATS']];
+  var tab = 'submit', sort = 'group', group = 'all', show = 'todo', q = '', kinds = { library: true, quick: true, program: true, mission: false };
+  var edit = null, copyText = '', justSaved = new Set(), moreOpen = false, drafts = {}, sqBusy = new Set(), qTimer = null;
+  var KIND_LABEL = { library: 'Library', quick: 'Quick Mission only', mission: 'Mission move', program: 'Shown in programs, not in the library', 'new': 'New' };
+
+  // ---- data helpers ----
+  var doc = function (k) { return E.get(k) || null; };
+  var hasVideo = function (d) { return !!d && ((d.source === 'upload' && isAsset(d.asset)) || (d.source === 'link' && /^https?:\/\//.test(d.video || ''))); };
+  var submitted = function (e) { return hasVideo(doc(exKey(e.id))); };
+  var loopDoc = function (slug) { return doc(lpKey(slug)) || {}; };
+  var loopName = function (slug) { var d = loopDoc(slug); return (d.name && String(d.name).trim()) || (D.loops[slug] && D.loops[slug].name) || slug; };
+  var needs = function (e) { return e.kind !== 'new' && e.match !== 'direct' && !e.nonExercise && !e.dupOf; };
+  var kindOk = function (e) { return kinds[e.kind] !== false; };
+  var wanted = function (e) { return needs(e) && kindOk(e); };
+  var matchQ = function (name, extra) { return !q || (String(name) + ' ' + (extra || '')).toLowerCase().indexOf(q.toLowerCase()) >= 0; };
+  var sentence = function (s) { s = String(s || '').trim(); return s && !/[.!?]$/.test(s) ? s + '.' : s; };
+  var canEdit = function () { return !!db && !dead && synced; };
+  var say = function (m) { var l = $('live'); if (!l) return; l.textContent = ''; setTimeout(function () { l.textContent = m; }, 40); };
+
+  function usedHint(e) {
+    var w = e.where;
+    if (!w) return e.kind === 'mission' ? 'Used in Loadout missions' : '';
+    var bits = [], p = Math.round(w.programs || 0);
+    if (p >= 1) bits.push(p + ' program day' + (p === 1 ? '' : 's')); else if (w.programs > 0) bits.push('a light program use');
+    if (w.quick) bits.push('Quick Mission pool');
+    if (w.builder) bits.push('Builder');
+    if (w.missions) bits.push(Math.round(w.missions) + ' mission use' + (Math.round(w.missions) === 1 ? '' : 's'));
+    return bits.length ? 'Used in: ' + bits.join(', ') : 'Not dealt by the generators yet';
+  }
+
+  // ---- video bits ----
+  function stage(slug, cls) {
+    var L = D.loops[slug];
+    if (!L) return '';
+    return '<div class="stage ' + cls + ' paused"><video muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" poster="' + esc(L.poster) + '" data-src="' + esc(L.file) + '"></video><button type="button" class="pp" data-pp aria-label="Play or pause the ' + esc(loopName(slug)) + ' loop"><span class="ind" aria-hidden="true"></span></button></div>';
+  }
+  var io = null;
+  function watchVideos() {
+    if (io) { io.disconnect(); io = null; }
+    if (!('IntersectionObserver' in window)) return;
+    io = new IntersectionObserver(function (items) {
+      items.forEach(function (it) {
+        var v = it.target;
+        if (it.isIntersecting) {
+          if (reduced.matches || v.dataset.userPaused) return;
+          if (!v.getAttribute('src')) v.src = v.dataset.src;
+          var p = v.play(); if (p && p.catch) p.catch(function () {});
+        } else if (v.getAttribute('src')) { v.pause(); v.removeAttribute('src'); v.load(); }
+      });
+    }, { rootMargin: '100px' });
+    [].forEach.call(document.querySelectorAll('#out video[data-src]'), function (v) { io.observe(v); });
+  }
+  function pickHtml(d, label) {
+    if (!d) return '';
+    var v = '', video = '';
+    if (d.source === 'upload' && isAsset(d.asset)) { v = 'your upload' + (d.file ? ' (' + esc(d.file) + ')' : ''); video = '<video class="pv" controls playsinline preload="metadata" src="/_blob/' + esc(d.asset) + '"></video>'; }
+    else if (d.source === 'link' && /^https?:\/\//.test(d.video || '')) v = '<a href="' + esc(d.video) + '" target="_blank" rel="noopener">your link</a>';
+    else return d.note ? '<div class="ln">Note: ' + esc(d.note) + '</div>' : '';
+    return '<div class="ln">' + (label || 'Your video') + ': ' + v + (d.note ? '<span class="nt">Note: ' + esc(d.note) + '</span>' : '') + '</div>' + video;
+  }
+
+  // ---- editors ----
+  function videoEditor(ed) {
+    var d = ed.d, lock = ed.busy || ed.up, h = '<form class="ed" id="ed" novalidate>';
+    var seg = (assets ? [['upload', 'UPLOAD A VIDEO']] : []).concat([['link', 'PASTE A LINK']]);
+    h += '<div class="seg" role="group" aria-label="Where the video comes from">' + seg.map(function (s) { return '<button type="button" data-src="' + s[0] + '" aria-pressed="' + (d.source === s[0]) + '"' + (lock ? ' disabled' : '') + '>' + s[1] + '</button>'; }).join('') + '</div>';
+    if (d.source === 'upload') {
+      h += '<label for="ed-file">Video file, up to 20 MB. Film one clean rep at a time, from the side or the front.</label><input type="file" id="ed-file" accept="video/*"' + (ed.up ? ' disabled' : '') + '>';
+      if (ed.up) h += '<span class="small muted">Uploading…</span>';
+      else if (isAsset(d.asset)) h += '<span class="small muted">Stored: ' + esc(d.file || 'your video') + '</span><video class="pv" controls playsinline preload="metadata" src="/_blob/' + esc(d.asset) + '"></video>';
+    } else {
+      h += '<label for="ed-link">Link to the video</label><input id="ed-link" type="url" inputmode="url" autocomplete="off" maxlength="' + LINKMAX + '" placeholder="https://drive.google.com/…" value="' + esc(d.link) + '"><span class="small muted">A Google Drive link works best. Set it so anyone with the link can view.</span>';
+    }
+    h += '<label for="ed-note">Note for Claude</label><input id="ed-note" maxlength="300" autocomplete="off" placeholder="e.g. this is the wide stance, use the second rep" value="' + esc(d.note) + '">';
+    h += '<div class="err" role="alert">' + esc(ed.err) + '</div><div class="acts">';
+    if (ed.confirm) h += '<button type="button" class="btn danger" data-remove' + (lock ? ' disabled' : '') + '>Tap again to delete for good</button><button type="button" class="btn" data-keep>Keep it</button>';
+    else h += '<button type="submit" class="btn primary"' + (lock ? ' disabled' : '') + '>' + (ed.busy ? 'Saving…' : 'Save') + '</button><button type="button" class="btn" data-cancel' + (ed.busy ? ' disabled' : '') + '>Cancel</button>' + (ed.had ? '<button type="button" class="btn danger" data-remove' + (lock ? ' disabled' : '') + '>Remove my video</button>' : '');
+    return h + '</div></form>';
+  }
+  function nameEditor(ed) {
+    var d = ed.d, h = '<form class="ed" id="ed" novalidate>';
+    h += '<label for="ed-name">Name</label><input id="ed-name" maxlength="80" autocomplete="off" value="' + esc(d.name) + '">';
+    if (ed.isNew) {
+      h += '<div class="two"><div><label for="ed-group">Muscle group</label><select id="ed-group">' + D.groups.map(function (g) { return '<option' + (g === d.group ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('') + '</select></div>';
+      h += '<div><label for="ed-equip">Equipment</label><select id="ed-equip">' + D.equipment.map(function (g) { return '<option' + (g === d.equipment ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('') + '</select></div></div>';
+      h += '<label class="ck" for="ed-ok"><input type="checkbox" id="ed-ok"' + (d.approved ? ' checked' : '') + '>Approve this as a new exercise</label>';
+    }
+    h += '<label for="ed-note">Note for Claude</label><input id="ed-note" maxlength="300" autocomplete="off" placeholder="optional" value="' + esc(d.note) + '">';
+    h += '<div class="err" role="alert">' + esc(ed.err) + '</div>';
+    h += '<div class="acts"><button type="submit" class="btn primary"' + (ed.busy ? ' disabled' : '') + '>' + (ed.busy ? 'Saving…' : 'Save') + '</button><button type="button" class="btn" data-cancel' + (ed.busy ? ' disabled' : '') + '>Cancel</button>' + (ed.had ? '<button type="button" class="btn danger" data-remove' + (ed.busy ? ' disabled' : '') + '>Reset name</button>' : '') + '</div></form>';
+    return h;
+  }
+  var open = function (key) { return edit && edit.key === key; };
+  var editorFor = function (key) { return open(key) ? (edit.type === 'video' ? videoEditor(edit) : nameEditor(edit)) : ''; };
+  var dis = function () { return canEdit() ? '' : ' disabled'; };
+
+  // ---- rows ----
+  function statusPill(e) {
+    if (submitted(e)) return '<span class="pill mine">Video sent</span>';
+    if (e.match === 'close') return '<span class="pill stand">Stand-in loop</span>';
+    return '<span class="pill none">Needs video</span>';
+  }
+  function submitRow(e) {
+    var key = exKey(e.id), d = doc(key), sent = hasVideo(d);
+    var h = '<div class="slot"><div class="head"><h3 class="nm">' + esc(e.name) + '</h3>' + statusPill(e) + '</div>';
+    h += '<div class="ln muted">' + esc(e.group) + (e.equipment ? ' · ' + esc(e.equipment) : '') + ' · ' + esc(KIND_LABEL[e.kind] || e.kind) + '</div>';
+    if (usedHint(e)) h += '<div class="ln muted">' + esc(usedHint(e)) + '</div>';
+    if (e.match === 'close' && e.matchNote) h += '<div class="ln">' + esc(sentence(e.matchNote)) + ' It could stand in until you send an exact video.</div>';
+    h += pickHtml(d);
+    if (open(key)) h += editorFor(key);
+    else if (canEdit()) h += '<div class="acts"><button type="button" class="btn" data-edit="video" data-key="' + esc(key) + '" data-id="' + esc(e.id) + '" aria-label="' + (sent ? 'Change my video for ' : 'Add video for ') + esc(e.name) + '">' + (sent ? 'Change my video' : 'Add video') + '</button></div>';
+    return h + '</div>';
+  }
+  function servesText(L) {
+    var others = L.serves.filter(function (s) { return s.kind !== 'new'; });
+    return others.map(function (s) { return esc(s.name) + (s.match === 'close' ? ' (stand-in)' : s.kind === 'mission' ? ' (mission move)' : ''); }).join(' · ');
+  }
+  function loopCard(slug) {
+    var L = D.loops[slug], ld = loopDoc(slug), isNew = !!L.isNew, nm = loopName(slug), rk = repKey(slug), rd = doc(rk), sv = servesText(L);
+    var h = '<div class="slot has">' + stage(slug, 'md') + '<div class="body"><div class="head"><h3 class="nm">' + esc(nm) + '</h3>' + (isNew ? (ld.approved ? '<span class="pill ok">Approved new</span>' : '<span class="pill stand">New exercise</span>') : '') + '</div>';
+    if (ld.name && ld.name !== L.name) h += '<div class="ln muted">My name for it: ' + esc(L.name) + '</div>';
+    if (isNew) {
+      var first = L.serves.filter(function (s) { return s.kind === 'new'; })[0], ent = first && byId[first.id];
+      h += '<div class="ln muted">Not in the library yet. ' + esc((ld.group || (ent && ent.group) || '') + ' · ' + (ld.equipment || (ent && ent.equipment) || '')) + (sv ? '<span class="nt">Also in the app as: ' + sv + '</span>' : '') + (L.alsoNote ? '<span class="nt">' + esc(L.alsoNote) + '</span>' : '') + '</div>';
+    } else if (sv) h += '<div class="ln muted">Shows in the app as: ' + sv + '</div>';
+    if (L.warn) h += '<div class="ln warnnote">Note: ' + esc(L.warn) + '</div>';
+    if (hasVideo(rd)) h += pickHtml(rd, 'Replacement you sent');
+    if (ld.note) h += '<div class="ln muted">Note: ' + esc(ld.note) + '</div>';
+    if (isNew && canEdit() && !open(lpKey(slug)) && !open(rk)) h += '<label class="ck"><input type="checkbox" data-approve="' + esc(slug) + '"' + (ld.approved ? ' checked' : '') + '>Approve as a new exercise</label>';
+    if (!open(lpKey(slug)) && !open(rk) && canEdit()) h += '<div class="acts"><button type="button" class="btn" data-edit="name" data-key="' + esc(lpKey(slug)) + '" data-slug="' + esc(slug) + '" aria-label="' + (isNew ? 'Edit name and details of ' : 'Rename ') + esc(nm) + '">' + (isNew ? 'Edit details' : 'Rename') + '</button><button type="button" class="btn" data-edit="video" data-key="' + esc(rk) + '" data-slug="' + esc(slug) + '" aria-label="Send a better video for ' + esc(nm) + '">' + (hasVideo(rd) ? 'Change replacement' : 'Send a better video') + '</button></div>';
+    h += '</div>' + (open(lpKey(slug)) ? editorFor(lpKey(slug)) : open(rk) ? editorFor(rk) : '');
+    return h + '</div>';
+  }
+  function squatCard(slug) {
+    var L = D.loops[slug], ld = loopDoc(slug), nm = loopName(slug), v = drafts[slug] != null ? drafts[slug] : nm, busy = sqBusy.has(slug);
+    var chips = D.squatNames.map(function (n) { return '<button type="button" class="chip" data-sqpick="' + esc(slug) + '" data-name="' + esc(n) + '" aria-pressed="' + (v.trim() === n) + '"' + dis() + '>' + esc(n) + '</button>'; }).join('');
+    var sv = servesText(L);
+    var h = '<div class="slot has">' + stage(slug, 'md') + '<div class="body"><div class="head"><h3 class="nm">' + esc(nm) + '</h3>' + (ld.name ? '<span class="pill ok">Named by you</span>' : '<span class="pill text">My guess</span>') + '</div>';
+    h += '<div class="ln">' + esc(L.desc || '') + '</div>' + (sv ? '<div class="ln muted">Shows in the app as: ' + sv + '</div>' : '') + (L.warn ? '<div class="ln warnnote">Note: ' + esc(L.warn) + '</div>' : '') + '</div>';
+    h += '<form data-sqform="' + esc(slug) + '" class="ed" novalidate><label for="sq-' + esc(slug) + '">What is this squat called?</label><input id="sq-' + esc(slug) + '" maxlength="80" autocomplete="off" value="' + esc(v) + '"' + dis() + '><div class="chips">' + chips + '</div><div class="err" role="alert" id="sqerr-' + esc(slug) + '"></div><div class="acts"><button type="submit" class="btn primary"' + (canEdit() && !busy ? '' : ' disabled') + '>' + (busy ? 'Saving…' : 'Save name') + '</button></div></form></div>';
+    return h;
+  }
+
+  // ---- tabs ----
+  function sortedSubmit() {
+    var list = D.entries.filter(function (e) {
+      if (!needs(e)) return false;
+      if (edit && edit.type === 'video' && exKey(e.id) === edit.key) return true;
+      if (!kindOk(e)) return false;
+      if (group !== 'all' && e.group !== group) return false;
+      var sent = submitted(e);
+      if (show === 'todo' && sent && !justSaved.has(e.id)) return false;
+      if (show === 'done' && !sent) return false;
+      return matchQ(e.name, e.group + ' ' + (e.equipment || ''));
+    });
+    var byUse = function (a, b) { return (b.score || 0) - (a.score || 0) || a.name.localeCompare(b.name); };
+    if (sort === 'az') list.sort(function (a, b) { return a.name.localeCompare(b.name); });
+    else if (sort === 'used') list.sort(byUse);
+    else list.sort(function (a, b) { return a.group.localeCompare(b.group) || byUse(a, b); });
+    return list;
+  }
+  function buildCopy(list) {
+    var title = show === 'done' ? 'EXERCISES YOU HAVE SENT A VIDEO FOR' : show === 'all' ? 'EXERCISES WITHOUT AN EXACT LOOP' : 'EXERCISES THAT STILL NEED A VIDEO';
+    var lines = [title + ' (' + list.length + ')', sort === 'used' ? 'Most used first.' : sort === 'az' ? 'A to Z.' : 'Grouped by muscle, most used first.'];
+    var g = null;
+    list.forEach(function (e, i) {
+      if (sort === 'group' && e.group !== g) { g = e.group; lines.push(''); lines.push(g.toUpperCase()); }
+      lines.push((sort === 'group' ? '- ' : (i + 1) + '. ') + e.name + ' (' + (e.equipment || '—') + (sort === 'group' ? '' : ', ' + e.group) + ')' + (e.match === 'close' ? ' [stand-in loop exists]' : '') + (submitted(e) ? ' [video sent]' : ''));
+    });
+    return lines.join('\n');
+  }
+  function drawBar() {
+    var h = '';
+    if (tab === 'submit') {
+      h += '<div class="seg" role="group" aria-label="Order">' + [['group', 'BY MUSCLE'], ['used', 'MOST USED'], ['az', 'A TO Z']].map(function (s) { return '<button type="button" data-sort="' + s[0] + '" aria-pressed="' + (sort === s[0]) + '">' + s[1] + '</button>'; }).join('') + '</div>';
+      h += '<div class="seg" role="group" aria-label="Show">' + [['todo', 'STILL TO DO'], ['done', 'VIDEO SENT'], ['all', 'ALL']].map(function (s) { return '<button type="button" data-show="' + s[0] + '" aria-pressed="' + (show === s[0]) + '">' + s[1] + '</button>'; }).join('') + '</div>';
+    }
+    if (tab === 'submit' || tab === 'loops') h += '<label class="sr" for="f-q">Search</label><input type="search" id="f-q" placeholder="Search by name" value="' + esc(q) + '" autocomplete="off">';
+    if (tab === 'submit') {
+      h += '<button type="button" class="btn" id="copy">Copy this list</button>';
+      h += '<details class="more" id="more"' + (moreOpen ? ' open' : '') + '><summary>MORE FILTERS</summary><div class="bar">';
+      h += '<div class="seg" role="group" aria-label="Include">' + [['library', 'LIBRARY'], ['quick', 'QUICK MISSION'], ['program', 'PROGRAM-ONLY'], ['mission', 'MISSION MOVES']].map(function (s) { return '<button type="button" data-kind="' + s[0] + '" aria-pressed="' + (kinds[s[0]] !== false) + '">' + s[1] + '</button>'; }).join('') + '</div>';
+      h += '<label>Muscle <select id="f-group"><option value="all">All</option>' + D.groups.map(function (g) { return '<option' + (g === group ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('') + '</select></label></div></details>';
+    } else if (tab === 'loops') {
+      h += '<label>Muscle <select id="f-group"><option value="all">All</option>' + D.groups.map(function (g) { return '<option' + (g === group ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('') + '</select></label>';
+    }
+    $('bar').innerHTML = h;
+  }
+  function drawSubmit() {
+    var list = sortedSubmit();
+    copyText = list.length ? buildCopy(list) : '';
+    var all = D.entries.filter(needs), sent = all.filter(submitted).length, hidden = all.filter(function (e) { return !kindOk(e) && !submitted(e); }).length;
+    var skipped = D.entries.filter(function (e) { return e.nonExercise; }).length;
+    var h = '<p class="small muted">' + list.length + ' shown. ' + all.length + ' exercises on this board have no exact loop yet, and you have sent a video for ' + sent + '. A stand-in loop means a close variation exists, but the exact move still needs its own. ' + skipped + ' strike, kick and cardio-machine rows are left out because Practice Mode and the cardio screens cover them.</p>';
+    if (hidden) h += '<div class="acts"><button type="button" class="chip" data-kind="mission" aria-pressed="false">Show ' + hidden + ' hidden mission moves</button></div>';
+    h += '<div id="copyarea"></div>';
+    if (!list.length) return h + '<p class="muted">Nothing matches. Try another filter.</p>';
+    var g = null;
+    list.forEach(function (e) {
+      if (sort === 'group' && e.group !== g) { g = e.group; h += '<h2 class="grp">' + esc(g) + ' · ' + list.filter(function (x) { return x.group === g; }).length + '</h2>'; }
+      h += submitRow(e);
+    });
+    return h;
+  }
+  function drawLoops() {
+    var slugs = Object.keys(D.loops).filter(function (s) { var L = D.loops[s]; return (group === 'all' || L.serves.some(function (e) { var en = byId[e.id]; return en && en.group === group; })) && matchQ(loopName(s) + ' ' + L.name + ' ' + s, L.serves.map(function (e) { return e.name; }).join(' ')); });
+    slugs.sort(function (a, b) { return loopName(a).localeCompare(loopName(b)); });
+    var h = '<p class="small muted">' + Object.keys(D.loops).length + ' loops are finished and kept here, not in the app yet. Rename any I got wrong, or send a better video to replace one. Tap a loop to pause it.</p>';
+    if (!slugs.length) return h + '<p class="muted">Nothing matches.</p>';
+    return h + '<div class="grid">' + slugs.map(loopCard).join('') + '</div>';
+  }
+  function drawNew() {
+    var slugs = Object.keys(D.loops).filter(function (s) { return D.loops[s].isNew; });
+    var ok = slugs.filter(function (s) { return loopDoc(s).approved; }).length;
+    return '<p class="small muted">' + slugs.length + ' loops are for exercises that are not in the library yet. ' + ok + ' approved. Tick the ones you want added. They go into the library, with their names recorded in both coach voices, when we push.</p><div class="grid">' + slugs.map(loopCard).join('') + '</div>';
+  }
+  function drawSquats() {
+    return '<p class="small muted">Watch each loop and give it its proper name. Tap a name under a loop or type your own, then Save name. None of these shows a clearly wide stance, so a wide squat may still need filming.</p><div class="grid">' + D.squatLoops.filter(function (s) { return D.loops[s]; }).map(squatCard).join('') + '</div>';
+  }
+
+  function renderState() {
+    var need = D.entries.filter(wanted), todo = need.filter(function (e) { return !submitted(e); }).length;
+    var made = Object.keys(D.loops).length, newN = Object.keys(D.loops).filter(function (s) { return D.loops[s].isNew; }).length;
+    var up = Array.from(E.values()).filter(hasVideo).length;
+    var msg = dead ? 'Live saving stopped. Reload the page to keep editing.'
+      : db && !synced ? (slow ? 'Could not reach your saved videos yet. What you see may be out of date, so editing is off for now.' : 'Loading your saved videos…')
+      : db ? 'Saves as you go. When you are done, tell Claude: apply the loop board.'
+      : known ? 'View only here. Open this page in Claude, signed in, to send videos or rename loops.' : 'Opening the board…';
+    var html = '<span class="sum"><b>' + todo + '</b> to do · <b>' + up + '</b> sent · <b>' + made + '</b> loops · <b>' + newN + '</b> new exercises</span><span class="small muted">' + esc(msg) + '</span>';
+    if ($('state').innerHTML !== html) $('state').innerHTML = html;
+  }
+  function focusDesc() {
+    var a = document.activeElement;
+    if (!a || a === document.body || !a.closest || !a.closest('.wrap')) return null;
+    var s = a.id ? '#' + a.id : a.tagName.toLowerCase();
+    if (!a.id) [].forEach.call(a.attributes, function (at) { if (/^data-/.test(at.name)) s += '[' + at.name + '="' + String(at.value).replace(/["\\]/g, '\\$&') + '"]'; });
+    return { sel: s, s: a.selectionStart, e: a.selectionEnd };
+  }
+  function focusSel(sel, pos) {
+    var el = null; try { el = document.querySelector(sel); } catch (x) {}
+    if (el && el.focus) { el.focus({ preventScroll: true }); if (pos) try { el.setSelectionRange(pos.s, pos.e); } catch (x) {} }
+    return !!el;
+  }
+  function draw(keepBar) {
+    if (!D) return;
+    if (edit && $('ed')) pull();
+    var f = focusDesc();
+    var counts = { submit: D.entries.filter(function (e) { return wanted(e) && !submitted(e); }).length, loops: Object.keys(D.loops).length, 'new': Object.keys(D.loops).filter(function (s) { return D.loops[s].isNew; }).length, squats: D.squatLoops.length };
+    $('tabs').innerHTML = TABS.map(function (t) { return '<button type="button" data-tab="' + t[0] + '"' + (t[0] === tab ? ' aria-current="page"' : '') + '>' + t[1] + ' ' + counts[t[0]] + '</button>'; }).join('');
+    renderState();
+    if (!keepBar) drawBar();
+    $('out').innerHTML = tab === 'submit' ? drawSubmit() : tab === 'loops' ? drawLoops() : tab === 'new' ? drawNew() : drawSquats();
+    watchVideos();
+    if (f) focusSel(f.sel, f.sel === '#f-q' ? f : null);
+  }
+
+  // ---- editing ----
+  function startEdit(type, key, extra, opener) {
+    if (!canEdit() || (edit && edit.busy)) return;
+    if (edit) { pull(); var a = unsaved(edit); if (a) drop(a); }
+    var cur = doc(key), s = cur || {};
+    if (type === 'video') {
+      edit = { type: 'video', key: key, id: extra.id, slug: extra.slug, had: hasVideo(cur) ? cur : null, err: '', busy: false, up: false, confirm: false, opener: opener,
+        d: { source: s.source === 'link' ? 'link' : assets ? 'upload' : 'link', asset: s.source === 'upload' ? s.asset : '', file: s.file || '', link: s.source === 'link' ? s.video : '', note: s.note || '' } };
+    } else {
+      var slug = extra.slug, L = D.loops[slug], first = L.serves.filter(function (x) { return x.kind === 'new'; })[0], ent = first && byId[first.id];
+      edit = { type: 'name', key: key, slug: slug, isNew: !!L.isNew, had: cur && cur.name ? cur : null, err: '', busy: false, opener: opener,
+        d: { name: s.name || L.name, group: s.group || (ent && ent.group) || D.groups[0], equipment: s.equipment || (ent && ent.equipment) || D.equipment[0], approved: !!s.approved, note: s.note || '' } };
+    }
+    draw();
+    var first2 = $('ed-link') || $('ed-file') || $('ed-name'); if (first2) first2.focus();
+  }
+  function pull() {
+    if (!edit || !$('ed')) return;
+    var d = edit.d, val = function (id) { var el = $(id); return el ? el.value : null; }, v;
+    if ((v = val('ed-link')) != null) d.link = v.trim();
+    if ((v = val('ed-note')) != null) d.note = v.trim();
+    if ((v = val('ed-name')) != null) d.name = v.trim();
+    if ((v = val('ed-group')) != null) d.group = v;
+    if ((v = val('ed-equip')) != null) d.equipment = v;
+    var ok = $('ed-ok'); if (ok) d.approved = ok.checked;
+  }
+  var usedElsewhere = function (asset, exceptKey) { return Array.from(E.entries()).some(function (p) { return p[0] !== exceptKey && p[1] && p[1].asset === asset; }); };
+  var drop = function (asset) { if (assets && isAsset(asset)) assets.delete(asset).catch(function () {}); };
+  var unsaved = function (ed) { return ed && ed.type === 'video' && !ed.busy && ed.d.asset && ed.d.asset !== (ed.had && ed.had.asset) ? ed.d.asset : ''; };
+  function closeEdit(refocus) { var ed = edit, a = unsaved(ed); if (a) drop(a); edit = null; draw(); if (refocus && ed && ed.opener) focusSel(ed.opener); }
+  function write(fn) { return fn().catch(function (e) { if (!e || e.code !== 'unavailable') throw e; return new Promise(function (r) { setTimeout(r, 700); }).then(fn); }); }
+  function dbMsg(e) {
+    var c = e && e.code;
+    if (c === 'quota_exceeded') return 'This page is full. Tell Claude to apply the board, then try again.';
+    if (c === 'resource_exhausted') return 'Too many saves at once. Wait a moment and try again.';
+    if (c === 'invalid_argument') return 'This view cannot save changes.';
+    if (c === 'revoked' || c === 'not_granted' || c === 'capability_disabled' || c === 'capability_removed') return 'Saving is off in this view. Reload the page.';
+    return 'That did not save. Check your connection and try again.';
+  }
+  function fail(ed, msg) { ed.busy = false; ed.err = msg; if (edit === ed) draw(); }
+
+  function save() {
+    pull();
+    var ed = edit, d = ed.d, key = ed.key, body, now = new Date().toISOString();
+    if (ed.type === 'video') {
+      body = { kind: ed.slug ? 'replace' : 'exercise', entryId: ed.id || null, slug: ed.slug || null, source: d.source, note: d.note.slice(0, 300), updatedAt: now };
+      if (ed.id && byId[ed.id]) body.entryName = byId[ed.id].name;
+      if (d.source === 'upload') { if (!isAsset(d.asset)) return fail(ed, 'Choose a video file first.'); body.asset = d.asset; body.file = String(d.file).slice(0, 120); }
+      else {
+        if (!/^https?:\/\/\S+$/.test(d.link)) return fail(ed, 'Paste the full link, starting with https://');
+        if (d.link.length > LINKMAX) return fail(ed, 'That link is too long. Use a shorter share link.');
+        body.video = d.link;
+      }
+    } else {
+      if (!d.name) return fail(ed, 'Type a name first.');
+      var base = loopDoc(ed.slug);
+      body = { kind: 'loop', slug: ed.slug, name: d.name.slice(0, 80), note: d.note.slice(0, 300), updatedAt: now };
+      if (ed.isNew) { body.group = d.group; body.equipment = d.equipment; body.approved = !!d.approved; }
+      else if (base.approved != null) body.approved = base.approved;
+    }
+    var old = ed.had && ed.had.asset, stray = ed.type === 'video' && d.source !== 'upload' ? unsaved(ed) : '';
+    ed.busy = true; ed.err = ''; draw();
+    write(function () { return db.doc('items/' + key).set(body); }).then(function () {
+      E.set(key, body);
+      if (ed.type === 'video' && ed.id) justSaved.add(ed.id);
+      if (old && old !== body.asset && !usedElsewhere(old, key)) drop(old);
+      if (stray) drop(stray);
+      say(ed.type === 'video' ? 'Saved your video.' : 'Saved.');
+      if (edit === ed) { edit = null; draw(); if (ed.opener) focusSel(ed.opener); } else draw();
+    }, function (e) { fail(ed, dbMsg(e)); });
+  }
+  function remove() {
+    var ed = edit, key = ed.key, had = ed.had;
+    if (ed.type === 'video' && !ed.confirm) { ed.confirm = true; draw(); return; }
+    var extra = unsaved(ed);
+    ed.busy = true; ed.err = ''; draw();
+    var keep = Object.assign({}, had || {}); delete keep.name;
+    var other = ed.type === 'name' && (keep.approved || keep.group || keep.equipment || keep.note);
+    write(function () { return other ? db.doc('items/' + key).set(Object.assign(keep, { updatedAt: new Date().toISOString() })) : db.doc('items/' + key).delete(); }).then(function () {
+      if (other) E.set(key, keep); else E.delete(key);
+      if (had && had.asset && !usedElsewhere(had.asset, key)) drop(had.asset);
+      if (extra) drop(extra);
+      say('Removed.');
+      if (edit === ed) { edit = null; draw(); if (ed.opener) focusSel(ed.opener); } else draw();
+    }, function (e) { fail(ed, dbMsg(e)); });
+  }
+  function upload(file) {
+    var ed = edit;
+    if (!file || !assets || !ed || ed.type !== 'video') return;
+    pull();
+    if (file.type && !/^video\//.test(file.type)) return fail(ed, 'Choose a video file.');
+    if (!file.size) return fail(ed, 'That file is empty.');
+    if (file.size > MAX) return fail(ed, 'That file is over 20 MB. Trim it or export it smaller, or paste a link instead.');
+    var type = file.type === 'video/webm' ? 'video/webm' : 'video/mp4';
+    ed.up = true; ed.err = ''; draw();
+    var go = function () { return assets.upload(file, { type: type }); };
+    go().catch(function (e) { if (!e || e.code !== 'store_unavailable') throw e; return new Promise(function (r) { setTimeout(r, 700); }).then(go); }).then(function (r) {
+      if (edit !== ed) { drop(r.id); return; }
+      var prev = unsaved(ed); if (prev) drop(prev);
+      ed.up = false; ed.d.asset = r.id; ed.d.file = file.name || 'video'; ed.err = ''; draw(); say('Video uploaded. Press Save.');
+    }, function (e) {
+      if (edit !== ed) return;
+      var c = e && e.code; ed.up = false;
+      fail(ed, c === 'too_large' ? 'That file is over 20 MB. Trim it or export it smaller, or paste a link instead.'
+        : c === 'unsupported_type' || c === 'invalid_request' ? 'That file cannot be stored here. Try an MP4, or paste a link instead.'
+        : c === 'quota_or_state' ? 'This page has no room for more uploads. Tell Claude to apply the board, then try again.'
+        : c === 'rate_limited' ? 'Too many uploads at once. Wait a moment and try again.'
+        : 'The upload did not go through. Try again, or paste a link instead.');
+    });
+  }
+  function saveSquat(slug) {
+    if (sqBusy.has(slug)) return;
+    var inp = $('sq-' + slug), name = inp ? inp.value.trim() : '';
+    var showErr = function (m) { var n = $('sqerr-' + slug); if (n) n.textContent = m; };
+    if (!name) return showErr('Type a name first.');
+    var base = loopDoc(slug), body = Object.assign({}, base, { kind: 'loop', slug: slug, name: name.slice(0, 80), updatedAt: new Date().toISOString() });
+    sqBusy.add(slug); draw();
+    write(function () { return db.doc('items/' + lpKey(slug)).set(body); }).then(function () { E.set(lpKey(slug), body); delete drafts[slug]; sqBusy.delete(slug); say('Saved the name ' + name + '.'); draw(); }, function (e) { sqBusy.delete(slug); draw(); showErr(dbMsg(e)); });
+  }
+  function setApproved(slug, on) {
+    var base = loopDoc(slug), first = D.loops[slug].serves.filter(function (x) { return x.kind === 'new'; })[0], ent = first && byId[first.id];
+    var body = Object.assign({}, base, { kind: 'loop', slug: slug, approved: !!on, group: base.group || (ent && ent.group) || D.groups[0], equipment: base.equipment || (ent && ent.equipment) || D.equipment[0], updatedAt: new Date().toISOString() });
+    write(function () { return db.doc('items/' + lpKey(slug)).set(body); }).then(function () { E.set(lpKey(slug), body); say(on ? 'Approved.' : 'Approval removed.'); draw(); }, function (e) { say(dbMsg(e)); draw(); });
+  }
+  function copyList() {
+    var area = $('copyarea');
+    if (!copyText) { say('Nothing to copy.'); return; }
+    var fallback = function () { area.innerHTML = '<label class="small muted" for="copybox">Select all and copy:</label><textarea class="copybox" readonly id="copybox">' + esc(copyText) + '</textarea><div class="acts"><button type="button" class="btn" data-copydone>Done</button></div>'; var t = $('copybox'); if (t) { t.focus(); t.select(); try { document.execCommand('copy'); } catch (x) {} } say('Select the text and copy it.'); };
+    try { navigator.clipboard.writeText(copyText).then(function () { say('List copied.'); var b = $('copy'); if (b) { b.textContent = 'Copied'; setTimeout(function () { var c = $('copy'); if (c) c.textContent = 'Copy this list'; }, 1600); } }, fallback); } catch (x) { fallback(); }
+  }
+  function toTop() { var r = $('tabs').getBoundingClientRect(); if (r.top < 0) window.scrollTo(0, window.pageYOffset + r.top - 8); }
+  function go(t) { if (edit && edit.busy) return; if (t === tab) return; tab = t; group = 'all'; justSaved.clear(); draw(); toTop(); }
+
+  // ---- events ----
+  $('tabs').addEventListener('click', function (e) { var b = e.target.closest('button[data-tab]'); if (!b || (edit && edit.busy)) return; try { location.hash = b.dataset.tab; } catch (x) {} go(b.dataset.tab); });
+  $('bar').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.sort) sort = b.dataset.sort; else if (b.dataset.show) { show = b.dataset.show; justSaved.clear(); }
+    else if (b.dataset.kind) kinds[b.dataset.kind] = !(kinds[b.dataset.kind] !== false);
+    else if (b.id === 'copy') return copyList(); else return;
+    draw();
+  });
+  $('bar').addEventListener('input', function (e) { if (e.target.id !== 'f-q') return; q = e.target.value; clearTimeout(qTimer); qTimer = setTimeout(function () { draw(true); }, 150); });
+  $('bar').addEventListener('change', function (e) { if (e.target.id === 'f-group') { group = e.target.value; draw(); } });
+  $('bar').addEventListener('toggle', function (e) { if (e.target.id === 'more') moreOpen = e.target.open; }, true);
+  $('out').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.pp !== undefined) {
+      var v = b.parentNode.querySelector('video');
+      if (!v.getAttribute('src')) v.src = v.dataset.src;
+      if (v.paused) { delete v.dataset.userPaused; var p = v.play(); if (p && p.catch) p.catch(function () {}); } else { v.dataset.userPaused = '1'; v.pause(); }
+    }
+    else if (b.dataset.edit) startEdit(b.dataset.edit, b.dataset.key, { id: b.dataset.id, slug: b.dataset.slug }, '[data-edit="' + b.dataset.edit + '"][data-key="' + b.dataset.key + '"]');
+    else if (b.dataset.src && edit && !edit.busy && !edit.up) { pull(); edit.d.source = b.dataset.src; edit.err = ''; draw(); }
+    else if ('cancel' in b.dataset && edit && !edit.busy) closeEdit(true);
+    else if ('keep' in b.dataset && edit) { edit.confirm = false; draw(); }
+    else if ('remove' in b.dataset && edit && !edit.busy && !edit.up) remove();
+    else if ('copydone' in b.dataset) { $('copyarea').innerHTML = ''; var c = $('copy'); if (c) c.focus(); }
+    else if (b.dataset.kind) { kinds[b.dataset.kind] = true; draw(); }
+    else if (b.dataset.sqpick) {
+      var inp = $('sq-' + b.dataset.sqpick); if (!inp || inp.disabled) return;
+      inp.value = b.dataset.name; drafts[b.dataset.sqpick] = b.dataset.name;
+      [].forEach.call(b.parentNode.querySelectorAll('.chip'), function (c) { c.setAttribute('aria-pressed', String(c === b)); });
+      var er = $('sqerr-' + b.dataset.sqpick); if (er) er.textContent = '';
+    }
+  });
+  $('out').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (e.target.dataset.sqform) return saveSquat(e.target.dataset.sqform);
+    if (edit && !edit.busy && !edit.up && !edit.confirm) save();
+  });
+  $('out').addEventListener('input', function (e) {
+    var id = e.target.id || '';
+    if (id.indexOf('sq-') === 0) {
+      var slug = id.slice(3); drafts[slug] = e.target.value;
+      [].forEach.call(e.target.form.querySelectorAll('.chip'), function (c) { c.setAttribute('aria-pressed', String(c.dataset.name === e.target.value.trim())); });
+      var er = $('sqerr-' + slug); if (er) er.textContent = '';
+    }
+  });
+  $('out').addEventListener('change', function (e) {
+    if (e.target.id === 'ed-file') upload(e.target.files && e.target.files[0]);
+    else if (e.target.dataset && e.target.dataset.approve) setApproved(e.target.dataset.approve, e.target.checked);
+  });
+  $('out').addEventListener('keydown', function (e) { if (e.key === 'Escape' && edit && !edit.busy && !edit.up) { e.preventDefault(); closeEdit(true); } });
+  // Media events do not bubble, so listen in the capture phase to keep the play indicator right.
+  ['play', 'pause'].forEach(function (n) { $('out').addEventListener(n, function (e) { var st = e.target.parentNode; if (st && st.classList && st.classList.contains('stage')) st.classList.toggle('paused', e.target.paused); }, true); });
+
+  function fromHash() { var h = (location.hash || '').slice(1) || 'submit'; if (TABS.some(function (t) { return t[0] === h; })) go(h); }
+  window.addEventListener('hashchange', fromHash);
+
+  fetch('board.json').then(function (r) { return r.json(); }).then(function (r) {
+    D = r; D.entries.forEach(function (e) { byId[e.id] = e; });
+    fromHash(); draw();
+  }).catch(function () { $('out').innerHTML = '<p class="muted">The board did not load. Reload the page.</p>'; });
+
+  var use = function (name) { try { return window.claude && window.claude.use ? window.claude.use(name).catch(function () { return null; }) : Promise.resolve(null); } catch (x) { return Promise.resolve(null); } };
+  Promise.all([use('db'), use('assets')]).then(function (r) {
+    db = r[0]; assets = r[1]; known = true;
+    if (db) {
+      setTimeout(function () { if (!synced) { slow = true; if (D) renderState(); } }, 10000);
+      db.collection('items').limit(1000).onSnapshot(function (snap) {
+        var next = new Map(); snap.docs.forEach(function (d) { var x = d.data(); if (x) next.set(d.id, x); });
+        E = next; synced = true; slow = false;
+        if (!D) return;
+        if (($('ed') && edit) || (tab === 'squats' && Object.keys(drafts).length)) renderState(); else draw(!!(document.activeElement && document.activeElement.id === 'f-q'));
+      }, function () { dead = true; if (D) renderState(); });
+    }
+    if (D) draw();
+  });
+})();
+</script>
