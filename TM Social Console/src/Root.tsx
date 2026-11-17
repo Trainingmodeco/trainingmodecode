@@ -5,6 +5,7 @@ import { FightFocusRounds, type FightFocusRoundsProps, roundsTimeline } from './
 import { FootageShort, footageFrames, type FootageShortProps } from './compositions/FootageShort';
 import { PracticeTutorial, type PracticeTutorialProps, tutorialTimeline } from './compositions/PracticeTutorial';
 import { PracticeLessonApp, lessonTimeline } from './compositions/PracticeLessonApp';
+import { PracticePromo, type PracticePromoProps, promoFrames } from './compositions/PracticePromo';
 import { ScriptShort, scriptTimeline, type ScriptShortProps } from './compositions/ScriptShort';
 import { END_CARD_FRAMES } from './parts/EndCard';
 
@@ -124,6 +125,16 @@ export const Root: React.FC = () => (
       durationInFrames={690}
       defaultProps={tutorialDefaults}
       calculateMetadata={({ props }) => ({ durationInFrames: lessonTimeline(props).total })}
+    />
+    <Composition
+      id="PracticePromo"
+      component={PracticePromo}
+      width={WIDTH}
+      height={HEIGHT}
+      fps={FPS}
+      durationInFrames={555}
+      defaultProps={{ beats: [{ kind: 'close', sec: 3 }] } as PracticePromoProps}
+      calculateMetadata={({ props }) => ({ durationInFrames: promoFrames(props) })}
     />
   </>
 );

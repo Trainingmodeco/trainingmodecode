@@ -1,0 +1,84 @@
+{
+  "id": "2026-11-17-practice-promo-cut-learned",
+  "title": "Practice Mode promo, cutdown: drill + learned",
+  "status": "draft",
+  "format": "PracticePromo",
+  "createdAt": "2026-11-17",
+  "source": "Practice Mode promo with the house character (Higgsfield Soul character \"Training mode coach/avatar\"). Stylized: keyframes from soul_2, animated with Seedance 2.5 (720p, upscaled in the render); narrator = the house announcer voice cloned from take A (090eb057) with seed_audio; music = ElevenLabs Music v2.5 instrumental. Brief: Boxing only for the drilled strike, Practice feeds Combo Coach, Fight Focus / timed rounds only as what's next, nothing about price or free vs. Pro, no video claims for Kickboxing, Muay Thai or MMA.",
+  "scheduledFor": null,
+  "coverFrame": 40,
+  "props": {
+    "strike": "Jab",
+    "learned": [
+      "Jab",
+      "Cross",
+      "Lead Hook"
+    ],
+    "combo": [
+      "Jab",
+      "Cross",
+      "Lead Hook"
+    ],
+    "music": "raw-footage/promo/music.mp3",
+    "musicVolume": 0.32,
+    "beats": [
+      {
+        "kind": "drill",
+        "sec": 3.2,
+        "src": "raw-footage/promo/c2-drill.mp4",
+        "from": 0.5,
+        "voice": "raw-footage/promo/vo2.wav",
+        "voiceAt": 0.1,
+        "counts": [
+          0.75,
+          1.35,
+          1.95,
+          2.51
+        ]
+      },
+      {
+        "kind": "learned",
+        "sec": 2.5,
+        "src": "raw-footage/promo/c2-drill.mp4",
+        "from": 3.6,
+        "voice": "raw-footage/promo/vo3.wav",
+        "voiceAt": 0.15
+      },
+      {
+        "kind": "close",
+        "sec": 2.6,
+        "voice": "raw-footage/promo/vo5.wav",
+        "voiceAt": 0.4
+      }
+    ]
+  },
+  "platforms": {
+    "tiktok": {
+      "caption": "Drill it. Check it off. 🥊 Practice Mode: watch the strike, drill it with the coach's count, check it off, then take it into your combos. apptrainingmode.com #boxing #jab #boxingtraining #shadowboxing #trainingmode",
+      "privacy": "SELF_ONLY"
+    },
+    "instagram": {
+      "caption": "Drill it. Check it off. 🥊\n\nPractice Mode in Training Mode:\n1. Watch it\n2. Drill it\n3. Learn it\n4. Then use it in your combos\n\nComment TRAIN and I'll DM you the link.\n\n#boxing #jab #boxingtraining #shadowboxing #trainingmode #combatfitness"
+    },
+    "facebook": {
+      "caption": "Drill it. Check it off. 🥊 Practice Mode: watch it, drill it, learn it, then use it in your combos. Comment TRAIN for the link."
+    },
+    "youtube": {
+      "title": "Drill it. Check it off. 🥊 Practice Mode 🥊 #shorts",
+      "description": "Practice Mode in Training Mode: watch the strike, drill it with the coach's count, check it off, then take it into your combos.\n\nTrain: https://apptrainingmode.com",
+      "tags": [
+        "boxing",
+        "jab",
+        "boxing training",
+        "practice mode",
+        "training mode"
+      ]
+    },
+    "reddit": null
+  },
+  "approvedAt": null,
+  "posted": {},
+  "notes": [
+    "2026-11-17 cutdown of the house-character promo, 8.3 s."
+  ]
+}
