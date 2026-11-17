@@ -45,10 +45,21 @@ and the app chat doesn't edit `TM Social Console/`.
   SHADOWBOXING**. Deliver them as assets only, in the format below. Aim for
   720p at about 1 MB per 25 s (or 540p if the set runs heavy: 141 clips is
   well over 100 MB in the repo), muted is fine, and a poster per clip.
+- **Owner's request for the app chat, retention (2026-11-17):** six features to
+  bring people back (daily mission + streak freeze, the path + stars,
+  near-miss retry, weekly leagues, squads, a season reward track). **Looks
+  first**: a design gallery of every screen for the owner to approve, then the
+  builds one by one. The full brief is `PROMPT-RETENTION-1.md`.
 - **Console needs from the app:** nothing right now (the shadowboxing format is
   in the log, newest entry).
 
 ## Log
+
+### 2026-11-17 · console → app · Retention brief (`claude/console-handoff-2026-11-17-retention`)
+
+- **Delivered:** `PROMPT-RETENTION-1.md`, the owner's brief for six retention features, with what already exists in the app, the rules (only the workout moves progress, rest days never punished, no pay-to-skip), every screen and state to design, the build order and the open questions.
+- **Process the owner asked for:** the visual look of all six first (Phase 0, a design gallery with sample data, no wiring), the owner approves each, then one feature at a time, each its own pull request behind a flag.
+- **No app code** in this handoff: one new brief and this note.
 
 ### 2026-11-14 · console → app · Shadowboxing clips (`claude/console-handoff-2026-11-14-shadowboxing`)
 
