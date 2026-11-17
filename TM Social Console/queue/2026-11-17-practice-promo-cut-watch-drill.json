@@ -1,7 +1,7 @@
 {
   "id": "2026-11-17-practice-promo-cut-watch-drill",
   "title": "Practice Mode promo, cutdown: watch + drill",
-  "status": "draft",
+  "status": "rendered",
   "format": "PracticePromo",
   "createdAt": "2026-11-17",
   "source": "Practice Mode promo with the house character (Higgsfield Soul character \"Training mode coach/avatar\"). Stylized: keyframes from soul_2, animated with Seedance 2.5 (720p, upscaled in the render); narrator = the house announcer voice cloned from take A (090eb057) with seed_audio; music = ElevenLabs Music v2.5 instrumental. Brief: Boxing only for the drilled strike, Practice feeds Combo Coach, Fight Focus / timed rounds only as what's next, nothing about price or free vs. Pro, no video claims for Kickboxing, Muay Thai or MMA.",
@@ -24,7 +24,7 @@
     "beats": [
       {
         "kind": "watch",
-        "sec": 3.0,
+        "sec": 3,
         "src": "raw-footage/promo/c1-jab.mp4",
         "from": 0.6,
         "rate": 1.2,
@@ -81,5 +81,11 @@
   "posted": {},
   "notes": [
     "2026-11-17 cutdown of the house-character promo, 8.8 s."
-  ]
+  ],
+  "exports": {
+    "video": "exports/2026-11-17-practice-promo-cut-watch-drill/video.mp4",
+    "cover": "exports/2026-11-17-practice-promo-cut-watch-drill/cover.jpg",
+    "seconds": 8.8
+  },
+  "renderedAt": "2026-11-17T00:59:28.393Z"
 }
