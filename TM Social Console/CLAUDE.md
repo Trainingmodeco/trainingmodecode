@@ -466,6 +466,41 @@ by name: `shadow-editor` (port 4610) and `app-web` (port 8081, the app from
 `trainingmodecode`) in that folder's `.claude/launch.json`. The map of what
 each folder and branch is sits in that folder's `CLAUDE.md`.
 
+## Workout footage for the Exercise Loop Board (local, big batches)
+
+The Fight Mode chat built the **Exercise Loop Board**, a claude.ai artifact (find it with the Artifact tool's `list` action; its source is
+`exercise-loops/board/` on `claude/fight-mode-improvements-se9gas`). The owner names raw workout footage on it and queues stretches for
+violet demo loops for Fit Mode's exercises. It keeps its state in the artifact's shared database, which any session reads and writes
+with the `ArtifactData` tool:
+
+- `segs/<clipId>-<NN>`: Claude's side, one document per **stretch** of a raw video where someone exercises: `clipId`, `idx`, `folder`,
+  `file`, `clipDur`, `start`, `end`, `reps`, `period`, `score`, `kind` (exercise or junk), `hold`, `warn`, `why`, `guess` (`name`,
+  `entryId`, `confidence`, `view`), `strip` and `preview` (asset ids), and later `state`, `loop`, `poster`, `cost`.
+- `items/seg.<id>`: the owner's choices (name, `from`/`to`, `queued`, `skip`, `hold`, `verdict`). **Never write these.**
+  `items/control.queue` is the list the Generate button writes.
+
+**This laptop is where the footage is** (the 4K originals never leave it); a cloud session sees only the board. **Nothing here spends
+generation credits:** a loop is made only when the owner queues stretches on the board and tells Claude to run the queue. Intake only
+makes the filmstrips, previews and guessed names. Other people's clips stay out (the tutorial recording, `bagwork/`).
+
+`node tools/loop-intake.mjs <command>` (everything under `exports/loop-intake/`, not in git; safe to stop and run again):
+
+1. `scan` lists every video under `../TM Social Console folder/` except the Practice Mode folder and what `skip.json` names (folders or
+   "folder/file"). A new zip: extract only its video entries into a new folder next to it, then scan.
+2. `run [--folder <name>] [--jobs 4]`, per clip: a 12 fps analysis copy, what is said in the first 14 s (Whisper: a hint, often garbled),
+   the stretches of exercise (motion on coarse blocks, so pool water does not count; ends pulled in where the body leaves the poses of
+   the middle), reps by autocorrelation, a crop around the athlete, the board's filmstrip (8 frames in one row) and a small preview.
+3. `catalog <exercise-loops/catalog.json>`, then `sheets --tag <t>` (10 numbered rows a picture) and Haiku agents following
+   `exports/loop-intake/NAMING.md`, which write `guesses/*.json`. A plain family name (Push-Ups, Squats) is capped at 0.55 unless the
+   owner said the word on camera: from the side hand width and stance cannot be seen, and the board's "Accept Claude's names" takes 0.6
+   and up.
+4. `uploads [--tag <t>]` freezes batches of 25 files (`batches/uNN.json`). Upload each with the Artifact tool (`action: publish`,
+   `asset: true`, `file_paths`, relative paths), put the ids it answers with, in order, in `ids/uNN.txt` as `bytes id` lines, and run
+   `link-ids` (it checks every size). An upload can stop part way (`store_unavailable`): send the rest in the same order.
+5. `docs [--tag <t>]` builds `docs/<id>.json`; write them with `ArtifactData` `batch` `set` (50 a call, `file_path` for each). At most two
+   exercise stretches a clip go to the board (counted reps first, then the longest), the best with a preview. Then open the board in
+   Chrome and look at the RAW FOOTAGE tab.
+
 ## Cloud vs laptop
 
 The owner's laptop is Windows. Run the console there with Claude Code (Claude

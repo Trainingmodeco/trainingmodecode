@@ -247,6 +247,20 @@ downloads itself the first time.
 | `npm run shadow -- status` | what's labelled and built |
 | `npm run shadow -- check` | looks at every app video before a delivery (the right clip under each name, the right length, 720p, muted) |
 
+## Workout footage for the Exercise Loop Board
+
+Raw workout clips (everything in `TM Social Console folder` except the Practice Mode folder) go onto the board the Fight Mode chat
+built, where you name each exercise and queue the ones you want as loops. Ask Claude: "put the new workout footage on the loop board".
+It finds the stretches where someone is exercising, makes a filmstrip and a preview of each, suggests a name, and adds them to the
+board's RAW FOOTAGE tab. It never makes a loop or spends credits by itself: that happens when you queue stretches on the board and ask
+Claude to run the queue.
+
+| | |
+|---|---|
+| `node tools/loop-intake.mjs scan` | list the videos (skips the Practice Mode folder and `exports/loop-intake/skip.json`) |
+| `node tools/loop-intake.mjs run` | analyse them, 4 at a time; safe to stop and run again |
+| `node tools/loop-intake.mjs status` | what is done |
+
 ## What's inside
 
 - `brain/`: your Drive scripts as a searchable library, the content formats,
