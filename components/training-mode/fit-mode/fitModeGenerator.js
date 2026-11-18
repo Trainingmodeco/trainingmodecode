@@ -21,10 +21,13 @@ const RELATED_MUSCLES = {
 const HISTORY_KEY = 'tm_fit_builder_history';
 const HISTORY_DEPTH = 5;
 
-function shuffle(arr) {
+// Every random choice of a build goes through `rng` (Math.random on the
+// phone). The tests pass a seeded one (quickMissionGenerator's seededRng), so
+// they deal the same workouts on every run.
+function shuffle(arr, rng = Math.random) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rng() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
@@ -241,7 +244,7 @@ export function fitsBuilderSlot(exercise, { equipment, difficulty } = {}) {
 
 // Greedy pick that honors tier priority while spreading movement patterns and
 // avoiding duplicate names across the whole workout.
-function pickForGroup(mg, equipment, difficulty, targetCount, usedNames, patternCounts, { focus, baseIndex } = {}) {
+function pickForGroup(mg, equipment, difficulty, targetCount, usedNames, patternCounts, { focus, baseIndex, rng } = {}) {
   const candidates = rankedCandidates(mg, equipment, difficulty);
 
   // Focus-based compound bias: for Strength, push compounds earlier in sort.
@@ -256,7 +259,7 @@ function pickForGroup(mg, equipment, difficulty, targetCount, usedNames, pattern
     if (available.length === 0) break;
 
     // Sort by tier, then least-used movement pattern, then random tiebreak.
-    const jittered = shuffle(available);
+    const jittered = shuffle(available, rng);
     jittered.sort((a, b) => {
       if (a.tier !== b.tier) return a.tier - b.tier;
       if (biasCompound) {
@@ -287,10 +290,15 @@ function pickForGroup(mg, equipment, difficulty, targetCount, usedNames, pattern
 // phone, and more than that is a second session, not a longer one.
 export const MAX_EXERCISES = 8;
 
-// How many sets a row may grow to when a long session needs the volume (an
-// hour on eight rows is five sets a row at Easy's long rests); Hard may go to
-// six.
-const MAX_SETS = { Easy: 5, Normal: 5, Hard: 6, Advanced: 6 };
+// How many sets a row may grow to when a long session needs the volume: six,
+// at every level. Easy and Normal used to stop at five, which fills an hour
+// only on loaded rows. A bodyweight set is shorter (ten reps on the 2 s beat),
+// and a timed hold shorter still (30 s on, half the rest), so eight bodyweight
+// rows of five sets ran 56 minutes at best and 50 when five of them were
+// holds: every 60-minute Easy or Normal BODYWEIGHT build came out 6 to 16%
+// short. The fit only adds a set while that brings the session nearer the
+// minutes, so a build that five sets already filled is the same build.
+const MAX_SETS = 6;
 
 // Fit the picked rows to the minutes the athlete chose, by the player's own
 // timeline (data/builderTiming). `pool` is every row the session could use, in
@@ -299,12 +307,14 @@ const MAX_SETS = { Easy: 5, Normal: 5, Hard: 6, Advanced: 6 };
 // and the closest wins. It used to count rows on a
 // flat 35 s a set and keep at least three whatever the time, so a 15-minute
 // Hard session ran 22 minutes and a 60-minute one stopped near 40.
-function fitToDuration(pool, cardio, cfg) {
+// Exported for test:qm, which fits lists it writes itself (the shortest rows
+// a level can be dealt), so the fit is checked without a deal.
+export function fitToDuration(pool, cardio, cfg) {
   const target = (Number(cfg.duration) || 30) * 60;
   const scheme = cfg.setScheme;
   const shaped = applySetScheme(pool, scheme);
   const total = (rows) => builderWorkoutSeconds(cardio ? [...rows, cardio] : rows);
-  const most = MAX_SETS[cfg.difficulty] || 5;
+  const most = MAX_SETS;
   // A short session drops rows before it thins Hard below three sets.
   const least = cfg.difficulty === 'Hard' || cfg.difficulty === 'Advanced' ? 3 : 2;
 
@@ -391,8 +401,8 @@ const CARDIO_FINISHER_MOVES = [
   { name: 'Fast Feet Shuffle', coachNote: 'Chop the feet as quickly as possible, stay on the balls of your feet.', combatCarryover: 'Improves foot speed and stance transitions.' },
 ];
 
-function buildCardioBlock(equipment, difficulty) {
-  const move = shuffle(CARDIO_FINISHER_MOVES)[0];
+function buildCardioBlock(equipment, difficulty, rng) {
+  const move = shuffle(CARDIO_FINISHER_MOVES, rng)[0];
   const work = difficulty === 'Easy' ? 30 : (difficulty === 'Hard' || difficulty === 'Advanced') ? 45 : 40;
   const rest = difficulty === 'Easy' ? 30 : (difficulty === 'Hard' || difficulty === 'Advanced') ? 20 : 25;
   const source = {
@@ -428,19 +438,19 @@ function buildCardioBlock(equipment, difficulty) {
 }
 
 function buildOnce(cfg) {
-  const { muscleGroups, equipment, difficulty, addCardio, focus } = cfg;
+  const { muscleGroups, equipment, difficulty, addCardio, focus, rng } = cfg;
 
   // CARDIO ONLY: pull exclusively from the cardio pool.
   if (focus === 'Cardio Only') {
     const count = Math.min(8, Math.max(4, muscleGroups.length + 3));
-    const pool = shuffle(CARDIO_FINISHER_MOVES);
+    const pool = shuffle(CARDIO_FINISHER_MOVES, rng);
     const usedNames = new Set();
     const exercises = [];
     for (let i = 0; i < count; i++) {
       const move = pool[i % pool.length];
       if (usedNames.has(move.name) && i < pool.length) continue;
       usedNames.add(move.name);
-      const block = buildCardioBlock(equipment, difficulty);
+      const block = buildCardioBlock(equipment, difficulty, rng);
       block.name = move.name;
       block.id = `cardio_finisher_${move.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`;
       block.coachNote = move.coachNote;
@@ -456,7 +466,7 @@ function buildOnce(cfg) {
   // groups' extras first, and a full-body day with more groups than rows
   // trains a different handful each regenerate.
   const cap = MAX_EXERCISES - (addCardio ? 1 : 0);
-  const order = shuffle(muscleGroups);
+  const order = shuffle(muscleGroups, rng);
   const usedNames = new Set();
   const patternCounts = {};
   const pool = [];
@@ -464,7 +474,7 @@ function buildOnce(cfg) {
     let added = 0;
     for (const mg of order) {
       if (pool.length >= cap) break;
-      const [pick] = pickForGroup(mg, equipment, difficulty, 1, usedNames, patternCounts, { focus, baseIndex: pool.length });
+      const [pick] = pickForGroup(mg, equipment, difficulty, 1, usedNames, patternCounts, { focus, baseIndex: pool.length, rng });
       if (!pick) continue;
       pick._group = order.indexOf(mg);
       pick._round = round;
@@ -474,7 +484,7 @@ function buildOnce(cfg) {
     if (!added) break;
   }
 
-  const cardio = addCardio ? buildCardioBlock(equipment, difficulty) : null;
+  const cardio = addCardio ? buildCardioBlock(equipment, difficulty, rng) : null;
   const useCardio = cardio && !usedNames.has(cardio.name) ? cardio : null;
   const fitted = fitToDuration(pool, useCardio, cfg);
   // Back in muscle order for the list: a group's moves sit together.
@@ -554,6 +564,8 @@ export function generateFitModeWorkout(cfg) {
     // The scheme the Builder lays over the list after: the time fit has to
     // count the sets it will run.
     setScheme: cfg?.setScheme?.sets ? cfg.setScheme : null,
+    // The source of every random choice (see shuffle).
+    rng: typeof cfg?.rng === 'function' ? cfg.rng : Math.random,
   };
 
   if (safeCfg.muscleGroups.length === 0) return [];
@@ -590,7 +602,7 @@ export function generateFitModeWorkout(cfg) {
     // Never return empty when valid criteria are selected.
     // Pool too small to achieve novelty -- allow repeat but reshuffle order.
     const fallback = validateWorkout(buildOnce(safeCfg), safeCfg);
-    chosen = shuffle(fallback);
+    chosen = shuffle(fallback, safeCfg.rng);
   }
 
   saveHistory(signature, workoutSignature(chosen));
