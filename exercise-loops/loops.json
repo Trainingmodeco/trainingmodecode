@@ -3,15 +3,14 @@
   "id": "alligator-push-ups",
   "file": "loops/alligator-push-ups.mp4",
   "poster": "posters/alligator-push-ups.webp",
-  "bytes": 392089,
-  "durationSec": 3.9,
+  "bytes": 476492,
+  "durationSec": 4.5,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/pushup-loops/alligator-push-ups.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/pushup-loops/alligator-push-ups.mp4",
   "reencoded": false,
   "flags": [
-   "RULE 2 FAIL: frame 0 is a flat blank background (luma 21.0 vs 29.0 at frame 5). The loop fades in from blank over ~9 frames and fades back out over the last ~17 frames (last frame luma 21.9), so it dips to dark at every wrap. It is the only candidate (pushup-loops and gif/batch3/final copies are byte-identical, md5 3e445dfb78). Copied as-is, not re-encoded. Needs a trim/re-cut or a re-roll before it ships.",
-   "Background is lit brighter than the other 44 (top-edge and corner luma 8-9 vs 4 for every other loop, lower corners reach rgb(23,12,40) vs flat rgb(11,1,20)), so not the flat #0a0014."
+   "re-cut 2026-11-18 from the same render with the fixed cutter: no blank first frame; original kept in _orig"
   ]
  },
  {
@@ -22,7 +21,7 @@
   "durationSec": 3.17,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/pushup-loops/cross-legged-climber-push-ups.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/pushup-loops/cross-legged-climber-push-ups.mp4",
   "reencoded": false,
   "flags": [
    "CONTENT DIFFERS: chosen pushup-loops (3.17s, 95 frames, 11-15) vs older gif/batch3/final (2.77s, 83 frames, 11-14, md5 d903e7902b): different cut length. Newest chosen.",
@@ -37,7 +36,7 @@
   "durationSec": 1.9,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/pushup-loops/cross-push-ups.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/pushup-loops/cross-push-ups.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -49,7 +48,7 @@
   "durationSec": 2.07,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/pushup-loops/maltese-push-ups.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/pushup-loops/maltese-push-ups.mp4",
   "reencoded": false,
   "flags": [
    "Faint floor glow / lighter backdrop panel behind the figure (visible only with contrast boosted)."
@@ -63,7 +62,7 @@
   "durationSec": 3.57,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/pushup-loops/spiderman-push-ups.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/pushup-loops/spiderman-push-ups.mp4",
   "reencoded": false,
   "flags": [
    "CONTENT DIFFERS: chosen pushup-loops (3.57s, 107 frames, 11-15) vs older gif/batch3/final (1.87s, 56 frames, 11-14, md5 027fcdff2f): different cut length. Newest chosen."
@@ -77,7 +76,7 @@
   "durationSec": 1.57,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/pullup-loops/l-sit-pull-ups.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/pullup-loops/l-sit-pull-ups.mp4",
   "reencoded": false,
   "flags": [
    "Repaired version chosen (47 frames, 1.57s, non-blank first frame); pullup-loops copy is byte-identical to gif/fix1116. Older gif/batch4/final copy (1.60s, 48 frames, md5 da893e3d9f) has a blank frame 0 (luma 21.0 vs 30.9) and was rejected."
@@ -91,7 +90,7 @@
   "durationSec": 4.57,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/pullup-loops/pull-up-break-pause.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/pullup-loops/pull-up-break-pause.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -103,7 +102,7 @@
   "durationSec": 3.13,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/pullup-loops/pull-up-hold.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/pullup-loops/pull-up-hold.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -115,7 +114,7 @@
   "durationSec": 7.1,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/pullup-loops/pull-up-negatives.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/pullup-loops/pull-up-negatives.mp4",
   "reencoded": false,
   "flags": [
    "Minor: frame 0 is 6% darker than frame 1 (26.5 vs 28.3) but the athlete is visible; passes rule 2."
@@ -129,7 +128,7 @@
   "durationSec": 4.57,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/pullup-loops/pull-ups.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/pullup-loops/pull-ups.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -141,7 +140,7 @@
   "durationSec": 1.57,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/demo-batch2/recut/close-grip-pull-ups.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/demo-batch2/recut/close-grip-pull-ups.mp4",
   "reencoded": false,
   "flags": [
    "Recut chosen (47 frames, md5 b4ece73075, byte-identical to gif/batch2/final). Original demo-batch2/close-grip-pull-ups.mp4 (48 frames, md5 04654694a9) is a slightly different cut; it also passes the rules but is older."
@@ -155,7 +154,7 @@
   "durationSec": 4.6,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/wide-grip-pull-ups.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/wide-grip-pull-ups.mp4",
   "reencoded": false,
   "flags": [
    "CONTENT DIFFERS (large): chosen = workout-loops-1116 (11-17, 4.6s, 138 frames, wider shot, smaller figure, legs together, faint backdrop panel, md5 863ba2e441; byte-identical to gif/batch6/final) vs demo-batch2/recut (11-13, 1.87s, 56 frames, closer framing, legs apart, slanted bar, md5 7e4c35bda3) and the original demo-batch2 file (1.9s, md5 8f29f62033). The task brief listed the recut folder for this slug but the 11-17 redo is newer and passes, so it won; confirm which one the owner wants. The recut is at demo-batch2/recut/wide-grip-pull-ups.mp4."
@@ -169,7 +168,7 @@
   "durationSec": 2.3,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/demo-batch2/recut/zercher-squats.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/demo-batch2/recut/zercher-squats.mp4",
   "reencoded": false,
   "flags": [
    "Recut chosen (71 frames, md5 71a1f92f96, byte-identical to gif/batch2/final); original demo-batch2 file is 72 frames (md5 8bcd798898), a slightly different cut.",
@@ -184,7 +183,7 @@
   "durationSec": 2.9,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/demo-batch2/recut/zercher-good-mornings.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/demo-batch2/recut/zercher-good-mornings.mp4",
   "reencoded": false,
   "flags": [
    "Recut chosen (87 frames, md5 04cb80abab). Original demo-batch2 file (89 frames) has a blank frame 0 (luma 21.0 vs 32.7) and was rejected."
@@ -198,7 +197,7 @@
   "durationSec": 4.13,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/demo-batch2/snatch-to-zercher-squat.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/demo-batch2/snatch-to-zercher-squat.mp4",
   "reencoded": false,
   "flags": [
    "ghost/dissolve frames trimmed 2026-11-17; original kept in _orig"
@@ -212,7 +211,7 @@
   "durationSec": 1.9,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1115/seated-knee-tucks.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1115/seated-knee-tucks.mp4",
   "reencoded": false,
   "flags": [
    "Faint floor glow / lighter backdrop panel behind the figure (visible only with contrast boosted)."
@@ -226,7 +225,7 @@
   "durationSec": 4.57,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1115/decline-pike-push-ups.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1115/decline-pike-push-ups.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -238,7 +237,7 @@
   "durationSec": 1.77,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1115/heel-touches.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1115/heel-touches.mp4",
   "reencoded": false,
   "flags": [
    "Faint floor glow / lighter backdrop panel behind the figure (visible only with contrast boosted)."
@@ -252,7 +251,7 @@
   "durationSec": 1.47,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1115/hanging-knee-raises.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1115/hanging-knee-raises.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -264,7 +263,7 @@
   "durationSec": 3.63,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1115/leg-raise-hip-lifts.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1115/leg-raise-hip-lifts.mp4",
   "reencoded": false,
   "flags": [
    "Repaired version chosen (workout-loops-1115 copy == gif/fix1116, md5 87ec514604, frame 0 luma 27.8 vs 27.6 at frame 5). Older gif/batch5/final copy (md5 77dd9eb376) has a blank frame 0 (21.0 vs 27.8) and was rejected; same 109 frames, mean SSIM 0.956 against the repaired one."
@@ -278,7 +277,7 @@
   "durationSec": 0.93,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1115/reclined-leg-raises.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1115/reclined-leg-raises.mp4",
   "reencoded": false,
   "flags": [
    "RULE 1 FAIL (duration only): 0.93s / 28 frames, below the 1.0s floor. Only candidate (gif/batch5/final copy is byte-identical). Codec, size and audio are fine and the first frame is fine. A re-encode cannot lengthen it, so it was copied as-is and not padded, slowed or repeated; the owner can decide whether 0.93s is acceptable.",
@@ -293,7 +292,7 @@
   "durationSec": 1.77,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1115/reverse-crunches.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1115/reverse-crunches.mp4",
   "reencoded": false,
   "flags": [
    "Faint floor glow / lighter backdrop panel behind the figure (visible only with contrast boosted)."
@@ -307,7 +306,7 @@
   "durationSec": 4.57,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1115/tuck-ups.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1115/tuck-ups.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -319,7 +318,7 @@
   "durationSec": 4.57,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1115/barbell-clean.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1115/barbell-clean.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -331,7 +330,7 @@
   "durationSec": 3.03,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1115/barbell-bent-over-rows.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1115/barbell-bent-over-rows.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -343,7 +342,7 @@
   "durationSec": 4.57,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1115/landmine-rows.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1115/landmine-rows.mp4",
   "reencoded": false,
   "flags": [
    "Faint floor glow / lighter backdrop panel behind the figure (visible only with contrast boosted)."
@@ -357,7 +356,7 @@
   "durationSec": 4.6,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1115/reverse-lunge-knee-drives.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1115/reverse-lunge-knee-drives.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -369,7 +368,7 @@
   "durationSec": 3.67,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/reverse-lunges.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/reverse-lunges.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -381,7 +380,7 @@
   "durationSec": 4.57,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/hack-squat-deadlift.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/hack-squat-deadlift.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -393,7 +392,7 @@
   "durationSec": 4.57,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/incline-dumbbell-press.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/incline-dumbbell-press.mp4",
   "reencoded": false,
   "flags": [
    "CONTENT DIFFERS: chosen workout-loops-1116 (md5 84c0ec8a2f, 137 frames) vs older gif/batch6/final_v1 (md5 207a70f527, 137 frames): same length but mean SSIM 0.85, i.e. a re-render. Newest chosen.",
@@ -408,7 +407,7 @@
   "durationSec": 4.57,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/cross-leg-sit-ups.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/cross-leg-sit-ups.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -420,7 +419,7 @@
   "durationSec": 1.6,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/seated-cable-rows.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/seated-cable-rows.mp4",
   "reencoded": false,
   "flags": [
    "CONTENT DIFFERS: chosen workout-loops-1116 (1.6s, 48 frames) vs older gif/batch6/final_v1 (1.47s, 44 frames, md5 5842cb0c00). Newest chosen."
@@ -434,7 +433,7 @@
   "durationSec": 1.43,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/dips.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/dips.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -446,7 +445,7 @@
   "durationSec": 4.57,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/close-grip-lat-pulldowns.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/close-grip-lat-pulldowns.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -458,7 +457,7 @@
   "durationSec": 1.8,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/towel-pull-ups.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/towel-pull-ups.mp4",
   "reencoded": false,
   "flags": [
    "CONTENT DIFFERS: chosen workout-loops-1116 (1.8s, 54 frames) vs older gif/batch6/final_v1 (2.07s, 62 frames, md5 bf26f47e67). Newest chosen."
@@ -472,7 +471,7 @@
   "durationSec": 4.57,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/straight-arm-pulldowns.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/straight-arm-pulldowns.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -484,7 +483,7 @@
   "durationSec": 4.13,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/narrow-squats.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/narrow-squats.mp4",
   "reencoded": false,
   "flags": [
    "ghost/dissolve frames trimmed 2026-11-17; original kept in _orig"
@@ -498,7 +497,7 @@
   "durationSec": 1.77,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/squats.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/squats.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -510,7 +509,7 @@
   "durationSec": 4.6,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/pistol-squats.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/pistol-squats.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -522,7 +521,7 @@
   "durationSec": 4.6,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/barbell-shoulder-press.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/barbell-shoulder-press.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -534,7 +533,7 @@
   "durationSec": 2.8,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/front-barbell-squats.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/front-barbell-squats.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -546,7 +545,7 @@
   "durationSec": 7.47,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/alternate-arm-dead-hang.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/alternate-arm-dead-hang.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -558,7 +557,7 @@
   "durationSec": 4.57,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/dumbbell-shoulder-press.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/dumbbell-shoulder-press.mp4",
   "reencoded": false,
   "flags": [
    "Faint floor glow / lighter backdrop panel behind the figure (visible only with contrast boosted)."
@@ -572,7 +571,7 @@
   "durationSec": 3.83,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/barbell-back-squats.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/barbell-back-squats.mp4",
   "reencoded": false,
   "flags": []
  },
@@ -584,7 +583,7 @@
   "durationSec": 1.23,
   "width": 640,
   "height": 640,
-  "source": "(session scratch)/workout-loops-1116/clasped-hand-push-ups.mp4",
+  "source": "/tmp/claude-0/-home-user-trainingmodecode/52346ed0-e562-5cd3-9c38-16af9f8a62dd/scratchpad/workout-loops-1116/clasped-hand-push-ups.mp4",
   "reencoded": false,
   "flags": [
    "CONTENT DIFFERS: chosen workout-loops-1116 (1.23s, 37 frames) vs older gif/batch6/final_v1 (1.70s, 51 frames, md5 b1b93e0bac). Newest chosen."
