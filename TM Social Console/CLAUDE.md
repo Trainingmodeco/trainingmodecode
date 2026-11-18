@@ -486,7 +486,8 @@ makes the filmstrips, previews and guessed names. Other people's clips stay out 
 `node tools/loop-intake.mjs <command>` (everything under `exports/loop-intake/`, not in git; safe to stop and run again):
 
 1. `scan` lists every video under `../TM Social Console folder/` except the Practice Mode folder and what `skip.json` names (folders or
-   "folder/file"). A new zip: extract only its video entries into a new folder next to it, then scan.
+   "folder/file"). A new zip: extract only its video entries into a new folder next to it, then scan, then `dedupe` (zips overlap: the
+   kettlebell and "various" ones share 8 files) and scan again.
 2. `run [--folder <name>] [--jobs 4]`, per clip: a 12 fps analysis copy, what is said in the first 14 s (Whisper: a hint, often garbled),
    the stretches of exercise (motion on coarse blocks, so pool water does not count; ends pulled in where the body leaves the poses of
    the middle), reps by autocorrelation, a crop around the athlete, the board's filmstrip (8 frames in one row) and a small preview.

@@ -6,6 +6,7 @@
 // queues stretches on the board and tells Claude to run the queue.
 //
 //   node tools/loop-intake.mjs scan             list every video under "TM Social Console folder" (not the Practice Mode folder)
+//   node tools/loop-intake.mjs dedupe           the same file in two folders (or two names): keep one, skip the rest (then scan again)
 //   node tools/loop-intake.mjs run [--jobs 3] [--only <file>] [--limit N] [--force]
 //                                               per clip: a small analysis copy, what is said in the first 14 s, the stretches of
 //                                               exercise, and each stretch's filmstrip + preview. Safe to stop and run again.
@@ -122,6 +123,24 @@ async function scan() {
   for (const c of clips) { by[c.folder] ??= { n: 0, s: 0, b: 0 }; by[c.folder].n++; by[c.folder].s += c.seconds; by[c.folder].b += c.bytes; }
   for (const [f, v] of Object.entries(by)) console.log(`${f.padEnd(40)} ${String(v.n).padStart(3)} videos  ${(v.s / 60).toFixed(0).padStart(3)} min  ${(v.b / 1e9).toFixed(1)} GB`);
   console.log(`${clips.length} videos in the manifest.`);
+}
+
+// The same file in two folders (the kettlebell zip and the "various" zip overlap) or under two names: keep the copy already on the board,
+// else the first by folder and name, and add the rest to skip.json so the board does not get one exercise twice. Run scan again after.
+function dedupe() {
+  const m = loadManifest(), assigned = readJson(path.join(OUT, 'sheets-assigned.json'), {}) ?? {};
+  const skipFile = path.join(OUT, 'skip.json'), skip = new Set(readJson(skipFile, []) ?? []);
+  const groups = new Map();
+  for (const c of m.clips) { const k = `${c.bytes}:${c.seconds}`; groups.set(k, [...(groups.get(k) ?? []), c]); }
+  const onBoard = (c) => !!readJson(path.join(D.analysis, `${c.clipId}.json`))?.stretches.some((s) => assigned[s.id]);
+  let n = 0;
+  for (const g of groups.values()) {
+    if (g.length < 2) continue;
+    const keep = g.find(onBoard) ?? [...g].sort((a, b) => a.folder.localeCompare(b.folder) || a.file.localeCompare(b.file))[0];
+    for (const c of g) if (c !== keep) { skip.add(`${c.folder}/${c.file}`); n++; console.log(`  ${c.folder}/${c.file} is the same file as ${keep.folder}/${keep.file}`); }
+  }
+  writeJson(skipFile, [...skip]);
+  console.log(`${n} duplicate cop${n === 1 ? 'y' : 'ies'} added to skip.json.${n ? ' Run scan again.' : ''}`);
 }
 
 // ─── one clip: the analysis copy, what was said, the stretches of exercise ──────
@@ -555,6 +574,7 @@ const has = (n) => rest.includes(n);
 try {
   fs.mkdirSync(OUT, { recursive: true });
   if (cmd === 'scan') await scan();
+  else if (cmd === 'dedupe') dedupe();
   else if (cmd === 'run') await runAll({ jobs: Number(opt('--jobs') || 3), only: opt('--only'), folder: opt('--folder'), limit: Number(opt('--limit') || 0), force: has('--force') });
   else if (cmd === 'catalog') catalogNames(rest[0]);
   else if (cmd === 'sheets') await sheets(opt('--tag') || 'b1', has('--retry'));
@@ -563,5 +583,5 @@ try {
   else if (cmd === 'link-ids') linkIds();
   else if (cmd === 'docs') docs(opt('--tag'));
   else if (cmd === 'status') status();
-  else { console.log('scan | run [--jobs 3] [--only <file>] [--limit N] [--force] | catalog <catalog.json> | sheets | link <listing.txt> | docs | status'); process.exitCode = 1; }
+  else { console.log('scan | dedupe | run [--jobs 3] [--only <file>] [--limit N] [--force] | catalog <catalog.json> | sheets | link <listing.txt> | docs | status'); process.exitCode = 1; }
 } catch (err) { console.error(err.message); process.exitCode = 1; }
