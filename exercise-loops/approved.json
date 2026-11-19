@@ -1,0 +1,343 @@
+{
+ "generatedAt": "2026-11-19T03:57:23.668Z",
+ "board": "https://claude.ai/artifact/PyNEAD4AtbxzpoFu3S1Wst",
+ "summary": {
+  "loopsInLibrary": 45,
+  "libraryApproved": 16,
+  "libraryRenamed": 2,
+  "factoryApproved": 1,
+  "factoryWaiting": 1,
+  "factoryRedo": 0,
+  "factoryRejected": 0,
+  "factoryFailed": 0,
+  "factoryMaking": 0,
+  "stretchesTickedNotMade": 159,
+  "queueRequest": null,
+  "progress": {
+   "exercisesTotal": 419,
+   "exact": 29,
+   "close": 13,
+   "new": 16,
+   "withLoop": 58,
+   "percent": 13.8,
+   "exactOrNewPercent": 10.7,
+   "majorityAt": 210,
+   "stillNeededForMajority": 152,
+   "byKind": {
+    "library": {
+     "exercises": 231,
+     "withLoop": 25
+    },
+    "quick": {
+     "exercises": 17,
+     "withLoop": 4
+    },
+    "mission": {
+     "exercises": 95,
+     "withLoop": 9
+    },
+    "new": {
+     "exercises": 16,
+     "withLoop": 16
+    },
+    "program": {
+     "exercises": 60,
+     "withLoop": 4
+    }
+   }
+  }
+ },
+ "libraryLoops": [
+  {
+   "slug": "alternate-arm-dead-hang",
+   "name": "Alternating-Arm Dead Hangs",
+   "originalName": "Alternating-Arm Dead Hangs",
+   "renamed": false,
+   "group": "Back",
+   "equipment": "Bodyweight",
+   "file": "loops/alternate-arm-dead-hang.mp4",
+   "poster": "posters/alternate-arm-dead-hang.webp",
+   "isNew": true,
+   "serves": [
+    "new:alternate-arm-dead-hang"
+   ],
+   "lastChanged": "2026-11-18T23:40:23.440Z"
+  },
+  {
+   "slug": "barbell-clean",
+   "name": "Barbell Cleans",
+   "originalName": "Barbell Cleans",
+   "renamed": false,
+   "group": "Full Body",
+   "equipment": "Weighted",
+   "file": "loops/barbell-clean.mp4",
+   "poster": "posters/barbell-clean.webp",
+   "isNew": true,
+   "serves": [
+    "new:barbell-clean",
+    "mission:bb-hang-power-clean",
+    "mission:bb-power-clean"
+   ],
+   "lastChanged": "2026-11-18T23:39:58.538Z"
+  },
+  {
+   "slug": "decline-pike-push-ups",
+   "name": "Decline Pike Push-Ups",
+   "originalName": "Decline Pike Push-Ups",
+   "renamed": false,
+   "group": "Shoulders",
+   "equipment": "Bodyweight",
+   "file": "loops/decline-pike-push-ups.mp4",
+   "poster": "posters/decline-pike-push-ups.webp",
+   "isNew": true,
+   "serves": [
+    "new:decline-pike-push-ups",
+    "shoulders_pike_push_ups_core"
+   ],
+   "lastChanged": "2026-11-18T23:35:11.414Z"
+  },
+  {
+   "slug": "front-barbell-squats",
+   "name": "Front Barbell Squats",
+   "originalName": "Front Barbell Squats",
+   "renamed": false,
+   "group": "Quads",
+   "equipment": "Weighted",
+   "file": "loops/front-barbell-squats.mp4",
+   "poster": "posters/front-barbell-squats.webp",
+   "isNew": true,
+   "serves": [
+    "new:front-barbell-squats",
+    "quick:front-squats"
+   ],
+   "lastChanged": "2026-11-18T23:40:18.629Z"
+  },
+  {
+   "slug": "hanging-knee-raises",
+   "name": "Hanging Knee Raises",
+   "originalName": "Hanging Knee Raises",
+   "renamed": false,
+   "group": "Core",
+   "equipment": "Bodyweight",
+   "file": "loops/hanging-knee-raises.mp4",
+   "poster": "posters/hanging-knee-raises.webp",
+   "isNew": true,
+   "serves": [
+    "new:hanging-knee-raises"
+   ],
+   "lastChanged": "2026-11-18T23:39:50.456Z"
+  },
+  {
+   "slug": "heel-touches",
+   "name": "Heel Touches",
+   "originalName": "Heel Touches",
+   "renamed": false,
+   "group": "Core",
+   "equipment": "Bodyweight",
+   "file": "loops/heel-touches.mp4",
+   "poster": "posters/heel-touches.webp",
+   "isNew": true,
+   "serves": [
+    "new:heel-touches"
+   ],
+   "lastChanged": "2026-11-18T23:39:44.116Z"
+  },
+  {
+   "slug": "landmine-rows",
+   "name": "Landmine Rows",
+   "originalName": "Landmine Rows",
+   "renamed": false,
+   "group": "Back",
+   "equipment": "Weighted",
+   "file": "loops/landmine-rows.mp4",
+   "poster": "posters/landmine-rows.webp",
+   "isNew": true,
+   "serves": [
+    "new:landmine-rows"
+   ],
+   "lastChanged": "2026-11-18T23:40:02.389Z"
+  },
+  {
+   "slug": "pull-up-hold",
+   "name": "Pull-Up Hold",
+   "originalName": "Pull-Up Hold",
+   "renamed": false,
+   "group": "Back",
+   "equipment": "Bodyweight",
+   "file": "loops/pull-up-hold.mp4",
+   "poster": "posters/pull-up-hold.webp",
+   "isNew": true,
+   "serves": [
+    "new:pull-up-hold",
+    "biceps_chin_up_hold_core"
+   ],
+   "lastChanged": "2026-11-18T23:33:17.420Z"
+  },
+  {
+   "slug": "pull-up-negatives",
+   "name": "Pull-Up Negatives",
+   "originalName": "Pull-Up Negatives",
+   "renamed": false,
+   "group": "Back",
+   "equipment": "Bodyweight",
+   "file": "loops/pull-up-negatives.mp4",
+   "poster": "posters/pull-up-negatives.webp",
+   "isNew": true,
+   "serves": [
+    "new:pull-up-negatives"
+   ],
+   "lastChanged": "2026-11-18T23:33:20.543Z"
+  },
+  {
+   "slug": "reverse-lunge-knee-drives",
+   "name": "Reverse Lunge Knee Drives",
+   "originalName": "Reverse Lunge Knee Drives",
+   "renamed": false,
+   "group": "Quads",
+   "equipment": "Bodyweight",
+   "file": "loops/reverse-lunge-knee-drives.mp4",
+   "poster": "posters/reverse-lunge-knee-drives.webp",
+   "isNew": true,
+   "serves": [
+    "new:reverse-lunge-knee-drives",
+    "mission:reverse-lunge-knee-drive"
+   ],
+   "lastChanged": "2026-11-18T23:40:04.878Z"
+  },
+  {
+   "slug": "seated-knee-tucks",
+   "name": "Seated ab windshield wipers",
+   "originalName": "Seated Knee Tucks",
+   "renamed": true,
+   "group": "Core",
+   "equipment": "Bodyweight",
+   "file": "loops/seated-knee-tucks.mp4",
+   "poster": "posters/seated-knee-tucks.webp",
+   "isNew": true,
+   "serves": [
+    "new:seated-knee-tucks"
+   ],
+   "lastChanged": "2026-11-18T23:39:37.840Z"
+  },
+  {
+   "slug": "seated-cable-rows",
+   "name": "Seated Cable Rows",
+   "originalName": "Seated Cable Rows",
+   "renamed": false,
+   "group": "Back",
+   "equipment": "Cable",
+   "file": "loops/seated-cable-rows.mp4",
+   "poster": "posters/seated-cable-rows.webp",
+   "isNew": true,
+   "serves": [
+    "new:seated-cable-rows"
+   ],
+   "lastChanged": "2026-11-18T23:40:11.702Z"
+  },
+  {
+   "slug": "straight-arm-pulldowns",
+   "name": "Straight-Arm Pulldowns",
+   "originalName": "Straight-Arm Pulldowns",
+   "renamed": false,
+   "group": "Back",
+   "equipment": "Cable",
+   "file": "loops/straight-arm-pulldowns.mp4",
+   "poster": "posters/straight-arm-pulldowns.webp",
+   "isNew": true,
+   "serves": [
+    "new:straight-arm-pulldowns",
+    "program:straight-arm-pulldowns"
+   ],
+   "lastChanged": "2026-11-18T23:40:15.536Z"
+  },
+  {
+   "slug": "tuck-ups",
+   "name": "Tuck-Ups",
+   "originalName": "Tuck-Ups",
+   "renamed": false,
+   "group": "Core",
+   "equipment": "Bodyweight",
+   "file": "loops/tuck-ups.mp4",
+   "poster": "posters/tuck-ups.webp",
+   "isNew": true,
+   "serves": [
+    "new:tuck-ups"
+   ],
+   "lastChanged": "2026-11-18T23:39:53.339Z"
+  },
+  {
+   "slug": "wide-grip-pull-ups",
+   "name": "Typewriter Pull-Ups",
+   "originalName": "Wide-Grip Pull-Ups",
+   "renamed": true,
+   "group": "Back",
+   "equipment": "Bodyweight",
+   "file": "loops/wide-grip-pull-ups.mp4",
+   "poster": "posters/wide-grip-pull-ups.webp",
+   "isNew": true,
+   "serves": [
+    "new:wide-grip-pull-ups"
+   ],
+   "lastChanged": "2026-11-18T23:33:46.914Z"
+  },
+  {
+   "slug": "zercher-squats",
+   "name": "Zercher Squats",
+   "originalName": "Zercher Squats",
+   "renamed": false,
+   "group": "Quads",
+   "equipment": "Weighted",
+   "file": "loops/zercher-squats.mp4",
+   "poster": "posters/zercher-squats.webp",
+   "isNew": true,
+   "serves": [
+    "new:zercher-squats"
+   ],
+   "lastChanged": "2026-11-18T23:33:51.321Z"
+  }
+ ],
+ "factoryLoops": {
+  "approved": [
+   {
+    "segId": "4fc822f780-01",
+    "name": "Pistol Squats",
+    "slug": "pistol-squats",
+    "folder": "test clip",
+    "video": "20261116_pistol.mp4",
+    "from": 0.267,
+    "to": 8.267,
+    "cost": 4,
+    "loopAsset": "be488c64f9c4fbe7123315acfa4a2023",
+    "posterAsset": "33ae144f39e82a816ef33eb39af7f8b3",
+    "verdict": "approved",
+    "note": "Test render made by Claude on 2026-11-18.",
+    "answeredAt": "2026-11-18T19:30:23.667Z",
+    "loopIsTheOneAnswered": true,
+    "savedAs": "factory-loops/pistol-squats.mp4"
+   }
+  ],
+  "waiting": [
+   {
+    "segId": "68b3f0fb94-01",
+    "name": "Vertical Leg Crunches",
+    "slug": "vertical-leg-crunches",
+    "folder": "bodyweight workout 1",
+    "video": "20230706_141651.mp4",
+    "from": 1,
+    "to": 16.42,
+    "cost": 4,
+    "loopAsset": "5c269bbfb2d51941796e672735475149",
+    "posterAsset": "77ba34262868375d1bf5ed6f22246dd4",
+    "verdict": null,
+    "note": "",
+    "answeredAt": "2026-11-18T23:46:35.544Z",
+    "loopIsTheOneAnswered": true,
+    "savedAs": null
+   }
+  ],
+  "redo": [],
+  "rejected": [],
+  "failed": [],
+  "making": []
+ }
+}

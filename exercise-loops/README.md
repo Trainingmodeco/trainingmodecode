@@ -17,6 +17,8 @@ Violet outline avatar demo loops for exercises, made 2026-11-14 to 2026-11-17. T
 | `board/` | Source of the Exercise Loop Board artifact (`index.html`), the data it loads (`board.json`), the scripts that build that data (`merge.mjs`, `gen-list.mjs`) and its tests (`test/`). |
 | `factory/` | The Loop Factory: the tools and runbook that turn raw workout footage into loops. See below. |
 | `contact-sheet.jpg` | All 45 posters in one picture. |
+| `APPROVED.md`, `approved.json` | What the owner has approved on the board and how far that gets the library toward a majority animated. Rewritten by `factory/tools/approved.mjs` (see below). |
+| `factory-loops/` | Loops the factory made from raw footage that the owner approved (not yet in `loops/`). |
 
 ## The 16 new exercises
 
@@ -52,6 +54,15 @@ The flow: a session on the owner's PC scans the raw footage and writes `segs` (o
 | `factory/tools/` | Node 22 + ffmpeg tools. `scan.mjs`, `split*.mjs` (find exercise stretches in a long video), `prep.mjs` (crop to the athlete, pick one clean rep, cut the driving clip), `cut.mjs` (render to a seamless loop), `queue-plan.mjs`, `result-doc.mjs`, `run-log.mjs`, `db-docs.mjs`, `dups.mjs` and the rest. Each prints its usage when called wrongly. |
 
 On the board, each stretch has a cut editor (CUT THE VIDEO): watch the whole video, drag or step the start and end, split a stretch, add one Claude missed, or go back to the auto cut. Stretches that repeat an exercise already looped or already chosen are hidden (only when the guessed name is 60 % sure or more, never one you touched); Show them brings them back.
+
+### Tracking approvals
+
+```
+# export the board's database (ArtifactData list with out_dir, for the collections "items" and "segs"), then:
+node exercise-loops/factory/tools/approved.mjs <dbExportDir>
+```
+
+It lists the library loops approved on the board (with the name the owner gave each), the factory loops approved, waiting, redone or rejected, how many ticked stretches are not made yet, and the progress against a majority (half of the exercises the app asks for, plus one). An approved factory loop is saved to `factory-loops/<name>.mp4` and its poster by hand from the board (Artifact `read` with the asset id as `path`); the script then lists where it is saved.
 
 ### Tests
 
