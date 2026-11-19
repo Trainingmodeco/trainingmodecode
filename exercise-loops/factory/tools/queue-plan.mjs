@@ -102,6 +102,7 @@ for (const id of ids) {
   const verdict = typeof o.verdict === 'string' ? o.verdict : null; const forNow = o.forLoop == null || o.forLoop === (s.loop ?? null); // the verdict was given for the loop the stretch has now
   const redo = verdict === 'redo' && forNow; const note = typeof o.note === 'string' && o.note.trim() ? o.note.trim() : null;
   if (o.skip === true) { skipped.push({ segId: id, name, reason: 'the owner marked it skip' }); continue; }
+  if (o.split === true) { skipped.push({ segId: id, name, reason: 'the owner marked it "This video shows several workouts": it is cut into one stretch per workout first (PC session job 3, or the cut editor on the board), then each part is ticked' }); continue; }
   if (verdict === 'approved' || verdict === 'rejected') { skipped.push({ segId: id, name, reason: `the owner ${verdict} it: a stretch with the verdict "${verdict}" is never made again` }); continue; }
   if (verdict === 'redo' && !forNow && s.loop) { skipped.push({ segId: id, name, reason: 'the redo was asked for an earlier loop; the new one has not been judged yet' }); continue; }
   if (!redo && o.queued !== true) { skipped.push({ segId: id, name, reason: own ? 'not queued any more: the owner took it out after the list was sent' : 'no owner document says it is queued (items/seg.<id> is not in the export)' }); continue; }
@@ -126,6 +127,7 @@ for (const id of ids) {
       const ns = before.length ? Math.max(...before) : 0, ne = after.length ? Math.min(...after) : (Number.isFinite(dur) ? dur : s.end);
       if (ne - ns > end - start) { spanNote = `${spanNote ? `${spanNote}; ` : ''}the stretch is ${(end - start).toFixed(1)} s, under the 3 s a hold needs: the junk around it was taken in (${r3(ns)}-${r3(ne)} s)`; start = ns; end = ne; span = 'the stretch and the junk around it'; } }
   }
+  if (hold && !still && from === null && to === null && end - start > 40) { skipped.push({ segId: id, name, reason: `marked as a hold, but the stretch is ${(end - start).toFixed(0)} s long and the scan found no still part in it: a hold is one still pose. If it shows several workouts, tick "This video shows several workouts" on the board; if it is a hold, set from / to around the held part` }); continue; }
   if (hold && end - start < 3) { skipped.push({ segId: id, name, reason: `a hold needs 3 s of footage, the span ${r3(start)}-${r3(end)} s has ${(end - start).toFixed(1)} s${span === 'scan' || span === 'the stretch and the junk around it' ? '' : ' (the owner widens from / to)'}` }); continue; }
   if (!(end - start >= 0.5)) { skipped.push({ segId: id, name, reason: `the span ${r3(start)}-${r3(end)} s is under half a second` }); continue; }
   const scanCrop = s.kind === 'exercise' && Array.isArray(s.crop) && s.crop.length === 4 && s.crop.every((v) => Number.isFinite(v)) ? s.crop : null; let crop = scanCrop, cropNote = null; const picW = clip && clip.width ? clip.width : null;

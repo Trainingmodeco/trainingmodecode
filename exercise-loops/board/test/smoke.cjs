@@ -136,6 +136,8 @@ const srv = http.createServer((req, res) => {
   const items = () => r.evaluate(() => JSON.parse(JSON.stringify(window.__mock.store())));
   const outText = () => r.locator('#out').innerText();
   const text = (sel) => r.locator(sel).innerText();
+  // Cards far down the page are not drawn (content-visibility), so their innerText is empty; textContent does not depend on the scroll position.
+  const tc = (sel) => r.locator(sel).textContent();
   const tabText = (t) => text('#tabs button[data-tab="' + t + '"]');
   const wait = (ms) => r.waitForTimeout(ms || 150);
   const seed = async (col, docs) => { await r.evaluate(([c, d]) => Object.keys(d).forEach((k) => window.__mock.seed(c, k, d[k])), [col, docs]); await wait(120); };
@@ -175,9 +177,9 @@ const srv = http.createServer((req, res) => {
   ok('raw: junk is collapsed under its video', (await r.locator('.vgrp[data-clip="pushups-001"] details.junk:not([open]) .sgc').count()) === 1 && /1 stretch with no exercise found/.test(await text('.vgrp[data-clip="pushups-001"] details.junk > summary')));
   const c1 = await text('#sgc-pushups-001-01');
   ok('raw: time range, reps and guess', /0:12 to 0:31 · about 6 reps/.test(c1) && /Looks like: Diamond Push-Ups, fairly sure\. Filmed from the side\./.test(c1), c1.replace(/\n/g, ' | '));
-  ok('raw: an unsure guess says so', /Looks like: Alligator Push-Ups, unsure\./.test(await text('#sgc-pushups-001-02')) && /Claude could not tell which exercise this is\./.test(await text('#sgc-squats-001-03')));
+  ok('raw: an unsure guess says so', /Looks like: Alligator Push-Ups, unsure\./.test(await tc('#sgc-pushups-001-02')) && /Claude could not tell which exercise this is\./.test(await tc('#sgc-squats-001-03')));
   ok('raw: strip is lazy and the preview waits for a tap', await r.evaluate((ids) => { const c = document.getElementById('sgc-pushups-001-01'), im = c.querySelector('.strip img'), v = c.querySelector('.stage.pvw video'); return im.getAttribute('src') === '/_blob/' + ids[0] && im.loading === 'lazy' && v.dataset.src === '/_blob/' + ids[1] && !v.getAttribute('src'); }, [bid('stripP'), bid('previewP')]));
-  ok('raw: status pills', /NO NAME YET/i.test(c1) && /FAILED/i.test(await text('#sgc-squats-001-01 .pill')) && /It failed: The render timed out\./.test(await text('#sgc-squats-001-01')) && /READY TO REVIEW/i.test(await text('#sgc-squats-001-02 .pill')));
+  ok('raw: status pills', /NO NAME YET/i.test(c1) && /FAILED/i.test(await tc('#sgc-squats-001-01 .pill')) && /It failed: The render timed out\./.test(await tc('#sgc-squats-001-01')) && /READY TO REVIEW/i.test(await tc('#sgc-squats-001-02 .pill')));
   ok('raw: summary line', (await text('#raw-sum')) === '2 videos · 5 exercises found · 2 named · 0 queued · about 0 credits', await text('#raw-sum'));
   ok('raw: tab badges', (await tabText('raw')) === 'RAW FOOTAGE 3' && (await tabText('review')) === 'REVIEW 1', (await tabText('raw')) + ' / ' + (await tabText('review')));
   ok('raw: Generate is off with nothing queued', (await r.locator('#gen-go').isDisabled()) && (await text('#gen-go')) === 'Generate 0 loops' && (await r.inputValue('#gen-cap')) === '150');

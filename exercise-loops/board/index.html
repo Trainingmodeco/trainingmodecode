@@ -388,6 +388,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     if (v === 'redo') return 'redo';
     if (st === 'failed') return 'failed';
     if (st === 'review' || st === 'done') return v || (st === 'done' ? 'done' : 'review');
+    if (c.split) return 'split';
     return !segName(id) ? 'noname' : c.queued ? 'queued' : 'named';
   }
   // What the next Generate sends: ticked and never made, or marked for another try.
@@ -409,10 +410,10 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
       var o = E.get(sgKey(id)) || {}, d = sgDraft[id] || {}, typed = (d.name != null ? String(d.name) : typeof o.name === 'string' ? o.name : '').trim(), nm = typed || guessOf(s), k = normName(nm), g;
       if (!k || (s.kind === 'junk' && !typed)) return;
       var st = stOf(s), made = st === 'generating' || st === 'review' || st === 'done' || st === 'failed';
-      var touched = !!typed || !!(o.queued || o.verdict || o.hold === true || o.from != null || o.to != null || (typeof o.note === 'string' && o.note.trim()));
+      var touched = !!typed || !!(o.queued || o.verdict || o.split === true || o.hold === true || o.from != null || o.to != null || (typeof o.note === 'string' && o.note.trim()));
       if (!by.has(k)) by.set(k, { name: nm, claim: null, free: [] });
       g = by.get(k);
-      if (made || (touched && !o.skip)) { if (!g.claim) g.claim = id; }
+      if (made || (touched && !o.skip && !o.split)) { if (!g.claim) g.claim = id; }
       else if (!touched && !o.skip && s.kind !== 'junk' && (num(s.guess && s.guess.confidence) || 0) >= DUPMIN) g.free.push(id);
     });
     by.forEach(function (g, k) {
@@ -455,7 +456,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     if (pending(id) && T.twice.get(k) > 1) m.push(nm + ' is queued twice. Both get made, and you choose between them in REVIEW.');
     return m.join(' ');
   }
-  var PILL = { skipped: ['text', 'Skipped'], noname: ['none', 'No name yet'], named: ['stand', 'Named'], queued: ['mine', 'Queued'], generating: ['stand', 'Generating'], review: ['mine', 'Ready to review'], approved: ['ok', 'Approved'], redo: ['mine', 'Redo asked'], rejected: ['text', 'Rejected'], failed: ['none', 'Failed'], done: ['ok', 'Done'] };
+  var PILL = { split: ['mine', 'Needs splitting'], skipped: ['text', 'Skipped'], noname: ['none', 'No name yet'], named: ['stand', 'Named'], queued: ['mine', 'Queued'], generating: ['stand', 'Generating'], review: ['mine', 'Ready to review'], approved: ['ok', 'Approved'], redo: ['mine', 'Redo asked'], rejected: ['text', 'Rejected'], failed: ['none', 'Failed'], done: ['ok', 'Done'] };
   var pill = function (st) { return '<span class="pill ' + PILL[st][0] + '">' + PILL[st][1] + '</span>'; };
   function rangeText(s) {
     var a = num(s.start), b = num(s.end), r = num(s.reps);
@@ -625,8 +626,9 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     var ph = function (v) { return num(v) != null ? String(Math.round(v * 10) / 10) : ''; };
     // Once a loop is being made or has been made, the hold choice is locked until a redo is asked for.
     var held = state === 'generating' || ((state === 'review' || state === 'done') && st !== 'redo');
+    var splitBox = '<label class="ck" for="sg-split-' + sid + '"><input type="checkbox" id="sg-split-' + sid + '" data-sgsplit="' + sid + '"' + (c.split ? ' checked' : '') + (busy || held ? ' disabled' : '') + '>This video shows several workouts</label>' + (c.split ? '<span class="small muted">Parked: it is not made as a loop until it is cut into one stretch per workout (Watch and cut below, or ask your PC session to re-split it).</span>' : '');
     var holdBox = '<label class="ck" for="sg-hold-' + sid + '"><input type="checkbox" id="sg-hold-' + sid + '" data-sghold="' + sid + '"' + (c.hold ? ' checked' : '') + (busy || held ? ' disabled' : '') + '>This is a hold</label>' + (held ? '<span class="small muted">To change this, ask for a redo first.</span>' : '');
-    h += '<form class="ed" data-sgform="' + sid + '" novalidate><label for="sg-name-' + sid + '">' + (ex ? 'Name of this exercise' : 'Name it to turn it into an exercise') + '</label><input id="sg-name-' + sid + '" list="ex-names" maxlength="80" autocomplete="off" value="' + esc(f.name) + '"><span class="small muted" id="sg-hint-' + sid + '">' + esc(hintText(f.name, s)) + '</span>' + (hs ? holdBox : '');
+    h += '<form class="ed" data-sgform="' + sid + '" novalidate><label for="sg-name-' + sid + '">' + (ex ? 'Name of this exercise' : 'Name it to turn it into an exercise') + '</label><input id="sg-name-' + sid + '" list="ex-names" maxlength="80" autocomplete="off" value="' + esc(f.name) + '"><span class="small muted" id="sg-hint-' + sid + '">' + esc(hintText(f.name, s)) + '</span>' + splitBox + (hs ? holdBox : '');
     h += '<details class="more" data-cut="' + sid + '"' + (openCut ? ' open' : '') + '><summary data-cutsum="' + sid + '">CUT THE VIDEO OR ADD A NOTE</summary><div class="in">' + cutBox(id, s, sid, c) + '<div class="two"><div><label for="sg-from-' + sid + '">Start at second</label><input id="sg-from-' + sid + '" type="text" inputmode="decimal" maxlength="12" autocomplete="off" placeholder="' + esc(ph(s.start)) + '" value="' + esc(f.from) + '"></div><div><label for="sg-to-' + sid + '">End at second</label><input id="sg-to-' + sid + '" type="text" inputmode="decimal" maxlength="12" autocomplete="off" placeholder="' + esc(ph(s.end)) + '" value="' + esc(f.to) + '"></div></div>';
     h += '<label for="sg-note-' + sid + '">Note for Claude</label><input id="sg-note-' + sid + '" maxlength="300" autocomplete="off" placeholder="e.g. use the second rep" value="' + esc(f.note) + '">' + (hs ? '' : holdBox + '<span class="small muted">For a plank, a wall sit or a hang. Claude makes it as a still hold loop.</span>') + '</div></details>' + err;
     // Save stays pressable while a save is on its way: a second press sends what was typed since.
@@ -635,8 +637,8 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     else if (state === 'review' || state === 'done') h += inReview(id) ? '<button type="button" class="btn" data-sg="review" data-id="' + sid + '" aria-label="Open ' + esc(nm || 'this loop') + ' in REVIEW">Open in REVIEW</button>' : '';
     else if (state !== 'generating') {
       // The tick saves the name on screen with it, so a guess that is right needs one tap.
-      var on = !!(c.queued && nm), canQ = (typed || on) && !busy;
-      h += '<label class="ck' + (canQ ? '' : ' off') + '" for="sg-q-' + sid + '"><input type="checkbox" id="sg-q-' + sid + '" data-sgq="' + sid + '"' + (on ? ' checked' : '') + (canQ ? '' : ' disabled') + '>Make this loop<span class="small" id="sg-qh-' + sid + '"' + (typed || on ? ' hidden' : '') + '>&nbsp;· type a name first</span></label>';
+      var on = !!(c.queued && nm && !c.split), canQ = (typed || on) && !busy && !c.split;
+      h += '<label class="ck' + (canQ ? '' : ' off') + '" for="sg-q-' + sid + '"><input type="checkbox" id="sg-q-' + sid + '" data-sgq="' + sid + '"' + (on ? ' checked' : '') + (canQ ? '' : ' disabled') + '>Make this loop<span class="small" id="sg-qh-' + sid + '"' + ((typed || on) && !c.split ? ' hidden' : '') + '>&nbsp;· ' + (c.split ? 'cut it first' : 'type a name first') + '</span></label>';
     }
     if (ex && state !== 'review' && state !== 'done' && state !== 'generating') h += '<button type="button" class="chip" data-sg="skip" data-id="' + sid + '" aria-pressed="false" aria-label="Skip ' + esc(what) + '"' + off + '>Skip</button>';
     if (s.virtual && state === 'ready' && !c.queued) h += '<button type="button" class="btn danger" data-cxa="del" data-id="' + sid + '" aria-label="Remove ' + esc(what) + '"' + (busy || cxBusy ? ' disabled' : '') + '>' + (cxArm[id] > Date.now() ? 'Tap again to remove' : cxBusy === 'del' ? 'Removing…' : 'Remove') + '</button>';
@@ -672,7 +674,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     if (rfolder !== 'all' && folderOf(s) !== rfolder) return false;
     if (!matchQ(segName(id) + ' ' + ((s.guess && s.guess.name) || ''), (s.file || '') + ' ' + (s.folder || ''))) return false;
     if (rshow === 'all' || keep.has(id)) return true;
-    return rshow === 'name' ? isEx(id) && st === 'noname' : rshow === 'queued' ? pending(id) : st === 'skipped';
+    return rshow === 'name' ? isEx(id) && st === 'noname' : rshow === 'queued' ? pending(id) : rshow === 'split' ? st === 'split' : st === 'skipped';
   }
   // The two footage tabs are drawn as a frame (headings and groups) with a slot per card. The cards' own text is kept apart in "want", so a redraw can leave alone every card that has not changed.
   var want = null;
@@ -846,7 +848,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
       h += '<label>Muscle <select id="f-group"><option value="all">All</option>' + D.groups.map(function (g) { return '<option' + (g === group ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('') + '</select></label>';
     } else if (tab === 'raw' && S.size) {
       h += genHtml();
-      h += '<div class="seg" role="group" aria-label="Show">' + [['all', 'ALL'], ['name', 'NEED A NAME'], ['queued', 'QUEUED'], ['skipped', 'SKIPPED']].map(function (s) { return '<button type="button" data-rshow="' + s[0] + '" aria-pressed="' + (rshow === s[0]) + '">' + s[1] + '</button>'; }).join('') + '</div>';
+      h += '<div class="seg" role="group" aria-label="Show">' + [['all', 'ALL'], ['name', 'NEED A NAME'], ['queued', 'QUEUED'], ['split', 'NEEDS SPLITTING'], ['skipped', 'SKIPPED']].map(function (s) { return '<button type="button" data-rshow="' + s[0] + '" aria-pressed="' + (rshow === s[0]) + '">' + s[1] + '</button>'; }).join('') + '</div>';
       h += '<div class="frow"><label class="sr" for="f-folder">Folder</label><select id="f-folder"><option value="all">All folders</option>' + (T || tally()).folders.map(function (f) { return '<option value="' + esc(f) + '"' + (f === rfolder ? ' selected' : '') + '>' + esc(f) + '</option>'; }).join('') + '</select><label class="sr" for="f-q">Search</label><input type="search" id="f-q" placeholder="Search footage" autocomplete="off"></div>';
     }
     return h;
@@ -1177,6 +1179,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     var s = S.get(id) || {}, c = choice(id);
     var b = { kind: 'seg', segId: id, name: segName(id).slice(0, 80), entryId: typeof c.entryId === 'string' ? c.entryId : null, from: num(c.from), to: num(c.to), skip: !!c.skip, queued: !!c.queued, verdict: verdictOf(id), note: String(c.note || '').slice(0, 300), updatedAt: new Date(Math.max(Date.now(), ts(s.updatedAt) + 1)).toISOString() };
     if (typeof c.hold === 'boolean') b.hold = c.hold;
+    if (typeof c.split === 'boolean') b.split = c.split;
     if (has(c, 'forLoop')) b.forLoop = isAsset(c.forLoop) ? c.forLoop : null;
     Object.keys(patch).forEach(function (k) { b[k] = patch[k]; });
     if (has(patch, 'verdict')) b.forLoop = isAsset(s.loop) ? s.loop : null;
@@ -1234,6 +1237,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
   function setQueued(id, on) {
     var s = S.get(id) || {}, undo = function (m) { if (m) sgErr[id] = m; reset(id); draw(); }, r;
     if (choice(id).skip || stOf(s) !== 'ready') return undo();
+    if (choice(id).split) return undo('This video shows several workouts. Cut it into one stretch per workout first.');
     if (!on) { if (!putSeg(id, { queued: false }, 'Unticked ' + (segName(id) || 'it') + '.')) undo(); return; }
     r = readCard(id);
     if (typeof r === 'string') return undo(r);
@@ -1247,6 +1251,10 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     var d = sgDraft[id], r = d && d.name != null && d.name.trim() ? readCard(id) : null, patch = { hold: !!on }, ok = null;
     if (r && typeof r !== 'string' && r.name) { patch = { name: r.name, entryId: r.entryId, from: r.from, to: r.to, note: r.note, hold: !!on }; ok = dropper(id, r.sent); }
     if (putSeg(id, patch, on ? 'Marked as a hold.' : 'No longer marked as a hold.', ok)) { if (ok) sgSent[id] = r.sent; } else { reset(id); draw(); }
+  }
+  // "This video shows several workouts": saved at once, and the stretch is taken out of the queue. It is made only after it has been cut into one stretch per workout.
+  function setSplit(id, on) {
+    if (!putSeg(id, on ? { split: true, queued: false } : { split: false }, on ? 'Parked: this video shows several workouts. It is not made until it is cut.' : 'No longer marked as showing several workouts.')) { reset(id); draw(); }
   }
   function toggleSkip(id) {
     var s = S.get(id) || {}, on = !choice(id).skip;
@@ -1607,7 +1615,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
       if (m[1] === 'from' || m[1] === 'to') cxSync(rid);
       // The tick box is on as soon as there is a name to save with it.
       var qb = m[1] === 'name' && $('sg-q-' + m[2]), qh = $('sg-qh-' + m[2]), named = !!e.target.value.trim();
-      if (qb && !sgBusy.has(rid)) { qb.disabled = !named && !qb.checked; qb.parentNode.classList.toggle('off', qb.disabled); if (qh) qh.hidden = named || qb.checked; }
+      if (qb && !sgBusy.has(rid)) { var sp = !!choice(rid).split; qb.disabled = sp || (!named && !qb.checked); qb.parentNode.classList.toggle('off', qb.disabled); if (qh) qh.hidden = !sp && (named || qb.checked); }
     } else if ((m = /^rv-note-(.+)$/.exec(id)) && (rid = idOf[m[1]])) rvDraft[rid] = e.target.value;
   });
   $('out').addEventListener('change', function (e) {
@@ -1615,6 +1623,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     if (e.target.id === 'ed-file') upload(e.target.files && e.target.files[0]);
     else if (d.approve) setApproved(d.approve, e.target.checked);
     else if (d.sgq) { if (idOf[d.sgq]) setQueued(idOf[d.sgq], e.target.checked); else goneMsg(); }
+    else if (d.sgsplit) { if (idOf[d.sgsplit]) setSplit(idOf[d.sgsplit], e.target.checked); else goneMsg(); }
     else if (d.sghold) { if (idOf[d.sghold]) setHold(idOf[d.sghold], e.target.checked); else goneMsg(); }
   });
   $('out').addEventListener('keydown', function (e) {

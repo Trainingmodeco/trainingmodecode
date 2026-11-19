@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-19T03:57:23.668Z",
+ "generatedAt": "2026-11-19T04:30:41.255Z",
  "board": "https://claude.ai/artifact/PyNEAD4AtbxzpoFu3S1Wst",
  "summary": {
   "loopsInLibrary": 45,
@@ -11,7 +11,8 @@
   "factoryRejected": 0,
   "factoryFailed": 0,
   "factoryMaking": 0,
-  "stretchesTickedNotMade": 159,
+  "stretchesTickedNotMade": 176,
+  "parkedSeveralWorkouts": 4,
   "queueRequest": null,
   "progress": {
    "exercisesTotal": 419,
@@ -339,5 +340,35 @@
   "rejected": [],
   "failed": [],
   "making": []
- }
+ },
+ "parkedVideos": [
+  {
+   "segId": "54b25af571-01",
+   "name": "Tiger push ups",
+   "video": "C0162.MP4",
+   "seconds": 45,
+   "note": ""
+  },
+  {
+   "segId": "6fcf239a66-01",
+   "name": "Alternate Kettlebell to press",
+   "video": "20230604_192615.mp4",
+   "seconds": 72,
+   "note": "Around the world catch"
+  },
+  {
+   "segId": "85b8b68aff-01",
+   "name": "Side shuffles",
+   "video": "C0219.MP4",
+   "seconds": 56,
+   "note": ""
+  },
+  {
+   "segId": "ecece281ac-01",
+   "name": "Dips",
+   "video": "20250822_084229.mp4",
+   "seconds": 254,
+   "note": ""
+  }
+ ]
 }

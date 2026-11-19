@@ -17,3 +17,11 @@ JOB 2 (when I say "export the queue")
 3. ffmpeg -ss <from> -i "<original>" -t <to minus from> -an -vf "scale=1280:1280:force_original_aspect_ratio=decrease:force_divisible_by=2,format=yuv420p" -c:v libx264 -preset medium -crf 20 -movflags +faststart "<id>-src.mp4"   (over 20 MB: -crf 24)
 4. Upload it to the board as an asset and write db document "srcs/<id>": { segId: <id>, clipId, asset: <asset id>, from, to, w, h, fps: <its frame rate>, exportedAt: <now, ISO> }.
 5. Tell me how many you exported and any that failed. I then tell the cloud session: run the queue.
+
+JOB 3 (when I say "split the parked videos")
+The board has a tick "This video shows several workouts" (db document items/seg.<id>, field split: true). Those videos show several different exercises in one stretch, and each exercise needs its own stretch.
+1. List the items documents with split == true. For each one, the stretch is segs/<id> (clipId, file, start, end); items/seg.<id> has my note, if any, as a hint (for example "Around the world catch").
+2. Cut each video into one stretch per distinct exercise, between the start and end of that stretch (the repo's exercise-loops/factory/tools/split2.mjs and strip.mjs can be used; or look at the video yourself). Drop setup, rest and walking. Name each exercise as well as you can.
+3. Write one db document segs/<clipId>-w01, -w02, ... for each exercise, in the same fields as the other segs (clipId, folder, file, clipDur, idx, start, end, period, reps, kind "exercise", group, guess { name, entryId, confidence, view }, strip, preview, state "ready", warn [], why ""). Make the strip and preview assets like the other stretches. Then delete the long stretch segs/<id> it replaces (do not touch items).
+4. Tell me which videos you split, how many exercises each gave, and any you could not split. I then un-park them on the board and you name and tick the parts.
+

@@ -44,7 +44,18 @@ Use the name in the Name column in the app: it is the one you gave the loop on t
 ## Made from your raw footage (the factory)
 
 - Approved: **1**. Waiting for your verdict: **1**. Redo asked: 0. Rejected: 0. Failed: 0. Being made now: 0.
-- Stretches you ticked that are not made yet: **159**. No queue request on the board yet (press Generate).
+- Stretches you ticked that are not made yet: **176**. No queue request on the board yet (press Generate).
+
+### Parked: the video shows several workouts (4)
+
+Ticked "This video shows several workouts" on the board. Not made until each workout is cut into its own stretch (PC session job 3, or the cut editor).
+
+| Name | Video | Length (s) | Note |
+| --- | --- | --- | --- |
+| Tiger push ups | C0162.MP4 | 45 | - |
+| Alternate Kettlebell to press | 20230604_192615.mp4 | 72 | Around the world catch |
+| Side shuffles | C0219.MP4 | 56 | - |
+| Dips | 20250822_084229.mp4 | 254 | - |
 
 ### Approved
 
