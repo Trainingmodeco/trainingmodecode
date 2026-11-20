@@ -53,7 +53,7 @@ The flow: a session on the owner's PC scans the raw footage and writes `segs` (o
 | `factory/PC-SESSION-PROMPT.md` | What to paste into the PC session: make the whole-video copies (`clips`) and export the queue (`srcs`). |
 | `factory/tools/` | Node 22 + ffmpeg tools. `scan.mjs`, `split*.mjs` (find exercise stretches in a long video), `prep.mjs` (crop to the athlete, pick one clean rep, cut the driving clip), `cut.mjs` (render to a seamless loop), `queue-plan.mjs`, `result-doc.mjs`, `run-log.mjs`, `db-docs.mjs`, `dups.mjs` and the rest. Each prints its usage when called wrongly. |
 
-On the board, each stretch has a cut editor (CUT THE VIDEO): watch the whole video, drag or step the start and end, split a stretch, add one Claude missed, or go back to the auto cut. A video that shows several workouts is parked with the tick "This video shows several workouts" (not made until it is cut into one stretch per workout; PC session job 3 or the cut editor). Stretches that repeat an exercise already looped or already chosen are hidden (only when the guessed name is 60 % sure or more, never one you touched); Show them brings them back.
+On the board, each stretch has a cut editor (CUT THE VIDEO): watch the whole video, drag or step the start and end, split a stretch, add one Claude missed, or go back to the auto cut. A video that shows several workouts is parked with the tick "This video shows several workouts" (not made until it is cut into one stretch per workout; PC session job 3 or the cut editor). Stretches that repeat an exercise already looped or already chosen are hidden (only when the guessed name is 60 % sure or more, never one you touched); Show them brings them back. A group NEW AND TO CUT sits at the top of RAW FOOTAGE: the parked videos first, then every stretch Claude has just added (its `segs` document carries `newAt`, a time stamp Claude writes when it adds one: a scan, a cut into parts), until the owner names, ticks or skips it. The RAW FOOTAGE tab counts them, the other tabs link to them, and REVIEW lists the newest loops first.
 
 ### Tracking approvals
 
@@ -82,6 +82,7 @@ node exercise-loops/board/test/cut.cjs        # cut editor, 56 checks
 node exercise-loops/board/test/cut-fixes.cjs  # replays of the review findings with real touch, 34 checks
 node exercise-loops/board/test/dups.cjs       # duplicate hiding, 20 checks
 node exercise-loops/board/test/split.cjs      # "This video shows several workouts", 15 checks
+node exercise-loops/board/test/newfirst.cjs   # new and to cut first, 24 checks
 ```
 
 `board/test/index.html` and `board/test/board.json` are written by `build.cjs` and are not committed. Run the scripts from `exercise-loops/board/test/` or anywhere: they find their own files. The splitter's accuracy test set (11 videos with truth files) is not in the repo: the videos are large.

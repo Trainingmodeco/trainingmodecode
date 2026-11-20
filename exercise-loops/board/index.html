@@ -204,6 +204,8 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
   // DUP: stretches hidden as duplicates (id -> { of, why }), worked out in tally(); dupOn: whether they are hidden now.
   var DUP = bare(), dupOn = true, DUPMIN = 0.6;
   var keepNew = new Set(), cxStart = null, cxArm = bare(), cxQuiet = 0, issued = new Set();
+  // NEWDAYS: how long a stretch Claude has just added counts as new. topKeep: the stretches that were in the NEW AND TO CUT group when the owner answered them; they stay there until the tab is left, so a card never slides away under a finger.
+  var NEWDAYS = 21, topKeep = new Set();
   var BUSYMSG = 'The queue is still being changed. Try again in a moment.';
   try { var cap0 = parseInt(localStorage.getItem(CAPKEY), 10); if (cap0 >= 10 && cap0 <= 1000) cap = cap0; } catch (x) {}
   var KIND_LABEL = { library: 'Library', quick: 'Quick Mission only', mission: 'Mission move', program: 'Shown in programs, not in the library', 'new': 'New' };
@@ -394,6 +396,17 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
   // What the next Generate sends: ticked and never made, or marked for another try.
   var pending = function (id) { var st = segStatus(id); return (st === 'queued' || st === 'redo') && !!segName(id); };
   var inReview = function (id) { var s = S.get(id) || {}, c = choice(id), st = stOf(s); return !c.skip && (st === 'review' || st === 'done' || st === 'failed') && (!!c.queued || isAsset(s.loop)); };
+  // What the owner should meet first on RAW FOOTAGE: a video parked with "This video shows several workouts" (waiting to be cut), and a stretch Claude has just put on the board (a new scan, or a video it just cut into parts: its "newAt" time stamp) that still waits for the owner to name, tick or skip it. They are listed above the folders, parked ones first, then the newest, and go back into their folder once answered.
+  function isFresh(id) {
+    var s = S.get(id), t;
+    if (!s) return false;
+    if (segStatus(id) === 'split') return true;
+    t = ts(s.newAt);
+    if (!t || s.kind === 'junk' || s.virtual || Date.now() - t > NEWDAYS * 864e5) return false;
+    t = segStatus(id);
+    return t === 'noname' || t === 'named';
+  }
+  var inTop = function (id) { return isFresh(id) || topKeep.has(id); };
   // A guess Claude is fairly sure of, on an exercise stretch nobody has named or typed over: what "Accept Claude's names" takes.
   function sureGuess(id) {
     var s = S.get(id) || {}, g = guessOf(s), d = sgDraft[id];
@@ -424,10 +437,11 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
         out[id] = libHas ? { of: null, why: 'the library already has a loop of ' + g.name } : { of: keeper, why: 'another stretch of ' + g.name + ' is already the one to make' };
       });
     });
+    Object.keys(out).forEach(function (id) { if (inTop(id)) delete out[id]; });
     DUP = out;
   }
   function tally() {
-    var t = { videos: 0, ex: 0, named: 0, todo: 0, wait: 0, making: 0, dups: 0, pend: [], open: [], guess: [], folders: [], looped: new Map(), twice: new Map() }, clips = new Set(), fs = new Set();
+    var t = { videos: 0, ex: 0, named: 0, todo: 0, wait: 0, making: 0, dups: 0, fresh: 0, pend: [], open: [], guess: [], folders: [], looped: new Map(), twice: new Map() }, clips = new Set(), fs = new Set();
     if (!D) return t;
     dupScan();
     LOOPED.forEach(function (k) { t.looped.set(k, ''); });
@@ -437,6 +451,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
       var st = segStatus(id), nm = lower(segName(id)), ex = isEx(id);
       clips.add(String(s.clipId)); fs.add(folderOf(s));
       if (ex) t.ex++;
+      if (ex && isFresh(id)) t.fresh++;
       if (ex && nm && st !== 'skipped') t.named++;
       if (ex && (st === 'noname' || st === 'named')) t.todo++;
       if (st === 'named') t.open.push(id);
@@ -614,7 +629,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     if (st === 'skipped') return '<div class="slot sgc skipped" id="sgc-' + sid + '" role="group" aria-label="' + esc(what) + '"><div class="ln"><b>' + esc(nm || g || 'Unnamed stretch') + '</b><span class="nt">' + esc(rangeText(s)) + '</span></div>' + pill(st) + (can ? '<button type="button" class="chip" data-sg="skip" data-id="' + sid + '" aria-pressed="true" aria-label="Skip ' + esc(what) + '"' + off + '>Skip</button>' : '') + err + '</div>';
     var h = '<div class="slot sgc" id="sgc-' + sid + '" role="group" aria-label="' + esc(what) + '">';
     if (isAsset(s.strip)) h += '<div class="strip" data-keep="st' + esc(s.strip) + '" data-ar="' + sid + '"><div class="fr"><span><img loading="lazy" decoding="async" alt="Eight frames from this stretch" src="/_blob/' + esc(s.strip) + '"></span><span class="b" aria-hidden="true"><img loading="lazy" decoding="async" alt="" src="/_blob/' + esc(s.strip) + '"></span></div></div>';
-    h += '<div class="sgrow">' + tapStage(s, sid, what) + '<div class="body"><div class="head"><span class="ln tm">' + esc(rangeText(s)) + '</span>' + (ex ? pill(st) : '<span class="pill text">No exercise</span>') + '</div>';
+    h += '<div class="sgrow">' + tapStage(s, sid, what) + '<div class="body"><div class="head"><span class="ln tm">' + esc(rangeText(s)) + '</span>' + (ex ? (isFresh(id) && st !== 'split' ? '<span><span class="pill ok">New</span> ' + pill(st) + '</span>' : pill(st)) : '<span class="pill text">No exercise</span>') + '</div>';
     h += '<div class="ln">' + esc(s.added ? 'You added this stretch. Name it, then tick Make this loop.' : guessText(s)) + '</div>' + splitNotes(s, c, s.kind === 'junk');
     if (num(c.from) != null || num(c.to) != null) { var ca = num(c.from) != null ? c.from : num(s.start), cb = num(c.to) != null ? c.to : num(s.end); h += '<div class="ln muted">Your cut: ' + (ca != null ? clock1(ca) : 'the start') + ' to ' + (cb != null ? clock1(cb) : 'the end') + '</div>'; }
     if (state === 'failed') h += '<div class="ln none">It failed: ' + esc(failText(s)) + '</div>';
@@ -692,11 +707,26 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
       folders.get(f).get(cid).segs.push(id);
     });
     var order = function (id) { var s = S.get(id); return num(s.start) != null ? s.start : num(s.idx) || 0; };
+    // New and waiting to be cut: listed first, and left out of the folders below so no card shows twice.
+    var top = bare(), tops = new Map(), nTop = 0;
+    S.forEach(function (s, id) {
+      if (!inTop(id) || !isEx(id) || !segShown(id)) return;
+      var cid = String(s.clipId || id), g = tops.get(cid);
+      if (!g) tops.set(cid, g = { id: cid, file: String(s.file || cid), folder: folderOf(s), dur: num(s.clipDur), segs: [], cut: 0, at: 0 });
+      top[id] = 1; nTop++; g.segs.push(id); if (segStatus(id) === 'split') g.cut = 1; g.at = Math.max(g.at, ts(s.newAt));
+    });
+    if (nTop) {
+      h += '<h2 class="grp">NEW AND TO CUT · ' + nTop + '</h2><p class="small muted">Videos you parked to be cut, and stretches Claude has just added or cut. They stay here until you name, tick or skip them, then they go back into their folder.</p>';
+      Array.from(tops.values()).sort(function (a, b) { return (b.cut - a.cut) || (b.at - a.at) || a.file.localeCompare(b.file) || a.id.localeCompare(b.id); }).forEach(function (cl) {
+        var n = 0; cl.segs.sort(function (a, b) { return order(a) - order(b); }).forEach(function (id) { n += choice(id).skip ? 0.13 : 1; });
+        h += '<section class="vgrp" data-k="' + esc('~new~/' + cl.id) + '" data-folder="' + esc(cl.folder) + '" data-clip="' + esc(cl.id) + '" style="--n:' + Math.round(n * 100) / 100 + ';--j:0"><h3 class="vid">' + esc(cl.file) + ' <span>· ' + esc(cl.folder) + (cl.dur != null ? ' · ' + clock(cl.dur) + ' long' : '') + '</span></h3>' + cl.segs.map(slot).join('') + '</section>';
+      });
+    }
     Array.from(folders.keys()).sort(function (a, b) { return a.localeCompare(b); }).forEach(function (f) {
       var part = '', vids = 0;
       Array.from(folders.get(f).values()).sort(function (a, b) { return a.file.localeCompare(b.file) || a.id.localeCompare(b.id); }).forEach(function (cl) {
         var exs = [], junk = [], n = 0, holds = 0;
-        cl.segs.sort(function (a, b) { return order(a) - order(b); }).forEach(function (id) { if (segShown(id)) (isEx(id) ? exs : junk).push(id); });
+        cl.segs.sort(function (a, b) { return order(a) - order(b); }).forEach(function (id) { if (!top[id] && segShown(id)) (isEx(id) ? exs : junk).push(id); });
         if (rshow !== 'all') junk = [];
         if (!exs.length && !junk.length) return;
         vids++;
@@ -728,6 +758,8 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
       groups[real][2]++;
       groups[has(rvKeep, id) ? rvKeep[id][0] : real][1].push(id);
     });
+    var recent = function (a, b) { return ts((S.get(b) || {}).updatedAt) - ts((S.get(a) || {}).updatedAt) || (a < b ? -1 : 1); };
+    groups[0][1].sort(recent); groups[1][1].sort(recent);
     groups[2][1].sort(function (a, b) { return rk(a) - rk(b); });
     if (T && T.making) h += '<p class="small muted">Claude is making ' + T.making + ' now. ' + (T.making === 1 ? 'It shows' : 'They show') + ' up here when ready.</p>';
     if (redo) h += '<p class="small muted">' + count(redo, 'loop is', 'loops are') + ' marked for another try. Press Generate on the RAW FOOTAGE tab to send ' + (redo === 1 ? 'it' : 'them') + '.</p>';
@@ -904,7 +936,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
       : db && !synced ? (slow ? 'Could not reach your saved videos yet. What you see may be out of date, so editing is off for now.' : 'Loading your saved videos…')
       : db ? 'Saves as you go. When you are done, tell Claude: apply the loop board.'
       : known ? 'View only here. Open this page in Claude, signed in, to send videos or rename loops.' : 'Opening the board…';
-    var html = '<span class="sum"><b>' + todo + '</b> to do · <b>' + up + '</b> sent · <b>' + made + '</b> loops · <b>' + newN + '</b> new exercises</span><span class="small muted">' + esc(msg) + '</span>';
+    var html = '<span class="sum"><b>' + todo + '</b> to do · <b>' + up + '</b> sent · <b>' + made + '</b> loops · <b>' + newN + '</b> new exercises</span><span class="small muted">' + esc(msg) + '</span>' + (T && T.fresh && tab !== 'raw' ? '<span class="small"><b>' + T.fresh + '</b> new or waiting to be cut. <button type="button" class="chip" data-gotab="raw">Show them in RAW FOOTAGE</button></span>' : '');
     if ($('state').innerHTML !== html) $('state').innerHTML = html;
   }
   // Where the focus is, as a selector that finds the same control again after a redraw. Every control without an id carries a data attribute of its own for this.
@@ -925,7 +957,8 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
   function drawTabs() {
     var t = T || tally();
     var counts = { submit: D.entries.filter(function (e) { return wanted(e) && !submitted(e); }).length, raw: t.todo, review: t.wait, loops: Object.keys(D.loops).length, 'new': Object.keys(D.loops).filter(function (s) { return D.loops[s].isNew; }).length, squats: D.squatLoops.length };
-    var h = TABS.map(function (t) { return '<button type="button" data-tab="' + t[0] + '"' + (t[0] === tab ? ' aria-current="page"' : '') + '>' + t[1] + ' ' + counts[t[0]] + '</button>'; }).join('');
+    var fr = t.fresh || 0;
+    var h = TABS.map(function (t) { return '<button type="button" data-tab="' + t[0] + '"' + (t[0] === tab ? ' aria-current="page"' : '') + '>' + t[1] + ' ' + counts[t[0]] + (t[0] === 'raw' && fr ? ' · ' + fr + ' NEW' : '') + '</button>'; }).join('');
     if (h !== shownTabs) $('tabs').innerHTML = shownTabs = h;
   }
 
@@ -1195,7 +1228,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     var key = sgKey(id), body = segBody(id, patch), prev = E.get(key), f0 = focusDesc();
     var back = function () { var a = document.activeElement; if (a && a !== document.body) return; if (!(focus && focusSel(focus)) && f0) focusSel(f0.sel); };
     // The change shows at once, with the card's buttons held until it has landed. It is taken back if the save fails.
-    sgBusy.add(id); keep.add(id); delete sgErr[id]; genErr = ''; E.set(key, body); renew(id);
+    sgBusy.add(id); keep.add(id); if (isFresh(id)) topKeep.add(id); delete sgErr[id]; genErr = ''; E.set(key, body); renew(id);
     write(function () { return db.doc('items/' + key).set(body); }).then(function () {
       var again = sgAgain[id];
       E.set(key, body); sgBusy.delete(id); delete sgSent[id]; delete sgAgain[id];
@@ -1319,7 +1352,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
   function forget(ids) {
     ids.forEach(function (id) {
       [sgDraft, sgErr, cutOpen, sgSent, sgAgain, cxArm, rvDraft, rvOpen].forEach(function (m) { delete m[id]; });
-      delete cxLoop[String(id).replace(/[^A-Za-z0-9-]/g, '-')]; keep.delete(id); keepNew.delete(id);
+      delete cxLoop[String(id).replace(/[^A-Za-z0-9-]/g, '-')]; keep.delete(id); keepNew.delete(id); topKeep.delete(id);
       if (cutEd === id) cutEd = null;
     });
   }
@@ -1535,15 +1568,16 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     try { navigator.clipboard.writeText(copyText).then(function () { say('List copied.'); var b = $('copy'); if (b) { b.textContent = 'Copied'; setTimeout(function () { var c = $('copy'); if (c) c.textContent = 'Copy this list'; }, 1600); } }, fallback); } catch (x) { fallback(); }
   }
   function toTop() { var r = $('tabs').getBoundingClientRect(); if (r.top < 0) window.scrollTo(0, window.pageYOffset + r.top - 8); }
-  function go(t) { if (edit && edit.busy) return; if (t === tab) return; qOf[tab] = q; tab = t; q = qOf[t] || ''; group = 'all'; justSaved.clear(); keep.clear(); keepNew.clear(); rvKeep = bare(); accSeen = false; if (t === 'raw') fillNames(); draw(); toTop(); }
+  function go(t) { if (edit && edit.busy) return; if (t === tab) return; qOf[tab] = q; tab = t; q = qOf[t] || ''; group = 'all'; justSaved.clear(); keep.clear(); keepNew.clear(); topKeep.clear(); rvKeep = bare(); accSeen = false; if (t === 'raw') fillNames(); draw(); toTop(); }
 
   // ---- events ----
   $('tabs').addEventListener('click', function (e) { var b = e.target.closest('button[data-tab]'); if (!b || (edit && edit.busy)) return; try { location.hash = b.dataset.tab; } catch (x) {} go(b.dataset.tab); });
+  $('state').addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('button[data-gotab]'); if (!b || (edit && edit.busy)) return; try { location.hash = b.dataset.gotab; } catch (x) {} go(b.dataset.gotab); });
   $('bar').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     if (b.dataset.sort) sort = b.dataset.sort; else if (b.dataset.show) { show = b.dataset.show; justSaved.clear(); }
     else if (b.dataset.kind) kinds[b.dataset.kind] = !(kinds[b.dataset.kind] !== false);
-    else if (b.dataset.rshow) { rshow = b.dataset.rshow; keep.clear(); }
+    else if (b.dataset.rshow) { rshow = b.dataset.rshow; keep.clear(); topKeep.clear(); }
     else if (b.id === 'gen-go') return generate(); else if (b.id === 'gen-all') return queueAll(); else if (b.id === 'gen-acc') return acceptNames(); else if (b.id === 'gen-clear') return clearQueue();
     else if (b.id === 'copy') return copyList(); else return;
     draw();
@@ -1555,7 +1589,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
   });
   $('bar').addEventListener('change', function (e) {
     if (e.target.id === 'f-group') { group = e.target.value; draw(); }
-    else if (e.target.id === 'f-folder') { rfolder = e.target.value; keep.clear(); draw(); }
+    else if (e.target.id === 'f-folder') { rfolder = e.target.value; keep.clear(); topKeep.clear(); draw(); }
     else if (e.target.id === 'gen-cap') setCap(e.target.value);
   });
   $('bar').addEventListener('toggle', function (e) { if (e.target.id === 'more') moreOpen = e.target.open; }, true);
