@@ -25,6 +25,8 @@ The queue button has not been pressed, so items/control.queue does not exist. Th
 2. Upload each <id>-src.mp4 to the board as an asset (Artifact tool: url = the board, asset: true; up to 25 files per call; the board holds 1 GB, so check "assets" usage after the first 25).
 3. For each uploaded clip write db document "srcs/<id>" = the line's "doc" with "asset" set to the uploaded asset's id (32 characters). Write nothing to "items".
 4. Tell me how many you uploaded, the total size, and the ids that failed with the reason. Then tell the cloud session: run the queue (the stretches to render are the ones with a srcs document, ticked and named; it asks me for the go-ahead and the credit budget first).
+   NOTE (2026-11-20): the cloud session already rendered 97 of the 139 ticked stretches from the board's small proxies (no export needed). The 42 it skipped or could not make are in
+   exercise-loops/factory/export-plan-skipped.json (same format as export-plan.json, with a "why" for each): for those, run step 1 with THAT file instead of export-plan.json.
 
 JOB 3 (when I say "split the parked videos")
 The board has a tick "This video shows several workouts" (db document items/seg.<id>, field split: true). Those videos show several different exercises in one stretch, and each exercise needs its own stretch.
