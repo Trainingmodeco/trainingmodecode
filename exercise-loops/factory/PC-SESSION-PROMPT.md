@@ -1,6 +1,7 @@
 Two jobs for the Exercise Loop Board (https://claude.ai/artifact/PyNEAD4AtbxzpoFu3S1Wst).
 The board now has a cut editor that plays each WHOLE video, so it needs a small copy of every video you scanned.
 Write only to the db collections "clips", "srcs" and (when scanning new footage) "segs". Never write to "items": that is mine.
+Every segs document you add (a scan, a cut) carries newAt: <now, ISO>. The board lists those stretches at the top of RAW FOOTAGE until I name, tick or skip them.
 
 JOB 1 (now, and from now on at every scan): a whole-video copy of each video
 For every clipId in "segs" (its folder and file say where the original is):
@@ -22,6 +23,6 @@ JOB 3 (when I say "split the parked videos")
 The board has a tick "This video shows several workouts" (db document items/seg.<id>, field split: true). Those videos show several different exercises in one stretch, and each exercise needs its own stretch.
 1. List the items documents with split == true. For each one, the stretch is segs/<id> (clipId, file, start, end); items/seg.<id> has my note, if any, as a hint (for example "Around the world catch").
 2. Cut each video into one stretch per distinct exercise, between the start and end of that stretch (the repo's exercise-loops/factory/tools/split2.mjs and strip.mjs can be used; or look at the video yourself). Drop setup, rest and walking. Name each exercise as well as you can.
-3. Write one db document segs/<clipId>-w01, -w02, ... for each exercise, in the same fields as the other segs (clipId, folder, file, clipDur, idx, start, end, period, reps, kind "exercise", group, guess { name, entryId, confidence, view }, strip, preview, state "ready", warn [], why ""). Make the strip and preview assets like the other stretches. Then delete the long stretch segs/<id> it replaces (do not touch items).
+3. Write one db document segs/<clipId>-w01, -w02, ... for each exercise, in the same fields as the other segs (clipId, folder, file, clipDur, idx, start, end, period, reps, kind "exercise", group, guess { name, entryId, confidence, view }, strip, preview, state "ready", warn [], why "", newAt <now, ISO>). Make the strip and preview assets like the other stretches. Then delete the long stretch segs/<id> it replaces (do not touch items).
 4. Tell me which videos you split, how many exercises each gave, and any you could not split. I then un-park them on the board and you name and tick the parts.
 

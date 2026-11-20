@@ -15,7 +15,7 @@ DB=$WORK/dbexport                       # where the board's database is saved fo
 
 Tools needed: Node 22, ffmpeg, ffprobe. `overview.mjs` also needs Playwright (`NODE_PATH=$(npm root -g)`). Every tool prints one line of JSON on stdout and its usage text when called wrongly.
 
-The database: collection `segs` (one document per stretch, id `<clipId>-<nn>`) is written **only by Claude**. Collection `items` is written **only by the board page**: `seg.<segId>` holds the owner's choices, `add.<id>` a stretch the owner added (section 0) and `control.queue` the queue request. Never write to `items`.
+The database: collection `segs` (one document per stretch, id `<clipId>-<nn>`) is written **only by Claude**. Collection `items` is written **only by the board page**: `seg.<segId>` holds the owner's choices, `add.<id>` a stretch the owner added (section 0) and `control.queue` the queue request. Never write to `items`. Every `segs` document Claude adds (a scan, a cut into parts) carries `newAt` (ISO time, now): the board lists a stretch with a recent `newAt` that the owner has not yet ticked or skipped, and every video the owner parked with "This video shows several workouts", in a NEW AND TO CUT group at the top of RAW FOOTAGE (21 days at most). Without `newAt` a new stretch sits in its folder like the old ones.
 
 **Standing answers of the owner** (write each with its date when given):
 - Unlimited generations or credits (Higgsfield's `unlim_choice` question): **not answered yet (asked 2026-11-17)**. Until it is: credits only, every submission carries `use_unlim: false` (B8 step 3), so the question never comes up. See B8 step 4.
