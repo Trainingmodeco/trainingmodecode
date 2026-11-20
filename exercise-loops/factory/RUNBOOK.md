@@ -32,6 +32,8 @@ New collections and documents (the board reads all of them):
 
 The cut of a stretch, everywhere: `items/seg.<id>.from` / `.to` when set (the owner's), else the stretch's `start` / `end` (Claude's auto cut, or where the owner added it).
 
+**Proxy run (2026-11-20).** When the PC is not reachable, stretches can be rendered from the board's whole-video proxies (`clips/<clipId>.proxy`, 480 px, 15 fps) instead of `srcs`: queue-plan.mjs takes a synthetic `srcs/<id>.json` (`{ segId, clipId, asset: <proxy asset id>, from: 0, to: <dur> }`, kept in the local export folder, never written to the board). The method, with three stages per shard of about 8 stretches (prep and prompts; render under a shared credit cap; independent avatar check and publish) is in `PROXY-RUN-GUIDE.md`; helpers `prep-shard.mjs` and `build-prompt.mjs`. The result is softer than a render from the original, so the owner reviews on the board and redoes the weak ones from PC exports (`export-plan-skipped.json` lists the stretches the proxy run could not make).
+
 Running a queue with the footage on the PC (replaces "prep from $RAW" in B4):
 1. B1 as written; an id with no `segs` document is an added stretch: read `items/add.<id>` for its clip and range, and before marking it `generating` write `segs/<id>` with `{ clipId, folder, file, clipDur, idx: 100 + NN, start, end, kind: "exercise", guess: null, warn: [], why: "", added: true }` (the board then shows Claude's copy).
 2. For each item read `srcs/<id>`. Missing: stop and tell the owner to say "export the queue" in the batch session; never render from the 12 s preview.
