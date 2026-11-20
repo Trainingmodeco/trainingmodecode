@@ -18,7 +18,7 @@ Violet outline avatar demo loops for exercises, made 2026-11-14 to 2026-11-17. T
 | `factory/` | The Loop Factory: the tools and runbook that turn raw workout footage into loops. See below. |
 | `contact-sheet.jpg` | All 45 posters in one picture. |
 | `APPROVED.md`, `approved.json` | What the owner has approved on the board and how far that gets the library toward a majority animated. Rewritten by `factory/tools/approved.mjs` (see below). |
-| `factory-loops/` | Loops the factory made from raw footage that the owner approved (not yet in `loops/`). |
+| `factory-loops/` | Loops the factory made from raw footage that the owner approved on the board (not yet in `loops/`): `<name>.mp4` (640x640) and `<name>.webp` (poster) for each, `index.json` (name, source video and times, credits, the board's asset id, the app exercise it matches or none), and `contact-sheet.jpg`. 146 loops, 30 MB, saved 2026-11-20. 102 of them match no exercise the app has yet, so they would be new exercises; names are as typed on the board, typos included. |
 
 ## The 16 new exercises
 
@@ -62,7 +62,16 @@ On the board, each stretch has a cut editor (CUT THE VIDEO): watch the whole vid
 node exercise-loops/factory/tools/approved.mjs <dbExportDir>
 ```
 
-It lists the library loops approved on the board (with the name the owner gave each), the factory loops approved, waiting, redone or rejected, how many ticked stretches are not made yet, and the progress against a majority (half of the exercises the app asks for, plus one). An approved factory loop is saved to `factory-loops/<name>.mp4` and its poster by hand from the board (Artifact `read` with the asset id as `path`); the script then lists where it is saved.
+It lists the library loops approved on the board (with the name the owner gave each), the factory loops approved, waiting, redone or rejected, how many ticked stretches are not made yet, and the progress against a majority (half of the exercises the app asks for, plus one). To save the approved factory loops into `factory-loops/`:
+
+```
+node exercise-loops/factory/tools/approved.mjs <dbExportDir> --list <list.json>   # the approved loops and their asset ids
+# download each asset from the board (Artifact `read` with the asset id as `path` and out_dir <dlDir>; one call per file, so use parallel helpers)
+node exercise-loops/factory/tools/save-approved.mjs <list.json> <dlDir>          # copies, makes posters, writes factory-loops/index.json
+node exercise-loops/factory/tools/approved.mjs <dbExportDir>                    # rewrites APPROVED.md with where each is saved
+```
+
+A loop already saved is left as it is; a stretch redone since is saved again over its old file.
 
 ### Tests
 
