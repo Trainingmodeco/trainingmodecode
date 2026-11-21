@@ -43,8 +43,15 @@ const summary = { added: added.length, annotatedNew: annotated.length, existing:
 if (flag('--questions')) {
   const meta = new Map(); for (const f of fs.readdirSync(path.join(lib, 'chunks')).filter((x) => x.endsWith('.json'))) { const v = path.join(lib, 'verified', f); const d = path.join(lib, 'drafts', f); const src = fs.existsSync(v) ? v : d; if (fs.existsSync(src)) for (const it of rd(src).items || []) meta.set(it.slug, it); }
   const md = ['# New loops: what the owner should check', '', `Made ${new Date().toISOString().slice(0, 10)} while matching the approved loops to library exercises. Nothing here blocks anything: the exercises below that were added are already in the library, and the loops stay staged in exercise-loops/factory-loops (not in the app).`, ''];
+  const asks = report.asks;
+  if (asks.length) {
   const asks = report.asks; md.push(`## ${asks.length} loops held back until you answer`, '', 'These loops have a name or a move that could not be settled from the name and the picture. They are NOT in the library yet (so no coach voice either). Answer in a phrase; each becomes an exercise as soon as it is clear.', '');
-  for (const a of asks) { const it = meta.get(a.slug) || {}; md.push(`- **${a.ownerName}** (loop \`${a.slug}\`): ${a.question}${it.entry ? `\n  My best guess: "${a.name}", ${it.entry.primaryMuscle.toLowerCase()}, ${it.entry.equipment.toLowerCase()}: ${it.entry.coachNote}` : ''}`); }
+    for (const a of asks) { const it = meta.get(a.slug) || {}; md.push(`- **${a.ownerName}** (loop \`${a.slug}\`): ${a.question}${it.entry ? `\n  My best guess: "${a.name}", ${it.entry.primaryMuscle.toLowerCase()}, ${it.entry.equipment.toLowerCase()}: ${it.entry.coachNote}` : ''}`); }
+  } else {
+    const answered = [...meta.values()].filter((it) => it.ownerAnswer); md.push(`## ${answered.length} questions answered`, '', 'These loops had a name or a move that could not be settled from the name and the picture. You answered; each is in the library with your answer applied.', '');
+    for (const it of answered) md.push(`- **${it.ownerName}** is **${it.cleanName}**: ${it.ownerAnswer}`);
+    for (const it of [...meta.values()].filter((x) => x.appliedFrom)) md.push('', `Also applied to **${it.cleanName}** (the same word): ${it.appliedFrom}`);
+  }
   const ex = report.existing; md.push('', `## ${ex.length} loops counted as an exercise the library already has`, '', 'If you want any of these as its own exercise instead, say so and it is added (name and cue are ready to write).', '');
   for (const x of ex) { const it = meta.get(x.slug) || {}; md.push(`- **${it.ownerName || x.slug}** (\`${x.slug}\`) is the library's **${(board.entries.find((e) => e.id === x.existingId) || {}).name || x.existingId}**: ${x.reason}`); }
   const exc = report.excluded; md.push('', `## ${exc.length} loops left out of the library`, '');

@@ -2,42 +2,28 @@
 
 Made 2026-11-21 while matching the approved loops to library exercises. Nothing here blocks anything: the exercises below that were added are already in the library, and the loops stay staged in exercise-loops/factory-loops (not in the app).
 
-## 16 loops held back until you answer
+## 16 questions answered
 
-These loops have a name or a move that could not be settled from the name and the picture. They are NOT in the library yet (so no coach voice either). Answer in a phrase; each becomes an exercise as soon as it is clear.
+These loops had a name or a move that could not be settled from the name and the picture. You answered; each is in the library with your answer applied.
 
-- **Elevator Kettlebell Swings** (loop `elevator-kettlebell-swings`): What does 'elevator' mean here: pausing on the way down, or something else?
-  My best guess: "Elevator Kettlebell Swings", hamstrings, weighted: Sink with the bell low between the feet, then drive the hips through to stand and swing the bell up.
-- **Ketabel catch to knee** (loop `ketabel-catch-to-knee`): Is this the same as Kneel to Stand, or do you toss and catch the bell as you drop to the knee?
-  My best guess: "Kettlebell Catch to Knee", quads, weighted: Hold the bell at the chest, stand tall, drop to one knee with control, then rise and repeat on the other side.
-- **Kettlebell** (loop `kettlebell`): Is this just a goblet squat with the bell at the chest, or a wide-stance (sumo) squat?
-  My best guess: "Kettlebell Goblet Squats", quads, weighted: Hold the bell at the chest with the elbows tucked, sit deep between the knees and drive up through the heels.
-- **Kettlebell Hip Thrust** (loop `kettlebell-hip-thrust`): The film shows a standing hinge with the bell between the legs: is this a swing or deadlift pattern, or a lying hip thrust?
-  My best guess: "Kettlebell Hip Thrusts", glutes, weighted: Drive the hips forward with the bell held close, squeeze the glutes hard at the top and lower with control.
-- **Playing kickouts to squat** (loop `playing-kickouts-to-squat`): What does 'playing' mean here: plyo (jumping), or something else?
-  My best guess: "Kickouts to Squat", quads, bodyweight: Drop into a deep squat with the hands on the floor, kick one leg out to the side, return and alternate.
-- **Boxing box squat bounce** (loop `boxing-box-squat-bounce`): Is there a box under you in this one, or is box a slip and it is just a squat bounce in a boxing guard?
-  My best guess: "Boxing Squat Bounces", quads, bodyweight: Sink into a low squat with the fists up in guard and bounce lightly on the feet, chest tall.
-- **Stritch Sit-Ups** (loop `stritch-sit-ups`): What does Stritch mean here: stretch, straight, or is it just a normal sit-up?
-  My best guess: "Stretch Sit-Ups", core, bodyweight: Lie back with the knees bent and the hands behind the head, curl all the way up and lower under control.
-- **Cross Arm Snatch** (loop `cross-arm-snatch`): What does cross mean in Cross Arm Snatch: the bell swinging across the body, or switching hands each rep?
-  My best guess: "Kettlebell Cross-Arm Snatches", full body, weighted: Hinge with the bell between the feet, snap the hips and punch it overhead, lower it under control and work each side.
-- **Overhead Shoulder Toss** (loop `overhead-shoulder-toss`): In the Overhead Shoulder Toss, do you throw the kettlebell up and catch it, or press it overhead and lower it?
-  My best guess: "Overhead Shoulder Toss", shoulders, weighted: Hold the weight at the shoulders with both hands, send it overhead in one smooth motion, then bring it back under control.
-- **Isolated Tricep Row** (loop `isolated-tricep-row`): Kneeling at a bench with your hands on it, do the elbows bend back along your sides like a tricep push-up?
-  My best guess: "Isolated Tricep Rows", triceps, bodyweight: Kneel at the bench, hands on the edge, keep the elbows tight to the sides, lower the chest and press up.
-- **Alternating Arm Level Push-Ups** (loop `alternating-arm-level-push-ups`): On Alternating Arm Level Push-Ups, what alternates each rep: which hand sits forward, or an arm lifting?
-  My best guess: "Alternating Arm Level Push-Ups", chest, bodyweight: Set one hand a step ahead of the other, lower the chest between them, press up and swap the hands each rep.
-- **Alternating Level-Change Push-Ups** (loop `alternating-level-change-push-ups`): On Alternating Level-Change Push-Ups, what changes level each rep: a knee, a hand or a foot?
-  My best guess: "Alternating Level-Change Push-Ups", chest, bodyweight: Lower into a push-up, press up, then drive one knee toward the chest and switch sides each rep.
-- **Arm march push ups** (loop `arm-march-push-ups`): On Arm March Push-Ups, what do the hands do between reps: walk forward and back, step wide and narrow, or tap?
-  My best guess: "Arm March Push-Ups", chest, bodyweight: Lower into a push-up, press up, then step the hands one at a time to a new spot and go again.
-- **High Push-Ups** (loop `high-push-ups`): What makes High Push-Ups different: hands or feet raised on something, or only the top half of the push-up?
-  My best guess: "High Push-Ups", chest, bodyweight: Body in one line, lower the chest with control and press all the way up to full lockout.
-- **Low Push-Ups** (loop `low-push-ups`): What is low about Low Push-Ups: a pause near the floor, only the bottom half of the rep, or hands placed low?
-  My best guess: "Low Push-Ups", chest, bodyweight: Body in one line, lower until the chest hovers just above the floor, pause, then press up.
-- **Three-Position Push-Ups** (loop `three-position-push-ups`): What are the three positions on Three-Position Push-Ups: pauses at the top, halfway and bottom, or three hand widths?
-  My best guess: "Three-Position Push-Ups", chest, bodyweight: Lower and press with a short pause at the top, halfway down and at the bottom, body in one line.
+- **Elevator Kettlebell Swings** is **Elevator Kettlebell Swings**: Elevator means a pause on the way down.
+- **Ketabel catch to knee** is **Kettlebell Catch to Knee**: The name says Kettlebell (Ketabel was a typo); my guess for the move stands.
+- **Kettlebell** is **Kettlebell Goblet Squats**: Guess confirmed: a kettlebell goblet squat.
+- **Kettlebell Hip Thrust** is **Kettlebell Hip Thrusts**: Guess confirmed.
+- **Playing kickouts to squat** is **Kickouts to Squat**: Guess confirmed.
+- **Boxing box squat bounce** is **Boxing Squat Bounces**: Confirmed: the word is Boxing, not box.
+- **Stritch Sit-Ups** is **Stretch Sit-Ups**: Guess confirmed.
+- **Cross Arm Snatch** is **Kettlebell Cross-Arm Snatches**: The arm goes diagonally across the body to pick up the bell, then snatches it overhead.
+- **Overhead Shoulder Toss** is **Overhead Shoulder Toss**: Guess confirmed: a smooth push overhead and back down.
+- **Isolated Tricep Row** is **Isolated Tricep Rows**: Guess confirmed.
+- **Alternating Arm Level Push-Ups** is **Alternating Arm Level Push-Ups**: Guess confirmed.
+- **Alternating Level-Change Push-Ups** is **Alternating Level-Change Push-Ups**: Guess confirmed.
+- **Arm march push ups** is **Arm March Push-Ups**: A push-up down, then the hands march up onto a higher platform.
+- **High Push-Ups** is **High Push-Ups**: The arms pass the chest (hands set past the chest line).
+- **Low Push-Ups** is **Low Push-Ups**: Guess confirmed.
+- **Three-Position Push-Ups** is **Three-Position Push-Ups**: Three hand widths: narrow, normal, wide.
+
+Also applied to **Kettlebell Elevator Squats** (the same word): Elevator means a pause on the way down (said for Elevator Kettlebell Swings; applied here too).
 
 ## 8 loops counted as an exercise the library already has
 
@@ -58,30 +44,36 @@ If you want any of these as its own exercise instead, say so and it is added (na
 - **Treadmill sled hand on handles** (`treadmill-sled-hand-on-handles`): The sheet shows the athlete from behind with both hands on the handles of a treadmill used like a sled, which is machine cardio with no sensible rep or hold dose, so it is left out per the brief.
 - **Tredmill sprint** (`tredmill-sprint`): The sheet shows a side view of a sprint on a treadmill, which is machine cardio and is left out per the brief.
 
-## 82 names changed by more than spelling
+## 95 names changed by more than spelling
 
 The library uses the cleaned name. Tell me if you want your own wording back.
 
 - "Catabelle swing to back lunge" is now **Kettlebell Swing to Back Lunge**: Catabelle read as Kettlebell.
 - "Catabelle swing to lateral lunch" is now **Kettlebell Swing to Lateral Lunge**: Catabelle read as Kettlebell and lunch read as lunge.
 - "Kb swing to punch kick" is now **Kettlebell Swing to Punch Kick**: Kb expanded to Kettlebell.
+- "Ketabel catch to knee" is now **Kettlebell Catch to Knee**: Ketabel read as Kettlebell.
 - "Ketabel elevator squats" is now **Kettlebell Elevator Squats**: Ketabel read as Kettlebell.
 - "Ketabel swing narrow to wide squats" is now **Kettlebell Swing Narrow to Wide Squats**: Ketabel read as Kettlebell.
 - "Ketabelle alternating bent over rows" is now **Kettlebell Alternating Bent-Over Rows**: Ketabelle read as Kettlebell and a hyphen added to Bent-Over.
+- "Kettlebell" is now **Kettlebell Goblet Squats**: The owner typed only 'Kettlebell'; named from what the sheet shows.
 - "Kettlebell Around the World & Around the leg" is now **Kettlebell Around the World and Leg**: The ampersand became 'and' and the second 'Around' was dropped to stay under seven words.
 - "Kettlebell around thr legs" is now **Kettlebell Around the Legs**: thr read as the.
 - "Kettlebell clean press" is now **Kettlebell Clean and Press**: Added 'and' to match the library's Clean and Press and the alternating loop's name.
 - "Kettlebell cross arm squat" is now **Kettlebell Cross-Arm Squats**: Hyphen added to Cross-Arm and made plural like Goblet Squats.
 - "Kettlebell Halos to Tranverse Swings" is now **Kettlebell Halos to Transverse Swings**: Tranverse read as Transverse.
+- "Kettlebell Hip Thrust" is now **Kettlebell Hip Thrusts**: Made plural like Dumbbell Hip Thrusts.
 - "Kettlebell kneeling hip thrust" is now **Kettlebell Kneeling Hip Thrusts**: Made plural like Dumbbell Hip Thrusts.
 - "Kettlebell Swing throw catch squat" is now **Kettlebell Swing Throw Catch Squat**: Title Case only.
 - "Kettlebell swing to front Row" is now **Kettlebell Swing to Front Row**: Title Case only.
 - "Kettlebell Swings side shuffle" is now **Kettlebell Swings and Side Shuffle**: Added 'and' between the swings and the shuffle.
 - "One-Arm Kettlebell Swings around the legs" is now **One-Arm Kettlebell Swings Around the Legs**: Title Case on Around.
+- "Playing kickouts to squat" is now **Kickouts to Squat**: Dropped 'Playing', which is not a movement word and is probably 'plyo' from a phone; see the question.
 - "Squat to flick kick" is now **Squat to Flick Kick**: Title Case only.
+- "Boxing box squat bounce" is now **Boxing Squat Bounces**: The owner confirmed the word is Boxing (box was a slip); the sheet shows no box.
 - "Goblet Reverse Lunges" is now **Kettlebell Hold Static Lunges**: Followed the owner's note to rename it kettlebell hold static lunge, in his own words; only Title Case and the plural were added.
 - "Squats hold thrust jump" is now **Squat Hold Thrust Jumps**: Squats changed to Squat and Jump to Jumps so it reads as one named move; no words added or removed.
 - "Squats tuck jumps" is now **Squat Tuck Jumps**: Squats changed to Squat so it reads as one named move; no words added or removed.
+- "Stritch Sit-Ups" is now **Stretch Sit-Ups**: Stritch read as Stretch, the nearest real word; the sheet does not show what makes it different, so this is a guess.
 - "Tell about clean to turn lunge" is now **Kettlebell Clean to Turn Lunge**: Tell about is a voice-to-text slip for Kettlebell (the sheet shows a kettlebell); no other change.
 - "Alternating-Arm Dead Hangs" is now **Alternating-Arm Dead Hangs**: Kept as the owner typed it, plural included. The library has no dead hang yet.
 - "Barbell Cleans" is now **Barbell Cleans**: Kept as typed.
@@ -105,6 +97,7 @@ The library uses the cleaned name. Tell me if you want your own wording back.
 - "Battle Rope to Slam" is now **Battle Rope to Slam**: Kept as typed. Equipment is Cable like the library's Battle Ropes, so the builder never deals it (gearNote still labels it BATTLE ROPES).
 - "Battle Rope Transversal Slams" is now **Battle Rope Transversal Slams**: The owner spelled it Transversal in his rename note; kept. Equipment is Cable like the library's Battle Ropes.
 - "Chest Bench Dips" is now **Chest Bench Dips**: Kept as typed. gearNote labels it BODYWEIGHT + BENCH OR STEP.
+- "Cross Arm Snatch" is now **Kettlebell Cross-Arm Snatches**: Kettlebell added (the owner's note says Cross kettlebell snatch and the sheet shows a bell), Cross-Arm hyphenated to match Kettlebell Cross-Arm Squats in the kettlebell chunk, plural for reps.
 - "Cross-Leg Sit-Ups" is now **Cross-Leg Sit-Ups**: Hyphenated Cross-Leg.
 - "Deep Tricep extensions off bench" is now **Deep Tricep Extensions Off Bench**: Title Case; Off capitalised. The owner's Tricep (not Triceps) is kept.
 - "Elevated Bench Dip to Tricep Extension" is now **Elevated Bench Dip to Tricep Extension**: Kept as typed (six words, singular as a named combo). gearNote labels it BODYWEIGHT + BENCH OR STEP.
@@ -114,6 +107,7 @@ The library uses the cleaned name. Tell me if you want your own wording back.
 - "Landmine Floor Press" is now **Landmine Floor Press**: Title Case only; singular like the library's press names.
 - "Landmine press" is now **Landmine Press**: Title Case only; singular like Dumbbell Shoulder Press.
 - "One arm Dumbbell Bench Press" is now **One-Arm Dumbbell Bench Press**: Hyphenated One-Arm and Title Case.
+- "Overhead Shoulder Toss" is now **Overhead Shoulder Toss**: Kept as the owner's rename note typed it (singular, a named move).
 - "Parallel-Chest Bar Dips" is now **Parallel Bar Chest Dips**: Owner typed Parallel-Chest Bar Dips; reordered to Parallel Bar Chest Dips so it reads as parallel bars plus chest dips (same words). gearNote labels it BODYWEIGHT + BENCH OR BARS.
 - "Plank side tucks" is now **Plank Side Tucks**: Title Case only.
 - "Side ab crunch" is now **Side Ab Crunches**: Title Case and plural for reps.
@@ -129,6 +123,7 @@ The library uses the cleaned name. Tell me if you want your own wording back.
 - "Half Archer Pull-Ups" is now **Half Archer Pull-Ups**: Owner's rename kept as is.
 - "Hanging Leg pull up" is now **Hanging Leg Pull-Ups**: Made plural and hyphenated: Pull-Ups.
 - "High Pull-Ups" is now **High Pull-Ups**: Owner's note asked for High pull up; written as High Pull-Ups like the library.
+- "Isolated Tricep Row" is now **Isolated Tricep Rows**: Made plural like the other rep exercises.
 - "Landmind single arm row" is now **Landmine Single-Arm Rows**: Landmind read as Landmine; hyphenated and made plural.
 - "Muscule ups" is now **Muscle-Ups**: Muscule read as Muscle; hyphenated like Pull-Ups.
 - "Narrow, Regular, Wide Squats" is now **Narrow Regular Wide Squats**: Commas removed (names cannot hold commas); the owner's words and order are kept.
@@ -136,12 +131,16 @@ The library uses the cleaned name. Tell me if you want your own wording back.
 - "Seated wide cable row" is now **Seated Wide Cable Rows**: Made plural like the other row names.
 - "Smith machine good morning's" is now **Smith Machine Good Mornings**: Good morning's read as Good Mornings.
 - "Wrist grip single arm Pull-Ups" is now **Wrist-Grip Single-Arm Pull-Ups**: Hyphenated Wrist-Grip and Single-Arm like the library.
+- "Alternating Arm Level Push-Ups" is now **Alternating Arm Level Push-Ups**: Kept as typed (Title Case, Push-Ups hyphenated); wording stays until the owner says what changes level.
+- "Alternating Level-Change Push-Ups" is now **Alternating Level-Change Push-Ups**: Kept as typed; wording stays until the owner says what changes level.
+- "Arm march push ups" is now **Arm March Push-Ups**: Title Case and Push-Ups hyphenated.
 - "Cat stretch Push-Ups" is now **Cat Stretch Push-Ups**: Title Case.
 - "Extended straight arm push up" is now **Extended Straight-Arm Push-Ups**: Title Case, Straight-Arm hyphenated, plural Push-Ups like the library.
 - "Inchworms push ups" is now **Inchworm Push-Ups**: Inchworms made singular (Inchworm Push-Ups) and Push-Ups hyphenated; same words otherwise.
 - "Incline deep lean tricep pushup" is now **Incline Deep Lean Tricep Push-Ups**: Title Case, pushup written Push-Ups and made plural.
 - "maltese push ups" is now **Maltese Push-Ups**: Title Case and Push-Ups hyphenated.
 - "Push-Ups off parrell bar" is now **Parallel Bar Push-Ups**: Parrell fixed to Parallel and the words reordered from Push-Ups off parrell bar to the standard Parallel Bar Push-Ups. gearNote.js has no rule for it, so the info chip will read BODYWEIGHT.
+- "Three-Position Push-Ups" is now **Three-Position Push-Ups**: Kept as typed (already hyphenated).
 - "Tricep Bench Walk-Outs to Tiger Push Ups" is now **Tricep Bench Walk-Outs to Tiger Push-Ups**: Push Ups hyphenated to Push-Ups; six words but kept whole because it is one move.
 - "Uneven one arm push up" is now **Uneven One-Arm Push-Ups**: Title Case, One-Arm hyphenated, plural Push-Ups like the library.
 
@@ -149,9 +148,9 @@ The library uses the cleaned name. Tell me if you want your own wording back.
 
 Every cue line (coachNote), the muscle group, the difficulty and the reps are my reading of the standard lift and what the loop shows. Skim fitModeExerciseDataLoops.js; a wrong cue is a one-line fix.
 
-## 18 name clips accepted below the usual bar
+## 22 name clips accepted below the usual bar
 
-Every new name is recorded in both coach voices. These 18 long names never came back clean, so I took the best take that fails on one number only: a pause of 0.20 to 0.29 s inside the name (the cut shortens it to 0.10 s), or a brisk read. If one sounds off to you, tell me the name and I will record it again.
+Every new name is recorded in both coach voices. These 22 long names never came back clean, so I took the best take that fails on one number only: a pause of 0.20 to 0.29 s inside the name (the cut shortens it to 0.10 s), or a brisk read. If one sounds off to you, tell me the name and I will record it again.
 
 - **sky touch push ups**: female (pause 0.22 s)
 - **around the world chin ups**: female (pause 0.27 s)
@@ -171,3 +170,7 @@ Every new name is recorded in both coach voices. These 18 long names never came 
 - **kettlebell swing to front row**: female (pause 0.28 s)
 - **kettlebell swing to punch kick**: female (pause 0.21 s)
 - **burpees to side shuffle**: female (brisk)
+- **kettlebell hip thrusts**: female (pause 0.23 s)
+- **boxing squat bounces**: female (pause 0.21 s)
+- **alternating level change push ups**: female (pause 0.2 s)
+- **arm march push ups**: female (pause 0.2 s)

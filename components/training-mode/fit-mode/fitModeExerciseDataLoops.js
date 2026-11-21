@@ -11,6 +11,15 @@ import { ex } from './fitModeExerciseDataCore';
 
 export const FIT_MODE_LOOP_EXERCISES = [
   // ── Chest ─────────────────────────────────────────────────────────
+  // loop: alternating-arm-level-push-ups
+  ex('Alternating Arm Level Push-Ups', 'Chest', ['Triceps', 'Shoulders', 'Core'], 'Bodyweight', 'Normal', 'Compound',
+    'Set one hand a step ahead of the other, lower the chest between them, press up and swap the hands each rep.', 'Staggered pressing builds the shoulder balance a boxer needs when one hand leads.', { reps: '12-16' }),
+  // loop: alternating-level-change-push-ups
+  ex('Alternating Level-Change Push-Ups', 'Chest', ['Core', 'Shoulders', 'Triceps'], 'Bodyweight', 'Normal', 'Compound',
+    'Lower into a push-up, press up, then drive one knee toward the chest and switch sides each rep.', 'Pressing through changing levels, the way a fighter ducks and rises.', { reps: '12-16' }),
+  // loop: arm-march-push-ups
+  ex('Arm March Push-Ups', 'Chest', ['Triceps', 'Shoulders', 'Core'], 'Bodyweight', 'Normal', 'Compound',
+    'Lower into a push-up, press up, then march the hands one at a time up onto a platform and back down.', 'Shoulder stability while the hands keep moving, like a guard that never stops working.', { reps: '8-12' }),
   // loop: barbell-floor-press
   ex('Barbell Floor Press', 'Chest', ['Triceps', 'Shoulders'], 'Weighted', 'Normal', 'Compound',
     'Lie on the floor with the bar over the chest, lower until the elbows touch down, then press to lockout.', 'Pressing strength behind the cross, with the floor protecting the shoulders.', { reps: '6-10', rest: 90 }),
@@ -20,6 +29,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: chest-bench-dips
   ex('Chest Bench Dips', 'Chest', ['Triceps', 'Shoulders'], 'Bodyweight', 'Normal', 'Compound',
     'Hands on the bench edge with the chest leading, lower until the elbows reach ninety degrees, then press up.', 'Chest and shoulder pressing strength for pushing an opponent off.', { reps: '8-12' }),
+  // loop: high-push-ups
+  ex('High Push-Ups', 'Chest', ['Triceps', 'Shoulders'], 'Bodyweight', 'Normal', 'Compound',
+    'Place the hands ahead of the chest line, keep the body straight, lower the chest and press all the way up.', 'The base of every punch: chest, shoulders and triceps working as one.'),
   // loop: iron-cross-push-ups
   ex('Iron Cross Push-Ups', 'Chest', ['Shoulders', 'Core'], 'Bodyweight', 'Hard', 'Compound',
     'Set the hands far out to the sides like a cross, lower the chest between them with control and press up.', 'Wide-chest strength for hooks and clinch pressing.', { reps: '6-8', rest: 90 }),
@@ -29,6 +41,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: landmine-floor-press
   ex('Landmine Floor Press', 'Chest', ['Triceps', 'Shoulders'], 'Weighted', 'Normal', 'Compound',
     'Lie on the floor, press the bar end up in one hand to lockout, lower slowly, then switch to work each side.', 'Single-arm pressing power and shoulder stability for straight punches.', { reps: '8-10', rest: 75 }),
+  // loop: low-push-ups
+  ex('Low Push-Ups', 'Chest', ['Triceps', 'Shoulders'], 'Bodyweight', 'Normal', 'Compound',
+    'Body in one line, lower until the chest hovers just above the floor, pause, then press up.', 'Chest and shoulder strength at the bottom of the press, where punches start from the guard.', { reps: '8-12' }),
   // loop: one-arm-dumbbell-bench-press
   ex('One-Arm Dumbbell Bench Press', 'Chest', ['Triceps', 'Shoulders', 'Core'], 'Weighted', 'Normal', 'Compound',
     'Lie on the bench, one dumbbell over the chest, free arm out for balance, press to lockout and work each side.', 'Single-arm pressing strength and a braced core that stops the body twisting.', { reps: '8-12', rest: 75 }),
@@ -47,6 +62,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: table-touch-push-ups
   ex('Table Touch Push-Ups', 'Chest', ['Shoulders', 'Core'], 'Bodyweight', 'Normal', 'Compound',
     'Lower into a push-up, press up, then reach one hand forward to touch the table and return, alternating hands.', 'A one-arm reach with a steady trunk, like keeping balance through a long punch.', { reps: '12-16' }),
+  // loop: three-position-push-ups
+  ex('Three-Position Push-Ups', 'Chest', ['Triceps', 'Shoulders', 'Core'], 'Bodyweight', 'Normal', 'Compound',
+    'Do one push-up with the hands narrow, one at shoulder width and one wide, then repeat, body in one line.', 'Control at every point of the press, like holding a guard through the whole round.', { reps: '9-12', rest: 60 }),
   // loops: tiger-push-ups, tiger-pushups
   ex('Tiger Push-Ups', 'Chest', ['Triceps', 'Shoulders'], 'Bodyweight', 'Normal', 'Compound',
     'Lower the chest low with the elbows tucked and sweep the head forward past the hands, then press up to straight arms.', 'Pressing power from low to high, like driving up off the mat.', { reps: '8-12' }),
@@ -153,6 +171,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: maltese-push-ups
   ex('Maltese Push-Ups', 'Shoulders', ['Chest', 'Triceps', 'Core'], 'Bodyweight', 'Hard', 'Compound',
     'Place the hands back near the hips, lean the shoulders far past them, lower with control and press up.', 'Heavy front-shoulder strength so punches and presses finish strong.', { reps: '4-6', rest: 90 }),
+  // loop: overhead-shoulder-toss
+  ex('Overhead Shoulder Toss', 'Shoulders', ['Triceps', 'Core', 'Back'], 'Weighted', 'Normal', 'Compound',
+    'Hold the weight at the shoulders with both hands, send it overhead in one smooth motion, then bring it back under control.', 'Overhead power and shoulder strength for framing and uppercut drive.', { reps: '8-10', rest: 60, style: 'Power' }),
 
   // ── Biceps ────────────────────────────────────────────────────────
   // loops: barbell-close-grip-curls, barbell-close-grip-curls-2
@@ -187,6 +208,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: incline-diamond-push-ups
   ex('Incline Diamond Push-Ups', 'Triceps', ['Chest', 'Shoulders'], 'Bodyweight', 'Normal', 'Compound',
     'Hands in a diamond on a raised box, body in one line, lower the chest to the hands and press up.', 'Triceps lockout for the snap on a straight punch, with a lighter load than the floor version.'),
+  // loop: isolated-tricep-row
+  ex('Isolated Tricep Rows', 'Triceps', ['Chest', 'Shoulders'], 'Bodyweight', 'Normal', 'Compound',
+    'Kneel at the bench, hands on the edge, keep the elbows tight to the sides, lower the chest and press up.', 'Triceps endurance for a snappy jab late in the round.', { reps: '10-15' }),
   // loop: single-arm-bench-dips
   ex('Single-Arm Bench Dips', 'Triceps', ['Chest', 'Shoulders'], 'Bodyweight', 'Hard', 'Compound',
     'Support yourself on one hand on the bench behind you, lower under control, press up, and switch to work each side.', 'Single-arm triceps strength for powerful straight punches and posting off the floor.', { reps: '6-8', rest: 75 }),
@@ -240,6 +264,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: straight-leg-app-circles
   ex('Straight-Leg Ab Circles', 'Core', [], 'Bodyweight', 'Normal', 'Isolation',
     'On your back, lower back pressed down, hands behind the head, keep the legs straight and draw slow circles in the air.', 'Lower-ab control for kicks and knee strikes.', { reps: '8-12', rest: 30 }),
+  // loop: stritch-sit-ups
+  ex('Stretch Sit-Ups', 'Core', ['Quads'], 'Bodyweight', 'Normal', 'Compound',
+    'Lie back with the knees bent and the hands behind the head, curl all the way up and lower under control.', 'Trunk strength and endurance for absorbing body shots and driving punches.', { reps: '12-15', rest: 45 }),
   // loop: tuck-ups
   ex('Tuck-Ups', 'Core', ['Quads'], 'Bodyweight', 'Normal', 'Compound',
     'Lie flat, curl up and pull the knees in to meet the chest, lower with control.', 'Abs and hip flexors for knees and kicks.', { reps: '12-15', rest: 30 }),
@@ -254,6 +281,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: barbell-cross-arm-front-squats
   ex('Barbell Cross-Arm Front Squats', 'Quads', ['Glutes', 'Core'], 'Weighted', 'Hard', 'Compound',
     'Bar on the front of the shoulders, arms crossed over it, elbows high, squat deep with the chest tall and drive up.', 'Front-loaded leg strength that keeps the chest upright, the base for a strong clinch and a powerful shot.', { reps: '5-8', rest: 120 }),
+  // loop: boxing-box-squat-bounce
+  ex('Boxing Squat Bounces', 'Quads', ['Glutes', 'Calves'], 'Bodyweight', 'Normal', 'Cardio',
+    'Sink into a low squat with the fists up in guard and bounce lightly on the feet, chest tall.', 'Low-stance leg endurance for fighting from a crouch while staying light on the feet.', { hold: 30, rest: 30 }),
   // loop: crab-walk-squats
   ex('Crab Walk Squats', 'Quads', ['Glutes', 'Calves'], 'Bodyweight', 'Normal', 'Compound',
     'Arms crossed, step wide to the side, sink into a wide squat and keep stepping sideways with the chest tall.', 'Lateral leg strength and a wide, low base for moving sideways under pressure.', { hold: 40, rest: 45 }),
@@ -278,6 +308,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: kettlebell-around-the-world-to-squat
   ex('Kettlebell Around the World to Squat', 'Quads', ['Core', 'Shoulders', 'Glutes'], 'Weighted', 'Normal', 'Compound',
     'Circle the bell around the waist hand to hand, then sit into a squat with it held in front and stand tall.', 'Leg strength and hand coordination together, for moving well while the hands stay busy.', { reps: '8-12', rest: 60 }),
+  // loop: ketabel-catch-to-knee
+  ex('Kettlebell Catch to Knee', 'Quads', ['Glutes', 'Core'], 'Weighted', 'Normal', 'Compound',
+    'Hold the bell at the chest, stand tall, drop to one knee with control, then rise and repeat on the other side.', 'Controlled drops to the floor and fast recovery to your feet.', { reps: '8-10', rest: 60 }),
   // loop: kettlebell-clean-to-lunge
   ex('Kettlebell Clean to Lunge', 'Quads', ['Glutes', 'Hamstrings', 'Shoulders'], 'Weighted', 'Normal', 'Compound',
     'Clean the bell to the shoulder, step back into a lunge with it racked, drive up and repeat on each side.', 'Explosive hips into single-leg strength, the base of movement in and out of range.', { reps: '8-10', rest: 60, style: 'Power' }),
@@ -289,7 +322,10 @@ export const FIT_MODE_LOOP_EXERCISES = [
     'Cross the arms over the bell at the chest, sit the hips back and down, keep the chest tall and drive up.', 'Upright squat strength behind a guarded chest, the posture of a fighter who stays tall under pressure.', { reps: '8-12', rest: 60 }),
   // loop: ketabel-elevator-squats
   ex('Kettlebell Elevator Squats', 'Quads', ['Glutes', 'Hamstrings', 'Core'], 'Weighted', 'Normal', 'Compound',
-    'Hold the bell low between the feet, chest up, sit the hips down and back, then drive up through the heels.', 'Deep loaded squat strength for a low, powerful stance.', { reps: '8-12', rest: 60 }),
+    'Hold the bell low, sit down and back, pause halfway like an elevator stopping at a floor, then drive up through the heels.', 'Deep loaded squat strength for a low, powerful stance.', { reps: '8-12', rest: 60 }),
+  // loop: kettlebell
+  ex('Kettlebell Goblet Squats', 'Quads', ['Glutes', 'Core'], 'Weighted', 'Normal', 'Compound',
+    'Hold the bell at the chest with the elbows tucked, sit deep between the knees and drive up through the heels.', 'Loaded leg strength for a heavier, lower stance.', { reps: '8-12', rest: 75 }),
   // loop: goblet-reverse-lunges
   ex('Kettlebell Hold Static Lunges', 'Quads', ['Glutes', 'Core'], 'Weighted', 'Normal', 'Compound',
     'Hold the kettlebell at the chest, feet split and planted, lower the back knee toward the floor and drive up, each side.', 'Loaded single-leg strength and a braced core for holding a stance under pressure.', { reps: '8-12', rest: 60 }),
@@ -308,6 +344,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: kettlebell-swings-to-jump-squat
   ex('Kettlebell Swings to Jump Squat', 'Quads', ['Glutes', 'Hamstrings', 'Calves'], 'Weighted', 'Hard', 'Compound',
     'Swing the bell with the hips, bring it to the chest, sink and jump, then land softly before the next swing.', 'Explosive leg drive for closing distance, built on the hip snap of a swing.', { reps: '6-10', rest: 75, style: 'Power' }),
+  // loop: playing-kickouts-to-squat
+  ex('Kickouts to Squat', 'Quads', ['Glutes', 'Core', 'Shoulders'], 'Bodyweight', 'Normal', 'Compound',
+    'Drop into a deep squat with the hands on the floor, kick one leg out to the side, return and alternate.', 'Hip mobility and leg control for scrambles and getting up from the ground.', { reps: '10-15', rest: 45 }),
   // loop: leg-press
   ex('Leg Press', 'Quads', ['Glutes', 'Hamstrings'], 'Machine', 'Normal', 'Compound',
     'Back flat on the pad, feet shoulder-width on the plate, lower to ninety degrees at the knee and press without locking out.', 'Raw leg strength for driving off the back foot and powering through a clinch.', { reps: '8-12', rest: 75 }),
@@ -373,6 +412,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
     'Bar in the crooks of the elbows, hands clasped, chest tall, squat deep and drive up through the floor.', 'Leg strength under a front load, like driving up with an opponent\'s weight on your chest and arms.', { reps: '6-8', rest: 90 }),
 
   // ── Hamstrings ────────────────────────────────────────────────────
+  // loop: elevator-kettlebell-swings
+  ex('Elevator Kettlebell Swings', 'Hamstrings', ['Glutes', 'Quads', 'Core'], 'Weighted', 'Normal', 'Compound',
+    'Swing the bell up, pause halfway down like an elevator stopping at a floor, then sink low and drive the hips again.', 'Hip snap that powers every punch and kick, trained through a deeper range.', { reps: '8-12', rest: 60 }),
   // loop: hamstring-barbell-extension
   ex('Hamstring Barbell Extensions', 'Hamstrings', ['Glutes', 'Back'], 'Weighted', 'Normal', 'Compound',
     'Soft knees and a flat back, hinge until the bar reaches the shins and the hamstrings stretch, then drive the hips forward.', 'Hamstring and hip strength for explosive sprawls and a rooted stance.', { reps: '8-10', rest: 90 }),
@@ -387,6 +429,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
     'Bar on the upper back, soft knees, push the hips back until the torso tips forward, then drive the hips through.', 'Hamstring and lower-back strength for explosive hips in kicks and takedown defence.', { reps: '8-12', rest: 75 }),
 
   // ── Glutes ────────────────────────────────────────────────────────
+  // loop: kettlebell-hip-thrust
+  ex('Kettlebell Hip Thrusts', 'Glutes', ['Hamstrings', 'Core'], 'Weighted', 'Normal', 'Compound',
+    'Drive the hips forward with the bell held close, squeeze the glutes hard at the top and lower with control.', 'The hip drive behind every knee strike and every push off the floor.', { reps: '8-12', rest: 60 }),
   // loop: kettlebell-kneeling-hip-thrust
   ex('Kettlebell Kneeling Hip Thrusts', 'Glutes', ['Quads', 'Core'], 'Weighted', 'Normal', 'Compound',
     'Kneel tall with the bell at the chest, sit the hips back, then drive them forward and squeeze the glutes.', 'Hip drive for knee strikes and for powering out of the ground.', { reps: '10-15', rest: 45 }),
@@ -413,6 +458,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: kettlebell-clean-press
   ex('Kettlebell Clean and Press', 'Full Body', ['Shoulders', 'Hamstrings', 'Core'], 'Weighted', 'Hard', 'Compound',
     'Hinge, pull the bell to the shoulder in one move, press it overhead, then lower it and repeat on each side.', 'Explosive hip drive into a one-arm press, the power behind a straight punch.', { reps: '6-8', rest: 90, style: 'Power' }),
+  // loop: cross-arm-snatch
+  ex('Kettlebell Cross-Arm Snatches', 'Full Body', ['Shoulders', 'Hamstrings', 'Back'], 'Weighted', 'Hard', 'Compound',
+    'Reach diagonally across the body to grab the bell, snap the hips and snatch it overhead, then work each side.', 'Hip snap into an overhead lockout for explosive pulling and punching power.', { reps: '6-8', rest: 75, style: 'Power' }),
   // loop: kettlebell-swing-throw-catch-squat
   ex('Kettlebell Swing Throw Catch Squat', 'Full Body', ['Quads', 'Hamstrings', 'Shoulders'], 'Weighted', 'Hard', 'Compound',
     'Clear the space, swing the bell up with the hips and throw it, catch it at the chest and squat.', 'Explosive hips and fast hands with a catch, training reflexes under load.', { reps: '6-10', rest: 75, style: 'Power' }),

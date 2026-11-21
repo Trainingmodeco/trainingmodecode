@@ -334,7 +334,7 @@ const FAMILIES = [
   },
   {
     id: 'glute-bridge',
-    test: /glute bridge|hip bridge|hip thrust|hamstring bridge/i,
+    test: /glute bridge|hip bridge|(?<!kettlebell )hip thrust|hamstring bridge/i,
     cues: [
       'Lie on your back, heels close to your hips.',
       'Push through the heels and lift the hips.',

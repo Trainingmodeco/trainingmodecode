@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-21T05:14:33.664Z",
+ "generatedAt": "2026-11-21T06:43:24.996Z",
  "board": "https://claude.ai/artifact/PyNEAD4AtbxzpoFu3S1Wst",
  "summary": {
   "factorySaved": 248,
@@ -16,19 +16,19 @@
   "parkedSeveralWorkouts": 12,
   "queueRequest": null,
   "progress": {
-   "exercisesTotal": 536,
-   "exact": 233,
+   "exercisesTotal": 552,
+   "exact": 249,
    "close": 5,
    "new": 16,
-   "withLoop": 254,
-   "percent": 47.4,
-   "exactOrNewPercent": 46.5,
-   "majorityAt": 269,
-   "stillNeededForMajority": 15,
+   "withLoop": 270,
+   "percent": 48.9,
+   "exactOrNewPercent": 48,
+   "majorityAt": 277,
+   "stillNeededForMajority": 7,
    "byKind": {
     "library": {
-     "exercises": 348,
-     "withLoop": 196
+     "exercises": 364,
+     "withLoop": 212
     },
     "quick": {
      "exercises": 17,

@@ -1,6 +1,6 @@
 {
  "voice": "female",
- "version": 26,
+ "version": 27,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -23941,6 +23941,66 @@
   "burpees to side shuffle": {
    "file": "burpees_to_side_shuffle.mp3",
    "ms": 1440
+  },
+  "elevator kettlebell swings": {
+   "file": "elevator_kettlebell_swings.mp3",
+   "ms": 1944
+  },
+  "kettlebell catch to knee": {
+   "file": "kettlebell_catch_to_knee.mp3",
+   "ms": 1752
+  },
+  "kettlebell hip thrusts": {
+   "file": "kettlebell_hip_thrusts.mp3",
+   "ms": 1992
+  },
+  "kickouts to squat": {
+   "file": "kickouts_to_squat.mp3",
+   "ms": 1488
+  },
+  "boxing squat bounces": {
+   "file": "boxing_squat_bounces.mp3",
+   "ms": 2016
+  },
+  "stretch sit ups": {
+   "file": "stretch_sit_ups.mp3",
+   "ms": 1152
+  },
+  "kettlebell cross arm snatches": {
+   "file": "kettlebell_cross_arm_snatches.mp3",
+   "ms": 2472
+  },
+  "overhead shoulder toss": {
+   "file": "overhead_shoulder_toss.mp3",
+   "ms": 1536
+  },
+  "isolated tricep rows": {
+   "file": "isolated_tricep_rows.mp3",
+   "ms": 1848
+  },
+  "alternating arm level push ups": {
+   "file": "alternating_arm_level_push_ups.mp3",
+   "ms": 2400
+  },
+  "alternating level change push ups": {
+   "file": "alternating_level_change_push_ups.mp3",
+   "ms": 2832
+  },
+  "arm march push ups": {
+   "file": "arm_march_push_ups.mp3",
+   "ms": 1680
+  },
+  "high push ups": {
+   "file": "high_push_ups.mp3",
+   "ms": 1392
+  },
+  "low push ups": {
+   "file": "low_push_ups.mp3",
+   "ms": 1368
+  },
+  "three position push ups": {
+   "file": "three_position_push_ups.mp3",
+   "ms": 1896
   }
  },
  "count": 1121,
