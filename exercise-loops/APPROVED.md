@@ -6,13 +6,13 @@ Written by `factory/tools/approved.mjs` from the Exercise Loop Board on 2026-11-
 
 The owner's rule: push the loops into the app once most of the workouts are animated, not all.
 
-- Exercises the app asks for: **419**.
-- With a loop: **135** (32.2 %): 113 show exactly that move, 6 are a close variation, 16 are new exercises.
-- A majority is **210**, so **75 more** are needed.
+- Exercises the app asks for: **536**.
+- With a loop: **254** (47.4 %): 233 show exactly that move, 5 are a close variation, 16 are new exercises.
+- A majority is **269**, so **15 more** are needed.
 
 | Kind | Exercises | With a loop |
 | --- | --- | --- |
-| library | 231 | 77 |
+| library | 348 | 196 |
 | quick | 17 | 9 |
 | mission | 95 | 18 |
 | new | 16 | 16 |

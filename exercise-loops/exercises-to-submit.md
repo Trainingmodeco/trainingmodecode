@@ -1,51 +1,51 @@
 # Exercises that still need a video
 
-Made 2026-11-21 from the Exercise Loop Board data (exercises that an approved loop made from your footage shows exactly are already taken off). Strike, kick and cardio-machine moves are left out (Practice Mode covers them), and moves listed under two names appear once. 285 in total: 164 library and Quick Mission exercises, 45 moves the Programs show that are not in the library, 76 Loadout mission moves.
+Made 2026-11-21 from the Exercise Loop Board data (exercises that an approved loop made from your footage shows exactly are already taken off). Strike, kick and cardio-machine moves are left out (Practice Mode covers them), and moves listed under two names appear once. 282 in total: 161 library and Quick Mission exercises, 45 moves the Programs show that are not in the library, 76 Loadout mission moves.
 
 How to read it: "most used first" is how often the app puts the move in front of a person (programs count most, then Quick Mission, then the Workout Builder). A move marked [stand-in loop exists] already has a close variation animated, so it can wait. A move marked [not dealt by the app yet] is in the library but no generator picks it today, so film it last.
 
 ## Film these first (40 most used library and Quick Mission moves)
 
-1. Push-Ups (Chest, Bodyweight) [stand-in loop exists]
-2. Mountain Climbers (Core, Bodyweight)
-3. Plank Hold (Core, Bodyweight)
-4. Sprawls (Full Body, Bodyweight)
-5. Superman Hold (Back, Bodyweight)
-6. Glute Bridges (Glutes, Bodyweight)
-7. Bear Crawls (Shoulders, Bodyweight)
-8. Weighted Russian Twists (Core, Weighted)
-9. Shoulder Taps (Shoulders, Bodyweight)
-10. Weighted Sit-Ups (Core, Weighted)
-11. Tuck Jumps (Full Body, Bodyweight)
-12. Goblet Squats (Quads, Weighted)
-13. Deadlifts (Back, Weighted) [stand-in loop exists]
-14. Farmer Carries (Full Body, Weighted)
-15. Inchworms (Full Body, Bodyweight)
-16. Side Plank (Core, Bodyweight)
-17. Calf Raises (Calves, Bodyweight)
-18. Dumbbell Side Bends (Core, Weighted)
-19. Wall Sit (Quads, Bodyweight)
-20. Step-Ups (Quads, Bodyweight)
-21. Skater Hops (Quads, Bodyweight)
-22. Thrusters (Full Body, Weighted)
-23. Plank Jacks (Core, Bodyweight)
-24. Romanian Deadlifts (Hamstrings, Weighted)
-25. Sumo Deadlifts (Hamstrings, Weighted)
-26. Clean and Press (Full Body, Weighted)
-27. Archer Push-Ups (Chest, Bodyweight)
-28. Dumbbell Snatch (Full Body, Weighted)
-29. Bodyweight curls (Biceps, Bodyweight)
-30. Lateral Raises (Shoulders, Weighted)
-31. Crab Walk (Shoulders, Bodyweight)
-32. Chin-Up Hold (Biceps, Bodyweight) [stand-in loop exists]
-33. Reverse Snow Angels (Back, Bodyweight)
-34. Single-Leg Hip Thrusts (Glutes, Bodyweight)
-35. Plank to Down Dog (Shoulders, Bodyweight)
-36. Handstand Hold (Shoulders, Bodyweight)
-37. Depth Jumps (Hamstrings, Bodyweight)
-38. Glute Bridge Hold (Glutes, Bodyweight)
-39. Archer Inverted Rows (Back, Bodyweight)
-40. Around The World Pull-Ups (Back, Bodyweight)
+1. Mountain Climbers (Core, Bodyweight)
+2. Plank Hold (Core, Bodyweight)
+3. Sprawls (Full Body, Bodyweight)
+4. Superman Hold (Back, Bodyweight)
+5. Glute Bridges (Glutes, Bodyweight)
+6. Bear Crawls (Shoulders, Bodyweight)
+7. Weighted Russian Twists (Core, Weighted)
+8. Shoulder Taps (Shoulders, Bodyweight)
+9. Weighted Sit-Ups (Core, Weighted)
+10. Tuck Jumps (Full Body, Bodyweight)
+11. Goblet Squats (Quads, Weighted)
+12. Deadlifts (Back, Weighted) [stand-in loop exists]
+13. Farmer Carries (Full Body, Weighted)
+14. Inchworms (Full Body, Bodyweight)
+15. Side Plank (Core, Bodyweight)
+16. Calf Raises (Calves, Bodyweight)
+17. Dumbbell Side Bends (Core, Weighted)
+18. Wall Sit (Quads, Bodyweight)
+19. Step-Ups (Quads, Bodyweight)
+20. Skater Hops (Quads, Bodyweight)
+21. Thrusters (Full Body, Weighted)
+22. Plank Jacks (Core, Bodyweight)
+23. Romanian Deadlifts (Hamstrings, Weighted)
+24. Sumo Deadlifts (Hamstrings, Weighted)
+25. Clean and Press (Full Body, Weighted)
+26. Archer Push-Ups (Chest, Bodyweight)
+27. Dumbbell Snatch (Full Body, Weighted)
+28. Bodyweight curls (Biceps, Bodyweight)
+29. Lateral Raises (Shoulders, Weighted)
+30. Crab Walk (Shoulders, Bodyweight)
+31. Chin-Up Hold (Biceps, Bodyweight) [stand-in loop exists]
+32. Reverse Snow Angels (Back, Bodyweight)
+33. Single-Leg Hip Thrusts (Glutes, Bodyweight)
+34. Plank to Down Dog (Shoulders, Bodyweight)
+35. Handstand Hold (Shoulders, Bodyweight)
+36. Depth Jumps (Hamstrings, Bodyweight)
+37. Glute Bridge Hold (Glutes, Bodyweight)
+38. Archer Inverted Rows (Back, Bodyweight)
+39. Around The World Pull-Ups (Back, Bodyweight)
+40. Bodyweight Skull Crushers (using a low bar or rings) (Triceps, Bodyweight)
 
 ## Programs show these but the library does not have them (top 45)
 
@@ -97,7 +97,7 @@ How to read it: "most used first" is how often the app puts the move in front of
 
 ## Library and Quick Mission, by muscle group
 
-### Back (16)
+### Back (15)
 
 - Superman Hold (Bodyweight)
 - Deadlifts (Weighted) [stand-in loop exists]
@@ -110,7 +110,6 @@ How to read it: "most used first" is how often the app puts the move in front of
 - Single-Arm Dumbbell Row (Weighted)
 - Assisted Pull-Ups (Band)
 - Assisted Pull-Ups (using a band) (Band)
-- Dumbbell Deadlifts (Weighted)
 - Band Lat Pulldown (Band) [stand-in loop exists]
 - Light Dumbbell Row (Weighted)
 - Supported Dumbbell Row (Weighted)
@@ -144,9 +143,8 @@ How to read it: "most used first" is how often the app puts the move in front of
 - Dumbbell Calf Raises (Weighted) [not dealt by the app yet]
 - Single Leg Calf Raises (Bodyweight) [not dealt by the app yet]
 
-### Chest (12)
+### Chest (11)
 
-- Push-Ups (Bodyweight) [stand-in loop exists]
 - Archer Push-Ups (Bodyweight)
 - Around the World Push-Ups (Bodyweight)
 - Back Lever Push-Up (Bodyweight)
@@ -279,7 +277,7 @@ How to read it: "most used first" is how often the app puts the move in front of
 - Cable Front Raises (Cable) [not dealt by the app yet]
 - Cable Shrugs (Cable) [not dealt by the app yet]
 
-### Triceps (12)
+### Triceps (11)
 
 - Bodyweight Skull Crushers (using a low bar or rings) (Bodyweight)
 - Triceps Extensions (Weighted)
@@ -289,7 +287,6 @@ How to read it: "most used first" is how often the app puts the move in front of
 - Archer Push-Ups (focusing on one arm's triceps at a time) (Bodyweight)
 - Wall Triceps Extensions (Bodyweight)
 - Light Dumbbell Kickbacks (Weighted)
-- Dumbbell Kickbacks (Weighted)
 - Barbell Overhead Triceps Extension (Weighted)
 - Cable Rope Overhead Triceps Extension (Cable) [not dealt by the app yet]
 - Cable V-Bar Pushdown (Cable) [not dealt by the app yet]
