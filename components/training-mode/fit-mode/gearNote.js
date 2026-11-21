@@ -9,7 +9,8 @@ const GEAR_RULES = [
   [/battle rope/i, 'BATTLE ROPES'],
   [/box jumps?\b/i, 'BODYWEIGHT + BOX'],
   [/bar or rings|low bar/i, 'BODYWEIGHT + BAR OR RINGS'],
-  [/pull-ups?\b|chin-ups?\b|chin-up hold/i, 'BODYWEIGHT + PULL-UP BAR'],
+  [/pull-ups?\b|chin-ups?\b|chin-up hold|dead hangs?\b|hanging knee raises?\b|muscle-ups?\b/i, 'BODYWEIGHT + PULL-UP BAR', 'WEIGHTED + PULL-UP BAR'],
+  [/parallel bar/i, 'BODYWEIGHT + PARALLEL BARS'],
   [/\b(bench|step)\b.*\bdips?\b|\bdips?\b.*\b(bench|step)\b/i, 'BODYWEIGHT + BENCH OR STEP'],
   [/\bdips?\b/i, 'BODYWEIGHT + BENCH OR BARS'],
 ];
@@ -21,10 +22,12 @@ export function equipmentLabel(exercise) {
   const eq = tag.toLowerCase();
   // Ropes are not a cable stack, whatever the tag says; the others only add to
   // a Bodyweight tag (a weighted or banded move names its own kit).
-  for (const [re, label] of GEAR_RULES) {
+  // (A rule may carry a second label for a loaded move that still needs the bar: a weighted pull-up.)
+  for (const [re, label, weightedLabel] of GEAR_RULES) {
     if (!re.test(name)) continue;
     if (label === 'BATTLE ROPES') return label;
     if (eq === 'bodyweight') return label;
+    if (eq === 'weighted' && weightedLabel) return weightedLabel;
   }
   return tag;
 }

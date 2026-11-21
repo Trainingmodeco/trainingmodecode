@@ -370,7 +370,7 @@ const FAMILIES = [
   },
   {
     id: 'raise',
-    test: /raise|arm circles|arm haulers/i,
+    test: /(?<!knee )(?<!neck )raises?|arm circles|arm haulers/i,
     cues: [
       'Stand tall, small bend in the elbows.',
       'Lift with the shoulders, not by swinging.',
@@ -454,7 +454,7 @@ const FAMILIES = [
   },
   {
     id: 'conditioning',
-    test: /battle rope|bike|boxing|agility|balance|quick steps|torque|landmine/i,
+    test: /battle rope|bike|boxing|agility|balance|quick steps|torque|landmine rotation/i,
     cues: [
       'Athletic stance: knees soft, weight on the balls of the feet.',
       'Brace the belly and keep the chest up.',

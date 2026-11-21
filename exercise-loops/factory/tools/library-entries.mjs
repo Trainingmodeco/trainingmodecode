@@ -10,6 +10,7 @@
 //   --from     which folder to read (default verified, and a chunk with no verified file falls back to its draft).
 //   --out      write the library module here (components/training-mode/fit-mode/fitModeExerciseDataLoops.js); without it nothing is written.
 //   --report   write { entries, same, existing, excluded, asks, problems } as json.
+//   --hold-asks  leave the `ask` entries (a move or a name the owner has to confirm) out of the module; they stay in the report with their question.
 //   --print    print the problems and the counts only.
 //
 // Checks (every failure is listed, exit 1): every loop of every chunk appears once; the vocabulary of primaryMuscle / equipment / difficulty / movementType;
@@ -74,7 +75,8 @@ const q = (s) => `'${String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 const arr = (a) => `[${a.map(q).join(', ')}]`;
 const optsSrc = (o) => { const p = []; if (o.hold) p.push(`hold: ${o.hold}`); if (o.reps) p.push(`reps: ${q(o.reps)}`); if (o.rest) p.push(`rest: ${o.rest}`); if (o.tempo) p.push(`tempo: ${q(o.tempo)}`); if (o.style) p.push(`style: ${q(o.style)}`); if (o.fixedDose) p.push('fixedDose: true'); return p.length ? `, { ${p.join(', ')} }` : ''; };
 const order = new Map(MUSCLES.map((m, i) => [m, i]));
-const sorted = [...entries].sort((a, b) => order.get(a.primaryMuscle) - order.get(b.primaryMuscle) || a.name.localeCompare(b.name));
+const holdAsks = argv.includes('--hold-asks'); const emitted = entries.filter((e) => !(holdAsks && e.decision === 'ask'));
+const sorted = [...emitted].sort((a, b) => order.get(a.primaryMuscle) - order.get(b.primaryMuscle) || a.name.localeCompare(b.name));
 let src = `// Library exercises that have an approved demo loop (exercise-loops/factory-loops), written from the loops the owner filmed and named.
 //
 // Same shape as fitModeExerciseDataCore (it builds them with its own ex() helper) and spread into FIT_MODE_EXERCISES after the staples.

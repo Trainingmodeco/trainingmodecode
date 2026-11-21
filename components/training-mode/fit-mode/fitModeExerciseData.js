@@ -1,3 +1,4 @@
+import { FIT_MODE_LOOP_EXERCISES } from './fitModeExerciseDataLoops';
 import { FIT_MODE_CORE_EXERCISES } from './fitModeExerciseDataCore';
 
 export const FIT_MODE_EXERCISES = [
@@ -3293,6 +3294,8 @@ export const FIT_MODE_EXERCISES = [
   // The staples the alphabetical export never reached — see the note in
   // fitModeExerciseDataCore.
   ...FIT_MODE_CORE_EXERCISES,
+  // Exercises with an approved demo loop (names recorded in both coach voices); see fitModeExerciseDataLoops.
+  ...FIT_MODE_LOOP_EXERCISES,
 ];
 
 // Category headings that were imported as if they were exercises. The coach
