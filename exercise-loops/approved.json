@@ -1,13 +1,13 @@
 {
- "generatedAt": "2026-11-21T01:09:04.929Z",
+ "generatedAt": "2026-11-21T01:14:48.164Z",
  "board": "https://claude.ai/artifact/PyNEAD4AtbxzpoFu3S1Wst",
  "summary": {
-  "factorySaved": 243,
+  "factorySaved": 248,
   "loopsInLibrary": 45,
   "libraryApproved": 16,
   "libraryRenamed": 2,
-  "factoryApproved": 243,
-  "factoryWaiting": 5,
+  "factoryApproved": 248,
+  "factoryWaiting": 0,
   "factoryRedo": 0,
   "factoryRejected": 1,
   "factoryFailed": 2,
@@ -112,7 +112,7 @@
     "new:front-barbell-squats",
     "quick:front-squats"
    ],
-   "lastChanged": "2026-11-18T23:40:18.629Z"
+   "lastChanged": "2026-11-19T04:45:34.290Z"
   },
   {
    "slug": "hanging-knee-raises",
@@ -295,7 +295,7 @@
    "serves": [
     "new:zercher-squats"
    ],
-   "lastChanged": "2026-11-18T23:33:51.321Z"
+   "lastChanged": "2026-11-19T04:45:35.963Z"
   }
  ],
  "factoryLoops": {
@@ -451,6 +451,25 @@
     "answeredAt": "2026-11-19T18:03:29.564Z",
     "loopIsTheOneAnswered": true,
     "savedAs": "factory-loops/alternating-roundhouse-kicks.mp4"
+   },
+   {
+    "segId": "3eb1e62e56-01",
+    "name": "Alternating Toe Taps",
+    "boardName": "Alternating Toe Taps",
+    "slug": "alternating-toe-taps",
+    "folder": "bodyweight workout 1",
+    "video": "20230706_142611.mp4",
+    "from": 4.33,
+    "to": 30.33,
+    "cost": 4,
+    "loopAsset": "14ae3d58bc8b785d0c3f0e5f24942851",
+    "posterAsset": "b6d507a8eced61ab81f8c3f2f86f24cd",
+    "verdict": "approved",
+    "entryId": "core_alternating_toe_taps_0597",
+    "note": "",
+    "answeredAt": "2026-11-21T00:44:59.752Z",
+    "loopIsTheOneAnswered": true,
+    "savedAs": "factory-loops/alternating-toe-taps.mp4"
    },
    {
     "segId": "0df741850f-01",
@@ -923,7 +942,7 @@
     "verdict": "approved",
     "entryId": "quads_bulgarian_split_squats_core",
     "note": "",
-    "answeredAt": "2026-11-19T18:03:48.611Z",
+    "answeredAt": "2026-11-21T00:46:39.466Z",
     "loopIsTheOneAnswered": true,
     "savedAs": "factory-loops/bulgarian-split-squats.mp4"
    },
@@ -1116,6 +1135,25 @@
     "answeredAt": "2026-11-19T18:06:41.951Z",
     "loopIsTheOneAnswered": true,
     "savedAs": "factory-loops/chest-to-floor-push-ups.mp4"
+   },
+   {
+    "segId": "25761a0bef-01",
+    "name": "Chin-Ups",
+    "boardName": "Chin-Ups",
+    "slug": "chin-ups-2",
+    "folder": "idk may be san deigo bodyweight",
+    "video": "20230715_152715.mp4",
+    "from": 3.58,
+    "to": 21.83,
+    "cost": 4,
+    "loopAsset": "0192155de60a2e827b0d686d1659ad1f",
+    "posterAsset": "ed54b2c5983f54f80c7026523554e59f",
+    "verdict": "approved",
+    "entryId": null,
+    "note": "",
+    "answeredAt": "2026-11-21T01:40:00.000Z",
+    "loopIsTheOneAnswered": true,
+    "savedAs": "factory-loops/chin-ups-2.mp4"
    },
    {
     "segId": "75f3a895e8-01",
@@ -1705,6 +1743,25 @@
     "answeredAt": "2026-11-20T01:23:28.221Z",
     "loopIsTheOneAnswered": true,
     "savedAs": "factory-loops/dumbbell-romanian-deadlifts.mp4"
+   },
+   {
+    "segId": "6f62688ae4-01",
+    "name": "Dumbbell Skull Crushers",
+    "boardName": "Dumbbell Skull Crushers",
+    "slug": "dumbbell-skull-crushers",
+    "folder": "san diego body weight workouts",
+    "video": "20240212_125053.mp4",
+    "from": 0,
+    "to": 22.42,
+    "cost": 4,
+    "loopAsset": "780a407e4393e77ec6df93161372d9f3",
+    "posterAsset": "96bc1289d66df965d12304f292bf5d5b",
+    "verdict": "approved",
+    "entryId": "triceps_dumbbell_skull_crushers_core",
+    "note": "",
+    "answeredAt": "2026-11-21T00:44:56.672Z",
+    "loopIsTheOneAnswered": true,
+    "savedAs": "factory-loops/dumbbell-skull-crushers.mp4"
    },
    {
     "segId": "4b41b2ae0a-01",
@@ -3341,6 +3398,25 @@
     "savedAs": "factory-loops/ninja-squats.mp4"
    },
    {
+    "segId": "2335de4cf1-01",
+    "name": "One arm Dumbbell Bench Press",
+    "boardName": "One arm Dumbbell Bench Press",
+    "slug": "one-arm-dumbbell-bench-press",
+    "folder": "san diego body weight workouts",
+    "video": "20240212_114952.mp4",
+    "from": 0.33,
+    "to": 47,
+    "cost": 4,
+    "loopAsset": "bec3bda87104d0a1641e1fe3c45708ea",
+    "posterAsset": "eeba27a8256a8c0103f4e65541e69d7b",
+    "verdict": "approved",
+    "entryId": null,
+    "note": "",
+    "answeredAt": "2026-11-21T00:45:02.490Z",
+    "loopIsTheOneAnswered": true,
+    "savedAs": "factory-loops/one-arm-dumbbell-bench-press.mp4"
+   },
+   {
     "segId": "6fcf239a66-w03",
     "name": "One-Arm Kettlebell Swings around the legs",
     "boardName": "One-Arm Kettlebell Swings around the legs",
@@ -3659,7 +3735,7 @@
     "verdict": "approved",
     "entryId": null,
     "note": "",
-    "answeredAt": "2026-11-21T00:34:42.460Z",
+    "answeredAt": "2026-11-21T00:45:53.416Z",
     "loopIsTheOneAnswered": true,
     "savedAs": "factory-loops/push-ups-burpee.mp4"
    },
@@ -4747,6 +4823,25 @@
     "savedAs": "factory-loops/v-ups-toe-touch.mp4"
    },
    {
+    "segId": "68b3f0fb94-01",
+    "name": "Vertical Leg Crunches",
+    "boardName": "Vertical Leg Crunches",
+    "slug": "vertical-leg-crunches-2",
+    "folder": "bodyweight workout 1",
+    "video": "20230706_141651.mp4",
+    "from": 1,
+    "to": 16.42,
+    "cost": 4,
+    "loopAsset": "5c269bbfb2d51941796e672735475149",
+    "posterAsset": "77ba34262868375d1bf5ed6f22246dd4",
+    "verdict": "approved",
+    "entryId": null,
+    "note": "",
+    "answeredAt": "2026-11-19T04:45:16.410Z",
+    "loopIsTheOneAnswered": true,
+    "savedAs": "factory-loops/vertical-leg-crunches-2.mp4"
+   },
+   {
     "segId": "b5e3142d48-w05",
     "name": "Vertical Leg Crunches",
     "boardName": "Vertical Leg Crunches",
@@ -4918,98 +5013,7 @@
     "savedAs": "factory-loops/wrist-grip-single-arm-pull-ups.mp4"
    }
   ],
-  "waiting": [
-   {
-    "segId": "2335de4cf1-01",
-    "name": "One arm Dumbbell Bench Press",
-    "boardName": "One arm Dumbbell Bench Press",
-    "slug": "one-arm-dumbbell-bench-press",
-    "folder": "san diego body weight workouts",
-    "video": "20240212_114952.mp4",
-    "from": 0.33,
-    "to": 47,
-    "cost": 4,
-    "loopAsset": "bec3bda87104d0a1641e1fe3c45708ea",
-    "posterAsset": "eeba27a8256a8c0103f4e65541e69d7b",
-    "verdict": null,
-    "entryId": null,
-    "note": "",
-    "answeredAt": "2026-11-19T23:23:16.043Z",
-    "loopIsTheOneAnswered": true
-   },
-   {
-    "segId": "25761a0bef-01",
-    "name": "Chin-Ups",
-    "boardName": "Chin-Ups",
-    "slug": "chin-ups",
-    "folder": "idk may be san deigo bodyweight",
-    "video": "20230715_152715.mp4",
-    "from": 3.58,
-    "to": 21.83,
-    "cost": 4,
-    "loopAsset": "0192155de60a2e827b0d686d1659ad1f",
-    "posterAsset": "ed54b2c5983f54f80c7026523554e59f",
-    "verdict": null,
-    "entryId": null,
-    "note": "",
-    "answeredAt": "2026-11-19T02:33:13.377Z",
-    "loopIsTheOneAnswered": true
-   },
-   {
-    "segId": "3eb1e62e56-01",
-    "name": "Alternating Toe Taps",
-    "boardName": "Alternating Toe Taps",
-    "slug": "alternating-toe-taps",
-    "folder": "bodyweight workout 1",
-    "video": "20230706_142611.mp4",
-    "from": 4.33,
-    "to": 30.33,
-    "cost": 4,
-    "loopAsset": "14ae3d58bc8b785d0c3f0e5f24942851",
-    "posterAsset": "b6d507a8eced61ab81f8c3f2f86f24cd",
-    "verdict": null,
-    "entryId": "core_alternating_toe_taps_0597",
-    "note": "",
-    "answeredAt": "2026-11-18T23:50:02.396Z",
-    "loopIsTheOneAnswered": true
-   },
-   {
-    "segId": "68b3f0fb94-01",
-    "name": "Vertical Leg Crunches",
-    "boardName": "Vertical Leg Crunches",
-    "slug": "vertical-leg-crunches",
-    "folder": "bodyweight workout 1",
-    "video": "20230706_141651.mp4",
-    "from": 1,
-    "to": 16.42,
-    "cost": 4,
-    "loopAsset": "5c269bbfb2d51941796e672735475149",
-    "posterAsset": "77ba34262868375d1bf5ed6f22246dd4",
-    "verdict": null,
-    "entryId": null,
-    "note": "",
-    "answeredAt": "2026-11-18T23:46:35.544Z",
-    "loopIsTheOneAnswered": true
-   },
-   {
-    "segId": "6f62688ae4-01",
-    "name": "Dumbbell Skull Crushers",
-    "boardName": "Dumbbell Skull Crushers",
-    "slug": "dumbbell-skull-crushers",
-    "folder": "san diego body weight workouts",
-    "video": "20240212_125053.mp4",
-    "from": 0,
-    "to": 22.42,
-    "cost": 4,
-    "loopAsset": "780a407e4393e77ec6df93161372d9f3",
-    "posterAsset": "96bc1289d66df965d12304f292bf5d5b",
-    "verdict": null,
-    "entryId": "triceps_dumbbell_skull_crushers_core",
-    "note": "",
-    "answeredAt": "2026-11-19T23:48:11.373Z",
-    "loopIsTheOneAnswered": true
-   }
-  ],
+  "waiting": [],
   "redo": [],
   "rejected": [
    {
@@ -5062,10 +5066,10 @@
     "cost": 8,
     "loopAsset": null,
     "posterAsset": null,
-    "verdict": null,
+    "verdict": "redo",
     "entryId": null,
     "note": "",
-    "answeredAt": "2026-11-18T23:46:24.173Z",
+    "answeredAt": "2026-11-21T01:06:59.177Z",
     "loopIsTheOneAnswered": true
    }
   ],

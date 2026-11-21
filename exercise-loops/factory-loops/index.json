@@ -161,6 +161,26 @@
    "note": ""
   },
   {
+   "segId": "3eb1e62e56-01",
+   "name": "Alternating Toe Taps",
+   "slug": "alternating-toe-taps",
+   "file": "alternating-toe-taps.mp4",
+   "poster": "alternating-toe-taps.webp",
+   "loopAsset": "14ae3d58bc8b785d0c3f0e5f24942851",
+   "bytes": 165617,
+   "durationSec": 1.6,
+   "width": 640,
+   "height": 640,
+   "cost": 4,
+   "folder": "bodyweight workout 1",
+   "video": "20230706_142611.mp4",
+   "from": 4.33,
+   "to": 30.33,
+   "entryId": "core_alternating_toe_taps_0597",
+   "approvedAt": "2026-11-21T00:44:59.752Z",
+   "note": ""
+  },
+  {
    "segId": "0df741850f-01",
    "name": "American Swings",
    "slug": "american-swings",
@@ -861,6 +881,26 @@
    "note": ""
   },
   {
+   "segId": "25761a0bef-01",
+   "name": "Chin-Ups",
+   "slug": "chin-ups-2",
+   "file": "chin-ups-2.mp4",
+   "poster": "chin-ups-2.webp",
+   "loopAsset": "0192155de60a2e827b0d686d1659ad1f",
+   "bytes": 123449,
+   "durationSec": 1.63,
+   "width": 640,
+   "height": 640,
+   "cost": 4,
+   "folder": "idk may be san deigo bodyweight",
+   "video": "20230715_152715.mp4",
+   "from": 3.58,
+   "to": 21.83,
+   "entryId": null,
+   "approvedAt": "2026-11-21T01:40:00.000Z",
+   "note": ""
+  },
+  {
    "segId": "75f3a895e8-01",
    "name": "Chin-Ups",
    "slug": "chin-ups",
@@ -1478,6 +1518,26 @@
    "to": 30.5,
    "entryId": "hamstrings_dumbbell_romanian_deadlifts_core",
    "approvedAt": "2026-11-20T01:23:28.221Z",
+   "note": ""
+  },
+  {
+   "segId": "6f62688ae4-01",
+   "name": "Dumbbell Skull Crushers",
+   "slug": "dumbbell-skull-crushers",
+   "file": "dumbbell-skull-crushers.mp4",
+   "poster": "dumbbell-skull-crushers.webp",
+   "loopAsset": "780a407e4393e77ec6df93161372d9f3",
+   "bytes": 208366,
+   "durationSec": 4.5,
+   "width": 640,
+   "height": 640,
+   "cost": 4,
+   "folder": "san diego body weight workouts",
+   "video": "20240212_125053.mp4",
+   "from": 0,
+   "to": 22.42,
+   "entryId": "triceps_dumbbell_skull_crushers_core",
+   "approvedAt": "2026-11-21T00:44:56.672Z",
    "note": ""
   },
   {
@@ -3201,6 +3261,26 @@
    "note": ""
   },
   {
+   "segId": "2335de4cf1-01",
+   "name": "One arm Dumbbell Bench Press",
+   "slug": "one-arm-dumbbell-bench-press",
+   "file": "one-arm-dumbbell-bench-press.mp4",
+   "poster": "one-arm-dumbbell-bench-press.webp",
+   "loopAsset": "bec3bda87104d0a1641e1fe3c45708ea",
+   "bytes": 377586,
+   "durationSec": 4.5,
+   "width": 640,
+   "height": 640,
+   "cost": 4,
+   "folder": "san diego body weight workouts",
+   "video": "20240212_114952.mp4",
+   "from": 0.33,
+   "to": 47,
+   "entryId": null,
+   "approvedAt": "2026-11-21T00:45:02.490Z",
+   "note": ""
+  },
+  {
    "segId": "6fcf239a66-w03",
    "name": "One-Arm Kettlebell Swings around the legs",
    "slug": "one-arm-kettlebell-swings-around-the-legs",
@@ -4681,6 +4761,26 @@
    "note": ""
   },
   {
+   "segId": "68b3f0fb94-01",
+   "name": "Vertical Leg Crunches",
+   "slug": "vertical-leg-crunches-2",
+   "file": "vertical-leg-crunches-2.mp4",
+   "poster": "vertical-leg-crunches-2.webp",
+   "loopAsset": "5c269bbfb2d51941796e672735475149",
+   "bytes": 84496,
+   "durationSec": 0.9,
+   "width": 640,
+   "height": 640,
+   "cost": 4,
+   "folder": "bodyweight workout 1",
+   "video": "20230706_141651.mp4",
+   "from": 1,
+   "to": 16.42,
+   "entryId": null,
+   "approvedAt": "2026-11-19T04:45:16.410Z",
+   "note": ""
+  },
+  {
    "segId": "b5e3142d48-w05",
    "name": "Vertical Leg Crunches",
    "slug": "vertical-leg-crunches",
@@ -4861,5 +4961,5 @@
    "note": ""
   }
  ],
- "updatedAt": "2026-11-21T00:46:37.784Z"
+ "updatedAt": "2026-11-21T01:14:48.082Z"
 }

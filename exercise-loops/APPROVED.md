@@ -27,7 +27,7 @@ Use the name in the Name column in the app: it is the one you gave the loop on t
 | Alternating-Arm Dead Hangs | - | Back | Bodyweight | loops/alternate-arm-dead-hang.mp4 | yes | 2026-11-18 |
 | Barbell Cleans | - | Full Body | Weighted | loops/barbell-clean.mp4 | yes | 2026-11-18 |
 | Decline Pike Push-Ups | - | Shoulders | Bodyweight | loops/decline-pike-push-ups.mp4 | yes | 2026-11-18 |
-| Front Barbell Squats | - | Quads | Weighted | loops/front-barbell-squats.mp4 | yes | 2026-11-18 |
+| Front Barbell Squats | - | Quads | Weighted | loops/front-barbell-squats.mp4 | yes | 2026-11-19 |
 | Hanging Knee Raises | - | Core | Bodyweight | loops/hanging-knee-raises.mp4 | yes | 2026-11-18 |
 | Heel Touches | - | Core | Bodyweight | loops/heel-touches.mp4 | yes | 2026-11-18 |
 | Landmine Rows | - | Back | Weighted | loops/landmine-rows.mp4 | yes | 2026-11-18 |
@@ -39,11 +39,11 @@ Use the name in the Name column in the app: it is the one you gave the loop on t
 | Straight-Arm Pulldowns | - | Back | Cable | loops/straight-arm-pulldowns.mp4 | yes | 2026-11-18 |
 | Tuck-Ups | - | Core | Bodyweight | loops/tuck-ups.mp4 | yes | 2026-11-18 |
 | Typewriter Pull-Ups | Wide-Grip Pull-Ups | Back | Bodyweight | loops/wide-grip-pull-ups.mp4 | yes | 2026-11-18 |
-| Zercher Squats | - | Quads | Weighted | loops/zercher-squats.mp4 | yes | 2026-11-18 |
+| Zercher Squats | - | Quads | Weighted | loops/zercher-squats.mp4 | yes | 2026-11-19 |
 
 ## Made from your raw footage (the factory)
 
-- Approved: **243**. Waiting for your verdict: **5**. Redo asked: 0. Rejected: 1. Failed: 2. Being made now: 0.
+- Approved: **248**. Waiting for your verdict: **0**. Redo asked: 0. Rejected: 1. Failed: 2. Being made now: 0.
 - Stretches you ticked that are not made yet: **40**. No queue request on the board yet (press Generate).
 
 ### Parked: the video shows several workouts (12)
@@ -77,6 +77,7 @@ Ticked "This video shows several workouts" on the board. Not made until each wor
 | Alternating kettlebell swing to squat | 20210530_143836.mp4 | 0:05 to 0:42 | 6 | 2026-11-19 | factory-loops/alternating-kettlebell-swing-to-squat.mp4 | - |
 | Alternating Level-Change Push-Ups | 20230706_111047.mp4 | 0:14 to 0:25 | 4 | 2026-11-20 | factory-loops/alternating-level-change-push-ups.mp4 | - |
 | Alternating Roundhouse Kicks | 20230715_101400.mp4 | 0:59 to 1:21 | 4 | 2026-11-19 | factory-loops/alternating-roundhouse-kicks.mp4 | - |
+| Alternating Toe Taps | 20230706_142611.mp4 | 0:04 to 0:30 | 4 | 2026-11-21 | factory-loops/alternating-toe-taps.mp4 | - |
 | American Swings | C0163.MP4 | 0:02 to 1:17 | 4 | 2026-11-20 | factory-loops/american-swings.mp4 | - |
 | Archer over Pull-Ups | 20230715_150032.mp4 | 0:07 to 0:26 | 4 | 2026-11-21 | factory-loops/archer-over-pull-ups.mp4 | - |
 | Archer Pull-Ups | C0161.MP4 | 0:01 to 0:20 | 4 | 2026-11-19 | factory-loops/archer-pull-ups.mp4 | - |
@@ -101,7 +102,7 @@ Ticked "This video shows several workouts" on the board. Not made until each wor
 | Body weight tricep extensions | 20230716_154623.mp4 | 0:06 to 0:29 | 4 | 2026-11-21 | factory-loops/body-weight-tricep-extensions.mp4 | - |
 | Box Jumps | 20230716_145306.mp4 | 0:03 to 0:58 | 4 | 2026-11-19 | factory-loops/box-jumps.mp4 | - |
 | Boxing box squat bounce | 20230716_144621.mp4 | 0:03 to 1:13 | 6 | 2026-11-21 | factory-loops/boxing-box-squat-bounce.mp4 | - |
-| Bulgarian Split Squats | 20250722_221427.mp4 | 0:27 to 0:38 | 5 | 2026-11-19 | factory-loops/bulgarian-split-squats.mp4 | - |
+| Bulgarian Split Squats | 20250722_221427.mp4 | 0:27 to 0:38 | 5 | 2026-11-21 | factory-loops/bulgarian-split-squats.mp4 | - |
 | Bulgarian Split Squats | 20230715_094905.mp4 | 0:16 to 0:28 | 4 | 2026-11-19 | factory-loops/bulgarian-split-squats-2.mp4 | - |
 | Burpees to side Shuffle | C0219.MP4 | 0:17 to 0:21 | 4 | 2026-11-20 | factory-loops/burpees-to-side-shuffle.mp4 | - |
 | Cat stretch Push-Ups | 20230706_095117.mp4 | 0:00 to 0:36 | 8 | 2026-11-19 | factory-loops/cat-stretch-push-ups.mp4 | - |
@@ -112,6 +113,7 @@ Ticked "This video shows several workouts" on the board. Not made until each wor
 | Chest focus grip push ups | 20230715_082320.mp4 | 0:11 to 0:21 | 4 | 2026-11-19 | factory-loops/chest-focus-grip-push-ups.mp4 | - |
 | Chest focus Push-Ups | 20230715_082132.mp4 | 0:21 to 1:09 | 4 | 2026-11-20 | factory-loops/chest-focus-push-ups.mp4 | - |
 | Chest to floor push ups | 20230706_094320.mp4 | 0:01 to 0:44 | 4 | 2026-11-19 | factory-loops/chest-to-floor-push-ups.mp4 | - |
+| Chin-Ups | 20230715_152715.mp4 | 0:04 to 0:22 | 4 | 2026-11-21 | factory-loops/chin-ups-2.mp4 | - |
 | Chin-Ups | 20230715_152931.mp4 | 0:02 to 0:21 | 4 | 2026-11-21 | factory-loops/chin-ups.mp4 | - |
 | Close grip cable row | 20250722_222514.mp4 | 0:14 to 0:53 | 4 | 2026-11-21 | factory-loops/close-grip-cable-row.mp4 | - |
 | Close grip Inverted Rows | 20250822_085028.mp4 | 3:35 to 3:49 | 4 | 2026-11-20 | factory-loops/close-grip-inverted-rows.mp4 | - |
@@ -143,6 +145,7 @@ Ticked "This video shows several workouts" on the board. Not made until each wor
 | Dumbbell hanging Row | 20240212_121634.mp4 | 0:00 to 0:21 | 4 | 2026-11-21 | factory-loops/dumbbell-hanging-row.mp4 | - |
 | Dumbbell Lunges | 20240212_115713.mp4 | 0:01 to 0:18 | 4 | 2026-11-21 | factory-loops/dumbbell-lunges.mp4 | - |
 | Dumbbell Romanian Deadlifts | 20240212_122031.mp4 | 0:03 to 0:31 | 4 | 2026-11-20 | factory-loops/dumbbell-romanian-deadlifts.mp4 | - |
+| Dumbbell Skull Crushers | 20240212_125053.mp4 | 0:00 to 0:22 | 4 | 2026-11-21 | factory-loops/dumbbell-skull-crushers.mp4 | - |
 | Dumbbell Step-Ups | 20240212_120429.mp4 | 0:00 to 0:21 | 6 | 2026-11-21 | factory-loops/dumbbell-step-ups.mp4 | - |
 | Dumbbell suitcase deadlifts | 20240212_122145.mp4 | 0:00 to 0:30 | 4 | 2026-11-20 | factory-loops/dumbbell-suitcase-deadlifts.mp4 | - |
 | Dumbbell Sumo Squats | 20240212_120040.mp4 | 0:07 to 0:16 | 4 | 2026-11-21 | factory-loops/dumbbell-sumo-squats.mp4 | - |
@@ -229,6 +232,7 @@ Ticked "This video shows several workouts" on the board. Not made until each wor
 | Narrow, Regular, Wide Squats | 20230715_095644.mp4 | 0:11 to 0:34 | 4 | 2026-11-19 | factory-loops/narrow-regular-wide-squats.mp4 | - |
 | Neck bridge | C0162.MP4 | 2:14 to 2:36 | 4 | 2026-11-20 | factory-loops/neck-bridge.mp4 | - |
 | Ninja Squats | 20230716_143722.mp4 | 0:02 to 0:35 | 6 | 2026-11-19 | factory-loops/ninja-squats.mp4 | - |
+| One arm Dumbbell Bench Press | 20240212_114952.mp4 | 0:00 to 0:47 | 4 | 2026-11-21 | factory-loops/one-arm-dumbbell-bench-press.mp4 | - |
 | One-Arm Kettlebell Swings around the legs | 20230604_192615.mp4 | 0:36 to 0:46 | 4 | 2026-11-20 | factory-loops/one-arm-kettlebell-swings-around-the-legs.mp4 | - |
 | Overhead Dumbbell Extension | 20240212_124951.mp4 | 0:00 to 0:19 | 5 | 2026-11-21 | factory-loops/overhead-dumbbell-extension.mp4 | - |
 | Overhead Shoulder Toss | 20211226_214822.mp4 | 1:36 to 2:41 | 4 | 2026-11-21 | factory-loops/overhead-shoulder-toss.mp4 | News to change the name overhead shoulder toss |
@@ -303,6 +307,7 @@ Ticked "This video shows several workouts" on the board. Not made until each wor
 | V-Ups | 20230706_142825.mp4 | 0:01 to 0:22 | 4 | 2026-11-19 | factory-loops/v-ups.mp4 | - |
 | V-Ups | C0162.MP4 | 0:39 to 0:44 | 4 | 2026-11-20 | factory-loops/v-ups-2.mp4 | - |
 | V-Ups toe touch | C0162.MP4 | 0:29 to 0:35 | 4 | 2026-11-20 | factory-loops/v-ups-toe-touch.mp4 | - |
+| Vertical Leg Crunches | 20230706_141651.mp4 | 0:01 to 0:16 | 4 | 2026-11-19 | factory-loops/vertical-leg-crunches-2.mp4 | - |
 | Vertical Leg Crunches | 20250822_111020.mp4 | 1:18 to 1:26 | 4 | 2026-11-20 | factory-loops/vertical-leg-crunches.mp4 | - |
 | Water splash squats | 20230716_161138.mp4 | 0:09 to 0:34 | 6 | 2026-11-19 | factory-loops/water-splash-squats.mp4 | - |
 | Wide Inverted Rows | 20250822_085028.mp4 | 3:17 to 3:25 | 4 | 2026-11-20 | factory-loops/wide-inverted-rows.mp4 | - |
@@ -312,16 +317,6 @@ Ticked "This video shows several workouts" on the board. Not made until each wor
 | Wide to Narrow Pull-Ups | 20230715_143859.mp4 | 0:00 to 0:27 | 4 | 2026-11-21 | factory-loops/wide-to-narrow-pull-ups.mp4 | - |
 | Windshield Wipers | 20230706_142523.mp4 | 0:00 to 0:25 | 4 | 2026-11-19 | factory-loops/windshield-wipers.mp4 | - |
 | Wrist grip single arm Pull-Ups | 20230715_153237.mp4 | 0:38 to 0:51 | 8 | 2026-11-20 | factory-loops/wrist-grip-single-arm-pull-ups.mp4 | - |
-
-### Waiting for your verdict
-
-| Name | Video | From to | Credits | Answered | Saved as | Note |
-| --- | --- | --- | --- | --- | --- | --- |
-| One arm Dumbbell Bench Press | 20240212_114952.mp4 | 0:00 to 0:47 | 4 | 2026-11-19 | - | - |
-| Chin-Ups | 20230715_152715.mp4 | 0:04 to 0:22 | 4 | 2026-11-19 | - | - |
-| Alternating Toe Taps | 20230706_142611.mp4 | 0:04 to 0:30 | 4 | 2026-11-18 | - | - |
-| Vertical Leg Crunches | 20230706_141651.mp4 | 0:01 to 0:16 | 4 | 2026-11-18 | - | - |
-| Dumbbell Skull Crushers | 20240212_125053.mp4 | 0:00 to 0:22 | 4 | 2026-11-19 | - | - |
 
 ### Rejected
 
@@ -334,7 +329,7 @@ Ticked "This video shows several workouts" on the board. Not made until each wor
 | Name | Video | From to | Credits | Answered | Saved as | Note |
 | --- | --- | --- | --- | --- | --- | --- |
 | Kettlebell Snatches Squat | 20210530_151534.mp4 | 0:14 to 0:52 | 10 | 2026-11-19 | - | - |
-| Crossed-Leg Crunches | 20230706_122552.mp4 | 0:08 to 0:49 | 8 | 2026-11-18 | - | - |
+| Crossed-Leg Crunches | 20230706_122552.mp4 | 0:08 to 0:49 | 8 | 2026-11-21 | - | - |
 
 ## Notes
 
