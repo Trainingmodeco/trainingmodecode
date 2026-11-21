@@ -62,6 +62,12 @@ node $T/scan.mjs "$RAW" "$WORK" --only <part of the video's path> --force --no-j
 ```
 A joined stretch always scores 0.6 at most and says "Joined from N pieces: check it is one exercise" in `warn`; the board shows it.
 
+**A2b. Cut by hand when the splitter is wrong.** The splitter looks for one repeating movement at a time, so short sets of different moves done back to back (dumbbell shoulder work: punches, rear-delt raises, lateral raises, one set after the other), a fast move it calls junk, or a plain misread leave one wrong stretch. Watch the video first: `sheet`-style contact sheets with the time on every frame (1 frame a second over the whole video, then 4 to 10 a second with a crop on the athlete around each boundary), count the repetitions, and have a second agent that has not seen your list re-check every name and boundary (the 2026-11-21 shoulder videos were done this way: the splitter found 9 stretches in 4 videos, three of them wrong). Then write the checked cut points to a file and apply them:
+```
+node $T/cuts.mjs "$WORK" "$WORK/cuts.json"     # { "<file>": [ { start, end, kind, reps, period, group, why, warn }, ... ] }
+```
+It drops the splitter's stretches of those videos, writes yours with new numbers (never one used before), makes their strips and previews, and refuses when a stretch of the video already has a name, a loop or a render. Use it before A3 and the first upload; after that a changed cut goes through the board's cut editor. Name the stretches with A3 as usual. Say plainly in `why` and `warn` what the video really shows: footage that is not what the owner expected (no dumbbells, a leg jump instead of a shoulder raise) is still cut and named for what it is, and the report to the owner says so.
+
 **A3. Name.** Never edit `segs.json` by hand.
 ```
 node $T/name.mjs "$WORK" --template "$WORK/names.json"     # a skeleton: one row per unnamed exercise stretch and per still junk stretch
@@ -224,3 +230,4 @@ Either way write the printed JSON to the board: ArtifactData `{ action: "update"
 - `run-log.mjs <workDir> start|budget|job|item|finish|show`: the book of a queue request (B2, B8, B10, B11).
 - `db-docs.mjs <workDir> --clear-export <dbExportDir>`: empties an export folder before a new export.
 - `name.mjs <workDir> --template <file> | <names.json> [--board <board.json>]`: names stretches without editing `segs.json` (A3).
+- `cuts.mjs <workDir> <cuts.json> [--dry]`: replaces the splitter's stretches of a video with cut points checked by eye (A2b).
