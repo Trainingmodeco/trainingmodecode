@@ -1,6 +1,6 @@
 {
  "voice": "male",
- "version": 24,
+ "version": 26,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -23593,6 +23593,438 @@
   "cone angle drill": {
    "file": "cone_angle_drill.mp3",
    "ms": 1104
+  },
+  "barbell floor press": {
+   "file": "barbell_floor_press.mp3",
+   "ms": 1536
+  },
+  "cat stretch push ups": {
+   "file": "cat_stretch_push_ups.mp3",
+   "ms": 1512
+  },
+  "chest bench dips": {
+   "file": "chest_bench_dips.mp3",
+   "ms": 1536
+  },
+  "iron cross push ups": {
+   "file": "iron_cross_push_ups.mp3",
+   "ms": 1536
+  },
+  "knuckle push ups": {
+   "file": "knuckle_push_ups.mp3",
+   "ms": 1224
+  },
+  "one arm dumbbell bench press": {
+   "file": "one_arm_dumbbell_bench_press.mp3",
+   "ms": 2160
+  },
+  "parallel bar chest dips": {
+   "file": "parallel_bar_chest_dips.mp3",
+   "ms": 1632
+  },
+  "parallel bar push ups": {
+   "file": "parallel_bar_push_ups.mp3",
+   "ms": 1512
+  },
+  "sky touch push ups": {
+   "file": "sky_touch_push_ups.mp3",
+   "ms": 1512
+  },
+  "table touch push ups": {
+   "file": "table_touch_push_ups.mp3",
+   "ms": 1488
+  },
+  "uneven one arm push ups": {
+   "file": "uneven_one_arm_push_ups.mp3",
+   "ms": 1824
+  },
+  "uneven push ups": {
+   "file": "uneven_push_ups.mp3",
+   "ms": 1200
+  },
+  "alternating arm dead hangs": {
+   "file": "alternating_arm_dead_hangs.mp3",
+   "ms": 1896
+  },
+  "archer over pull ups": {
+   "file": "archer_over_pull_ups.mp3",
+   "ms": 1584
+  },
+  "around the world chin ups": {
+   "file": "around_the_world_chin_ups.mp3",
+   "ms": 1944
+  },
+  "close grip cable rows": {
+   "file": "close_grip_cable_rows.mp3",
+   "ms": 1560
+  },
+  "close grip inverted rows": {
+   "file": "close_grip_inverted_rows.mp3",
+   "ms": 1944
+  },
+  "commando pull ups": {
+   "file": "commando_pull_ups.mp3",
+   "ms": 1416
+  },
+  "dumbbell hanging rows": {
+   "file": "dumbbell_hanging_rows.mp3",
+   "ms": 1464
+  },
+  "half archer pull ups": {
+   "file": "half_archer_pull_ups.mp3",
+   "ms": 1584
+  },
+  "hanging leg pull ups": {
+   "file": "hanging_leg_pull_ups.mp3",
+   "ms": 1512
+  },
+  "kettlebell alternating bent over rows": {
+   "file": "kettlebell_alternating_bent_over_rows.mp3",
+   "ms": 2544
+  },
+  "neck bridge": {
+   "file": "neck_bridge.mp3",
+   "ms": 936
+  },
+  "prone neck extension": {
+   "file": "prone_neck_extension.mp3",
+   "ms": 1512
+  },
+  "pull ups with weight between legs": {
+   "file": "pull_ups_with_weight_between_legs.mp3",
+   "ms": 2136
+  },
+  "seated cable rows": {
+   "file": "seated_cable_rows.mp3",
+   "ms": 1584
+  },
+  "seated wide cable rows": {
+   "file": "seated_wide_cable_rows.mp3",
+   "ms": 1944
+  },
+  "side lying neck raises": {
+   "file": "side_lying_neck_raises.mp3",
+   "ms": 2160
+  },
+  "straight arm pulldowns": {
+   "file": "straight_arm_pulldowns.mp3",
+   "ms": 2688
+  },
+  "wide inverted rows": {
+   "file": "wide_inverted_rows.mp3",
+   "ms": 1920
+  },
+  "wide to narrow pull ups": {
+   "file": "wide_to_narrow_pull_ups.mp3",
+   "ms": 1512
+  },
+  "wrist grip single arm pull ups": {
+   "file": "wrist_grip_single_arm_pull_ups.mp3",
+   "ms": 2064
+  },
+  "decline pike push ups": {
+   "file": "decline_pike_push_ups.mp3",
+   "ms": 1752
+  },
+  "dolphin push ups": {
+   "file": "dolphin_push_ups.mp3",
+   "ms": 1320
+  },
+  "maltese push ups": {
+   "file": "maltese_push_ups.mp3",
+   "ms": 1416
+  },
+  "barbell close grip curls": {
+   "file": "barbell_close_grip_curls.mp3",
+   "ms": 1872
+  },
+  "barbell wide curls": {
+   "file": "barbell_wide_curls.mp3",
+   "ms": 1560
+  },
+  "kettlebell hammer curls": {
+   "file": "kettlebell_hammer_curls.mp3",
+   "ms": 1728
+  },
+  "decline diamond push ups": {
+   "file": "decline_diamond_push_ups.mp3",
+   "ms": 2040
+  },
+  "deep tricep extensions off bench": {
+   "file": "deep_tricep_extensions_off_bench.mp3",
+   "ms": 2904
+  },
+  "elevated bench dip to tricep extension": {
+   "file": "elevated_bench_dip_to_tricep_extension.mp3",
+   "ms": 3072
+  },
+  "explosive tricep extensions": {
+   "file": "explosive_tricep_extensions.mp3",
+   "ms": 2232
+  },
+  "hanging bench dips": {
+   "file": "hanging_bench_dips.mp3",
+   "ms": 1368
+  },
+  "incline deep lean tricep push ups": {
+   "file": "incline_deep_lean_tricep_push_ups.mp3",
+   "ms": 2544
+  },
+  "single arm bench dips": {
+   "file": "single_arm_bench_dips.mp3",
+   "ms": 1704
+  },
+  "tricep bench walk outs to tiger push ups": {
+   "file": "tricep_bench_walk_outs_to_tiger_push_ups.mp3",
+   "ms": 3024
+  },
+  "battle rope transversal slams": {
+   "file": "battle_rope_transversal_slams.mp3",
+   "ms": 2544
+  },
+  "cross leg sit ups": {
+   "file": "cross_leg_sit_ups.mp3",
+   "ms": 1392
+  },
+  "heel touches": {
+   "file": "heel_touches.mp3",
+   "ms": 1056
+  },
+  "kettlebell around the legs": {
+   "file": "kettlebell_around_the_legs.mp3",
+   "ms": 1824
+  },
+  "kettlebell around the world and leg": {
+   "file": "kettlebell_around_the_world_and_leg.mp3",
+   "ms": 2376
+  },
+  "kettlebell halos to transverse swings": {
+   "file": "kettlebell_halos_to_transverse_swings.mp3",
+   "ms": 3000
+  },
+  "lying neck flexion": {
+   "file": "lying_neck_flexion.mp3",
+   "ms": 1704
+  },
+  "plank side tucks": {
+   "file": "plank_side_tucks.mp3",
+   "ms": 1296
+  },
+  "seated ab windshield wipers": {
+   "file": "seated_ab_windshield_wipers.mp3",
+   "ms": 2304
+  },
+  "side ab crunches": {
+   "file": "side_ab_crunches.mp3",
+   "ms": 1824
+  },
+  "straight leg ab circles": {
+   "file": "straight_leg_ab_circles.mp3",
+   "ms": 1728
+  },
+  "vertical leg crunches": {
+   "file": "vertical_leg_crunches.mp3",
+   "ms": 1680
+  },
+  "alternating kettlebell swing to squat": {
+   "file": "alternating_kettlebell_swing_to_squat.mp3",
+   "ms": 3360
+  },
+  "barbell cross arm front squats": {
+   "file": "barbell_cross_arm_front_squats.mp3",
+   "ms": 2184
+  },
+  "duck walks": {
+   "file": "duck_walks.mp3",
+   "ms": 936
+  },
+  "dumbbell alternating back lunges": {
+   "file": "dumbbell_alternating_back_lunges.mp3",
+   "ms": 2472
+  },
+  "front barbell squats": {
+   "file": "front_barbell_squats.mp3",
+   "ms": 1464
+  },
+  "hack squat machine": {
+   "file": "hack_squat_machine.mp3",
+   "ms": 1632
+  },
+  "jumping jack squats": {
+   "file": "jumping_jack_squats.mp3",
+   "ms": 1464
+  },
+  "kettlebell clean to lunge": {
+   "file": "kettlebell_clean_to_lunge.mp3",
+   "ms": 2784
+  },
+  "kettlebell clean to turn lunge": {
+   "file": "kettlebell_clean_to_turn_lunge.mp3",
+   "ms": 2112
+  },
+  "kettlebell elevator squats": {
+   "file": "kettlebell_elevator_squats.mp3",
+   "ms": 1944
+  },
+  "kettlebell kneel to stand": {
+   "file": "kettlebell_kneel_to_stand.mp3",
+   "ms": 1680
+  },
+  "kettlebell swing narrow to wide squats": {
+   "file": "kettlebell_swing_narrow_to_wide_squats.mp3",
+   "ms": 2856
+  },
+  "kettlebell swing to lateral lunge": {
+   "file": "kettlebell_swing_to_lateral_lunge.mp3",
+   "ms": 2280
+  },
+  "kettlebell swings to jump squat": {
+   "file": "kettlebell_swings_to_jump_squat.mp3",
+   "ms": 2064
+  },
+  "leg press": {
+   "file": "leg_press.mp3",
+   "ms": 864
+  },
+  "narrow regular wide squats": {
+   "file": "narrow_regular_wide_squats.mp3",
+   "ms": 1968
+  },
+  "ninja squats": {
+   "file": "ninja_squats.mp3",
+   "ms": 1248
+  },
+  "overhead squats": {
+   "file": "overhead_squats.mp3",
+   "ms": 1416
+  },
+  "prison squats": {
+   "file": "prison_squats.mp3",
+   "ms": 1104
+  },
+  "side shuffles": {
+   "file": "side_shuffles.mp3",
+   "ms": 1104
+  },
+  "side shuffles to touch downs": {
+   "file": "side_shuffles_to_touch_downs.mp3",
+   "ms": 1824
+  },
+  "squat hold thrust jumps": {
+   "file": "squat_hold_thrust_jumps.mp3",
+   "ms": 2088
+  },
+  "squat to flick kick": {
+   "file": "squat_to_flick_kick.mp3",
+   "ms": 1560
+  },
+  "tippy toe squats": {
+   "file": "tippy_toe_squats.mp3",
+   "ms": 1248
+  },
+  "tiptoe down squats": {
+   "file": "tiptoe_down_squats.mp3",
+   "ms": 1536
+  },
+  "water splash squats": {
+   "file": "water_splash_squats.mp3",
+   "ms": 1728
+  },
+  "wide squats": {
+   "file": "wide_squats.mp3",
+   "ms": 1200
+  },
+  "hamstring barbell extensions": {
+   "file": "hamstring_barbell_extensions.mp3",
+   "ms": 2256
+  },
+  "one arm kettlebell swings around the legs": {
+   "file": "one_arm_kettlebell_swings_around_the_legs.mp3",
+   "ms": 3024
+  },
+  "single side dumbbell deadlifts": {
+   "file": "single_side_dumbbell_deadlifts.mp3",
+   "ms": 2136
+  },
+  "smith machine good mornings": {
+   "file": "smith_machine_good_mornings.mp3",
+   "ms": 2376
+  },
+  "kettlebell kneeling hip thrusts": {
+   "file": "kettlebell_kneeling_hip_thrusts.mp3",
+   "ms": 2544
+  },
+  "barbell cleans": {
+   "file": "barbell_cleans.mp3",
+   "ms": 1392
+  },
+  "barbell snatch negatives": {
+   "file": "barbell_snatch_negatives.mp3",
+   "ms": 1680
+  },
+  "battle rope to slam": {
+   "file": "battle_rope_to_slam.mp3",
+   "ms": 1584
+  },
+  "burpees to side shuffle": {
+   "file": "burpees_to_side_shuffle.mp3",
+   "ms": 1632
+  },
+  "inchworm push ups": {
+   "file": "inchworm_push_ups.mp3",
+   "ms": 1392
+  },
+  "kettlebell clean and press": {
+   "file": "kettlebell_clean_and_press.mp3",
+   "ms": 2208
+  },
+  "kettlebell swing throw catch squat": {
+   "file": "kettlebell_swing_throw_catch_squat.mp3",
+   "ms": 3168
+  },
+  "kettlebell swing to front row": {
+   "file": "kettlebell_swing_to_front_row.mp3",
+   "ms": 2040
+  },
+  "kettlebell swing to punch kick": {
+   "file": "kettlebell_swing_to_punch_kick.mp3",
+   "ms": 2160
+  },
+  "kettlebell swings and side shuffle": {
+   "file": "kettlebell_swings_and_side_shuffle.mp3",
+   "ms": 2304
+  },
+  "star jacks": {
+   "file": "star_jacks.mp3",
+   "ms": 840
+  },
+  "level sit ups": {
+   "file": "level_sit_ups.mp3",
+   "ms": 1128
+  },
+  "typewriter pull ups": {
+   "file": "typewriter_pull_ups.mp3",
+   "ms": 1968
+  },
+  "extended straight arm push ups": {
+   "file": "extended_straight_arm_push_ups.mp3",
+   "ms": 3072
+  },
+  "kettlebell cross arm squats": {
+   "file": "kettlebell_cross_arm_squats.mp3",
+   "ms": 2400
+  },
+  "kettlebell hold static lunges": {
+   "file": "kettlebell_hold_static_lunges.mp3",
+   "ms": 2520
+  },
+  "kettlebell swing to back lunge": {
+   "file": "kettlebell_swing_to_back_lunge.mp3",
+   "ms": 1944
+  },
+  "alternating kettlebell clean and press": {
+   "file": "alternating_kettlebell_clean_and_press.mp3",
+   "ms": 2376
   }
  },
  "count": 1121,
