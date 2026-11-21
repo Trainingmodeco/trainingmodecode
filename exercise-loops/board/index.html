@@ -485,7 +485,7 @@ details.more[data-cut][open] > summary { border-color: var(--line-strong); }
     if (pending(id) && T.twice.get(k) > 1) m.push(nm + ' is queued twice. Both get made, and you choose between them in REVIEW.');
     return m.join(' ');
   }
-  var PILL = { refilm: ['none', 'Needs re-filming'], split: ['mine', 'Needs splitting'],skipped: ['text', 'Skipped'], noname: ['none', 'No name yet'], named: ['stand', 'Named'], queued: ['mine', 'Queued'], generating: ['stand', 'Generating'], review: ['mine', 'Ready to review'], approved: ['ok', 'Approved'], redo: ['mine', 'Redo asked'], rejected: ['text', 'Rejected'], failed: ['none', 'Failed'], done: ['ok', 'Done'] };
+  var PILL = { refilm: ['none', 'Needs re-filming'], split: ['mine', 'Needs splitting'],skipped: ['text', 'Skipped'], noname: ['none', 'No name yet'], named: ['stand', 'Named'], queued: ['mine', 'Queued'], generating: ['stand', 'Generating'], review: ['mine', 'Ready to review'], approved: ['ok', 'Approved'], redo: ['mine', 'Redo asked'], rejected: ['text', 'Rejected'], failed: ['none', 'Failed'], done: ['ok', 'Approved'] };
   var pill = function (st) { return '<span class="pill ' + PILL[st][0] + '">' + PILL[st][1] + '</span>'; };
   function rangeText(s) {
     var a = num(s.start), b = num(s.end), r = num(s.reps);
@@ -675,9 +675,10 @@ details.more[data-cut][open] > summary { border-color: var(--line-strong); }
     return h + '</div></form></div>';
   }
   function reviewCard(id) {
-    var s = S.get(id), c = choice(id), sid = sidOf[id], st = segStatus(id), state = stOf(s), nm = segName(id), busy = sgBusy.has(id), off = busy ? ' disabled' : '', what = nm || 'this unnamed loop', cost = num(s.cost);
+    var s = S.get(id), c = choice(id), sid = sidOf[id], st = segStatus(id), state = stOf(s), own = segName(id), nm = own || (state !== 'failed' ? guessOf(s) : ''), busy = sgBusy.has(id), off = busy ? ' disabled' : '', what = nm || 'this unnamed loop', cost = num(s.cost);
     var h = '<div class="slot sgc rvc" id="sgc-' + sid + '" role="group" aria-label="' + esc(what) + '"><div class="head"><h3 class="nm">' + esc(nm || 'No name yet') + '</h3>' + pill(st) + '</div>';
     h += '<div class="ln muted">' + esc(folderOf(s) + ' · ' + String(s.file || s.clipId || '') + ' · ' + rangeText(s) + (c.hold ? ' · a hold' : '') + (cost != null ? ' · cost ' + count(Math.round(cost * 10) / 10, 'credit', 'credits') : '')) + '</div>';
+    if (nm && !own) h += '<div class="ln muted">Claude\'s name for it. Approve keeps it; you can rename it in RAW FOOTAGE any time.</div>';
     var loop = isAsset(s.loop) && state !== 'failed', pv = tapStage(s, sid, what);
     if (pv || loop) {
       h += '<div class="pair">' + (pv ? '<figure>' + pv + '<figcaption>Your video</figcaption></figure>' : '');
@@ -1480,8 +1481,10 @@ details.more[data-cut][open] > summary { border-color: var(--line-strong); }
     putSeg(id, { verdict: on ? 'redo' : null, queued: true }, on ? nm + ' goes out again with the next Generate.' : 'Retry cancelled.');
   }
   function setVerdict(id, v, note) {
-    var nm = segName(id) || 'the loop', sid = sidOf[id], patch = { verdict: v };
-    if (v === 'approved' && !segName(id)) return;
+    var own = segName(id), guess = guessOf(S.get(id)), nm = own || guess || 'the loop', sid = sidOf[id], patch = { verdict: v };
+    if (v === 'approved' && !own && !guess) return;
+    // No name of yours yet: Claude's name is saved with the answer, so Approve and Redo work without a trip to RAW FOOTAGE.
+    if (!own && guess && (v === 'approved' || v === 'redo')) { patch.name = guess.slice(0, 80); patch.queued = true; }
     if (v === 'redo') { patch.queued = true; patch.note = String(note == null ? choice(id).note || '' : note).trim().slice(0, 300); }
     pin(id);
     // The answered card keeps its place, and "Change my answer" lands where Approve was (and Approve where "Change my answer" was). For a moment after the save, the button that now sits on that spot takes no press, so a double tap cannot undo what the first tap did.
