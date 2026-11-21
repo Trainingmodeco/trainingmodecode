@@ -120,8 +120,8 @@ Ticked "This video shows several workouts" on the board. Not made until each wor
 | Close-Grip Push-Ups | 20230706_100409.mp4 | 0:48 to 1:17 | 8 | 2026-11-19 | factory-loops/close-grip-push-ups.mp4 | - |
 | Commando Pull-Ups | 20230715_144022.mp4 | 0:08 to 0:30 | 4 | 2026-11-21 | factory-loops/commando-pull-ups.mp4 | - |
 | Crab walk Squats | 20230716_142902.mp4 | 0:01 to 0:35 | 4 | 2026-11-21 | factory-loops/crab-walk-squats.mp4 | - |
-| Criss-Legged Crunches | 20250822_111020.mp4 | 1:00 to 1:18 | 4 | 2026-11-21 | factory-loops/criss-legged-crunches.mp4 | Criss legged crunches |
 | Cross Arm Snatch | C0163.MP4 | 1:26 to 1:35 | 7 | 2026-11-20 | factory-loops/cross-arm-snatch.mp4 | Cross kettlebell snatch |
+| Cross Leg Crunches | 20250822_111020.mp4 | 1:00 to 1:18 | 4 | 2026-11-21 | factory-loops/cross-leg-crunches.mp4 | Criss legged crunches |
 | Cross-Leg Sit-Ups | 20250822_111020.mp4 | 1:06 to 1:18 | 4 | 2026-11-20 | factory-loops/cross-leg-sit-ups.mp4 | - |
 | Crunches | 20230706_115321.mp4 | 0:10 to 0:27 | 4 | 2026-11-21 | factory-loops/crunches.mp4 | - |
 | Decline Diamond Push-Ups | 20230716_153811.mp4 | 0:06 to 0:29 | 4 | 2026-11-19 | factory-loops/decline-diamond-push-ups.mp4 | - |

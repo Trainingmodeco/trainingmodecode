@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-21T01:14:48.164Z",
+ "generatedAt": "2026-11-21T01:17:04.377Z",
  "board": "https://claude.ai/artifact/PyNEAD4AtbxzpoFu3S1Wst",
  "summary": {
   "factorySaved": 248,
@@ -1270,25 +1270,6 @@
     "savedAs": "factory-loops/crab-walk-squats.mp4"
    },
    {
-    "segId": "b5e3142d48-w01",
-    "name": "Criss-Legged Crunches",
-    "boardName": "Criss-Legged Crunches",
-    "slug": "criss-legged-crunches",
-    "folder": "various kb home tm fitness workouts",
-    "video": "20250822_111020.mp4",
-    "from": 60.1,
-    "to": 77.6,
-    "cost": 4,
-    "loopAsset": "33180bb02f98898fac067da392c2f547",
-    "posterAsset": "15e98f42522f604245003a934309dced",
-    "verdict": "approved",
-    "entryId": "core_sit_ups_core",
-    "note": "Criss legged crunches",
-    "answeredAt": "2026-11-21T01:08:34.000Z",
-    "loopIsTheOneAnswered": true,
-    "savedAs": "factory-loops/criss-legged-crunches.mp4"
-   },
-   {
     "segId": "0df741850f-02",
     "name": "Cross Arm Snatch",
     "boardName": "Cross Arm Snatch",
@@ -1306,6 +1287,25 @@
     "answeredAt": "2026-11-20T22:28:16.435Z",
     "loopIsTheOneAnswered": true,
     "savedAs": "factory-loops/cross-arm-snatch.mp4"
+   },
+   {
+    "segId": "b5e3142d48-w01",
+    "name": "Cross Leg Crunches",
+    "boardName": "Cross Leg Crunches",
+    "slug": "cross-leg-crunches",
+    "folder": "various kb home tm fitness workouts",
+    "video": "20250822_111020.mp4",
+    "from": 60.1,
+    "to": 77.6,
+    "cost": 4,
+    "loopAsset": "33180bb02f98898fac067da392c2f547",
+    "posterAsset": "15e98f42522f604245003a934309dced",
+    "verdict": "approved",
+    "entryId": "core_sit_ups_core",
+    "note": "Criss legged crunches",
+    "answeredAt": "2026-11-21T01:08:34.000Z",
+    "loopIsTheOneAnswered": true,
+    "savedAs": "factory-loops/cross-leg-crunches.mp4"
    },
    {
     "segId": "b5e3142d48-w04",

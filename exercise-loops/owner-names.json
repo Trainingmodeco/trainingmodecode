@@ -13,7 +13,7 @@
       "e39bbb0d6b-01": "Hamstring Barbell Extension",
       "c1dfff4c8f-03": "Overhead Shoulder Toss",
       "97e01c0e94-w01": "Battle Rope to Slam",
-      "b5e3142d48-w01": "Criss-Legged Crunches",
+      "b5e3142d48-w01": "Cross Leg Crunches",
       "0d04b696ef-01": "Dive Bombers"
     },
     "approveRedo": [
@@ -33,5 +33,10 @@
       "b5e3142d48-w01": "note: \"Criss legged crunches\" (wording kept, hyphen added: check it)",
       "0d04b696ef-01": "note: \"Dive bombers\" on a redo (the owner said every redo is a name change only)"
     }
+  },
+  "laterChange": {
+    "on": "2026-11-21",
+    "said": "change Criss-Legged Crunches to Cross Leg Crunches",
+    "segId": "b5e3142d48-w01"
   }
 }
