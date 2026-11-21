@@ -11,7 +11,7 @@
 // A pair (loop, entry) is applied when the skeptic CONFIRMED it (it is in `confirmed`) or ADDED it. A pair the skeptic rejected is never applied, and a pair the mapper proposed that
 // the skeptic did not mention is not applied either. For each applied entry (never a strike/kick/cardio row, never a "new" entry):
 //   match -> "direct" (the page's needs() then drops it from TO SUBMIT), matchNote -> "", factoryLoops -> the slugs of the loops that show it (factory-loops/<slug>.mp4).
-// An entry that already had a direct library loop keeps it (nothing is changed but factoryLoops is added). The previous match of every changed entry is kept in `wasMatch` so a wrong
+// An entry that already had a direct library loop keeps it (nothing is changed but factoryLoops is added). factoryLoops keeps the slugs it already had and adds the new ones. The previous match of every changed entry is kept in `wasMatch` so a wrong
 // match can be undone. Writes board/board.json (and its copy in board/test/), and prints ONE line of JSON: { pairs, entries, newlyDirect, byKind, needsBefore, needsAfter, skipped }.
 import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath } from 'node:url';
 const argv = process.argv.slice(2); const print = argv.includes('--print'); const pos = argv.filter((a) => !a.startsWith('--'));
@@ -29,7 +29,7 @@ let newlyDirect = 0; const byKind = {}; const changed = [];
 for (const [entryId, ps] of byEntry) {
   const e = byId.get(entryId); const slugs = [...new Set(ps.map((p) => p.slug))].sort(); const was = e.match;
   if (was !== 'direct') { newlyDirect++; byKind[e.kind] = (byKind[e.kind] || 0) + 1; e.wasMatch = was; e.match = 'direct'; e.matchNote = ''; }
-  e.factoryLoops = slugs; changed.push({ id: entryId, name: e.name, kind: e.kind, was, loops: slugs });
+  e.factoryLoops = [...new Set([...(Array.isArray(e.factoryLoops) ? e.factoryLoops : []), ...slugs])].sort(); changed.push({ id: entryId, name: e.name, kind: e.kind, was, loops: e.factoryLoops });
 }
 const needsAfter = board.entries.filter(needs).length;
 const summary = { pairs: pairs.size, entries: byEntry.size, newlyDirect, byKind, needsBefore, needsAfter, skipped: skipped.length };
