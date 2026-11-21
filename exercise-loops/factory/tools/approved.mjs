@@ -28,6 +28,9 @@ const items = rd('items'), segs = rd('segs');
 // Nothing is ever written back to the board's `items` (they are the owner's).
 const ovFile = path.join(root, 'owner-names.json'); let ov = {}; if (fs.existsSync(ovFile)) { try { ov = JSON.parse(fs.readFileSync(ovFile, 'utf8')); } catch { ov = {}; } }
 const ovNames = ov.names && typeof ov.names === 'object' ? ov.names : {}; const ovRedo = new Set(Array.isArray(ov.approveRedo) ? ov.approveRedo : []);
+//   approveSkipReview  stretches the owner said, in chat, not to review ("skip review, I trust you"): a render of the factory's own (state done, set by hand after the
+//                      avatar check passed) counts as approved without an items document; the stretch need not be on the board's queue or review list
+const ovSkip = new Set(Array.isArray(ov.approveSkipReview) ? ov.approveSkipReview : []);
 const board = JSON.parse(fs.readFileSync(path.join(root, 'board', 'board.json'), 'utf8')); const loopsMeta = JSON.parse(fs.readFileSync(path.join(root, 'loops.json'), 'utf8'));
 const metaOf = (slug) => (Array.isArray(loopsMeta) ? loopsMeta.find((l) => l.id === slug || l.slug === slug) : loopsMeta[slug]) || (board.loops && board.loops[slug]) || {};
 const kebab = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -43,12 +46,14 @@ library.sort((a, b) => a.name.localeCompare(b.name));
 
 // ---- loops the factory rendered
 const factory = { approved: [], waiting: [], redo: [], rejected: [], failed: [], making: [] }; let queued = 0;
-for (const [key, o] of Object.entries(items)) {
-  if (!key.startsWith('seg.')) continue; const id = key.slice(4); const s = segs[id] || {}; if (o.queued && !s.loop && !['review', 'done', 'generating', 'failed'].includes(s.state)) queued++;
+// every stretch the owner touched (items/seg.<id>), plus every stretch the factory rendered on its own (no items document yet: footage the owner sent in chat), plus the skip-review list
+const factoryIds = new Set([...Object.keys(items).filter((k) => k.startsWith('seg.')).map((k) => k.slice(4)), ...Object.keys(segs).filter((k) => segs[k].loop || ['review', 'done', 'generating', 'failed'].includes(segs[k].state)), ...ovSkip]);
+for (const id of factoryIds) {
+  const o = items[`seg.${id}`] || {}; const s = segs[id] || {}; if (o.queued && !s.loop && !['review', 'done', 'generating', 'failed'].includes(s.state)) queued++;
   const made = !!s.loop || ['review', 'done', 'generating', 'failed'].includes(s.state); if (!made) continue;
   const nm = (typeof ovNames[id] === 'string' && ovNames[id].trim()) || (o.name && o.name.trim()) || (s.guess && s.guess.name) || ''; const rec = { segId: id, name: nm, boardName: (o.name && o.name.trim()) || (s.guess && s.guess.name) || '', slug: kebab(nm || id), folder: s.folder || null, video: s.file || null, from: o.from ?? s.start ?? null, to: o.to ?? s.end ?? null, cost: s.cost ?? null, loopAsset: s.loop || null, posterAsset: s.poster || null, verdict: o.verdict || null, entryId: o.entryId ?? null, note: o.note || '', answeredAt: o.updatedAt || null, loopIsTheOneAnswered: !o.forLoop || o.forLoop === s.loop };
   if (s.state === 'generating') factory.making.push(rec); else if (s.state === 'failed') factory.failed.push(rec);
-  else if ((o.verdict === 'approved' || (o.verdict === 'redo' && ovRedo.has(id))) && rec.loopIsTheOneAnswered) { if (o.verdict === 'redo') rec.approvedFromRedo = true; factory.approved.push(rec); } else if (o.verdict === 'redo') factory.redo.push(rec); else if (o.verdict === 'rejected') factory.rejected.push(rec); else factory.waiting.push(rec);
+  else if ((o.verdict === 'approved' || (o.verdict === 'redo' && ovRedo.has(id)) || (ovSkip.has(id) && s.state === 'done' && s.loop)) && rec.loopIsTheOneAnswered) { if (o.verdict === 'redo') rec.approvedFromRedo = true; if (ovSkip.has(id) && o.verdict !== 'approved') { rec.approvedBySkippedReview = true; rec.answeredAt = rec.answeredAt || ov.skipReviewSaidOn || null; } factory.approved.push(rec); } else if (o.verdict === 'redo') factory.redo.push(rec); else if (o.verdict === 'rejected') factory.rejected.push(rec); else factory.waiting.push(rec);
 }
 factory.approved.sort((a, b) => a.name.localeCompare(b.name) || a.segId.localeCompare(b.segId));
 const idxFile = path.join(root, 'factory-loops', 'index.json'); const saved = new Map(); if (fs.existsSync(idxFile)) { try { for (const l of JSON.parse(fs.readFileSync(idxFile, 'utf8')).loops || []) saved.set(l.segId, l); } catch { /* an index that cannot be read means nothing is counted as saved */ } }
