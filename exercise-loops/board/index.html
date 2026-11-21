@@ -125,6 +125,15 @@ details.junk > summary { font: 600 13px var(--body); letter-spacing: 0; }
 details.junk > .in { gap: 8px; }
 /* A closed section inside an open one keeps its plus sign. */
 details.more:not([open]) > summary::before { content: '+\00a0'; }
+/* v11: the cut editor has to be easy to find */
+details.more[data-cut] > summary { flex-wrap: wrap; column-gap: 10px; border: 1px solid var(--gold); border-radius: 8px; background: var(--sunk); color: var(--ink); padding: 4px 12px; margin-top: 8px; font: 700 13px var(--display); letter-spacing: .08em; }
+details.more[data-cut] > summary::before, details.more[data-cut][open] > summary::before, details.more[data-cut]:not([open]) > summary::before { content: '\2702\FE0E'; color: var(--gold); font-size: 18px; }
+details.more[data-cut] > summary:hover { border-color: var(--accent); }
+details.more[data-cut][open] > summary { border-color: var(--line-strong); }
+.cutsub { font: 400 12px var(--body); letter-spacing: 0; color: var(--muted); }
+.cuthelp { border: 1px solid var(--gold); border-radius: 8px; background: var(--sunk); padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; max-width: 68ch; }
+.cuthelp .t { font: 700 13px var(--display); letter-spacing: .1em; color: var(--gold); }
+.cuthelp ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 3px; }
 .ed .small:empty { display: none; }
 .ck.off { color: var(--muted); }
 @media (max-width: 560px) { .vgrp { --ch: 570px; } .strip { aspect-ratio: 32 / 9; } .strip.wide img { width: 200%; } .strip.wide .b { display: block; } .strip.wide .b img { margin-left: -100%; } .pair .stage.pvw { height: clamp(160px, 46vw, 240px); } .pair .stage.sq { width: clamp(160px, 46vw, 240px); } }
@@ -204,6 +213,8 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
   // DUP: stretches hidden as duplicates (id -> { of, why }), worked out in tally(); dupOn: whether they are hidden now.
   var DUP = bare(), dupOn = true, DUPMIN = 0.6;
   var keepNew = new Set(), cxStart = null, cxArm = bare(), cxQuiet = 0, issued = new Set();
+  // NEWDAYS: how long a stretch Claude has just added counts as new. topKeep: the stretches that were in the NEW AND TO CUT group when the owner answered them; they stay there until the tab is left, so a card never slides away under a finger.
+  var NEWDAYS = 21, topKeep = new Set();
   var BUSYMSG = 'The queue is still being changed. Try again in a moment.';
   try { var cap0 = parseInt(localStorage.getItem(CAPKEY), 10); if (cap0 >= 10 && cap0 <= 1000) cap = cap0; } catch (x) {}
   var KIND_LABEL = { library: 'Library', quick: 'Quick Mission only', mission: 'Mission move', program: 'Shown in programs, not in the library', 'new': 'New' };
@@ -372,6 +383,8 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
   var failText = function (s) { return s.state === 'failed' ? sentence(s.error || 'no reason given') : 'The loop file is missing.'; };
   // A still stretch Claude saw, as [from, to] in seconds, or null.
   var holdSpan = function (s) { var h = s && s.hold; return Array.isArray(h) && num(h[0]) != null && num(h[1]) != null && h[1] > h[0] ? h : null; };
+  // Claude's note on a stretch it checked by eye and did not render (the footage cannot make a loop: cut off, moved, sideways, too small).
+  var declined = function (s) { return Array.isArray(s && s.warn) && s.warn.some(function (w) { return typeof w === 'string' && /did not render it/.test(w); }); };
   function verdictOf(id) {
     var s = S.get(id) || {}, c = choice(id), v = c.verdict, st = stOf(s);
     if (v !== 'approved' && v !== 'redo' && v !== 'rejected') return null;
@@ -389,11 +402,24 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     if (st === 'failed') return 'failed';
     if (st === 'review' || st === 'done') return v || (st === 'done' ? 'done' : 'review');
     if (c.split) return 'split';
+    // Ticked, named, and Claude looked at the footage and could not make a loop from it ("did not render it" in its notes): it is not in the queue. A cut of your own puts it back.
+    if (c.queued && segName(id) && declined(s) && num(c.from) == null && num(c.to) == null) return 'refilm';
     return !segName(id) ? 'noname' : c.queued ? 'queued' : 'named';
   }
   // What the next Generate sends: ticked and never made, or marked for another try.
   var pending = function (id) { var st = segStatus(id); return (st === 'queued' || st === 'redo') && !!segName(id); };
   var inReview = function (id) { var s = S.get(id) || {}, c = choice(id), st = stOf(s); return !c.skip && (st === 'review' || st === 'done' || st === 'failed') && (!!c.queued || isAsset(s.loop)); };
+  // What the owner should meet first on RAW FOOTAGE: a video parked with "This video shows several workouts" (waiting to be cut), and a stretch Claude has just put on the board (a new scan, or a video it just cut into parts: its "newAt" time stamp) that still waits for the owner to name, tick or skip it. They are listed above the folders, parked ones first, then the newest, and go back into their folder once answered.
+  function isFresh(id) {
+    var s = S.get(id), t;
+    if (!s) return false;
+    if (segStatus(id) === 'split') return true;
+    t = ts(s.newAt);
+    if (!t || s.kind === 'junk' || s.virtual || Date.now() - t > NEWDAYS * 864e5) return false;
+    t = segStatus(id);
+    return t === 'noname' || t === 'named';
+  }
+  var inTop = function (id) { return isFresh(id) || topKeep.has(id); };
   // A guess Claude is fairly sure of, on an exercise stretch nobody has named or typed over: what "Accept Claude's names" takes.
   function sureGuess(id) {
     var s = S.get(id) || {}, g = guessOf(s), d = sgDraft[id];
@@ -424,10 +450,11 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
         out[id] = libHas ? { of: null, why: 'the library already has a loop of ' + g.name } : { of: keeper, why: 'another stretch of ' + g.name + ' is already the one to make' };
       });
     });
+    Object.keys(out).forEach(function (id) { if (inTop(id)) delete out[id]; });
     DUP = out;
   }
   function tally() {
-    var t = { videos: 0, ex: 0, named: 0, todo: 0, wait: 0, making: 0, dups: 0, pend: [], open: [], guess: [], folders: [], looped: new Map(), twice: new Map() }, clips = new Set(), fs = new Set();
+    var t = { videos: 0, ex: 0, named: 0, todo: 0, wait: 0, making: 0, dups: 0, fresh: 0, refilm: 0, pend: [], open: [], guess: [], folders: [], looped: new Map(), twice: new Map() }, clips = new Set(), fs = new Set();
     if (!D) return t;
     dupScan();
     LOOPED.forEach(function (k) { t.looped.set(k, ''); });
@@ -437,11 +464,13 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
       var st = segStatus(id), nm = lower(segName(id)), ex = isEx(id);
       clips.add(String(s.clipId)); fs.add(folderOf(s));
       if (ex) t.ex++;
+      if (ex && isFresh(id)) t.fresh++;
       if (ex && nm && st !== 'skipped') t.named++;
       if (ex && (st === 'noname' || st === 'named')) t.todo++;
       if (st === 'named') t.open.push(id);
       if (st === 'noname' && sureGuess(id)) t.guess.push(id);
       if (st === 'generating') t.making++;
+      if (st === 'refilm') t.refilm++;
       if (st === 'review' && inReview(id)) t.wait++;
       if (st === 'approved' && nm && !t.looped.has(nm)) t.looped.set(nm, id);
       if (pending(id)) { t.pend.push(id); t.twice.set(nm, (t.twice.get(nm) || 0) + 1); }
@@ -456,7 +485,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     if (pending(id) && T.twice.get(k) > 1) m.push(nm + ' is queued twice. Both get made, and you choose between them in REVIEW.');
     return m.join(' ');
   }
-  var PILL = { split: ['mine', 'Needs splitting'], skipped: ['text', 'Skipped'], noname: ['none', 'No name yet'], named: ['stand', 'Named'], queued: ['mine', 'Queued'], generating: ['stand', 'Generating'], review: ['mine', 'Ready to review'], approved: ['ok', 'Approved'], redo: ['mine', 'Redo asked'], rejected: ['text', 'Rejected'], failed: ['none', 'Failed'], done: ['ok', 'Done'] };
+  var PILL = { refilm: ['none', 'Needs re-filming'], split: ['mine', 'Needs splitting'],skipped: ['text', 'Skipped'], noname: ['none', 'No name yet'], named: ['stand', 'Named'], queued: ['mine', 'Queued'], generating: ['stand', 'Generating'], review: ['mine', 'Ready to review'], approved: ['ok', 'Approved'], redo: ['mine', 'Redo asked'], rejected: ['text', 'Rejected'], failed: ['none', 'Failed'], done: ['ok', 'Done'] };
   var pill = function (st) { return '<span class="pill ' + PILL[st][0] + '">' + PILL[st][1] + '</span>'; };
   function rangeText(s) {
     var a = num(s.start), b = num(s.end), r = num(s.reps);
@@ -614,22 +643,23 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     if (st === 'skipped') return '<div class="slot sgc skipped" id="sgc-' + sid + '" role="group" aria-label="' + esc(what) + '"><div class="ln"><b>' + esc(nm || g || 'Unnamed stretch') + '</b><span class="nt">' + esc(rangeText(s)) + '</span></div>' + pill(st) + (can ? '<button type="button" class="chip" data-sg="skip" data-id="' + sid + '" aria-pressed="true" aria-label="Skip ' + esc(what) + '"' + off + '>Skip</button>' : '') + err + '</div>';
     var h = '<div class="slot sgc" id="sgc-' + sid + '" role="group" aria-label="' + esc(what) + '">';
     if (isAsset(s.strip)) h += '<div class="strip" data-keep="st' + esc(s.strip) + '" data-ar="' + sid + '"><div class="fr"><span><img loading="lazy" decoding="async" alt="Eight frames from this stretch" src="/_blob/' + esc(s.strip) + '"></span><span class="b" aria-hidden="true"><img loading="lazy" decoding="async" alt="" src="/_blob/' + esc(s.strip) + '"></span></div></div>';
-    h += '<div class="sgrow">' + tapStage(s, sid, what) + '<div class="body"><div class="head"><span class="ln tm">' + esc(rangeText(s)) + '</span>' + (ex ? pill(st) : '<span class="pill text">No exercise</span>') + '</div>';
+    h += '<div class="sgrow">' + tapStage(s, sid, what) + '<div class="body"><div class="head"><span class="ln tm">' + esc(rangeText(s)) + '</span>' + (ex ? (isFresh(id) && st !== 'split' ? '<span><span class="pill ok">New</span> ' + pill(st) + '</span>' : pill(st)) : '<span class="pill text">No exercise</span>') + '</div>';
     h += '<div class="ln">' + esc(s.added ? 'You added this stretch. Name it, then tick Make this loop.' : guessText(s)) + '</div>' + splitNotes(s, c, s.kind === 'junk');
     if (num(c.from) != null || num(c.to) != null) { var ca = num(c.from) != null ? c.from : num(s.start), cb = num(c.to) != null ? c.to : num(s.end); h += '<div class="ln muted">Your cut: ' + (ca != null ? clock1(ca) : 'the start') + ' to ' + (cb != null ? clock1(cb) : 'the end') + '</div>'; }
     if (state === 'failed') h += '<div class="ln none">It failed: ' + esc(failText(s)) + '</div>';
     var warn = dupNote(id); if (warn) h += '<div class="ln warnnote">' + esc(warn) + '</div>';
+    if (st === 'refilm') h += '<div class="ln none">Claude could not make a loop from this footage (the heads up below says why). It is not in the queue. Film it again, or cut a better stretch.</div>';
     if (DUP[id]) { var kp = DUP[id].of && S.get(DUP[id].of); h += '<div class="ln warnnote">Duplicate: ' + esc(DUP[id].why) + (kp ? ' (' + String(kp.file || '') + ', ' + clock(num(kp.start) || 0) + ')' : '') + '.</div>'; }
     h += warnLines(s) + '</div></div>';
     if (!can) return h + (nm ? '<div class="ln">Name: <b>' + esc(nm) + '</b></div>' : '') + (c.note ? '<div class="ln muted">Note: ' + esc(c.note) + '</div>' : '') + '</div>';
-    var f = fields(id), typed = !!f.name.trim(), hs = holdSpan(s), openCut = cutOpen[id] != null ? cutOpen[id] : !!(f.from || f.to || f.note || (c.hold && !hs));
+    var f = fields(id), typed = !!f.name.trim(), hs = holdSpan(s), openCut = cutOpen[id] != null ? cutOpen[id] : !!(f.from || f.to || f.note || (c.hold && !hs) || (c.split && proxyOf(s)));
     var ph = function (v) { return num(v) != null ? String(Math.round(v * 10) / 10) : ''; };
     // Once a loop is being made or has been made, the hold choice is locked until a redo is asked for.
     var held = state === 'generating' || ((state === 'review' || state === 'done') && st !== 'redo');
     var splitBox = '<label class="ck" for="sg-split-' + sid + '"><input type="checkbox" id="sg-split-' + sid + '" data-sgsplit="' + sid + '"' + (c.split ? ' checked' : '') + (busy || held ? ' disabled' : '') + '>This video shows several workouts</label>' + (c.split ? '<span class="small muted">Parked: it is not made as a loop until it is cut into one stretch per workout (Watch and cut below, or ask your PC session to re-split it).</span>' : '');
     var holdBox = '<label class="ck" for="sg-hold-' + sid + '"><input type="checkbox" id="sg-hold-' + sid + '" data-sghold="' + sid + '"' + (c.hold ? ' checked' : '') + (busy || held ? ' disabled' : '') + '>This is a hold</label>' + (held ? '<span class="small muted">To change this, ask for a redo first.</span>' : '');
     h += '<form class="ed" data-sgform="' + sid + '" novalidate><label for="sg-name-' + sid + '">' + (ex ? 'Name of this exercise' : 'Name it to turn it into an exercise') + '</label><input id="sg-name-' + sid + '" list="ex-names" maxlength="80" autocomplete="off" value="' + esc(f.name) + '"><span class="small muted" id="sg-hint-' + sid + '">' + esc(hintText(f.name, s)) + '</span>' + splitBox + (hs ? holdBox : '');
-    h += '<details class="more" data-cut="' + sid + '"' + (openCut ? ' open' : '') + '><summary data-cutsum="' + sid + '">CUT THE VIDEO OR ADD A NOTE</summary><div class="in">' + cutBox(id, s, sid, c) + '<div class="two"><div><label for="sg-from-' + sid + '">Start at second</label><input id="sg-from-' + sid + '" type="text" inputmode="decimal" maxlength="12" autocomplete="off" placeholder="' + esc(ph(s.start)) + '" value="' + esc(f.from) + '"></div><div><label for="sg-to-' + sid + '">End at second</label><input id="sg-to-' + sid + '" type="text" inputmode="decimal" maxlength="12" autocomplete="off" placeholder="' + esc(ph(s.end)) + '" value="' + esc(f.to) + '"></div></div>';
+    h += '<details class="more" data-cut="' + sid + '"' + (openCut ? ' open' : '') + '><summary data-cutsum="' + sid + '">CUT THIS VIDEO<span class="cutsub">watch it, move the start and end, split it · or add a note</span></summary><div class="in">' + cutBox(id, s, sid, c) + '<div class="two"><div><label for="sg-from-' + sid + '">Start at second</label><input id="sg-from-' + sid + '" type="text" inputmode="decimal" maxlength="12" autocomplete="off" placeholder="' + esc(ph(s.start)) + '" value="' + esc(f.from) + '"></div><div><label for="sg-to-' + sid + '">End at second</label><input id="sg-to-' + sid + '" type="text" inputmode="decimal" maxlength="12" autocomplete="off" placeholder="' + esc(ph(s.end)) + '" value="' + esc(f.to) + '"></div></div>';
     h += '<label for="sg-note-' + sid + '">Note for Claude</label><input id="sg-note-' + sid + '" maxlength="300" autocomplete="off" placeholder="e.g. use the second rep" value="' + esc(f.note) + '">' + (hs ? '' : holdBox + '<span class="small muted">For a plank, a wall sit or a hang. Claude makes it as a still hold loop.</span>') + '</div></details>' + err;
     // Save stays pressable while a save is on its way: a second press sends what was typed since.
     h += '<div class="acts"><button type="submit" class="btn primary" data-sgsave="' + sid + '">' + (busy ? 'Saving…' : 'Save name') + '</button>';
@@ -674,7 +704,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     if (rfolder !== 'all' && folderOf(s) !== rfolder) return false;
     if (!matchQ(segName(id) + ' ' + ((s.guess && s.guess.name) || ''), (s.file || '') + ' ' + (s.folder || ''))) return false;
     if (rshow === 'all' || keep.has(id)) return true;
-    return rshow === 'name' ? isEx(id) && st === 'noname' : rshow === 'queued' ? pending(id) : rshow === 'split' ? st === 'split' : st === 'skipped';
+    return rshow === 'name' ? isEx(id) && st === 'noname' : rshow === 'queued' ? pending(id) : rshow === 'split' ? st === 'split' : rshow === 'refilm' ? st === 'refilm' : st === 'skipped';
   }
   // The two footage tabs are drawn as a frame (headings and groups) with a slot per card. The cards' own text is kept apart in "want", so a redraw can leave alone every card that has not changed.
   var want = null;
@@ -684,7 +714,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     if (!segSynced) return '<p class="muted">' + (slow ? 'Could not reach your footage yet. Check your connection.' : 'Loading your footage…') + '</p>';
     if (!S.size) return '<p class="muted">No footage scanned yet. Put your videos in the raw footage folder, one folder per type of exercise, then tell Claude: scan the raw footage.</p>';
     var nd = Object.keys(DUP).length;
-    var folders = new Map(), h = (nd ? '<p class="small muted">' + count(nd, 'stretch', 'stretches') + (dupOn ? ' that repeat an exercise already made or already chosen are hidden.' : ' that repeat an exercise already made or already chosen are shown below, marked Duplicate.') + ' <button type="button" class="chip" data-dup="toggle" aria-pressed="' + (!dupOn) + '">' + (dupOn ? 'Show them' : 'Hide them') + '</button></p>' : '') + (canEdit() ? '<p class="small muted">Claude cuts every video into stretches on its own: the auto cut. To change one, open CUT THE VIDEO on its card and press Watch and cut: move the start and end, split it in two, or add a stretch Claude missed.</p>' : '');
+    var folders = new Map(), h = (nd ? '<p class="small muted">' + count(nd, 'stretch', 'stretches') + (dupOn ? ' that repeat an exercise already made or already chosen are hidden.' : ' that repeat an exercise already made or already chosen are shown below, marked Duplicate.') + ' <button type="button" class="chip" data-dup="toggle" aria-pressed="' + (!dupOn) + '">' + (dupOn ? 'Show them' : 'Hide them') + '</button></p>' : '') + (canEdit() ? '<div class="cuthelp"><b class="t">✂︎ WHERE TO CUT A VIDEO</b><ol class="small"><li>Find the video below: type its file name or the exercise in <b>Search footage</b>, or pick its folder.</li><li>On its card, press the gold <b>✂︎ CUT THIS VIDEO</b> bar (under the name box).</li><li>The whole video opens. Press play, drag the two handles (or press <b>Start here</b> and <b>End here</b> at the play mark), then <b>Save cut</b>.</li><li><b>Split here</b> cuts a stretch in two. <b>Add a stretch here</b> adds one Claude missed. <b>Auto cut</b> goes back to Claude\'s cut.</li></ol></div>' : '');
     S.forEach(function (s, id) {
       var f = folderOf(s), cid = String(s.clipId || id);
       if (!folders.has(f)) folders.set(f, new Map());
@@ -692,11 +722,26 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
       folders.get(f).get(cid).segs.push(id);
     });
     var order = function (id) { var s = S.get(id); return num(s.start) != null ? s.start : num(s.idx) || 0; };
+    // New and waiting to be cut: listed first, and left out of the folders below so no card shows twice.
+    var top = bare(), tops = new Map(), nTop = 0;
+    S.forEach(function (s, id) {
+      if (!inTop(id) || !isEx(id) || !segShown(id)) return;
+      var cid = String(s.clipId || id), g = tops.get(cid);
+      if (!g) tops.set(cid, g = { id: cid, file: String(s.file || cid), folder: folderOf(s), dur: num(s.clipDur), segs: [], cut: 0, at: 0 });
+      top[id] = 1; nTop++; g.segs.push(id); if (segStatus(id) === 'split') g.cut = 1; g.at = Math.max(g.at, ts(s.newAt));
+    });
+    if (nTop) {
+      h += '<h2 class="grp">NEW AND TO CUT · ' + nTop + '</h2><p class="small muted">Videos you parked to be cut, and stretches Claude has just added or cut. They stay here until you name, tick or skip them, then they go back into their folder.</p>';
+      Array.from(tops.values()).sort(function (a, b) { return (b.cut - a.cut) || (b.at - a.at) || a.file.localeCompare(b.file) || a.id.localeCompare(b.id); }).forEach(function (cl) {
+        var n = 0; cl.segs.sort(function (a, b) { return order(a) - order(b); }).forEach(function (id) { n += choice(id).skip ? 0.13 : 1; });
+        h += '<section class="vgrp" data-k="' + esc('~new~/' + cl.id) + '" data-folder="' + esc(cl.folder) + '" data-clip="' + esc(cl.id) + '" style="--n:' + Math.round(n * 100) / 100 + ';--j:0"><h3 class="vid">' + esc(cl.file) + ' <span>· ' + esc(cl.folder) + (cl.dur != null ? ' · ' + clock(cl.dur) + ' long' : '') + '</span></h3>' + cl.segs.map(slot).join('') + '</section>';
+      });
+    }
     Array.from(folders.keys()).sort(function (a, b) { return a.localeCompare(b); }).forEach(function (f) {
       var part = '', vids = 0;
       Array.from(folders.get(f).values()).sort(function (a, b) { return a.file.localeCompare(b.file) || a.id.localeCompare(b.id); }).forEach(function (cl) {
         var exs = [], junk = [], n = 0, holds = 0;
-        cl.segs.sort(function (a, b) { return order(a) - order(b); }).forEach(function (id) { if (segShown(id)) (isEx(id) ? exs : junk).push(id); });
+        cl.segs.sort(function (a, b) { return order(a) - order(b); }).forEach(function (id) { if (!top[id] && segShown(id)) (isEx(id) ? exs : junk).push(id); });
         if (rshow !== 'all') junk = [];
         if (!exs.length && !junk.length) return;
         vids++;
@@ -728,6 +773,8 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
       groups[real][2]++;
       groups[has(rvKeep, id) ? rvKeep[id][0] : real][1].push(id);
     });
+    var recent = function (a, b) { return ts((S.get(b) || {}).updatedAt) - ts((S.get(a) || {}).updatedAt) || (a < b ? -1 : 1); };
+    groups[0][1].sort(recent); groups[1][1].sort(recent);
     groups[2][1].sort(function (a, b) { return rk(a) - rk(b); });
     if (T && T.making) h += '<p class="small muted">Claude is making ' + T.making + ' now. ' + (T.making === 1 ? 'It shows' : 'They show') + ' up here when ready.</p>';
     if (redo) h += '<p class="small muted">' + count(redo, 'loop is', 'loops are') + ' marked for another try. Press Generate on the RAW FOOTAGE tab to send ' + (redo === 1 ? 'it' : 'them') + '.</p>';
@@ -759,7 +806,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
   }
   function genUpdate() {
     var t = T || tally(), n = t.pend.length, can = canEdit(), el, at = function (word) { return word + '… ' + bulkAt + ' of ' + bulkN; };
-    if ((el = $('raw-sum'))) el.innerHTML = '<b>' + t.videos + '</b> ' + (t.videos === 1 ? 'video' : 'videos') + ' · <b>' + t.ex + '</b> ' + (t.ex === 1 ? 'exercise' : 'exercises') + ' found · <b>' + t.named + '</b> named · <b>' + n + '</b> queued · about <b>' + n * EST + '</b> credits';
+    if ((el = $('raw-sum'))) el.innerHTML = '<b>' + t.videos + '</b> ' + (t.videos === 1 ? 'video' : 'videos') + ' · <b>' + t.ex + '</b> ' + (t.ex === 1 ? 'exercise' : 'exercises') + ' found · <b>' + t.named + '</b> named · <b>' + n + '</b> queued · about <b>' + n * EST + '</b> credits' + (t.refilm ? ' · <b>' + t.refilm + '</b> to re-film' : '');
     if ((el = $('gen-go'))) { el.textContent = genBusy === 'go' ? 'Sending…' : 'Generate ' + count(n, 'loop', 'loops'); el.disabled = !n || !!genBusy || !can; }
     // Shown once there is a guess to accept, then kept in place (off) for the rest of the visit so no other button slides under a finger.
     if ((el = $('gen-acc'))) { if (t.guess.length) accSeen = true; el.hidden = !accSeen; el.textContent = genBusy === 'acc' ? at('Naming') : 'Accept Claude\'s names (' + t.guess.length + ')'; el.disabled = !t.guess.length || !!genBusy || !can; }
@@ -848,7 +895,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
       h += '<label>Muscle <select id="f-group"><option value="all">All</option>' + D.groups.map(function (g) { return '<option' + (g === group ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('') + '</select></label>';
     } else if (tab === 'raw' && S.size) {
       h += genHtml();
-      h += '<div class="seg" role="group" aria-label="Show">' + [['all', 'ALL'], ['name', 'NEED A NAME'], ['queued', 'QUEUED'], ['split', 'NEEDS SPLITTING'], ['skipped', 'SKIPPED']].map(function (s) { return '<button type="button" data-rshow="' + s[0] + '" aria-pressed="' + (rshow === s[0]) + '">' + s[1] + '</button>'; }).join('') + '</div>';
+      h += '<div class="seg" role="group" aria-label="Show">' + [['all', 'ALL'], ['name', 'NEED A NAME'], ['queued', 'QUEUED'], ['split', 'NEEDS SPLITTING'], ['refilm', 'RE-FILM'], ['skipped', 'SKIPPED']].map(function (s) { return '<button type="button" data-rshow="' + s[0] + '" aria-pressed="' + (rshow === s[0]) + '">' + s[1] + '</button>'; }).join('') + '</div>';
       h += '<div class="frow"><label class="sr" for="f-folder">Folder</label><select id="f-folder"><option value="all">All folders</option>' + (T || tally()).folders.map(function (f) { return '<option value="' + esc(f) + '"' + (f === rfolder ? ' selected' : '') + '>' + esc(f) + '</option>'; }).join('') + '</select><label class="sr" for="f-q">Search</label><input type="search" id="f-q" placeholder="Search footage" autocomplete="off"></div>';
     }
     return h;
@@ -904,7 +951,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
       : db && !synced ? (slow ? 'Could not reach your saved videos yet. What you see may be out of date, so editing is off for now.' : 'Loading your saved videos…')
       : db ? 'Saves as you go. When you are done, tell Claude: apply the loop board.'
       : known ? 'View only here. Open this page in Claude, signed in, to send videos or rename loops.' : 'Opening the board…';
-    var html = '<span class="sum"><b>' + todo + '</b> to do · <b>' + up + '</b> sent · <b>' + made + '</b> loops · <b>' + newN + '</b> new exercises</span><span class="small muted">' + esc(msg) + '</span>';
+    var html = '<span class="sum"><b>' + todo + '</b> to do · <b>' + up + '</b> sent · <b>' + made + '</b> loops · <b>' + newN + '</b> new exercises</span><span class="small muted">' + esc(msg) + '</span>' + (T && T.fresh && tab !== 'raw' ? '<span class="small"><b>' + T.fresh + '</b> new or waiting to be cut. <button type="button" class="chip" data-gotab="raw">Show them in RAW FOOTAGE</button></span>' : '') + (db ? '<span class="small"><b>✂︎ To cut a video:</b> open the RAW FOOTAGE tab and press the gold <b>CUT THIS VIDEO</b> bar on its card.' + (tab !== 'raw' ? ' <button type="button" class="chip" data-gotab="raw">Take me there</button>' : '') + '</span>' : '');
     if ($('state').innerHTML !== html) $('state').innerHTML = html;
   }
   // Where the focus is, as a selector that finds the same control again after a redraw. Every control without an id carries a data attribute of its own for this.
@@ -925,7 +972,8 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
   function drawTabs() {
     var t = T || tally();
     var counts = { submit: D.entries.filter(function (e) { return wanted(e) && !submitted(e); }).length, raw: t.todo, review: t.wait, loops: Object.keys(D.loops).length, 'new': Object.keys(D.loops).filter(function (s) { return D.loops[s].isNew; }).length, squats: D.squatLoops.length };
-    var h = TABS.map(function (t) { return '<button type="button" data-tab="' + t[0] + '"' + (t[0] === tab ? ' aria-current="page"' : '') + '>' + t[1] + ' ' + counts[t[0]] + '</button>'; }).join('');
+    var fr = t.fresh || 0;
+    var h = TABS.map(function (t) { return '<button type="button" data-tab="' + t[0] + '"' + (t[0] === tab ? ' aria-current="page"' : '') + '>' + t[1] + ' ' + counts[t[0]] + (t[0] === 'raw' && fr ? ' · ' + fr + ' NEW' : '') + '</button>'; }).join('');
     if (h !== shownTabs) $('tabs').innerHTML = shownTabs = h;
   }
 
@@ -1195,7 +1243,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     var key = sgKey(id), body = segBody(id, patch), prev = E.get(key), f0 = focusDesc();
     var back = function () { var a = document.activeElement; if (a && a !== document.body) return; if (!(focus && focusSel(focus)) && f0) focusSel(f0.sel); };
     // The change shows at once, with the card's buttons held until it has landed. It is taken back if the save fails.
-    sgBusy.add(id); keep.add(id); delete sgErr[id]; genErr = ''; E.set(key, body); renew(id);
+    sgBusy.add(id); keep.add(id); if (isFresh(id)) topKeep.add(id); delete sgErr[id]; genErr = ''; E.set(key, body); renew(id);
     write(function () { return db.doc('items/' + key).set(body); }).then(function () {
       var again = sgAgain[id];
       E.set(key, body); sgBusy.delete(id); delete sgSent[id]; delete sgAgain[id];
@@ -1319,7 +1367,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
   function forget(ids) {
     ids.forEach(function (id) {
       [sgDraft, sgErr, cutOpen, sgSent, sgAgain, cxArm, rvDraft, rvOpen].forEach(function (m) { delete m[id]; });
-      delete cxLoop[String(id).replace(/[^A-Za-z0-9-]/g, '-')]; keep.delete(id); keepNew.delete(id);
+      delete cxLoop[String(id).replace(/[^A-Za-z0-9-]/g, '-')]; keep.delete(id); keepNew.delete(id); topKeep.delete(id);
       if (cutEd === id) cutEd = null;
     });
   }
@@ -1535,15 +1583,16 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
     try { navigator.clipboard.writeText(copyText).then(function () { say('List copied.'); var b = $('copy'); if (b) { b.textContent = 'Copied'; setTimeout(function () { var c = $('copy'); if (c) c.textContent = 'Copy this list'; }, 1600); } }, fallback); } catch (x) { fallback(); }
   }
   function toTop() { var r = $('tabs').getBoundingClientRect(); if (r.top < 0) window.scrollTo(0, window.pageYOffset + r.top - 8); }
-  function go(t) { if (edit && edit.busy) return; if (t === tab) return; qOf[tab] = q; tab = t; q = qOf[t] || ''; group = 'all'; justSaved.clear(); keep.clear(); keepNew.clear(); rvKeep = bare(); accSeen = false; if (t === 'raw') fillNames(); draw(); toTop(); }
+  function go(t) { if (edit && edit.busy) return; if (t === tab) return; qOf[tab] = q; tab = t; q = qOf[t] || ''; group = 'all'; justSaved.clear(); keep.clear(); keepNew.clear(); topKeep.clear(); rvKeep = bare(); accSeen = false; if (t === 'raw') fillNames(); draw(); toTop(); }
 
   // ---- events ----
   $('tabs').addEventListener('click', function (e) { var b = e.target.closest('button[data-tab]'); if (!b || (edit && edit.busy)) return; try { location.hash = b.dataset.tab; } catch (x) {} go(b.dataset.tab); });
+  $('state').addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('button[data-gotab]'); if (!b || (edit && edit.busy)) return; try { location.hash = b.dataset.gotab; } catch (x) {} go(b.dataset.gotab); });
   $('bar').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     if (b.dataset.sort) sort = b.dataset.sort; else if (b.dataset.show) { show = b.dataset.show; justSaved.clear(); }
     else if (b.dataset.kind) kinds[b.dataset.kind] = !(kinds[b.dataset.kind] !== false);
-    else if (b.dataset.rshow) { rshow = b.dataset.rshow; keep.clear(); }
+    else if (b.dataset.rshow) { rshow = b.dataset.rshow; keep.clear(); topKeep.clear(); }
     else if (b.id === 'gen-go') return generate(); else if (b.id === 'gen-all') return queueAll(); else if (b.id === 'gen-acc') return acceptNames(); else if (b.id === 'gen-clear') return clearQueue();
     else if (b.id === 'copy') return copyList(); else return;
     draw();
@@ -1555,7 +1604,7 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
   });
   $('bar').addEventListener('change', function (e) {
     if (e.target.id === 'f-group') { group = e.target.value; draw(); }
-    else if (e.target.id === 'f-folder') { rfolder = e.target.value; keep.clear(); draw(); }
+    else if (e.target.id === 'f-folder') { rfolder = e.target.value; keep.clear(); topKeep.clear(); draw(); }
     else if (e.target.id === 'gen-cap') setCap(e.target.value);
   });
   $('bar').addEventListener('toggle', function (e) { if (e.target.id === 'more') moreOpen = e.target.open; }, true);
@@ -1760,3 +1809,4 @@ details.more:not([open]) > summary::before { content: '+\00a0'; }
   });
 })();
 </script>
+

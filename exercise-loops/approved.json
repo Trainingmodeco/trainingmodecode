@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-21T01:17:04.377Z",
+ "generatedAt": "2026-11-21T01:24:18.556Z",
  "board": "https://claude.ai/artifact/PyNEAD4AtbxzpoFu3S1Wst",
  "summary": {
   "factorySaved": 248,
@@ -17,26 +17,26 @@
   "queueRequest": null,
   "progress": {
    "exercisesTotal": 419,
-   "exact": 29,
-   "close": 13,
+   "exact": 113,
+   "close": 6,
    "new": 16,
-   "withLoop": 58,
-   "percent": 13.8,
-   "exactOrNewPercent": 10.7,
+   "withLoop": 135,
+   "percent": 32.2,
+   "exactOrNewPercent": 30.8,
    "majorityAt": 210,
-   "stillNeededForMajority": 152,
+   "stillNeededForMajority": 75,
    "byKind": {
     "library": {
      "exercises": 231,
-     "withLoop": 25
+     "withLoop": 77
     },
     "quick": {
      "exercises": 17,
-     "withLoop": 4
+     "withLoop": 9
     },
     "mission": {
      "exercises": 95,
-     "withLoop": 9
+     "withLoop": 18
     },
     "new": {
      "exercises": 16,
@@ -44,7 +44,7 @@
     },
     "program": {
      "exercises": 60,
-     "withLoop": 4
+     "withLoop": 15
     }
    }
   }
