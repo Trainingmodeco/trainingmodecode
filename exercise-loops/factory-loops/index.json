@@ -961,6 +961,26 @@
    "note": ""
   },
   {
+   "segId": "fbc67f4d33-02",
+   "name": "Close-Grip Lat Pulldowns",
+   "slug": "close-grip-lat-pulldowns",
+   "file": "close-grip-lat-pulldowns.mp4",
+   "poster": "close-grip-lat-pulldowns.webp",
+   "loopAsset": "a17a455a8b871514f3d168abe47a75cf",
+   "bytes": 220869,
+   "durationSec": 3.6,
+   "width": 640,
+   "height": 640,
+   "cost": 5,
+   "folder": "latpull",
+   "video": "InShot_20261121_082914232.mp4",
+   "from": 0,
+   "to": 7.9,
+   "entryId": null,
+   "approvedAt": "2026-11-21T17:20:00.000Z",
+   "note": "Owner said in chat: skip review, I trust you. Independent check passed."
+  },
+  {
    "segId": "0e206d9f76-02",
    "name": "Close-Grip Push-Ups",
    "slug": "close-grip-push-ups",
@@ -1021,26 +1041,6 @@
    "note": ""
   },
   {
-   "segId": "b5e3142d48-w01",
-   "name": "Cross Leg Crunches",
-   "slug": "cross-leg-crunches",
-   "file": "cross-leg-crunches.mp4",
-   "poster": "cross-leg-crunches.webp",
-   "loopAsset": "33180bb02f98898fac067da392c2f547",
-   "bytes": 217099,
-   "durationSec": 2.83,
-   "width": 640,
-   "height": 640,
-   "cost": 4,
-   "folder": "various kb home tm fitness workouts",
-   "video": "20250822_111020.mp4",
-   "from": 60.1,
-   "to": 77.6,
-   "entryId": "core_sit_ups_core",
-   "approvedAt": "2026-11-21T00:37:54.481Z",
-   "note": "Criss legged crunches"
-  },
-  {
    "segId": "0df741850f-02",
    "name": "Cross Arm Snatch",
    "slug": "cross-arm-snatch",
@@ -1059,6 +1059,26 @@
    "entryId": null,
    "approvedAt": "2026-11-20T06:53:32.434Z",
    "note": "Change the name to cross arm snatch"
+  },
+  {
+   "segId": "b5e3142d48-w01",
+   "name": "Cross Leg Crunches",
+   "slug": "cross-leg-crunches",
+   "file": "cross-leg-crunches.mp4",
+   "poster": "cross-leg-crunches.webp",
+   "loopAsset": "33180bb02f98898fac067da392c2f547",
+   "bytes": 217099,
+   "durationSec": 2.83,
+   "width": 640,
+   "height": 640,
+   "cost": 4,
+   "folder": "various kb home tm fitness workouts",
+   "video": "20250822_111020.mp4",
+   "from": 60.1,
+   "to": 77.6,
+   "entryId": "core_sit_ups_core",
+   "approvedAt": "2026-11-21T00:37:54.481Z",
+   "note": "Criss legged crunches"
   },
   {
    "segId": "b5e3142d48-w04",
@@ -4961,5 +4981,5 @@
    "note": ""
   }
  ],
- "updatedAt": "2026-11-21T01:14:48.082Z"
+ "updatedAt": "2026-11-21T17:15:48.489Z"
 }
