@@ -22,6 +22,12 @@ const dbDir = pos[0]; if (!dbDir) { process.stderr.write('usage: node approved.m
 const root = path.resolve(pos[1] || path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..'));
 const rd = (d) => { const dir = path.join(dbDir, d); if (!fs.existsSync(dir)) return {}; const o = {}; for (const f of fs.readdirSync(dir)) { if (!f.endsWith('.json')) continue; try { const j = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')); o[f.slice(0, -5)] = { ...(j.data && typeof j.data === 'object' ? j.data : j), _version: j.version ?? null }; } catch { /* a file that cannot be read is skipped */ } } return o; };
 const items = rd('items'), segs = rd('segs');
+// The owner's word where the board's own fields cannot carry it: <exerciseLoopsDir>/owner-names.json = { names: { <segId>: "New name" }, approveRedo: [<segId>, ...] }.
+//   names        the name to use for a factory loop (the owner typed it in the stretch's note, or said it, and has not changed the board's name field)
+//   approveRedo  stretches the owner marked "redo" on the board but said (in chat) that only the NAME changes, not the animation: they count as approved
+// Nothing is ever written back to the board's `items` (they are the owner's).
+const ovFile = path.join(root, 'owner-names.json'); let ov = {}; if (fs.existsSync(ovFile)) { try { ov = JSON.parse(fs.readFileSync(ovFile, 'utf8')); } catch { ov = {}; } }
+const ovNames = ov.names && typeof ov.names === 'object' ? ov.names : {}; const ovRedo = new Set(Array.isArray(ov.approveRedo) ? ov.approveRedo : []);
 const board = JSON.parse(fs.readFileSync(path.join(root, 'board', 'board.json'), 'utf8')); const loopsMeta = JSON.parse(fs.readFileSync(path.join(root, 'loops.json'), 'utf8'));
 const metaOf = (slug) => (Array.isArray(loopsMeta) ? loopsMeta.find((l) => l.id === slug || l.slug === slug) : loopsMeta[slug]) || (board.loops && board.loops[slug]) || {};
 const kebab = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -40,13 +46,14 @@ const factory = { approved: [], waiting: [], redo: [], rejected: [], failed: [],
 for (const [key, o] of Object.entries(items)) {
   if (!key.startsWith('seg.')) continue; const id = key.slice(4); const s = segs[id] || {}; if (o.queued && !s.loop && !['review', 'done', 'generating', 'failed'].includes(s.state)) queued++;
   const made = !!s.loop || ['review', 'done', 'generating', 'failed'].includes(s.state); if (!made) continue;
-  const rec = { segId: id, name: (o.name && o.name.trim()) || (s.guess && s.guess.name) || '', slug: kebab((o.name && o.name.trim()) || (s.guess && s.guess.name) || id), folder: s.folder || null, video: s.file || null, from: o.from ?? s.start ?? null, to: o.to ?? s.end ?? null, cost: s.cost ?? null, loopAsset: s.loop || null, posterAsset: s.poster || null, verdict: o.verdict || null, entryId: o.entryId ?? null, note: o.note || '', answeredAt: o.updatedAt || null, loopIsTheOneAnswered: !o.forLoop || o.forLoop === s.loop };
+  const nm = (typeof ovNames[id] === 'string' && ovNames[id].trim()) || (o.name && o.name.trim()) || (s.guess && s.guess.name) || ''; const rec = { segId: id, name: nm, boardName: (o.name && o.name.trim()) || (s.guess && s.guess.name) || '', slug: kebab(nm || id), folder: s.folder || null, video: s.file || null, from: o.from ?? s.start ?? null, to: o.to ?? s.end ?? null, cost: s.cost ?? null, loopAsset: s.loop || null, posterAsset: s.poster || null, verdict: o.verdict || null, entryId: o.entryId ?? null, note: o.note || '', answeredAt: o.updatedAt || null, loopIsTheOneAnswered: !o.forLoop || o.forLoop === s.loop };
   if (s.state === 'generating') factory.making.push(rec); else if (s.state === 'failed') factory.failed.push(rec);
-  else if (o.verdict === 'approved' && rec.loopIsTheOneAnswered) factory.approved.push(rec); else if (o.verdict === 'redo') factory.redo.push(rec); else if (o.verdict === 'rejected') factory.rejected.push(rec); else factory.waiting.push(rec);
+  else if ((o.verdict === 'approved' || (o.verdict === 'redo' && ovRedo.has(id))) && rec.loopIsTheOneAnswered) { if (o.verdict === 'redo') rec.approvedFromRedo = true; factory.approved.push(rec); } else if (o.verdict === 'redo') factory.redo.push(rec); else if (o.verdict === 'rejected') factory.rejected.push(rec); else factory.waiting.push(rec);
 }
 factory.approved.sort((a, b) => a.name.localeCompare(b.name) || a.segId.localeCompare(b.segId));
-{ const seen = {}; for (const r of factory.approved) { const b = r.slug || r.segId; seen[b] = (seen[b] || 0) + 1; r.slug = seen[b] > 1 ? `${b}-${seen[b]}` : b; } }
 const idxFile = path.join(root, 'factory-loops', 'index.json'); const saved = new Map(); if (fs.existsSync(idxFile)) { try { for (const l of JSON.parse(fs.readFileSync(idxFile, 'utf8')).loops || []) saved.set(l.segId, l); } catch { /* an index that cannot be read means nothing is counted as saved */ } }
+{ const used = new Set(); for (const r of factory.approved) { const l = saved.get(r.segId); if (l && l.slug) { r.slug = l.slug; used.add(l.slug); } }
+  for (const r of factory.approved) { if (saved.get(r.segId) && saved.get(r.segId).slug) continue; const b = r.slug || r.segId; let c = b, n = 1; while (used.has(c)) { n++; c = `${b}-${n}`; } r.slug = c; used.add(c); } }
 for (const r of factory.approved) { const l = saved.get(r.segId); r.savedAs = l && fs.existsSync(path.join(root, 'factory-loops', l.file)) ? `factory-loops/${l.file}` : null; }
 if (listOut) fs.writeFileSync(listOut, `${JSON.stringify(factory.approved.filter((r) => r.loopAsset && r.loopIsTheOneAnswered).map((r) => ({ segId: r.segId, name: r.name, slug: r.slug, loop: r.loopAsset, poster: r.posterAsset, cost: r.cost, folder: r.folder, video: r.video, from: r.from, to: r.to, entryId: r.entryId, approvedAt: r.answeredAt, note: r.note })), null, 1)}\n`);
 const cq = items['control.queue'] || null;
