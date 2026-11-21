@@ -40,7 +40,10 @@
     "segId": "b5e3142d48-w01"
   },
   "approveSkipReview": [
-    "fbc67f4d33-02"
+    "fbc67f4d33-02",
+    "e644fda55e-03",
+    "8781ab0be9-02",
+    "8bbf857f9f-01"
   ],
   "skipReviewSaidOn": "2026-11-21",
   "skipReviewSaid": "Five lat pull-down videos: \"Please name, queue, generate, skip review, I trust you.\" A loop counts as approved when its stretch is state done on the board and it passed the independent avatar check."

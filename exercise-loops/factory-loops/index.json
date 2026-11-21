@@ -3061,6 +3061,26 @@
    "note": ""
   },
   {
+   "segId": "8781ab0be9-02",
+   "name": "Lat Pulldowns",
+   "slug": "lat-pulldowns",
+   "file": "lat-pulldowns.mp4",
+   "poster": "lat-pulldowns.webp",
+   "loopAsset": "443202d577667dc3c60824b7a684c9d1",
+   "bytes": 177038,
+   "durationSec": 3.53,
+   "width": 640,
+   "height": 640,
+   "cost": 10,
+   "folder": "latpull",
+   "video": "InShot_20261121_082756011.mp4",
+   "from": 0,
+   "to": 7.9,
+   "entryId": null,
+   "approvedAt": "2026-11-21T17:25:00.000Z",
+   "note": "Owner said in chat: skip review, I trust you. Independent check passed."
+  },
+  {
    "segId": "21c8f6cfad-01",
    "name": "Lateral Lunges",
    "slug": "lateral-lunges",
@@ -3979,6 +3999,26 @@
    "entryId": null,
    "approvedAt": "2026-11-21T00:41:24.431Z",
    "note": ""
+  },
+  {
+   "segId": "8bbf857f9f-01",
+   "name": "Single-Arm Lat Pulldowns",
+   "slug": "single-arm-lat-pulldowns",
+   "file": "single-arm-lat-pulldowns.mp4",
+   "poster": "single-arm-lat-pulldowns.webp",
+   "loopAsset": "569928889ee69c1c81787912268eca07",
+   "bytes": 124333,
+   "durationSec": 2.7,
+   "width": 640,
+   "height": 640,
+   "cost": 8,
+   "folder": "latpull",
+   "video": "InShot_20261121_084813036.mp4",
+   "from": 0,
+   "to": 3.02,
+   "entryId": null,
+   "approvedAt": "2026-11-21T17:25:00.000Z",
+   "note": "Owner said in chat: skip review, I trust you. Independent check passed."
   },
   {
    "segId": "072cebdd21-01",
@@ -4941,6 +4981,26 @@
    "note": ""
   },
   {
+   "segId": "e644fda55e-03",
+   "name": "Wide-Grip Lat Pulldowns",
+   "slug": "wide-grip-lat-pulldowns",
+   "file": "wide-grip-lat-pulldowns.mp4",
+   "poster": "wide-grip-lat-pulldowns.webp",
+   "loopAsset": "17e454b0c83c71184c74bec257abae24",
+   "bytes": 316764,
+   "durationSec": 4.5,
+   "width": 640,
+   "height": 640,
+   "cost": 8,
+   "folder": "latpull",
+   "video": "InShot_20261121_082725502.mp4",
+   "from": 0,
+   "to": 9.78,
+   "entryId": null,
+   "approvedAt": "2026-11-21T17:25:00.000Z",
+   "note": "Owner said in chat: skip review, I trust you. Independent check passed."
+  },
+  {
    "segId": "427c69b0fb-01",
    "name": "Windshield Wipers",
    "slug": "windshield-wipers",
@@ -4981,5 +5041,5 @@
    "note": ""
   }
  ],
- "updatedAt": "2026-11-21T17:15:48.489Z"
+ "updatedAt": "2026-11-21T17:20:26.133Z"
 }
