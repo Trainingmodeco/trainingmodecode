@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-21T00:46:37.882Z",
+ "generatedAt": "2026-11-21T01:09:04.929Z",
  "board": "https://claude.ai/artifact/PyNEAD4AtbxzpoFu3S1Wst",
  "summary": {
   "factorySaved": 243,
@@ -550,7 +550,7 @@
    {
     "segId": "5908fe22e4-02",
     "name": "Around the World Chin-Ups",
-    "boardName": "Alternating Side Pull-Ups",
+    "boardName": "Around the World Chin-Ups",
     "slug": "around-the-world-chin-ups",
     "folder": "idk may be san deigo bodyweight",
     "video": "20230715_144140.mp4",
@@ -559,12 +559,11 @@
     "cost": 4,
     "loopAsset": "b51e8cfaf5920f5518884cebab928ce6",
     "posterAsset": "991d96ab944a82c813d635f8608e56fa",
-    "verdict": "redo",
+    "verdict": "approved",
     "entryId": null,
     "note": "Around the world chin ups",
-    "answeredAt": "2026-11-21T00:38:49.666Z",
+    "answeredAt": "2026-11-21T01:08:34.000Z",
     "loopIsTheOneAnswered": true,
-    "approvedFromRedo": true,
     "savedAs": "factory-loops/around-the-world-chin-ups.mp4"
    },
    {
@@ -760,7 +759,7 @@
    {
     "segId": "97e01c0e94-w01",
     "name": "Battle Rope to Slam",
-    "boardName": "Battle Ropes",
+    "boardName": "Battle Rope to Slam",
     "slug": "battle-rope-to-slam",
     "folder": "various kb home tm fitness workouts",
     "video": "C0165.MP4",
@@ -772,7 +771,7 @@
     "verdict": "approved",
     "entryId": "full_body_battle_ropes_0898",
     "note": "Battle rope to slam",
-    "answeredAt": "2026-11-21T00:23:21.352Z",
+    "answeredAt": "2026-11-21T01:08:34.000Z",
     "loopIsTheOneAnswered": true,
     "savedAs": "factory-loops/battle-rope-to-slam.mp4"
    },
@@ -1235,7 +1234,7 @@
    {
     "segId": "b5e3142d48-w01",
     "name": "Criss-Legged Crunches",
-    "boardName": "Sit-Ups",
+    "boardName": "Criss-Legged Crunches",
     "slug": "criss-legged-crunches",
     "folder": "various kb home tm fitness workouts",
     "video": "20250822_111020.mp4",
@@ -1247,7 +1246,7 @@
     "verdict": "approved",
     "entryId": "core_sit_ups_core",
     "note": "Criss legged crunches",
-    "answeredAt": "2026-11-21T00:37:54.481Z",
+    "answeredAt": "2026-11-21T01:08:34.000Z",
     "loopIsTheOneAnswered": true,
     "savedAs": "factory-loops/criss-legged-crunches.mp4"
    },
@@ -1406,7 +1405,7 @@
    {
     "segId": "0d04b696ef-01",
     "name": "Dive Bombers",
-    "boardName": "Dive Bomber Push-Ups",
+    "boardName": "Dive Bombers",
     "slug": "dive-bombers",
     "folder": "various kb home tm fitness workouts",
     "video": "C0160.MP4",
@@ -1415,12 +1414,11 @@
     "cost": 4,
     "loopAsset": "cbe4be24b4c23bb00ad8ab9d23c44501",
     "posterAsset": "33817ec67b641af2bc1b9f1585f8a3b2",
-    "verdict": "redo",
+    "verdict": "approved",
     "entryId": null,
     "note": "Dive bombers",
-    "answeredAt": "2026-11-21T00:42:49.915Z",
+    "answeredAt": "2026-11-21T01:08:34.000Z",
     "loopIsTheOneAnswered": true,
-    "approvedFromRedo": true,
     "savedAs": "factory-loops/dive-bombers.mp4"
    },
    {
@@ -1806,7 +1804,7 @@
    {
     "segId": "27f1b55145-02",
     "name": "Elevator Kettlebell Swings",
-    "boardName": "Goblet Squats",
+    "boardName": "Elevator Kettlebell Swings",
     "slug": "elevator-kettlebell-swings",
     "folder": "kettlebell",
     "video": "20210621_092405.mp4",
@@ -1815,12 +1813,11 @@
     "cost": 4,
     "loopAsset": "829ee8545381f8db683428c20afd0a79",
     "posterAsset": "1c0bcd4a2f2ad87ded5ed2c875ec07f3",
-    "verdict": "redo",
+    "verdict": "approved",
     "entryId": "quads_goblet_squats_core",
     "note": "Change name to elevator kettlebell swings",
-    "answeredAt": "2026-11-21T00:40:38.315Z",
+    "answeredAt": "2026-11-21T01:08:34.000Z",
     "loopIsTheOneAnswered": true,
-    "approvedFromRedo": true,
     "savedAs": "factory-loops/elevator-kettlebell-swings.mp4"
    },
    {
@@ -2035,7 +2032,7 @@
    {
     "segId": "e39bbb0d6b-01",
     "name": "Hamstring Barbell Extension",
-    "boardName": "Deadlifts",
+    "boardName": "Hamstring Barbell Extension",
     "slug": "hamstring-barbell-extension",
     "folder": "san diego body weight workouts",
     "video": "Deadlift 2.mp4",
@@ -2044,12 +2041,11 @@
     "cost": 4,
     "loopAsset": "d7f075824b027917ba0ac4cd7bf7e190",
     "posterAsset": "8450d505f4c129a1d1b85c7ca9cd7493",
-    "verdict": "redo",
+    "verdict": "approved",
     "entryId": "back_deadlifts_core",
     "note": "Chain's name to hamstring barbell extension",
-    "answeredAt": "2026-11-21T00:39:42.168Z",
+    "answeredAt": "2026-11-21T01:08:34.000Z",
     "loopIsTheOneAnswered": true,
-    "approvedFromRedo": true,
     "savedAs": "factory-loops/hamstring-barbell-extension.mp4"
    },
    {
@@ -2131,7 +2127,7 @@
    {
     "segId": "165c0f67a1-01",
     "name": "High Pull-Ups",
-    "boardName": "Alternating-Grip Pull-Ups",
+    "boardName": "High Pull-Ups",
     "slug": "high-pull-ups",
     "folder": "idk may be san deigo bodyweight",
     "video": "20230715_143559.mp4",
@@ -2140,12 +2136,11 @@
     "cost": 4,
     "loopAsset": "a7cc60a8b2cbbe90ef4bb119a5931c14",
     "posterAsset": "9a84fc57d2d5b6d662f3da0fb88ac0a0",
-    "verdict": "redo",
+    "verdict": "approved",
     "entryId": null,
     "note": "Change. Name to High pull up",
-    "answeredAt": "2026-11-21T00:42:20.361Z",
+    "answeredAt": "2026-11-21T01:08:34.000Z",
     "loopIsTheOneAnswered": true,
-    "approvedFromRedo": true,
     "savedAs": "factory-loops/high-pull-ups.mp4"
    },
    {
@@ -3386,7 +3381,7 @@
    {
     "segId": "c1dfff4c8f-03",
     "name": "Overhead Shoulder Toss",
-    "boardName": "Kettlebell Halos",
+    "boardName": "Overhead Shoulder Toss",
     "slug": "overhead-shoulder-toss",
     "folder": "kettlebell",
     "video": "20211226_214822.mp4",
@@ -3398,7 +3393,7 @@
     "verdict": "approved",
     "entryId": "mission:kb-halo",
     "note": "News to change the name overhead shoulder toss",
-    "answeredAt": "2026-11-21T00:37:40.108Z",
+    "answeredAt": "2026-11-21T01:08:34.000Z",
     "loopIsTheOneAnswered": true,
     "savedAs": "factory-loops/overhead-shoulder-toss.mp4"
    },
