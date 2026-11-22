@@ -254,7 +254,7 @@ export function addCombatConditioningSession(drillsCompleted, totalDrills, round
 }
 
 const XP_START_HERE_LESSON = 20;
-const XP_DAILY_MISSION_BONUS = 25;
+export const XP_DAILY_MISSION_BONUS = 25;
 
 export function addStartHereLesson(lessonTitle) {
   const stats = loadStats();

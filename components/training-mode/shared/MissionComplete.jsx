@@ -7,10 +7,13 @@ import MissionIntegrityBanner from '../MissionIntegrityBanner';
 import CardioFinisherSummaryCard from '../CardioFinisherSummaryCard';
 import { Trophy, ChevronLeft } from 'lucide-react';
 import { loadStats, getStreak, getLevel, getLevelProgress, getWeeklySessions } from '../data/userStats';
-import { getCurrentTier, tierImage } from '../data/tiers';
+import { getCurrentTier, tierImage, sessionMode } from '../data/tiers';
 import { loadProfile } from '../data/userProfile';
 import { BETA_FEEDBACK_FORM_URL, openExternalUrl } from '../data/links';
 import AchievementToast from './AchievementToast';
+import { retentionOn } from '../data/retentionFlags';
+import { takeEndScreenStrip, markEndScreenStrip } from '../data/weekStreakStore';
+import WeekMomentStrip from '../retention/ui/WeekMomentStrip';
 
 // Design 24f — shared Mission Complete screen for every mode. A celebratory
 // medal hero with an animated XP count-up, a mode-tinted headline, a stat
@@ -127,14 +130,23 @@ export default function MissionComplete({
     : partial ? partialBadge : heroImage;
   const displayXp = useCountUp(xp);
 
+  // Retention feature 1 (week streak switch): the one quiet strip in YOUR
+  // PROGRESS when this session filled a training day, completed the week,
+  // earned a freeze or was the daily mission. Worked out once, marked shown.
+  const [weeksOn] = useState(() => retentionOn('weeks'));
+  const [weekStrip] = useState(() => (!unpaid && weeksOn ? takeEndScreenStrip() : null));
+  useEffect(() => { markEndScreenStrip(weekStrip); }, [weekStrip]);
+
   const [stats0] = useState(() => loadStats());
   const streak = getStreak(stats0);
   const level = getLevel(stats0.xp);
   const lp = getLevelProgress(stats0.xp);
   const sex = String(loadProfile()?.sex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
   const tier = getCurrentTier(stats0);
-  const weekSess = getWeeklySessions(stats0);
-  const weekXp = weekSess.reduce((a, s) => a + (s.xpEarned || 0), 0);
+  // With the week streak on, the daily mission's bonus row is an award, not a
+  // session or a mode of its own (tiers.sessionMode 'bonus').
+  const weekSess = weeksOn ? getWeeklySessions(stats0).filter((s) => sessionMode(s) !== 'bonus') : getWeeklySessions(stats0);
+  const weekXp = (weeksOn ? getWeeklySessions(stats0) : weekSess).reduce((a, s) => a + (s.xpEarned || 0), 0);
   const weekModes = new Set(weekSess.map(s => s.type)).size;
   const pct = lp.needed ? Math.round((lp.current / lp.needed) * 100) : 100;
 
@@ -232,6 +244,7 @@ export default function MissionComplete({
                 <div style={{ height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}><div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg,#b06aff,#fde047)' }}/></div>
               </div>
             </div>
+            {weekStrip && <WeekMomentStrip moment={weekStrip.moment} missionXp={weekStrip.missionXp}/>}
             <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#9a90b8' }}>This week: <span style={{ color: '#fff', fontWeight: 700 }}>{weekSess.length} session{weekSess.length === 1 ? '' : 's'}</span> · <span style={{ color: '#fde047', fontWeight: 700 }}>{weekXp.toLocaleString()} XP</span> · <span style={{ color: '#fff', fontWeight: 700 }}>{weekModes} mode{weekModes === 1 ? '' : 's'}</span></div>
           </div>
 

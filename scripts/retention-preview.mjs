@@ -1,0 +1,329 @@
+// Retention preview: every new screen state of the retention features, seeded
+// with sample data, opened on the web dev server and photographed at three
+// phone sizes. Fails when anything overflows the viewport or any text is cut
+// off (the owner's visual rule, RETENTION-PLAN.md).
+//
+//   node scripts/retention-preview.mjs <out-dir> [--base http://localhost:8081] [--only <regex>]
+//
+// Needs the dev server: CI=1 EXPO_NO_TELEMETRY=1 npx expo start --web --port 8081
+// (CI mode does not reload: restart it after an edit). Chrome: CHROME_PATH, or
+// Playwright's "chrome" channel, or /usr/bin/google-chrome.
+//
+// Each state seeds localStorage (the owner preview is on, so every retention
+// switch is), opens a screen, and is checked at 360x780, 390x844 and 430x932:
+//   - nothing reaches past the viewport's sides (and the page never scrolls sideways);
+//   - inside the state's own elements (`check` selectors), no text box is cut:
+//     scrollWidth > clientWidth on a box that clips, a clamped box that hides
+//     lines, or a text box outside the box that clips it.
+// Text cut elsewhere on the page is printed as a warning, not a failure.
+// Features 2 and 3 add their states to STATES.
+import fs from 'node:fs';
+import path from 'node:path';
+import { chromium } from 'playwright-core';
+
+const args = process.argv.slice(2);
+const OUT = args.find((a, i) => !a.startsWith('--') && !['--base', '--only'].includes(args[i - 1]));
+const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : null; };
+const BASE = (opt('--base') || 'http://localhost:8081').replace(/\/$/, '') + '/';
+const ONLY = opt('--only') ? new RegExp(opt('--only')) : null;
+if (!OUT) { console.error('usage: node scripts/retention-preview.mjs <out-dir> [--base URL] [--only regex]'); process.exit(2); }
+fs.mkdirSync(OUT, { recursive: true });
+
+const SIZES = [[360, 780], [390, 844], [430, 932]];
+
+// ── sample data ────────────────────────────────────────────────────────────
+const pad = (n) => String(n).padStart(2, '0');
+const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const NOW = new Date();
+const todayIdx = (NOW.getDay() + 6) % 7; // 0 = Monday
+const monday = (weeksBack) => { const d = new Date(NOW); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - todayIdx - 7 * weeksBack); return d; };
+let rowN = 0;
+const row = (date, type = 'Fight Focus', extra = {}) => ({ id: `p${++rowN}`, type, completedAt: date.toISOString(), completedCount: 3, totalCount: 3, xpEarned: 90, ...extra });
+// Training on weekdays `idxs` (0 = Monday) of the week `weeksBack` weeks ago, only days before today in this week.
+const trainWeek = (weeksBack, idxs, type) => idxs.flatMap((i) => {
+  const d = monday(weeksBack); d.setDate(d.getDate() + i);
+  if (weeksBack === 0 && i >= todayIdx) return [];
+  return [row(d, type)];
+});
+// `onTarget` full weeks of 4 days before this one, then `thisWeek` days this week (before today).
+const history = ({ onTarget = 0, gapWeeks = [], thisWeek = 0, type } = {}) => {
+  const rows = [];
+  for (let w = onTarget + gapWeeks.length; w >= 1; w--) {
+    if (gapWeeks.includes(w)) { rows.push(...trainWeek(w, [1], type)); continue; }
+    rows.push(...trainWeek(w, [0, 2, 4, 5], type));
+  }
+  rows.push(...trainWeek(0, [0, 1, 2, 3, 4, 5].slice(0, thisWeek), type));
+  return rows;
+};
+const stats = (rows, xp) => JSON.stringify({ xp: xp ?? rows.reduce((a, r) => a + r.xpEarned, 0), sessions: rows });
+
+const FIGHTER = { name: 'TRAINEE', sex: 'male', experience: 'Some Training', goal: 'Train Like a Fighter', discipline: 'Boxing', voiceCoach: 'FEMALE', coachStyle: 'STANDARD', encouragement: 'normal', callStyle: 'names' };
+const FITTER = { ...FIGHTER, goal: 'Get Fit' };
+const BASE_KEYS = {
+  trainingModeOnboardingComplete: 'true',
+  trainingModeTourComplete: 'true',
+  tm_owner_preview: '1',
+  tm_arcade_intro_seen: '{}',
+  tm_camp_parq: JSON.stringify({ done: true, anyYes: false, ts: Date.now() }),
+  tm_practice_invite_v1: JSON.stringify({ introShownAt: new Date().toISOString() }),
+};
+
+// ── screens ────────────────────────────────────────────────────────────────
+const wait = (page, ms) => page.waitForTimeout(ms);
+async function home(page, w) {
+  await page.goto(BASE, { waitUntil: 'networkidle' }); await wait(page, 1800);
+  await page.mouse.click(Math.round(w / 2), 120); await wait(page, 1800);
+  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1200 }).catch(() => {});
+  await wait(page, 900);
+}
+async function profileEditor(page, w) {
+  await home(page, w);
+  await page.getByRole('button', { name: /^PROFILE$/ }).first().click({ timeout: 4000 }); await wait(page, 1200);
+  await page.getByRole('button', { name: /TAP TO EDIT/ }).first().click({ timeout: 4000 }); await wait(page, 1200);
+  await page.locator('[data-retention="week-target"]').scrollIntoViewIfNeeded({ timeout: 4000 }); await wait(page, 500);
+}
+// The real daily mission on a fake clock: START on the card, the round runs,
+// the end screen opens with its strip.
+async function runDailyMission(page, w) {
+  await home(page, w);
+  const now = () => page.evaluate(() => Date.now());
+  await page.clock.pauseAt((await now()) + 500);
+  await page.locator('[data-guide="home-daily-mission"] button').first().click({ timeout: 4000 });
+  for (let i = 0; i < 400; i++) {
+    await page.clock.runFor(1000);
+    const t = await page.evaluate(() => document.body.innerText);
+    if (/YOUR PROGRESS/.test(t)) break;
+    const cont = page.getByRole('button', { name: /^CONTINUE$/ });
+    if (/LEVEL UP/i.test(t) && await cont.count()) await cont.first().click({ timeout: 2000 }).catch(() => {});
+  }
+  await page.clock.resume();
+  await wait(page, 2500);
+  if (!/YOUR PROGRESS/.test(await page.evaluate(() => document.body.innerText))) throw new Error('the daily mission did not reach its end screen');
+}
+const scrollTo = (sel) => async (page) => { await page.locator(sel).first().scrollIntoViewIfNeeded({ timeout: 4000 }); await page.evaluate((s) => document.querySelector(s)?.scrollIntoView({ block: 'center' }), sel); await wait(page, 400); };
+
+// ── the states ─────────────────────────────────────────────────────────────
+// { name, note, seed(), open(page, w), check: [selectors], apart?: [[selA, selB]], expect: RegExp,
+//   once?: true, clock?: true, after?(page), shot?: selector (photograph that element whole) }
+// `once`: open the screen once (at the first size) and resize for the others.
+const HOME_CHECK = ['header[data-guide="home-level"]', '[data-guide="home-daily-mission"]', '[role="status"]'];
+const HOME_APART = [['[role="status"]', '[data-guide="home-daily-mission"]']];
+const STATES = [
+  {
+    name: 'f1-home-mission-ready',
+    note: 'Home: the week chip (9-week streak, 3 of 4 days, 2 freezes) and the DAILY MISSION card, ready.',
+    seed: () => ({ tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 9, thisWeek: Math.min(3, todayIdx) }), 6750) }),
+    open: home, check: HOME_CHECK, apart: HOME_APART, expect: /DAILY MISSION[\s\S]*START/,
+  },
+  {
+    name: 'f1-home-mission-fit-new',
+    note: 'Home: a new, fit-leaning athlete: no streak yet, the starting freeze, a 3-minute Quick Mission.',
+    seed: () => ({ tm_user_profile: JSON.stringify(FITTER), tm_user_stats: stats([], 0) }),
+    open: home, check: HOME_CHECK, apart: HOME_APART, expect: /Quick Mission:/,
+  },
+  {
+    name: 'f1-home-mission-done',
+    note: 'Home: the mission done today; the card says so until tomorrow, today\'s dot is filled.',
+    seed: () => {
+      const rows = [...history({ onTarget: 3, thisWeek: Math.min(2, todayIdx) }), row(new Date(Date.now() - 3600000))];
+      const date = iso(NOW);
+      const mission = { date, side: 'fight', minutes: 3, bonusXp: 25, tier: 'NORMAL', lighter: false, id: `${date}:fight`, discipline: 'Boxing', difficulty: 'Normal', title: 'One Round: Boxing', line: 'Fight Focus · Normal · fits your level' };
+      return {
+        tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(rows, 4200),
+        tm_daily_mission_v2: JSON.stringify({ date, mission, done: true, doneAt: new Date(Date.now() - 3600000).toISOString(), xp: 25 }),
+        tm_week_moments_v1: JSON.stringify({ day: date, seen: [] }),
+      };
+    },
+    open: home, check: HOME_CHECK, apart: HOME_APART, expect: /DAILY MISSION DONE/,
+  },
+  {
+    name: 'f1-home-freeze-used',
+    note: 'Home, the week after a short one: the quiet freeze-used notice in the nudge slot.',
+    seed: () => ({ tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 9, gapWeeks: [1], thisWeek: 0 }), 6100) }),
+    open: home, check: HOME_CHECK, apart: HOME_APART, expect: /A freeze covered last week/,
+  },
+  {
+    name: 'f1-home-freeze-earned',
+    note: 'Home: a freeze earned last week on a screen with no strip (shown once here).',
+    seed: () => ({ tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 4, thisWeek: 0 }), 3000) }),
+    open: home, check: HOME_CHECK, apart: HOME_APART, expect: /Freeze earned/,
+  },
+  {
+    name: 'f1-home-header-long',
+    note: 'Home header at its widest: a secret rank name, a 2-digit level and streak.',
+    seed: () => {
+      const rows = history({ onTarget: 12, thisWeek: Math.min(3, todayIdx) }).map((r) => ({ ...r, xpEarned: 700 }));
+      return { tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(rows, 33500) };
+    },
+    open: home, check: HOME_CHECK, apart: HOME_APART, expect: /LV \d\d/,
+  },
+  {
+    name: 'f1-profile-target',
+    note: 'Profile → edit → Game Plan: the weekly target 2 to 6, a change pending for Monday, the freezes.',
+    seed: () => ({
+      tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 2, thisWeek: Math.min(2, todayIdx) }), 2000),
+      tm_game_plan_v1: JSON.stringify({ setup: true, hurdle: 'time', daysPerWeek: 5, sessionMinutes: 20, preferredTime: 'varies', restDays: [], weekTargets: [{ from: '', days: 4 }, { from: iso(monday(-1)), days: 5 }] }),
+    }),
+    open: profileEditor, check: ['[data-retention="week-target"]'], expect: /Keeps your streak/,
+  },
+  {
+    name: 'f1-gallery',
+    note: 'The design gallery (/retention-looks), feature 1: every card renders the real components with sample data.',
+    seed: () => ({}),
+    open: async (page) => { await page.goto(`${BASE}retention-looks`, { waitUntil: 'networkidle' }); await wait(page, 2500); },
+    check: ['#f1'], shot: '#f1', expect: /DAILY MISSION \+ STREAK FREEZE/,
+  },
+  {
+    name: 'f1-end-day-kept',
+    note: 'The real daily mission (fake clock) → its end screen: TRAINING DAY n OF 4 · STREAK KEPT, the new dot pops, +25 XP.',
+    clock: true, once: true,
+    seed: () => ({ tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 9, thisWeek: Math.min(2, todayIdx) }), 6750) }),
+    open: runDailyMission, after: scrollTo('[data-retention="week-moment"]'), check: ['[data-retention="week-moment"]'], expect: /TRAINING DAY|WEEK COMPLETE/,
+  },
+  {
+    name: 'f1-end-week-complete',
+    note: 'The daily mission lands the 4th day of the 4th week on target: WEEK COMPLETE, a freeze earned.',
+    clock: true, once: true, needsDays: 3,
+    seed: () => ({ tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 3, thisWeek: 3 }), 3300) }),
+    open: runDailyMission, after: scrollTo('[data-retention="week-moment"]'), check: ['[data-retention="week-moment"]'], expect: /WEEK COMPLETE[\s\S]*FREEZE EARNED/,
+  },
+];
+
+// ── the checks ─────────────────────────────────────────────────────────────
+// Runs in the page. Returns { fails: [...], warns: [...] }.
+function measure({ checkSelectors, apart }) {
+  const vw = window.innerWidth;
+  const fails = [], warns = [];
+  const name = (el) => {
+    const t = (el.innerText || el.getAttribute('aria-label') || '').trim().replace(/\s+/g, ' ').slice(0, 50);
+    return `${el.tagName.toLowerCase()}${el.dataset?.guide ? `[${el.dataset.guide}]` : ''} "${t}"`;
+  };
+  const shown = (el) => {
+    for (let e = el; e && e !== document.documentElement; e = e.parentElement) {
+      const cs = getComputedStyle(e);
+      if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) < 0.05) return false;
+    }
+    const r = el.getBoundingClientRect();
+    return r.width > 0 && r.height > 0;
+  };
+  const clips = (cs) => cs.overflowX !== 'visible' || cs.overflowY !== 'visible';
+  const clippers = (el) => { const out = []; for (let e = el.parentElement; e && e !== document.body; e = e.parentElement) if (clips(getComputedStyle(e))) out.push(e); return out; };
+  const ownText = (el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+
+  if (document.documentElement.scrollWidth > vw + 1) fails.push(`the page scrolls sideways (${document.documentElement.scrollWidth} > ${vw})`);
+  for (const el of document.querySelectorAll('body *')) {
+    if (!shown(el)) continue;
+    const r = el.getBoundingClientRect();
+    if ((r.right > vw + 1 || r.left < -1) && !clippers(el).length && getComputedStyle(el).position !== 'fixed') fails.push(`past the viewport: ${name(el)} (${Math.round(r.left)}..${Math.round(r.right)} of ${vw})`);
+  }
+  const roots = checkSelectors.flatMap((s) => [...document.querySelectorAll(s)]).filter(shown);
+  const inScope = (el) => roots.some((root) => root.contains(el));
+  for (const el of document.querySelectorAll('body *')) {
+    if (!shown(el) || !ownText(el)) continue;
+    const out = inScope(el) ? fails : warns;
+    const cs = getComputedStyle(el);
+    if (clips(cs) && el.scrollWidth > el.clientWidth + 1) out.push(`text cut sideways: ${name(el)} (${el.scrollWidth} > ${el.clientWidth})`);
+    if (cs.webkitLineClamp && cs.webkitLineClamp !== 'none' && el.scrollHeight > el.clientHeight + 1) out.push(`lines hidden: ${name(el)}`);
+    // Sideways, every box that clips counts; up and down, only those inside
+    // the nearest scroller (beyond it, the text is just scrolled out of view).
+    const r = el.getBoundingClientRect();
+    let pastScroller = false;
+    for (const c of clippers(el)) {
+      const cr = c.getBoundingClientRect(), ccs = getComputedStyle(c);
+      const scrollsY = ccs.overflowY === 'auto' || ccs.overflowY === 'scroll';
+      const outX = r.left < cr.left - 1 || r.right > cr.right + 1;
+      const outY = !pastScroller && !scrollsY && (r.top < cr.top - 1 || r.bottom > cr.bottom + 1);
+      if (outX || outY) { out.push(`text outside the box that clips it: ${name(el)}`); break; }
+      if (scrollsY) pastScroller = true;
+    }
+  }
+  if (!roots.length) fails.push(`none of ${checkSelectors.join(', ')} is on screen`);
+  // Pairs that must not overlap (a toast over the header must not reach the card below it).
+  for (const [a, b] of apart) {
+    const ea = document.querySelector(a), eb = document.querySelector(b);
+    if (!ea || !eb || !shown(ea) || !shown(eb)) continue;
+    const ra = ea.getBoundingClientRect(), rb = eb.getBoundingClientRect();
+    const overlap = ra.left < rb.right - 1 && rb.left < ra.right - 1 && ra.top < rb.bottom - 1 && rb.top < ra.bottom - 1;
+    if (overlap) fails.push(`overlap: ${name(ea)} over ${name(eb)}`);
+  }
+  return { fails: [...new Set(fails)], warns: [...new Set(warns)] };
+}
+
+// ── run ────────────────────────────────────────────────────────────────────
+const launchOpts = { headless: true, args: ['--autoplay-policy=no-user-gesture-required'] };
+let browser;
+const tries = process.env.CHROME_PATH ? [{ executablePath: process.env.CHROME_PATH }] : [{ channel: 'chrome' }, { executablePath: '/usr/bin/google-chrome' }];
+for (const t of tries) { try { browser = await chromium.launch({ ...launchOpts, ...t }); break; } catch (e) { if (t === tries.at(-1)) throw e; } }
+
+let failures = 0;
+const report = [];
+for (const st of STATES) {
+  if (ONLY && !ONLY.test(st.name)) continue;
+  if (st.needsDays && todayIdx < st.needsDays) { console.log(`skip ${st.name}: needs ${st.needsDays} days of this week before today (today is weekday ${todayIdx})`); continue; }
+  const runAt = async (page, [w, h], first) => {
+    if (!st.once || first) await st.open(page, w);
+    else { await page.setViewportSize({ width: w, height: h }); await wait(page, 700); }
+    if (st.after) await st.after(page);
+    await wait(page, 600);
+    const t = await page.evaluate(() => document.body.innerText);
+    const res = await page.evaluate(measure, { checkSelectors: st.check || [], apart: st.apart || [] });
+    if (st.expect && !st.expect.test(t)) res.fails.unshift(`expected ${st.expect} on screen`);
+    const file = path.join(OUT, `${st.name}-${w}.png`);
+    if (st.shot) {
+      // A whole element taller than the screen: the app scrolls inside its own
+      // box, so the window is made as tall as the element for the photo (in
+      // CSS pixels), then put back.
+      const tall = await page.locator(st.shot).first().evaluate((el) => Math.ceil(el.getBoundingClientRect().height));
+      await page.setViewportSize({ width: w, height: Math.min(16000, Math.max(h, tall + 200)) }); await wait(page, 800);
+      await page.locator(st.shot).first().screenshot({ path: file, scale: 'css' });
+      await page.setViewportSize({ width: w, height: h });
+    } else await page.screenshot({ path: file });
+    const ok = !res.fails.length;
+    if (!ok) failures++;
+    console.log(`${ok ? 'ok  ' : 'FAIL'} ${st.name} @${w}x${h}  → ${file}`);
+    for (const f of res.fails) console.log(`       ✗ ${f}`);
+    for (const f of res.warns.slice(0, 6)) console.log(`       · warn (not new): ${f}`);
+    report.push({ state: st.name, size: `${w}x${h}`, file, fails: res.fails, warns: res.warns });
+  };
+  const contextFor = async ([w, h]) => {
+    const ctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+    const seed = { ...BASE_KEYS, ...st.seed() };
+    await ctx.addInitScript((s) => {
+      try { Object.defineProperty(window, 'speechSynthesis', { value: undefined }); } catch { /* read-only */ }
+      if (localStorage.getItem('__rp')) return;
+      localStorage.clear();
+      // The come-back reminder shares the slot over the header: dismissed for
+      // today, so the header itself is seen (a state can seed its own toast).
+      localStorage.setItem('tm_reminder_card_dismissed', new Date().toDateString());
+      for (const [k, v] of Object.entries(s)) localStorage.setItem(k, v);
+      localStorage.setItem('__rp', '1');
+    }, seed);
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(String(e.message).slice(0, 200)));
+    if (st.clock) await page.clock.install({ time: Date.now() });
+    return { ctx, page, errors };
+  };
+  try {
+    if (st.once) {
+      const { ctx, page, errors } = await contextFor(SIZES[0]);
+      for (let i = 0; i < SIZES.length; i++) await runAt(page, SIZES[i], i === 0);
+      if (errors.length) { failures++; console.log(`FAIL ${st.name}: page errors: ${errors.join(' | ')}`); }
+      await ctx.close();
+    } else {
+      for (const size of SIZES) {
+        const { ctx, page, errors } = await contextFor(size);
+        await runAt(page, size, true);
+        if (errors.length) { failures++; console.log(`FAIL ${st.name}: page errors: ${errors.join(' | ')}`); }
+        await ctx.close();
+      }
+    }
+  } catch (e) {
+    failures++;
+    console.log(`FAIL ${st.name}: ${e.message}`);
+  }
+}
+fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify({ base: BASE, at: new Date().toISOString(), states: STATES.map((s) => ({ name: s.name, note: s.note })), results: report }, null, 2));
+await browser.close();
+console.log(failures ? `\n${failures} failed` : '\nall states fit');
+process.exit(failures ? 1 : 0);

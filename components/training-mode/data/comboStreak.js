@@ -147,7 +147,9 @@ export function dismissNudgeToday() {
   try { if (typeof localStorage !== 'undefined') localStorage.setItem(NUDGE_DAY_KEY, todayIso()); } catch { /* noop */ }
 }
 
-export function getComboNudge(profileName) {
+// `plain` (the week streak, retention feature 1): the scheduled-reminder copy
+// only, never the day combo's streak-safety lines.
+export function getComboNudge(profileName, { plain = false } = {}) {
   const r = loadReminderSettings();
   if (!r.enabled || !Array.isArray(r.days) || r.days.length === 0) return null;
   const today = todayIso();
@@ -172,12 +174,13 @@ export function getComboNudge(profileName) {
   }
   const box = load();
   const { combo, guards } = getCombo();
-  const lines = combo > 0 && r.streakReminders ? (COPY.streak_safety || []) : (COPY.scheduled_reminder || []);
+  const safety = !plain && combo > 0 && r.streakReminders;
+  const lines = safety ? (COPY.streak_safety || []) : (COPY.scheduled_reminder || []);
   const text = fillCopy(lines, box.copyIdx++, {
     name: profileName || 'Fighter', activity: r.activity || 'a session', time: cue, combo, guards,
   });
   save(box);
-  trackEvent('reminder_delivered', { kind: combo > 0 ? 'streak_safety' : 'scheduled' });
+  trackEvent('reminder_delivered', { kind: !plain && combo > 0 ? 'streak_safety' : 'scheduled' });
   return { text, activity: r.activity || null };
 }
 

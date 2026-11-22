@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Play, Shuffle, SlidersHorizontal, ChevronRight, Zap, Timer, Activity, X } from 'lucide-react';
 import PhoneFrame from './PhoneFrame';
 import { sessionLabel } from './FloatingResumeButton';
-import { HelpButton } from './shared/WorkoutHelpPanel';
+import HomeHeader from './shared/HomeHeader';
+import NudgeToast from './shared/NudgeToast';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import SafeImage from './SafeImage';
@@ -20,6 +21,12 @@ import { startsAtYourPace } from './data/soloFromGenerated';
 import { primeSpeech, setVoiceGender } from './voiceCoach';
 import { getActiveChallenge, consumeGhostNudge, GHOST_CHANGE_EVENT } from './data/ghostChallenges';
 import ConceptFeatureCard from './shared/ConceptFeatureCard';
+import { retentionOn } from './data/retentionFlags';
+import { loadWeekStreak, takeHomeNotice, markWeekMoments } from './data/weekStreakStore';
+import { noticeCopy } from './data/weekStreak';
+import { todaysDailyMission, rememberDailyMission } from './data/dailyMission';
+import WeekChip from './retention/ui/WeekChip';
+import DailyMissionCard from './retention/ui/DailyMissionCard';
 
 // Home — the Simplify revamp hub.
 //
@@ -88,8 +95,10 @@ export default function HomeDashboard({
   onPractice, onFightFocus, onQuickMission, onStartQuickMission, onFitSetup, onComboCoach, onJustTrain, onPrograms,
   onStartHere, onCombatConditioning, onTrainingArcade, onReplayLast, onOpenGhost,
   pausedSession, onResume, onDiscardPaused,
-  pausedAlt, onResumeAlt, onDiscardAlt, onOpenConcept,
+  pausedAlt, onResumeAlt, onDiscardAlt, onOpenConcept, onDailyMission,
 }) {
+  // Retention feature 1 (weekly streak + daily mission), behind its switch.
+  const [weeksOn] = useState(() => retentionOn('weeks'));
   const [stats, setStats] = useState(() => loadStats());
   const [helpOpen, setHelpOpen] = useState(false);
   const [surprise, setSurprise] = useState(null);
@@ -113,9 +122,38 @@ export default function HomeDashboard({
   }, []);
 
   // Spec 23 — the combo outcome flash and the daily if-then nudge.
-  const [comboFlash, setComboFlash] = useState(() => consumeComboFlash());
+  // With the week streak on, the week chip takes the day combo's place: the
+  // combo still replays (in an effect, not the render), so its XP and its
+  // stored state stay as they are, but its flashes are not shown.
+  const [comboFlash, setComboFlash] = useState(() => (weeksOn ? null : consumeComboFlash()));
   const [comboNudge, setComboNudge] = useState(null);
-  useEffect(() => { setComboNudge(getComboNudge(profile?.name)); }, [profile?.name]);
+  useEffect(() => { setComboNudge(getComboNudge(profile?.name, { plain: weeksOn })); }, [profile?.name, weeksOn]);
+  useEffect(() => {
+    if (!weeksOn) return;
+    syncCombo();
+    consumeComboFlash();
+  }, [weeksOn, stats]);
+
+  // The week streak: recomputed from the rows (data/weekStreak), never stored.
+  const week = useMemo(() => (weeksOn ? loadWeekStreak(Date.now(), stats.sessions) : null), [weeksOn, stats]);
+  // A freeze that covered last week, or one earned and not yet seen: once,
+  // through the nudge slot.
+  const [weekNotice, setWeekNotice] = useState(null);
+  useEffect(() => {
+    if (!weeksOn || !week) return;
+    const n = takeHomeNotice(week);
+    if (!n) return;
+    markWeekMoments({ seen: [n.id] });
+    setWeekNotice(n);
+  }, [weeksOn, week]);
+  // Today's DAILY MISSION: dealt once a day and kept (saved from the effect).
+  const [daily, setDaily] = useState(() => (weeksOn ? todaysDailyMission({ profile, stats: loadStats() }) : null));
+  useEffect(() => {
+    if (!weeksOn) return;
+    const d = todaysDailyMission({ profile, stats });
+    if (!d.saved) rememberDailyMission(d.mission);
+    setDaily(d.saved ? d : todaysDailyMission({ profile, stats }));
+  }, [weeksOn, stats, profile]);
 
   // A live ghost challenge haunts the Continue card until it's beaten; its
   // nudges (the decline line, then at most one a day) take the toast slot.
@@ -142,7 +180,7 @@ export default function HomeDashboard({
   const { current: levelXp, needed: levelNeeded } = getLevelProgress(stats.xp);
   const xpPercent = Math.max(3, Math.round((levelXp / levelNeeded) * 100));
   const tier = getCurrentTier(stats);
-  const combo = syncCombo();
+  const combo = weeksOn ? null : syncCombo();
   const disc = profile?.discipline || 'Boxing';
 
   // Today's pick — the fallback when there is nothing to continue. The same
@@ -244,7 +282,9 @@ export default function HomeDashboard({
 
   // One nudge at a time, over the header — the combo flash first (it only
   // ever shows once), then the daily nudge, then the come-back reminder.
-  const nudge = comboFlash
+  const nudge = weekNotice
+    ? { icon: '❄', text: noticeCopy(weekNotice), onClose: () => setWeekNotice(null) }
+    : comboFlash
     ? { icon: comboFlash.kind === 'milestone' ? '🏅' : comboFlash.kind === 'guarded' ? '🛡' : '🔁', text: comboFlash.text, onClose: () => setComboFlash(null) }
     : ghostNudge
       ? {
@@ -269,27 +309,29 @@ export default function HomeDashboard({
         padding: '14px 16px 0', paddingBottom: 'calc(96px + env(safe-area-inset-bottom,0px))', boxSizing: 'border-box',
       }}>
         {/* Header: level, rank and streak. Profile lives on the tab bar. */}
-        <header data-guide="home-level" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button type="button" onClick={onHome} aria-label="Training Mode" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}>
-            <SafeImage src="/static/logo-mark.png" alt="" style={{ width: 30, height: 34, objectFit: 'contain' }}/>
-          </button>
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <span style={{ font: "700 14px 'Chakra Petch',sans-serif", color: '#F2BE45', letterSpacing: '0.08em' }}>LV {level}</span>
-              <span style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTED }}>{tier?.name}</span>
-              <span style={{ marginLeft: 'auto', fontSize: 11, color: MUTED, whiteSpace: 'nowrap' }}>{levelXp.toLocaleString()} / {levelNeeded.toLocaleString()} XP</span>
+        <HomeHeader
+          level={level} tierName={tier?.name} levelXp={levelXp} levelNeeded={levelNeeded} xpPercent={xpPercent}
+          onHome={onHome} onHelp={() => setHelpOpen(true)} compact={weeksOn}
+          chip={weeksOn ? (
+            <WeekChip days={week.thisWeek.days} done={week.thisWeek.done} target={week.thisWeek.target} streak={week.streak} freezes={week.freezes}/>
+          ) : (
+            <div aria-label={`${combo.combo} day streak`} style={{ display: 'flex', alignItems: 'center', gap: 4, height: 32, padding: '0 10px', borderRadius: 16, background: '#15110A', color: '#F2BE45', flexShrink: 0 }}>
+              <span style={{ fontSize: 14 }}>🔥</span>
+              <span style={{ font: "700 14px 'Chakra Petch',sans-serif" }}>{combo.combo}</span>
+              {combo.guards > 0 && <span style={{ fontSize: 10, color: '#8fe8ac' }}>🛡{combo.guards}</span>}
             </div>
-            <div style={{ height: 4, background: '#1B1730', borderRadius: 2, overflow: 'hidden' }}>
-              <div style={{ width: `${xpPercent}%`, height: '100%', background: '#F2BE45' }}/>
-            </div>
-          </div>
-          <div aria-label={`${combo.combo} day streak`} style={{ display: 'flex', alignItems: 'center', gap: 4, height: 32, padding: '0 10px', borderRadius: 16, background: '#15110A', color: '#F2BE45', flexShrink: 0 }}>
-            <span style={{ fontSize: 14 }}>🔥</span>
-            <span style={{ font: "700 14px 'Chakra Petch',sans-serif" }}>{combo.combo}</span>
-            {combo.guards > 0 && <span style={{ fontSize: 10, color: '#8fe8ac' }}>🛡{combo.guards}</span>}
-          </div>
-          <HelpButton dataGuide="help-icon" onClick={() => setHelpOpen(true)}/>
-        </header>
+          )}
+        />
+
+        {/* Today's DAILY MISSION, one tap to start (week streak switch on). */}
+        {weeksOn && daily?.mission && (
+          <DailyMissionCard
+            mission={daily.mission} done={daily.done} weekDone={week.thisWeek.done} weekTarget={week.thisWeek.target}
+            onStart={() => primeThen(() => onDailyMission?.(daily.mission))}
+            // Clear of a two-line toast over the header.
+            style={{ marginTop: 6 }}
+          />
+        )}
 
         {/* The one thing to do. */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
@@ -441,18 +483,7 @@ export default function HomeDashboard({
       {/* Nudges: one at a time, over the header, always dismissible. */}
       <div style={{ position: 'absolute', zIndex: 20, left: 16, right: 16, top: 10 }}>
         {nudge ? (
-          <div role="status" style={{
-            minHeight: 52, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px 8px 12px', borderRadius: 14,
-            background: 'rgba(20,12,38,0.96)', border: '1px solid rgba(196,168,255,0.6)',
-            boxShadow: '0 10px 30px rgba(0,0,0,.6), 0 0 18px rgba(157,108,255,.35)',
-          }}>
-            <span style={{ fontSize: 22, lineHeight: 1 }}>{nudge.icon}</span>
-            <span style={{ flex: 1, minWidth: 0, fontSize: 13, color: '#E7DDF7', lineHeight: 1.3 }}>{nudge.text}</span>
-            {nudge.onGo && (
-              <button type="button" onClick={nudge.onGo} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#F2BE45', font: "700 11px 'Chakra Petch',sans-serif", letterSpacing: '0.14em', padding: 4 }}>GO</button>
-            )}
-            <button type="button" onClick={nudge.onClose} aria-label="Dismiss" style={{ background: 'none', border: 'none', cursor: 'pointer', color: MUTED, padding: 4, display: 'flex' }}><X size={14}/></button>
-          </div>
+          <NudgeToast icon={nudge.icon} text={nudge.text} onGo={nudge.onGo} onClose={nudge.onClose}/>
         ) : (
           <ReminderCard
             compact

@@ -56,6 +56,9 @@ import Comeback from './Comeback';
 import { maybeOfferChallenge, declineChallenge, settleChallenge, getActiveChallenge, hauntFromLocation, takeHaunt, unseenHaunt, markChallengeSeen, prefetchStranger } from './data/ghostChallenges';
 import { dueComeback, markComebackShown, remindComebackNextWeek } from './data/comeback';
 import { getLastBattle } from './data/ghostBattles';
+import { retentionOn } from './data/retentionFlags';
+import { dailyMissionCfg, settleDailyMission } from './data/dailyMission';
+import { quickMissionConfig } from './data/quickMissionConfig';
 
 // 2.10 — v2 campaign stars: completion-quality is the gate (you only earn stars
 // by fully + validly clearing), difficulty sets the count. FULL ARC gets +1 for
@@ -230,6 +233,8 @@ function stashPausedSession(snap) {
 }
 
 export default function App() {
+  // Retention feature 1 (weekly streak + daily mission), behind its switch.
+  const [weeksOn] = useState(() => retentionOn('weeks'));
   const [screen,   setScreen  ] = useState('start');
   const [disc,     setDisc    ] = useState('Boxing');
   const [cfg,      setCfg     ] = useState(null);
@@ -791,6 +796,7 @@ export default function App() {
           completedCount: result.exercisesCompleted, totalCount: result.totalSlots, splits,
         });
         if (xp > 0) tryCompleteDailyMission('quickMission');
+        if (weeksOn) settleDailyMission({ cfg: qmCfg, valid: !!result.completed && xp > 0 });
         trackEvent('session_complete', { mode: 'quickMission', solo: true, mission: result.missionId, exercises: result.exercisesCompleted });
         setQmResult({ ...result, xpEarned: xp, settle, rounds: splits });
       } else {
@@ -810,6 +816,7 @@ export default function App() {
         if (dayCounts(result.exercisesCompleted, result.totalExercises, result.completed)) completePlanDay(qmCfg?.mission);
         // As in SOLO, a v2 run that pays nothing (a quit) does not complete the Mission of the Day.
         if (!settle || settle.xp > 0) tryCompleteDailyMission('quickMission');
+        if (weeksOn) settleDailyMission({ cfg: qmCfg, valid: !!result.completed && xp > 0 });
         trackEvent('session_complete', { mode: 'quickMission', exercises: result.exercisesCompleted });
         setQmResult(settle ? { ...result, xpEarned: xp, settle } : result);
       }
@@ -1189,6 +1196,8 @@ export default function App() {
       // from the accelerometer (motion-verified thrown strikes) or is zero.
       if (!unverified) recordFightSession({ rounds: done, strikes: fs.motionUsed ? (fs.thrown || 0) : 0 });
       tryCompleteDailyMission('fightFocus');
+      // The daily mission (week streak switch): its one round, finished and verified.
+      if (weeksOn) settleDailyMission({ cfg: c, valid: !unverified && done >= total && xp > 0 });
       trackEvent('session_complete', { mode: justTrain ? 'justTrain' : 'fightFocus', rounds: done });
       // A win over the live ghost challenge settles it (the battle itself was
       // resolved by the timer at the final bell).
@@ -1306,6 +1315,20 @@ export default function App() {
     goPracticeLesson: (d) => {
       if (d) { try { saveProfile({ ...loadProfile(), discipline: d }); } catch { /* best-effort */ } setDisc(d); }
       setScreen('practice_starthere');
+    },
+    // The DAILY MISSION card (week streak switch): one tap straight into the
+    // session, its config tagged with the day so its end can pay the bonus.
+    startDailyMission: (mission) => {
+      const c = dailyMissionCfg(mission, { profile, qmConfig: quickMissionConfig });
+      if (!c) return;
+      trackEvent('daily_mission_start', { v: 2, side: mission.side });
+      if (mission.side === 'fight') {
+        const d = mission.discipline || disc;
+        setDisc(d);
+        rememberSession('timer', c, d); trackSessionStart('fightFocus', { daily: true }); freshStart('timer'); setCfg(c); setScreen('timer');
+      } else {
+        actions.goQuickMissionActive(c);
+      }
     },
     goStartDailyMission: (mission) => {
       safeSetItem('dailyMissionActive', 'true');

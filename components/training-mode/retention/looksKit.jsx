@@ -1,26 +1,18 @@
 import { useState } from 'react';
 import { C } from '../Styles';
 import { ARCADE } from '../ArcadeUI';
+import { HOME, head } from './ui/tokens';
+import SafeImage from '../SafeImage';
 
 // Shared pieces of the retention looks gallery (/retention-looks): the phone
 // frame each look is drawn in, the card around it, the home screen's tokens
 // and the gallery's own animations. Looks only: sample data, no wiring.
 
 // The home screen's own palette (HomeDashboard.jsx), so home cards match it.
-export const HOME = {
-  gold: '#F2BE45',
-  chip: '#15110A',
-  tile: '#0E0B18',
-  track: '#1B1730',
-  muted: '#A9A3C4',
-  green: '#8fe8ac',
-  red: '#ff7a7a',
-  fit: '#9D6CFF',
-  fight: '#3D7BFF',
-  font: "'Chakra Petch',sans-serif",
-};
+// Shared with the real retention components (retention/ui/tokens), so a look
+// and what ships cannot drift.
+export { HOME, head };
 
-export const head = (size, weight = 700, extra = {}) => ({ font: `${weight} ${size}px ${HOME.font}`, letterSpacing: '0.08em', ...extra });
 export const orb = (size, extra = {}) => ({ fontFamily: ARCADE.fontHead, fontWeight: 900, fontSize: size, letterSpacing: '0.08em', ...extra });
 export const goldText = {
   background: ARCADE.goldGradient, WebkitBackgroundClip: 'text', backgroundClip: 'text',
@@ -154,7 +146,7 @@ export function Sparks({ n = 14, color = '#fde047' }) {
 export function HomeHeader({ right }) {
   return (
     <header style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 14px 6px' }}>
-      <img src="/static/logo-mark.png" alt="" style={{ width: 26, height: 30, objectFit: 'contain' }}/>
+      <SafeImage src="/static/logo-mark.png" alt="" style={{ width: 26, height: 30, objectFit: 'contain' }}/>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
           <span style={{ ...head(13), color: HOME.gold }}>LV 14</span>

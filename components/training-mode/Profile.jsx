@@ -25,6 +25,9 @@ import { loadProfile } from './data/userProfile';
 import { sharesGhosts, removeMyPoolGhosts } from './data/ghostCloud';
 import LevelView from './LevelView';
 import VoiceCheck from './shared/VoiceCheck';
+import { retentionOn } from './data/retentionFlags';
+import { setWeekTarget, chosenWeekTarget, loadWeekStreak, saveGamePlanKeepingTarget } from './data/weekStreakStore';
+import WeekTargetRow from './retention/ui/WeekTargetRow';
 
 
 function SectionLabel({ text }) {
@@ -324,9 +327,17 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
     setAudioSettingsState(next);
     saveAudioSettings(next);
   };
+  // Retention feature 1 (week streak switch): "Days per week" is the weekly
+  // target, 2 to 6, and a change starts next Monday.
+  const [weeksOn] = useState(() => retentionOn('weeks'));
   const [gamePlan, setGamePlanState] = useState(loadGamePlan);
   const updateGamePlan = (key, val) => {
-    setGamePlanState(saveGamePlan({ [key]: val }));
+    setGamePlanState(weeksOn ? saveGamePlanKeepingTarget({ [key]: val }) : saveGamePlan({ [key]: val }));
+  };
+  const [weekTarget, setWeekTargetState] = useState(() => (weeksOn ? { chosen: chosenWeekTarget(), week: loadWeekStreak() } : null));
+  const pickWeekTarget = (n) => {
+    setGamePlanState(setWeekTarget(n));
+    setWeekTargetState({ chosen: chosenWeekTarget(), week: loadWeekStreak() });
   };
   const updateReminder = (key, val) => {
     const next = { ...reminderSettings, [key]: val };
@@ -926,19 +937,26 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
             Tell it the time you actually have — Today&apos;s Bout picks a session that fits.
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ background: 'rgba(10,0,20,0.6)', borderRadius: 8, padding: '10px 14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: C.muted, display: 'block', marginBottom: 6 }}>Days per week</span>
-              <div style={{ display: 'flex', gap: 5 }}>
-                {[2, 3, 4, 5, 6, 7].map(n => (
-                  <button key={n} onClick={() => updateGamePlan('daysPerWeek', n)} style={{
-                    flex: 1, padding: '5px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
-                    fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10,
-                    background: gamePlan.daysPerWeek === n ? '#2dd4bf' : 'rgba(255,255,255,0.06)',
-                    color: gamePlan.daysPerWeek === n ? '#041210' : C.muted,
-                  }}>{n}</button>
-                ))}
+            {weeksOn ? (
+              <WeekTargetRow
+                value={weekTarget.chosen} current={weekTarget.week.thisWeek.target} onPick={pickWeekTarget}
+                freezes={weekTarget.week.freezes} nextFreezeIn={weekTarget.week.nextFreezeIn}
+              />
+            ) : (
+              <div style={{ background: 'rgba(10,0,20,0.6)', borderRadius: 8, padding: '10px 14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: C.muted, display: 'block', marginBottom: 6 }}>Days per week</span>
+                <div style={{ display: 'flex', gap: 5 }}>
+                  {[2, 3, 4, 5, 6, 7].map(n => (
+                    <button key={n} onClick={() => updateGamePlan('daysPerWeek', n)} style={{
+                      flex: 1, padding: '5px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
+                      fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10,
+                      background: gamePlan.daysPerWeek === n ? '#2dd4bf' : 'rgba(255,255,255,0.06)',
+                      color: gamePlan.daysPerWeek === n ? '#041210' : C.muted,
+                    }}>{n}</button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
             <div style={{ background: 'rgba(10,0,20,0.6)', borderRadius: 8, padding: '10px 14px', border: '1px solid rgba(255,255,255,0.06)' }}>
               <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: C.muted, display: 'block', marginBottom: 6 }}>Minutes you can usually give</span>
               <div style={{ display: 'flex', gap: 5 }}>
@@ -967,7 +985,9 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
             </div>
             {gamePlan.setup && (
               <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10.5, fontWeight: 600, color: '#8fe8ac', lineHeight: 1.35 }}>
-                ✓ Game Plan active — {gamePlan.daysPerWeek} days/week, ~{gamePlan.sessionMinutes} min sessions. Rest days never break your combo.
+                {weeksOn
+                  ? `✓ Game Plan active — ${weekTarget.chosen} days/week, ~${gamePlan.sessionMinutes} min sessions. Rest days never break your streak.`
+                  : <>✓ Game Plan active — {gamePlan.daysPerWeek} days/week, ~{gamePlan.sessionMinutes} min sessions. Rest days never break your combo.</>}
               </div>
             )}
           </div>
