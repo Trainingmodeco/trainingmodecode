@@ -113,3 +113,15 @@ chosen takes and bumps the bank version.
 
 `exercise-loops/PENDING.md` lists what the owner asked to be reminded of (new exercise names to add and record later, the 40 stretches ticked but never made,
 one exercise short of the majority of animated exercises). When the owner talks about loops, exercises or recording, remind them of it in one line.
+
+## Pick the smallest model that does the job well (owner's rule, 2026-11-22)
+
+"If the groceries cost $21, don't put a $50 bill down." When building anything for the app, and in every
+subagent or workflow, use the cheapest model that will still do the job well:
+
+- **Building features, hard design or debugging:** Opus. Fable only when Opus has failed at it or the task
+  clearly needs the most capable model (say why).
+- **Reviewing code, checking renders, matching, summarising:** Sonnet.
+- **Mechanical work (running tests, screenshots, file moves, simple checks):** Haiku, or a script with no model at all.
+- Prefer scripts over agents for anything that can be measured, and one agent over a panel unless the result
+  needs an independent check.
