@@ -108,3 +108,8 @@ the voice's own rate, no break inside, a clean start and end. `need.json`
 lists the keys to record again: expect about one in ten, more for the female
 voice, which often runs "minutes, seconds" together. `place.mjs` installs the
 chosen takes and bumps the bank version.
+
+## Waiting on the owner (2026-11-22)
+
+`exercise-loops/PENDING.md` lists what the owner asked to be reminded of (new exercise names to add and record later, the 40 stretches ticked but never made,
+one exercise short of the majority of animated exercises). When the owner talks about loops, exercises or recording, remind them of it in one line.
