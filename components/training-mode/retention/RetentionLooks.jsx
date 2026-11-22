@@ -32,7 +32,7 @@ export default function RetentionLooks() {
     <div style={{ minHeight: '100vh', background: C.bg, color: C.text }}>
       <style>{STYLE}</style>
       <style>{LOOKS_CSS}</style>
-      <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(8,0,18,0.92)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(168,85,247,.25)' }}>
+      <div style={{ position: 'sticky', top: 'env(safe-area-inset-top, 0px)', zIndex: 50, background: 'rgba(8,0,18,0.92)', backdropFilter: 'blur(8px)', borderBottom: '1px solid rgba(168,85,247,.25)' }}>
         <div style={{ maxWidth: 1180, margin: '0 auto', padding: '10px 16px', display: 'flex', gap: 6, overflowX: 'auto' }}>
           {NAV.map(([id, label]) => (
             <a key={id} href={`#${id}`} style={{ ...head(11), whiteSpace: 'nowrap', color: id === 'qs' ? HOME.gold : C.text, textDecoration: 'none', padding: '7px 10px', borderRadius: 999, border: '1px solid rgba(168,85,247,.45)', background: 'rgba(168,85,247,.1)' }}>{label}</a>
