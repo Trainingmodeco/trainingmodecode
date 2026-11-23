@@ -25,7 +25,9 @@ const KIND_STYLE = {
   'no-gear': { background: 'rgba(157,108,255,0.22)', color: VIOLET_TEXT },
 };
 
-function MiniTag({ children, style }) {
+// Exported (with OptionRow) for the Fit Challenge looks' swap sheet
+// (fit-challenge/ui/ChallengeSwapSheet), so its rows are this sheet's rows.
+export function MiniTag({ children, style }) {
   return (
     <span style={{
       flexShrink: 0, font: `700 9px ${HEAD}`, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap',
@@ -87,7 +89,7 @@ export function MoveRow({ row, index, onSwap, onUndo, highlight = false, noSwap 
 // One option: the whole row picks it; the name (its own button) opens the
 // cues. The pick button sits under the row's content rather than around it,
 // so the two buttons are never nested.
-function OptionRow({ option: o, open, onToggle, onPick }) {
+export function OptionRow({ option: o, open, onToggle, onPick }) {
   return (
     <li style={{ listStyle: 'none', borderRadius: 10, background: open ? 'rgba(157,108,255,0.1)' : 'rgba(255,255,255,0.03)', border: `1px solid ${open ? 'rgba(157,108,255,0.45)' : 'rgba(255,255,255,0.09)'}` }}>
       <div style={{ position: 'relative' }}>
