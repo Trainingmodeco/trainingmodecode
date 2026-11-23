@@ -1,6 +1,9 @@
 import { Fragment } from 'react';
 import { VISIBLE_TIERS, tierIndexForLevel } from '../../data/tiers';
 import { ARC, RETENTION_CSS } from './tokens';
+import { ORD, formatScore } from '../scoreFormat';
+
+export { ORD, formatScore };
 
 // The game-over score board (RETENTION-PLAN.md, the owner-only batch): one mode
 // at one setting, ten places, like an arcade HIGH SCORES list. A pure display
@@ -16,9 +19,11 @@ import { ARC, RETENTION_CSS } from './tokens';
 //          (7 + 12: value = rounds × 1000 + reps)
 //   unit:  the column's name (STRIKES, TIME, TOTAL REPS). Said once, at the
 //          top of the score column, so a row stays one line on a 360 phone.
-//   you:   { place, of, level, value, newBest?, next? } when the athlete is
-//          not in `rows`: pinned under the list with the world rank
-//          ("#143 of 2,310") and what the next place needs (`next`).
+//   you:   { place, of, level, value, newBest?, next?, ofLine? } when the
+//          athlete is not in `rows`: pinned under the list with the world rank
+//          ("#143 of 2,310") and what the next place needs (`next`). `ofLine`
+//          says the rank in place of "of N players" while CPU rows sit above
+//          (a new board: "3RD OF 4 PLAYERS", so a place is never read as a rank).
 //   legend: false hides the CPU line under the list (the end-screen card).
 //   bare:   no box of its own (inside a card that has one).
 // Rows whose places are not next to each other get a ··· between them.
@@ -27,23 +32,6 @@ import { ARC, RETENTION_CSS } from './tokens';
 // country only if they chose to show it, and their level in its tier colour.
 // A CPU house row is quieter: an equipment name in capitals, a CPU tag, no
 // country. The athlete's own row reads YOU, gold, with NEW BEST when it is.
-
-export const ORD = (n) => {
-  const t = n % 100;
-  if (t >= 11 && t <= 13) return `${n}TH`;
-  return `${n}${({ 1: 'ST', 2: 'ND', 3: 'RD' })[n % 10] || 'TH'}`;
-};
-
-const pad2 = (n) => String(n).padStart(2, '0');
-export function formatScore(kind, value) {
-  const v = Math.max(0, Math.round(Number(value) || 0));
-  if (kind === 'time') {
-    const h = Math.floor(v / 3600), m = Math.floor((v % 3600) / 60), s = v % 60;
-    return h ? `${h}:${pad2(m)}:${pad2(s)}` : `${m}:${pad2(s)}`;
-  }
-  if (kind === 'roundsReps') return `${Math.floor(v / 1000)} + ${v % 1000}`;
-  return v.toLocaleString('en-US');
-}
 
 // The app's level, in its tier's colour (data/tiers: three levels a tier).
 export function levelTier(level) {
@@ -155,7 +143,7 @@ export default function ScoreBoard({ rows = [], kind = 'count', unit = 'SCORE', 
           <Gap/>
           <Row r={{ ...you, you: true }} kind={kind} i={rows.length} pinnedPlace={`#${you.place.toLocaleString('en-US')}`}/>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', padding: '5px 8px 0', font: `600 12px ${ARC.body}`, color: '#cbc6e0', lineHeight: 1.3 }}>
-            <span>of {you.of.toLocaleString('en-US')} players</span>
+            <span>{you.ofLine || `of ${you.of.toLocaleString('en-US')} players`}</span>
             {you.next && <span style={{ color: ARC.gold }}>{you.next}</span>}
           </div>
         </div>

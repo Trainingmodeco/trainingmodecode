@@ -10,6 +10,7 @@ import { StepperRow, TotalRow } from './shared/Stepper';
 import RushModeRow from './shared/RushMode';
 import WarmupRow, { loadWarmup } from './shared/WarmupRow';
 import { FightBackdrop, FightHeader, FightLabel, fightTimerCSS } from './shared/FightTimerKit';
+import { JUST_TRAIN_PRESETS } from './data/fightPresets';
 
 // Just Train — a plain round timer for bag work, pads or sparring: pick the
 // rounds and go. New in the Simplify revamp (Fight Mode row 01).
@@ -20,14 +21,9 @@ import { FightBackdrop, FightHeader, FightLabel, fightTimerCSS } from './shared/
 // the bells and the clock are all there is. Voice is off unless Rush Mode is
 // on — a surge is a spoken cue, so asking for rushes is asking for the coach.
 
-// The design's four starters. Tabata runs 20-second rounds, below the ROUND
-// LENGTH stepper's 30-second floor; a preset may sit outside the stepper range.
-const BUILT_IN = [
-  { label: 'Bag 6×3', rounds: 6, lenSec: 180, restSec: 60 },
-  { label: 'Pads 8×2', rounds: 8, lenSec: 120, restSec: 45 },
-  { label: 'Spar 5×3', rounds: 5, lenSec: 180, restSec: 60 },
-  { label: 'Tabata 8×0:20', rounds: 8, lenSec: 20, restSec: 10 },
-];
+// The design's four starters (data/fightPresets, shared with the score
+// board's rules).
+const BUILT_IN = JUST_TRAIN_PRESETS;
 
 const SAVED_KEY = 'tm_just_train_presets';
 const MAX_SAVED = 3;

@@ -11,7 +11,7 @@
 // a house score stays only below the lowest real score, so they fade out as
 // people join. A house row is always tagged CPU and never stored as a player.
 
-import { ORD } from './ui/ScoreBoard';
+import { ORD } from './scoreFormat';
 
 export const BOARD_SIZE = 10;
 export const FADE_AT = 5;
