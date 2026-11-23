@@ -125,3 +125,12 @@ subagent or workflow, use the cheapest model that will still do the job well:
 - **Mechanical work (running tests, screenshots, file moves, simple checks):** Haiku, or a script with no model at all.
 - Prefer scripts over agents for anything that can be measured, and one agent over a panel unless the result
   needs an independent check.
+
+## Never run past the plan's usage (owner's rule, 2026-11-23)
+
+"If we extend past usage, please pause until token reset or switch to another model." Do not push work into
+paid overage. When a usage limit stops a call (or a notice says the session is in overage): stop starting new
+agents and workflows, let nothing retry in a loop, and tell the owner where things stand. Either wait for the
+reset and then resume (a workflow resumes from its cache with `resumeFromRunId`, so finished agents are not paid
+for twice), or carry on with a cheaper model (Sonnet in place of Opus for a fix, Haiku or a plain script for
+mechanical steps) when the step allows it. Never move up to a bigger model to get past a limit.
