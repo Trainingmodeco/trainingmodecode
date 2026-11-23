@@ -45,6 +45,18 @@ export function sessionsOn(rows, now = Date.now()) {
   return n;
 }
 
+// Whether an end counts as a try at its stage or session: only a finished,
+// valid session does, like the sessions above. A session the integrity check
+// refused (validation_failed) or one ended with nothing done (0 of its count)
+// moves nothing, so the next honest go is still the first.
+//   facts: the end screen's { outcome, unit, done } (data/nearMissStore)
+const COUNT_UNITS = new Set(['rounds', 'exercises', 'drills', 'tasks', 'sets']);
+export function countsAsTry({ outcome, unit, done } = {}) {
+  if (outcome === 'validation_failed') return false;
+  if (COUNT_UNITS.has(unit) && done != null && !(Number(done) > 0)) return false;
+  return true;
+}
+
 // The attempts log ({ day, tries: { [key]: n } }): tries at `key` on the
 // local day of `now` (a log from another day counts nothing).
 export function triesOn(log, key, now = Date.now()) {

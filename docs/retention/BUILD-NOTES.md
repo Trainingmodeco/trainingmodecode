@@ -353,16 +353,18 @@ switch off is the bug the spec asked to fix first (a cleared classic stage read 
 - **The retry rule** (no recovery data is saved, so this holds until the owner approves another): no RETRY after a
   boss (a v2 boss, a classic boss circuit, a concept boss stage), a saga's final stage, the title fight (camp level 12)
   or MAX OUT; none after 2 tries at the same stage or session today; none after 3 finished sessions today. A try is
-  counted when an end screen opens, whatever its outcome (passes too), once per result. "The same session": the same
-  saga stage, camp level and session, Quick Mission, Combat Conditioning mission, workout (or program day), or timer
-  settings (discipline, mode, rounds, round length, difficulty). The lines are plain and say when: "That was a boss
+  counted when an end screen opens, once per result, for a finished, valid session (passes too); a session the
+  integrity check refused or one ended with nothing done is no try (the same rows `sessionsToday` leaves out). "The
+  same session": the same saga stage, camp level and session, Quick Mission, Combat Conditioning mission, workout (or
+  program day), or timer settings (discipline, mode, rounds, round length, difficulty). The lines are plain and say when: "That was a boss
   fight. Come back fresh tomorrow." · "Two goes at this one today. …" · "Three sessions done today. …" Nothing is
   locked: only the button is not offered.
 - **REMIND ME TOMORROW is left out**: the reminders (`reminderEngine`) only fire on the plan's days while the app is
   open; there is no one-off reminder to hook it into.
 - **The third star** (classic saga): offered when the stage holds fewer than 3 stars and has time tiers; the gap is this
-  run's time to the star above what the stage holds now. A benchmark that ranked shows its rank, so nothing. After the
-  boss: the gap and the come-back line, no buttons (Back to Arcade stays).
+  run's time to the star above what the stage holds now. A benchmark that ranked shows its rank, so nothing. A clear is a
+  win, so the panel never says "come back tomorrow" there: with no replay today (a second go, three sessions) the gap
+  stays over START STAGE n; after a boss or the saga's final stage (no replay and no next stage) there is no panel.
 - **The classic RETRY's clock**: before, a retry was timed from the first attempt's start, so a retried run's time (and
   stars) counted the failed run's minutes. With the switch on, a retry restarts the clock (the third star is a time).
   With the switch off it is as before (see below).
@@ -399,8 +401,40 @@ switch off is the bug the spec asked to fix first (a cleared classic stage read 
 - The tries log is per device until it syncs; a stopped arcade or camp stage still takes its XP stake loss on each try
   (the existing rule).
 
+### Review fixes (2026-11-23)
+
+- **Only a finished, valid session is a try.** A refused session (validation_failed, the classic overlay's invalid
+  screen included) or one ended with nothing done no longer logs a try in `tm_retry_log_v1` or counts itself in
+  `attemptsToday` (`retrySafety.countsAsTry`, used by `nearMissStore`), so the next honest partial of the same session is
+  still the first go and gets its RETRY. The two counters now agree on those (`sessionsToday` already left them out).
+  A stage stopped with work done but no XP paid (the arcade's stake rule) is still a try at that stage: it was a real
+  go, and the two-tries rule is about the same stage, not the day's load.
+  `test:nearmiss` 73 (refused, nothing done, the classic invalid run, the next honest partial).
+- **Camp RETRY and the health check**: the map takes the retry when it opens and keeps it until the PAR-Q sheet (if it
+  is up) is done, then opens the level's card. Before, a PAR-Q sheet on the map dropped the request. Preview state
+  `f3-camp-retry-parq`.
+- **The classic clear with a star gap** no longer says "Come back fresh tomorrow." over START STAGE n (and never on a
+  boss or final-stage win): no come-back line on a clear; with no replay today the gap stays over the next stage; with
+  no replay and no next stage the panel stays out. A gallery card shows it ("Cleared, no replay today").
+- **Panel buttons**: 11.5 px with tighter letter spacing, so COME BACK FRESH TOMORROW stays on one line down to a 230 px
+  label box (the gallery's phone frame, a 320 px phone); both buttons were already one height. The gallery card header
+  keeps 6 px off the right edge (the REPLAY pill).
+- Looked at, not changed: the round chevron over SHARE YOUR WIN at 360 is the app's scroll cue (`ScrollDownIndicator`,
+  fixed above the tab bar while more lies below, gone at the bottom), not the share card's; the panel only moves which
+  text sits under it. The PARTIAL COMPLETION banner ends short of the right edge at 430 (`MissionIntegrityBanner`
+  `maxWidth: 360`), the same with the switch off (below).
+- Checked: `test:nearmiss` 73, `test:xp` 121, `test:missions` 217, `test:concepts` 180, `test:ayp` 54, `test:maxout`
+  103, `test:path` 88, `test:streak` 125, `test:storage` 33, `test:levels` 183, `test:athlete` 50,
+  `test:entitlements` 7, eslint on every changed file, `tsc`, `voice:coverage` (0 missing), and
+  `retention-preview.mjs` at 360, 390 and 430 (every feature 3 state fits, the new `f3-camp-retry-parq` included;
+  looked at each photo, and at the gallery's three classic cards close up at 360).
+
 ### For the owner (old, not changed)
 
+- **The integrity banner's width**: on a phone wider than about 400 px the PARTIAL COMPLETION (and every other one-line
+  integrity) banner on the end screens stops at 360 px while the cards under it run the full column
+  (`MissionIntegrityBanner` `maxWidth: 360`, both branches). Dropping the cap, as was done for the share card, fixes it
+  on every end screen; not done here, as it changes the screens with the switch off.
 - **The classic RETRY timing**: with the switch off, a retried classic stage is still timed from the first attempt's
   start (`ArcadeSessionPlayer` keeps `sessionStartedAtRef`), so its time and stars are worse than the run. Resetting it
   on RETRY (one line, done here behind the switch) would fix it for everyone.

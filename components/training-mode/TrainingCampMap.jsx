@@ -158,14 +158,17 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   // Retention feature 3 (switch `nearMiss`): the end screen's RETRY opens the
   // level it ran on its card (once), so START → readiness → gear runs as ever.
-  const [nearMissOn] = useState(() => retentionOn('nearMiss'));
+  // Taken when the map opens and kept until the PAR-Q sheet (if it is up) is
+  // done, so the card still opens after it.
+  const [campRetryLevel, setCampRetryLevel] = useState(() => (retentionOn('nearMiss') ? takeCampRetry() : null));
   useEffect(() => {
-    if (!nearMissOn) return undefined;
-    const level = takeCampRetry();
-    if (!level || level > current || showParq) return undefined;
+    if (!campRetryLevel || showParq) return undefined;
+    const level = campRetryLevel;
+    setCampRetryLevel(null);
+    if (level > current) return undefined;
     const t = setTimeout(() => setOpenLevel(level), 320);
     return () => clearTimeout(t);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showParq]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Item 14 — the athlete picks their archetype (was hardcoded to [0]). Stored
   // per discipline, so a boxer's choice survives leaving and coming back.

@@ -255,6 +255,29 @@ async function stopCampAndRetry(page, w) {
   await page.locator('[data-retention="near-miss"] button', { hasText: 'RETRY' }).first().click({ timeout: 4000 });
   await wait(page, 2000);
 }
+// The same, with the one-time health check (PAR-Q) still to take when RETRY
+// lands on the map: the sheet comes first, and once it is done level 5's card
+// opens all the same (the retry is kept, not dropped).
+async function stopCampAndRetryParq(page, w) {
+  await nextUp(page, w);
+  await page.getByRole('button', { name: /START SESSION 1/ }).first().click({ timeout: 4000 }); await wait(page, 800);
+  await page.getByRole('button', { name: /^NO$/ }).first().click({ timeout: 4000 });
+  await page.getByRole('button', { name: /CHECK IN/ }).first().click({ timeout: 4000 }); await wait(page, 800);
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 500);
+  await page.getByRole('button', { name: /CONTINUE/ }).first().click({ timeout: 4000 });
+  await runClock(page, (t) => /SKIP → START/.test(t), { max: 20 });
+  await page.getByRole('button', { name: /SKIP → START/ }).first().dispatchEvent('click', {}, { timeout: 4000 });
+  await runClock(page, (t) => /\bEND\b/.test(t), { max: 60 });
+  await runClock(page, (t) => /NEXT: ROUND 2/.test(t), { stepMs: 2000, max: 400 });
+  await endTimer(page, 2);
+  await page.evaluate(() => localStorage.removeItem('tm_camp_parq'));
+  await page.locator('[data-retention="near-miss"] button', { hasText: 'RETRY' }).first().click({ timeout: 4000 });
+  await wait(page, 1500);
+  if (!/HEALTH CHECK/.test(await page.evaluate(() => document.body.innerText))) throw new Error('the PAR-Q sheet did not come up');
+  for (const b of await page.getByRole('button', { name: /^Q\d+ NO$/ }).all()) await b.click({ timeout: 2000 });
+  await page.getByRole('button', { name: /✓ CONTINUE/ }).first().click({ timeout: 4000 });
+  await wait(page, 2000);
+}
 
 const scrollTo = (sel) => async (page) => { await page.locator(sel).first().scrollIntoViewIfNeeded({ timeout: 4000 }); await page.evaluate((s) => document.querySelector(s)?.scrollIntoView({ block: 'center' }), sel); await wait(page, 400); };
 
@@ -458,11 +481,18 @@ const STATES = [
     check: ['[data-retention="path-map"]'], expect: /VOLUME[\s\S]*START SESSION 1/,
   },
   {
+    name: 'f3-camp-retry-parq',
+    note: 'The same camp stop with the health check (PAR-Q) still to take: RETRY lands on the map, the sheet comes first, and once it is done level 5\'s card opens.',
+    clock: true, once: true,
+    seed: CAMP_FRESH_SEED, open: stopCampAndRetryParq,
+    check: ['[data-retention="path-map"]'], expect: /VOLUME[\s\S]*START SESSION 1/,
+  },
+  {
     name: 'f3-gallery',
-    note: 'The design gallery (/retention-looks), feature 3: the real panel and the real classic stage screens (third star, partial) with sample data.',
+    note: 'The design gallery (/retention-looks), feature 3: the real panel and the real classic stage screens (third star, no replay today: the gap over the next stage with no come-back line, partial) with sample data.',
     seed: () => ({}),
     open: async (page) => { await page.goto(`${BASE}retention-looks`, { waitUntil: 'networkidle' }); await wait(page, 4000); },
-    check: ['#f3'], shot: '#f3', expect: /NEAR-MISS RETRY[\s\S]*GO FOR THE THIRD STAR/,
+    check: ['#f3'], shot: '#f3', expect: /NEAR-MISS RETRY[\s\S]*GO FOR THE THIRD STAR[\s\S]*no replay today[\s\S]*12 s OFF[^]*?UNDER \d+:\d\d\s*START STAGE 6/i,
   },
   {
     name: 'f2-gallery',

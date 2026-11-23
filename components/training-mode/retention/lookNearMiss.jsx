@@ -49,11 +49,13 @@ export default function LookNearMiss() {
   const third = tiers.find((t) => t.stars === 3);
   const clearTime = third ? third.maxMinutes * 60 + 11 : 0;
   const star = { ...settled({ unit: 'time', timeSec: clearTime, tiers, stars: 2 }), retryLabel: 'GO FOR THE THIRD STAR' };
+  const starLater = { ...settled({ unit: 'time', timeSec: clearTime, tiers, stars: 2 }, { attemptsToday: 2 }), retryLabel: 'GO FOR THE THIRD STAR' };
+  const clearResult = { invalid: false, rank: null, points: 300, xpEarned: 300, elapsedSeconds: clearTime, stars: 2, newBest: false, completedTasks: 3, totalTasks: 3 };
   const bench = settled({ unit: 'exercises', done: 2, total: 3, outcome: 'partial' });
   return (
     <Feature id="f3" num="FEATURE 3" title="NEAR-MISS RETRY"
       reuse="the shared end screen (MissionComplete) and the classic Arcade's stage screens, their verdicts from sessionOutcome, each mode's own start (the same session again: Fight Focus, Combo, Quick Mission, Combat Conditioning, Fit, arcade v2; the camp map's readiness and gear checks; the classic stage's own RETRY)."
-      isNew="how close it was in plain words from the session's real counts, with a bar; RETRY and COME BACK FRESH TOMORROW as two buttons of the same size; no RETRY after a boss, the title fight, MAX OUT, a second go at the same session or three sessions in a day: the screen says when to come back and offers DONE FOR TODAY; the classic clear with fewer than three stars offers the third star next to the next stage. There is no reminder to hook a REMIND ME TOMORROW into, so it is left out.">
+      isNew="how close it was in plain words from the session's real counts, with a bar; RETRY and COME BACK FRESH TOMORROW as two buttons of the same size; no RETRY after a boss, the title fight, MAX OUT, a second go at the same session or three sessions in a day: the screen says when to come back and offers DONE FOR TODAY; the classic clear with fewer than three stars offers the third star next to the next stage (with no replay today, the gap over the next stage and no come-back line). There is no reminder to hook a REMIND ME TOMORROW into, so it is left out.">
 
       <Look name="Stopped short, retry is safe" note="Fight Focus, 2 of 3 rounds. The panel sits under the stats; RETRY runs the same session, and the way home is the same size." height={420}>
         <EndTop eyebrow="SESSION STOPPED" title="GOOD EFFORT" sub="Boxing · Normal · Fight Focus" xp="+40" stat={['2/3', 'ROUNDS']}>
@@ -76,9 +78,18 @@ export default function LookNearMiss() {
       <Look name="Cleared, fewer than 3 stars" note="The real classic clear screen: how far off the third star this run was, GO FOR THE THIRD STAR next to the next stage, the same size. A clear is a clear: never pushed." height={700} animated>
         <ArcadeStageClearOverlay
           series={OP} stage={stage}
-          result={{ invalid: false, rank: null, points: 300, xpEarned: 300, elapsedSeconds: clearTime, stars: 2, newBest: false, completedTasks: 3, totalTasks: 3 }}
+          result={clearResult}
           xpEarned={300} completedStageIds={OP.stages.slice(0, 5).map((s) => s.id)}
           onContinue={noop} onReturnToArcade={noop} onNextStage={noop} onRetry={noop} nearMiss={star}
+        />
+      </Look>
+
+      <Look name="Cleared, no replay today" note="The same clear on the second go at this stage today: the gap to the third star stays over the next stage, with no replay and no come-back line (a clear is a win). After a boss or the saga's final stage, with no next stage either, the clear shows plain." height={700} animated>
+        <ArcadeStageClearOverlay
+          series={OP} stage={stage}
+          result={clearResult}
+          xpEarned={300} completedStageIds={OP.stages.slice(0, 5).map((s) => s.id)}
+          onContinue={noop} onReturnToArcade={noop} onNextStage={noop} onRetry={noop} nearMiss={starLater}
         />
       </Look>
 

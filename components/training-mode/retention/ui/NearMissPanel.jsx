@@ -9,7 +9,8 @@ import { ARC, RETENTION_CSS } from './tokens';
 // There is no reminder to hook a REMIND ME TOMORROW into, so it is left out.
 //
 //   miss:  nearMiss() → { line, value, max, left, right }
-//   gate:  canRetryNow() → { allowed, line }
+//   gate:  canRetryNow() → { allowed, line } (a gate with no line shows none:
+//          the classic clear, where a win never reads "come back tomorrow")
 //   onRetry / retryLabel: the same session again (only when allowed)
 //   onLeave / leaveLabel: the way out (home); null leaves the button out (a
 //          screen that keeps its own way out, the classic clear)
@@ -23,7 +24,9 @@ export default function NearMissPanel({ miss, gate, onRetry, retryLabel = 'RETRY
   const big = String(miss.line || '').toUpperCase().replace(/(\d) S\b/g, '$1 s');
   const btn = {
     width: '100%', minHeight: 46, height: '100%', padding: '8px 10px', borderRadius: 11, cursor: 'pointer',
-    font: `900 12px ${ARC.head}`, letterSpacing: '0.05em', lineHeight: 1.2,
+    // 11.5px and tight spacing: COME BACK FRESH TOMORROW stays on one line
+    // down to a 230px label box (a 320px phone, the gallery's phone frame).
+    font: `900 11.5px ${ARC.head}`, letterSpacing: '0.03em', lineHeight: 1.2,
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textAlign: 'center',
   };
   return (

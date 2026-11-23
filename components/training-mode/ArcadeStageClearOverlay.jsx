@@ -87,9 +87,6 @@ function StageClearedScreen({
   series, stage, result, pointsEarned, xpEarned, statRewards,
   completedStageIds, onContinue, onNextStage, onReturnToArcade, onShare, onRetry, nearMiss,
 }) {
-  // Fewer stars than the stage can hold: how far off the next one, and a
-  // replay for it next to the next stage (never pushed; replays keep the best).
-  const nm = nearMiss?.show && nearMiss.miss?.kind === 'time' ? nearMiss : null;
   const [phase, setPhase] = useState(0);
   const [displayXp, setDisplayXp] = useState(0);
   const [countDone, setCountDone] = useState(false);
@@ -104,6 +101,16 @@ function StageClearedScreen({
   const stageIdx = stages.findIndex(s => s.id === stage?.id);
   const nextStage = stageIdx >= 0 && stageIdx < stages.length - 1 ? stages[stageIdx + 1] : null;
   const nextStageNum = nextStage ? (nextStage.stageNumber || stageIdx + 2) : null;
+  // Fewer stars than the stage can hold: how far off the next one, a replay
+  // for it (when a retry is safe today) and the next stage as two equal
+  // buttons (never pushed; replays keep the best). A clear is a win, so the
+  // panel never says "come back tomorrow" here: with no replay today the gap
+  // stays over the next stage, and with no replay and no next stage (a boss,
+  // the saga's final stage) the panel stays out: the plain clear.
+  const nmFor = nearMiss?.show && nearMiss.miss?.kind === 'time' ? nearMiss : null;
+  const nmReplay = !!nmFor?.gate?.allowed && typeof onRetry === 'function';
+  const nm = nmFor && (nmReplay || (nextStage && onNextStage)) ? nmFor : null;
+  const nmGate = nm ? { ...nm.gate, line: null } : null;
 
   useEffect(() => {
     const timers = [
@@ -250,7 +257,7 @@ function StageClearedScreen({
         <div style={{ width: '100%', maxWidth: 300, marginBottom: 8 }}>
           <NearMissPanel
             eyebrow="NEXT STAR"
-            miss={nm.miss} gate={nm.gate}
+            miss={nm.miss} gate={nmGate}
             onRetry={onRetry} retryLabel={nm.retryLabel || 'REPLAY'}
             alt={nextStage && onNextStage ? { label: `START STAGE ${nextStageNum}`, onClick: onNextStage } : null}
           />

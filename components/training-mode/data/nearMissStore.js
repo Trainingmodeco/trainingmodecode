@@ -2,12 +2,13 @@
 // the session rows (finished sessions today) and keeps one small log of today's
 // tries per stage or session (tm_retry_log_v1: { day, tries: { [key]: n } },
 // yesterday's dropped on the next write). Written only with the switch on, by
-// an end screen when it opens. The gap and the rule are pure
+// an end screen when it opens, and only for a finished, valid session (a
+// refused one or one with nothing done is no try). The gap and the rule are pure
 // (data/nearMiss.js, data/retrySafety.js).
 import { loadStats } from './userStats';
 import { safeSetItem, safeStorage } from './storageHealth';
 import { nearMiss, showsNearMiss } from './nearMiss';
-import { canRetryNow, sessionsOn, triesOn, withTry, arcadeRetryKey } from './retrySafety';
+import { canRetryNow, countsAsTry, sessionsOn, triesOn, withTry, arcadeRetryKey } from './retrySafety';
 import { arcadeOverlayOutcome } from './arcadeOutcome';
 import { stageStarRule, stageStars } from './pathStars';
 import { getSeriesProgress } from './arcadeProgress';
@@ -32,19 +33,24 @@ const isCounted = (token) => !!token && typeof token === 'object' && counted.has
 // Everything an end screen needs, worked out once when it opens.
 //   facts: { key, token, boss, maxEffort, ...the nearMiss() input (unit, done,
 //            total, outcome | timeSec, tiers, stars) }
-// → { key, token, miss, show, gate: canRetryNow() + { attemptsToday, sessionsToday } }
+// → { key, token, counts, miss, show, gate: canRetryNow() + { attemptsToday, sessionsToday } }
+// counts: whether this end is a try at all (retrySafety countsAsTry: not a
+// refused session, not one with nothing done); one that is not adds nothing
+// to today's tries, here or in noteAttempt.
 export function settleNearMiss(facts, now = Date.now()) {
   if (!facts?.key) return null;
   const miss = nearMiss(facts);
-  const attemptsToday = triesOn(loadRetryLog(), facts.key, now) + (isCounted(facts.token) ? 0 : 1);
+  const counts = countsAsTry(facts);
+  const attemptsToday = triesOn(loadRetryLog(), facts.key, now) + (counts && !isCounted(facts.token) ? 1 : 0);
   const sessionsToday = Math.max(1, sessionsOn(loadStats().sessions, now));
   const gate = { ...canRetryNow({ boss: facts.boss, maxEffort: facts.maxEffort, attemptsToday, sessionsToday }), attemptsToday, sessionsToday };
-  return { key: facts.key, token: facts.token, miss, show: showsNearMiss(miss, facts.outcome), gate };
+  return { key: facts.key, token: facts.token, counts, miss, show: showsNearMiss(miss, facts.outcome), gate };
 }
 
-// The end screen's session, logged as one try at its key today (once).
+// The end screen's session, logged as one try at its key today (once). A
+// refused session or one with nothing done is not a try: nothing is written.
 export function noteAttempt(settled, now = Date.now()) {
-  if (!settled?.key) return;
+  if (!settled?.key || settled.counts === false) return;
   const { token } = settled;
   if (token && typeof token === 'object') {
     if (counted.has(token)) return;
@@ -62,15 +68,17 @@ const ORDINAL = { 1: 'FIRST', 2: 'SECOND', 3: 'THIRD' };
 export function classicNearMiss(series, stage, result, now = Date.now()) {
   if (!series?.id || !stage?.id || !result || typeof result !== 'object') return null;
   const { screen } = arcadeOverlayOutcome(result);
-  const base = { key: arcadeRetryKey(series.id, stage.id), token: result, boss: classicStageBoss(series, stage) };
+  // The overlay's screen as a verdict: a refused run (invalid) is no try.
+  const outcome = { invalid: 'validation_failed', failed: 'fail', partial: 'partial' }[screen] || 'pass';
+  const base = { key: arcadeRetryKey(series.id, stage.id), token: result, boss: classicStageBoss(series, stage), outcome };
   if (screen === 'partial' || screen === 'failed') {
-    return settleNearMiss({ ...base, unit: stage.stageType === 'benchmark' ? 'exercises' : 'tasks', done: result.completedTasks, total: result.totalTasks, outcome: screen === 'failed' ? 'fail' : 'partial' }, now);
+    return settleNearMiss({ ...base, unit: stage.stageType === 'benchmark' ? 'exercises' : 'tasks', done: result.completedTasks, total: result.totalTasks }, now);
   }
   if (screen === 'cleared' && !result.rank) {
     const rule = stageStarRule(series, stage);
     if (rule.kind === 'time') {
       const held = stageStars(series, stage, getSeriesProgress(series.id)?.completedStages?.[stage.id]);
-      const out = settleNearMiss({ ...base, unit: 'time', timeSec: result.elapsedSeconds, tiers: rule.tiers, stars: held.stars || 0, outcome: 'pass' }, now);
+      const out = settleNearMiss({ ...base, unit: 'time', timeSec: result.elapsedSeconds, tiers: rule.tiers, stars: held.stars || 0 }, now);
       return out?.miss ? { ...out, retryLabel: `GO FOR THE ${ORDINAL[out.miss.nextStars] || 'NEXT'} STAR` } : out;
     }
   }

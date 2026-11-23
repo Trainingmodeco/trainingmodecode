@@ -149,6 +149,31 @@ check('3 finished sessions today: no RETRY', S.settleNearMiss({ ...facts, key: '
 check('a boss end: no RETRY whatever the counts', S.settleNearMiss({ ...facts, key: 'arcade|y', boss: 'boss', token: {} }).gate.reason === 'boss');
 check('a pass is settled (its try logged) but shows no panel', S.settleNearMiss({ ...facts, key: 'fight|z', done: 3, outcome: 'pass', token: {} }).show === false);
 check('no key: nothing settled', S.settleNearMiss({ unit: 'rounds', done: 1, total: 2 }) === null);
+
+section('only a finished, valid session is a try (review fix)');
+store.clear();
+setStats({ xp: 300, sessions: [] });
+const rk = 'fight|refused';
+let rs = S.settleNearMiss({ key: rk, unit: 'rounds', done: 2, total: 3, outcome: 'validation_failed', token: {} });
+check('a refused session (validation_failed): not a try, no panel', rs.counts === false && rs.gate.attemptsToday === 0 && rs.show === false, JSON.stringify(rs.gate));
+S.noteAttempt(rs);
+check('… and nothing logged', R.triesOn(S.loadRetryLog(), rk) === 0 && !store.has(S.RETRY_LOG_KEY));
+rs = S.settleNearMiss({ key: rk, unit: 'rounds', done: 2, total: 3, outcome: 'partial', token: {} });
+check('the next honest partial is the first go: RETRY offered', rs.counts === true && rs.gate.attemptsToday === 1 && rs.gate.allowed && rs.show);
+const rz = S.settleNearMiss({ key: 'fight|zero', unit: 'rounds', done: 0, total: 3, outcome: 'fail', token: {} });
+S.noteAttempt(rz);
+check('a session ended with nothing done: not a try, nothing logged', rz.counts === false && R.triesOn(S.loadRetryLog(), 'fight|zero') === 0);
+check('countsAsTry: a pass, a partial, a time clear and a count-less end count; refused or 0 done do not',
+  R.countsAsTry({ outcome: 'pass', unit: 'rounds', done: 3 }) && R.countsAsTry({ outcome: 'partial', unit: 'exercises', done: 1 })
+  && R.countsAsTry({ outcome: 'pass', unit: 'time' }) && R.countsAsTry({ outcome: 'partial' })
+  && !R.countsAsTry({ outcome: 'validation_failed', unit: 'rounds', done: 3 }) && !R.countsAsTry({ outcome: 'fail', unit: 'tasks', done: 0 }));
+const OPs = A.getSeriesById('one-punch-protocol');
+const inv = S.classicNearMiss(OPs, OPs.stages[1], { invalid: true, reason: 'x', completedTasks: 2, totalTasks: 3 });
+S.noteAttempt(inv);
+check('the classic overlay\'s refused run: not a try, nothing logged', inv.counts === false && inv.show === false
+  && R.triesOn(S.loadRetryLog(), R.arcadeRetryKey(OPs.id, OPs.stages[1].id)) === 0);
+const part = S.classicNearMiss(OPs, OPs.stages[0], { invalid: false, completedTasks: 2, totalTasks: 3 });
+check('… its partial is a try (outcome partial)', part.counts === true && part.show && part.gate.attemptsToday === 1);
 check('the log key is in cloud sync', (await import('../components/training-mode/data/cloudSync.js')).SYNC_KEYS.includes(S.RETRY_LOG_KEY));
 
 section('what a stage was');

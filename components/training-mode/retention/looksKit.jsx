@@ -58,7 +58,7 @@ export function Look({ name, note, animated, height, pad, bg, children }) {
   const [run, setRun] = useState(0);
   return (
     <section style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, paddingRight: 6 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ ...head(13, 700), color: HOME.gold }}>{name}</div>
           {note && <div style={{ fontSize: 13, color: HOME.muted, lineHeight: 1.35, marginTop: 2 }}>{note}</div>}
