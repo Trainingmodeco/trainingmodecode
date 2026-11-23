@@ -23,7 +23,7 @@ import { getActiveChallenge, consumeGhostNudge, GHOST_CHANGE_EVENT } from './dat
 import ConceptFeatureCard from './shared/ConceptFeatureCard';
 import { retentionOn } from './data/retentionFlags';
 import { loadWeekStreak, takeHomeNotice, markWeekMoments } from './data/weekStreakStore';
-import { noticeCopy } from './data/weekStreak';
+import { noticeCopy, localIso } from './data/weekStreak';
 import { todaysDailyMission, rememberDailyMission } from './data/dailyMission';
 import WeekChip from './retention/ui/WeekChip';
 import DailyMissionCard from './retention/ui/DailyMissionCard';
@@ -134,8 +134,34 @@ export default function HomeDashboard({
     consumeComboFlash();
   }, [weeksOn, stats]);
 
+  // The day Home shows. A Home left open across local midnight, or brought
+  // back from the background on a new day, moves on to the new day's week and
+  // mission: checked when the page shows again or gets focus, and at the next
+  // local midnight. Any time within the day reads the same, so it changes only
+  // with the date.
+  const [dayAt, setDayAt] = useState(() => Date.now());
+  useEffect(() => {
+    if (!weeksOn || typeof window === 'undefined' || typeof document === 'undefined') return undefined;
+    const check = () => setDayAt((prev) => (localIso(prev) === localIso(Date.now()) ? prev : Date.now()));
+    let timer = null;
+    const arm = () => {
+      const now = new Date();
+      const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 1);
+      timer = setTimeout(() => { check(); arm(); }, Math.max(1000, next.getTime() - now.getTime()));
+    };
+    arm();
+    const onShow = () => { if (document.visibilityState !== 'hidden') check(); };
+    window.addEventListener('focus', check);
+    document.addEventListener('visibilitychange', onShow);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('focus', check);
+      document.removeEventListener('visibilitychange', onShow);
+    };
+  }, [weeksOn]);
+
   // The week streak: recomputed from the rows (data/weekStreak), never stored.
-  const week = useMemo(() => (weeksOn ? loadWeekStreak(Date.now(), stats.sessions) : null), [weeksOn, stats]);
+  const week = useMemo(() => (weeksOn ? loadWeekStreak(dayAt, stats.sessions) : null), [weeksOn, stats, dayAt]);
   // A freeze that covered last week, or one earned and not yet seen: once,
   // through the nudge slot.
   const [weekNotice, setWeekNotice] = useState(null);
@@ -150,10 +176,10 @@ export default function HomeDashboard({
   const [daily, setDaily] = useState(() => (weeksOn ? todaysDailyMission({ profile, stats: loadStats() }) : null));
   useEffect(() => {
     if (!weeksOn) return;
-    const d = todaysDailyMission({ profile, stats });
+    const d = todaysDailyMission({ now: dayAt, profile, stats });
     if (!d.saved) rememberDailyMission(d.mission);
-    setDaily(d.saved ? d : todaysDailyMission({ profile, stats }));
-  }, [weeksOn, stats, profile]);
+    setDaily(d.saved ? d : todaysDailyMission({ now: dayAt, profile, stats }));
+  }, [weeksOn, stats, profile, dayAt]);
 
   // A live ghost challenge haunts the Continue card until it's beaten; its
   // nudges (the decline line, then at most one a day) take the toast slot.
@@ -381,7 +407,11 @@ export default function HomeDashboard({
                   }}>👻</button>
                 )}
               </div>
-              <div style={{ fontSize: 14, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.parts.join(' · ')}</div>
+              {/* With the week streak on, the DAILY MISSION card above draws
+                  the eye down here: the line takes two lines before it is cut. */}
+              <div style={weeksOn
+                ? { fontSize: 14, lineHeight: 1.3, color: MUTED, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }
+                : { fontSize: 14, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.parts.join(' · ')}</div>
               {/* START follows the saved choice: AT YOUR PACE is the moves and a timer. */}
               {card.atPace && <div style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', color: '#F2BE45' }}>AT YOUR PACE</div>}
               <div style={{ flexGrow: 1 }}/>
@@ -483,10 +513,12 @@ export default function HomeDashboard({
       {/* Nudges: one at a time, over the header, always dismissible. */}
       <div style={{ position: 'absolute', zIndex: 20, left: 16, right: 16, top: 10 }}>
         {nudge ? (
-          <NudgeToast icon={nudge.icon} text={nudge.text} onGo={nudge.onGo} onClose={nudge.onClose}/>
+          <NudgeToast icon={nudge.icon} text={nudge.text} onGo={nudge.onGo} onClose={nudge.onClose} solid={weeksOn}/>
         ) : (
           <ReminderCard
             compact
+            // Opaque over the week streak's busier header, like the toast.
+            style={weeksOn ? { background: '#140C26' } : undefined}
             onAction={(type) => {
               if (type === 'quickMission') onQuickMission?.();
               else if (type === 'fightFocus') onFightFocus?.(disc);

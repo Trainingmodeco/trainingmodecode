@@ -10,8 +10,9 @@
 // The rules (docs/retention/BUILD-SPEC.md, section 1):
 //   - A training day is the LOCAL date of a real finished session: not an
 //     award row (Mission of the Day, Hybrid bonus, Start Here lesson), not a
-//     session with no work done (a 0-round END), not one the integrity check
-//     refused (validation_failed, stored as `unverified`).
+//     session with no work done (a 0-round END, a quit that paid nothing), not
+//     one the integrity check refused (validation_failed, stored as
+//     `unverified`). A Coach's Tape counts when marked cleared, paid or not.
 //   - Weeks run Monday to Sunday in local time.
 //   - Streak = consecutive past weeks on target, plus the current week once it
 //     reaches its target. The current week never counts as missed until it ends.
@@ -66,13 +67,17 @@ export const clampTarget = (n) => {
 };
 
 // ── what counts ────────────────────────────────────────────────────────────
+const TAPE_TYPE = "Coach's Tapes";
+
 // A real, finished, valid session row.
 export function isTrainingRow(s) {
   if (!s || typeof s !== 'object' || !s.completedAt) return false;
   if (sessionMode(s) === 'bonus') return false;
   if (s.unverified) return false;
   if (typeof s.completedCount === 'number' && !(s.completedCount > 0)) return false;
-  if (typeof s.xpEarned === 'number' && !(s.xpEarned > 0)) return false;
+  // A Coach's Tape marked cleared is a finished session even when the tapes'
+  // daily caps paid it nothing (the same tape again, or a third tape today).
+  if (s.type !== TAPE_TYPE && typeof s.xpEarned === 'number' && !(s.xpEarned > 0)) return false;
   // A logged run with neither a time nor a distance is not a session.
   if (s.type === 'Cardio' && !(Number(s.completedTimeSeconds) > 0) && !s.completedDistance) return false;
   return localIso(s.completedAt) !== null;

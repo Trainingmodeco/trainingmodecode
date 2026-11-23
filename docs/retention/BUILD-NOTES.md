@@ -37,8 +37,9 @@ read or write sits behind the switch.
 
 - **A training day** is the local date of a row that is not an award (`tiers.sessionMode` `bonus`: Mission of the
   Day, Hybrid bonus, Start Here), not `unverified` (validation_failed), with `completedCount > 0` and
-  `xpEarned > 0` where the row has them, and for Cardio a time or a distance. A cleared Coach's Tape counts; one not
-  cleared does not.
+  `xpEarned > 0` where the row has them, and for Cardio a time or a distance. A cleared Coach's Tape counts, paid
+  or not (the tapes' daily caps pay a repeat of the same tape, or a third tape, nothing: it is still a finished
+  session); one not cleared (a partial, even a paid one) does not.
 - **A short week with no streak to protect costs nothing**: the starting freeze is not spent on a new athlete's
   first, partial week, or on any week while the streak is 0.
 - **Freeze earned** the day the 4th consecutive week on target lands (the current week counts once on target),
@@ -79,7 +80,7 @@ read or write sits behind the switch.
 
 ### Checked
 
-- `npm run test:streak` (113 checks: week edges, Sunday/Monday, three time zones, target changes, freeze use, earn
+- `npm run test:streak` (113 checks at first, 125 after the review fixes: week edges, Sunday/Monday, three time zones, target changes, freeze use, earn
   and cap, carry-over, a late sync, a clock ahead, award and no-work rows, the moments and their copy, the store,
   the mission's deal, a 3-minute Quick Mission's real length, the bonus paid once and never when the flag cannot be
   saved), the related suites, `tsc`, lint, `test:spoken`, `test:voice`, `test:clips`, `voice:coverage` (0 missing:
@@ -100,6 +101,36 @@ read or write sits behind the switch.
   old day count (`getStreak`); Profile, Progress and the share card also still show the day streak.
 - The "streak at risk" notification (the last day the week's target can still be met) belongs to the
   notifications pass.
+
+### Review fixes (2026-11-22)
+
+- **Home across midnight**: Home keeps the day it shows and moves on when the local date changes (a timer at the
+  next local midnight, and a check on focus and when the page shows again), so the week chip, the DAILY MISSION card
+  and the freeze notices follow the new day. START also checks: a card dealt before midnight runs and tags today's
+  mission (`dailyMission.missionForStart`), so its session can pay. Checked in a browser on a fake clock (Sunday
+  23:59 in New York: the timer, a clock jump then `visibilitychange`, and START on a stale card).
+- **Daily mission box**: saving the day's deal after a done flag was already written that day keeps the flag's
+  time and XP, so the end screen's strip still finds the mission just done.
+- **Coach's Tapes**: a cleared tape counts as a training day even when the caps paid it 0 XP (see above).
+- **The nudge toast** (and the come-back reminder in the same slot) has an opaque fill with the switch on, so the
+  busier header no longer shows through behind its text. The switch off keeps the old fill.
+- **Today's Bout** line under the DAILY MISSION card takes two lines before it is cut (switch on); its "Complete
+  your first beginner lesson before Fight Focus." now reads whole at 360. The title's "lines hidden" warning in the
+  preview is not a cut: every line shows, the font's glyph box is 2 px taller than the 1.08 line height.
+
+- Checked: `test:streak` (125), `test:xp`, `test:missions`, `test:concepts`, `test:ayp`, `test:maxout`, `test:tapes`,
+  `test:storage`, `test:levels`, `test:athlete`, `test:qm`, eslint, `tsc`, `build:web`, `smoke:web` (147 checks), and
+  `retention-preview.mjs` at 360, 390 and 430 (every state fits). `smoke:web` takes about 40 minutes in this
+  container: a `timeout` shorter than that closes the browser mid-run and every later check reads "Target page,
+  context or browser has been closed".
+
+### For the owner (old, not changed)
+
+- **End screen banner at 430 px**: the "MISSION COMPLETE · All rounds verified" banner
+  (`MissionIntegrityBanner.jsx`, `maxWidth: 360`, from July) stops about 40 px short of the cards under it on
+  phones wider than about 392 px, so its right edge does not line up. It is not part of this feature and changing
+  it would change every end screen with the switch off; dropping the `maxWidth` (or setting it to `100%`) would
+  line it up.
 
 ### Needs the owner's answer
 

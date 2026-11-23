@@ -56,6 +56,17 @@ check('a 0-round END is left out', !W.isTrainingRow(row('2026-11-20', 12, { comp
 check('a refused (validation_failed) session is left out', !W.isTrainingRow(row('2026-11-20', 12, { unverified: true, xpEarned: 0 })));
 check('a quit that paid nothing is left out', !W.isTrainingRow(row('2026-11-20', 12, { type: 'Quick Mission', completedCount: 2, xpEarned: 0 })));
 check('a tape not cleared is left out', !W.isTrainingRow(row('2026-11-20', 12, { type: "Coach's Tapes", kind: 'fit', completedCount: 0, xpEarned: 0 })));
+check('a tape not cleared is left out even when paid (a partial)', !W.isTrainingRow(row('2026-11-20', 12, { type: "Coach's Tapes", kind: 'fit', completedCount: 0, xpEarned: 33 })));
+check('a cleared tape the daily caps paid nothing still counts', W.isTrainingRow(row('2026-11-20', 12, { type: "Coach's Tapes", kind: 'fight', completedCount: 1, xpEarned: 0 })));
+{
+  // A day whose only cleared tape was capped (two partials paid first) is a training day.
+  const tapeDay = [
+    row('2026-11-18', 9, { type: "Coach's Tapes", kind: 'fit', completedCount: 0, xpEarned: 38 }),
+    row('2026-11-18', 10, { type: "Coach's Tapes", kind: 'fit', completedCount: 0, xpEarned: 45 }),
+    row('2026-11-18', 11, { type: "Coach's Tapes", kind: 'fight', completedCount: 1, xpEarned: 0 }),
+  ];
+  check('…so its day is a training day', W.trainingDays(tapeDay, '2026-11-22').has('2026-11-18'));
+}
 check('a run with no time and no distance is left out', !W.isTrainingRow(row('2026-11-20', 12, { type: 'Cardio', completedCount: 1, xpEarned: 20, completedTimeSeconds: 0, completedDistance: null })));
 check('a logged run counts', W.isTrainingRow(row('2026-11-20', 12, { type: 'Cardio', completedCount: 1, xpEarned: 120, completedTimeSeconds: 1200 })));
 check('junk rows are left out', !W.isTrainingRow(null) && !W.isTrainingRow({}) && !W.isTrainingRow({ type: 'Fight Focus', completedAt: 'not a date', completedCount: 1, xpEarned: 1 }));
@@ -335,6 +346,29 @@ const NOW = at('2026-11-26', 18); // Thursday of the week of Nov 23
   check('just done: for the end screen', D.justDoneDailyMission(now + 30000)?.xp === 25 && D.justDoneDailyMission(now + 3600000) === null);
   const tomorrow = D.todaysDailyMission({ now: at('2026-11-27', 8).getTime(), profile: fighter, stats: level6 });
   check('a new mission the next day, not done', !tomorrow.done && tomorrow.mission.date === '2026-11-27');
+
+  // START from a card dealt before midnight (Home left open): today's mission runs, tagged with today.
+  store.clear();
+  const late = at('2026-11-27', 0, 20).getTime();
+  check('START: the card\'s mission when it is today\'s', D.missionForStart(tomorrow.mission, { now: at('2026-11-27', 9).getTime(), profile: fighter, stats: level6 }) === tomorrow.mission);
+  const stale = D.missionForStart(t1.mission, { now: late, profile: fighter, stats: level6 });
+  check('START: yesterday\'s card runs today\'s mission', stale.date === '2026-11-27' && D.dailyMissionCfg(stale, { profile: fighter }).dailyMission === '2026-11-27');
+  check('…and today\'s deal is saved', D.todaysDailyMission({ now: late + 60000, profile: fitter, stats: {} }).saved && eq(D.todaysDailyMission({ now: late, profile: fitter, stats: {} }).mission, stale));
+  check('…so its session pays', D.settleDailyMission({ cfg: D.dailyMissionCfg(stale, { profile: fighter }), valid: true, now: late + 240000 }) === 25);
+
+  // A done flag written before the deal was saved keeps its time and XP when the deal is saved.
+  store.clear();
+  const early = at('2026-11-28', 7).getTime();
+  const fresh = D.todaysDailyMission({ now: early, profile: fighter, stats: level6 });
+  check('settled before the deal was saved: paid', D.settleDailyMission({ cfg: D.dailyMissionCfg(fresh.mission, { profile: fighter }), valid: true, now: early }) === 25);
+  check('…the box has no mission yet', JSON.parse(store.get(D.DAILY_MISSION_KEY)).mission === null);
+  D.rememberDailyMission(fresh.mission);
+  const box = JSON.parse(store.get(D.DAILY_MISSION_KEY));
+  check('saving the deal then keeps done, its time and its XP', box.done && box.doneAt === new Date(early).toISOString() && box.xp === 25 && eq(box.mission, fresh.mission), JSON.stringify(box));
+  check('…so the end screen still finds the mission just done', D.justDoneDailyMission(early + 30000)?.xp === 25);
+  D.rememberDailyMission({ ...fresh.mission, date: '2026-11-29' });
+  const next = JSON.parse(store.get(D.DAILY_MISSION_KEY));
+  check('a new day\'s deal starts not done', next.date === '2026-11-29' && !next.done && next.doneAt === null && next.xp === 0);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

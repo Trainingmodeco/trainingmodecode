@@ -2,13 +2,15 @@ import { X } from 'lucide-react';
 
 // Home's one-at-a-time nudge, over the header: an icon, one line, an optional
 // GO and a dismiss. Shared so the retention gallery shows the same toast.
+// `solid` (the week streak switch): an opaque fill, so the busier header (the
+// logo, the week chip, the help button) does not show through behind the text.
 const MUTED = '#A9A3C4';
 
-export default function NudgeToast({ icon, text, onGo, onClose }) {
+export default function NudgeToast({ icon, text, onGo, onClose, solid = false }) {
   return (
     <div role="status" style={{
       minHeight: 52, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px 8px 12px', borderRadius: 14,
-      background: 'rgba(20,12,38,0.96)', border: '1px solid rgba(196,168,255,0.6)',
+      background: solid ? '#140C26' : 'rgba(20,12,38,0.96)', border: '1px solid rgba(196,168,255,0.6)',
       boxShadow: '0 10px 30px rgba(0,0,0,.6), 0 0 18px rgba(157,108,255,.35)',
     }}>
       <span style={{ fontSize: 22, lineHeight: 1 }}>{icon}</span>

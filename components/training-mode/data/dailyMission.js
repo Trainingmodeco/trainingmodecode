@@ -117,8 +117,23 @@ export function todaysDailyMission({ now = Date.now(), profile, stats } = {}) {
 export function rememberDailyMission(mission) {
   if (!mission?.date) return;
   const box = readBox();
-  if (box && box.date === mission.date && box.mission) return;
-  safeSetItem(DAILY_MISSION_KEY, JSON.stringify({ date: mission.date, mission, done: !!(box && box.date === mission.date && box.done), doneAt: null, xp: 0 }));
+  const same = !!(box && box.date === mission.date);
+  if (same && box.mission) return;
+  // A done flag already written today (settled before the deal was saved)
+  // keeps its time and XP, so the end screen's strip still finds it.
+  safeSetItem(DAILY_MISSION_KEY, JSON.stringify({
+    date: mission.date, mission, done: !!(same && box.done), doneAt: same ? box.doneAt ?? null : null, xp: same ? box.xp ?? 0 : 0,
+  }));
+}
+
+// The mission START runs: the one the card shows, unless the day has turned
+// since Home dealt it (Home left open past midnight): then today's, saved, so
+// the session is tagged with today's date and can pay.
+export function missionForStart(shown, { now = Date.now(), profile, stats } = {}) {
+  if (shown?.date && shown.date === localIso(now)) return shown;
+  const d = todaysDailyMission({ now, profile, stats });
+  if (!d.saved) rememberDailyMission(d.mission);
+  return d.mission;
 }
 
 // After a session banked: pays the bonus when `cfg` came from today's card,

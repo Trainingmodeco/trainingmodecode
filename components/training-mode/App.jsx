@@ -57,7 +57,7 @@ import { maybeOfferChallenge, declineChallenge, settleChallenge, getActiveChalle
 import { dueComeback, markComebackShown, remindComebackNextWeek } from './data/comeback';
 import { getLastBattle } from './data/ghostBattles';
 import { retentionOn } from './data/retentionFlags';
-import { dailyMissionCfg, settleDailyMission } from './data/dailyMission';
+import { dailyMissionCfg, settleDailyMission, missionForStart } from './data/dailyMission';
 import { quickMissionConfig } from './data/quickMissionConfig';
 
 // 2.10 — v2 campaign stars: completion-quality is the gate (you only earn stars
@@ -1318,7 +1318,9 @@ export default function App() {
     },
     // The DAILY MISSION card (week streak switch): one tap straight into the
     // session, its config tagged with the day so its end can pay the bonus.
-    startDailyMission: (mission) => {
+    startDailyMission: (shown) => {
+      // Rebuilt from today's mission if the card was dealt before midnight.
+      const mission = missionForStart(shown, { profile, stats: loadStats() });
       const c = dailyMissionCfg(mission, { profile, qmConfig: quickMissionConfig });
       if (!c) return;
       trackEvent('daily_mission_start', { v: 2, side: mission.side });

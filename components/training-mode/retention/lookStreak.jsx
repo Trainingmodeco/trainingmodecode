@@ -103,7 +103,7 @@ export default function LookStreak() {
         <div style={{ position: 'relative' }}>
           <NewHeader freezes={1} done={0} days={['today', 'future', 'future', 'future', 'future', 'future', 'future']}/>
           <div style={{ position: 'absolute', left: 16, right: 16, top: 10 }}>
-            <NudgeToast icon="❄" text={noticeCopy({ kind: 'freeze_used', streak: 9, freezes: 1, target: 4 })} onClose={() => {}}/>
+            <NudgeToast solid icon="❄" text={noticeCopy({ kind: 'freeze_used', streak: 9, freezes: 1, target: 4 })} onClose={() => {}}/>
           </div>
         </div>
       </Look>
