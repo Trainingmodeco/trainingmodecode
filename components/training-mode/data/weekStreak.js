@@ -208,7 +208,10 @@ export function withTargetChange(settings, days, now = Date.now()) {
 //     popIndex, freezeEarned: null | { id, freezes } }
 // Only when the newest training row is today's first, banked within the last
 // `freshMs` (the session that just ended), and today's strip has not been shown.
-export function sessionMoment({ rows, settings = {}, now = Date.now(), shown = {}, freshMs = 15 * 60 * 1000 }) {
+// `finisher`: the session ran a cardio finisher, which banks a Cardio row of
+// its own after the session's (CardioFinisherPlayer); a Cardio row that is the
+// newest is then the session's own, not a second session.
+export function sessionMoment({ rows, settings = {}, now = Date.now(), shown = {}, freshMs = 15 * 60 * 1000, finisher = false }) {
   const today = localIso(now);
   const t = typeof now === 'number' ? now : new Date(now).getTime();
   if (!today || shown?.day === today) return null;
@@ -218,9 +221,11 @@ export function sessionMoment({ rows, settings = {}, now = Date.now(), shown = {
     const at = new Date(s.completedAt).getTime();
     if (at > t + 60000) continue;
     if (localIso(at) === today) todayRows += 1;
-    if (!newest || at > newest.at) newest = { at, s };
+    // On a tie the row banked later (later in the list) is the newest.
+    if (!newest || at >= newest.at) newest = { at, s };
   }
-  if (!newest || localIso(newest.at) !== today || todayRows !== 1) return null;
+  const own = finisher && newest?.s.type === 'Cardio' ? 2 : 1;
+  if (!newest || localIso(newest.at) !== today || todayRows > own) return null;
   if (t - newest.at > freshMs) return null;
 
   const week = computeWeekStreak(rows, settings, t);

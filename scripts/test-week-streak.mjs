@@ -228,6 +228,20 @@ const NOW = at('2026-11-26', 18); // Thursday of the week of Nov 23
   const runMoment = W.sessionMoment({ rows: [...run3, just], settings: T4, now: NOW.getTime() });
   check('strip: the 4th week on target earns a freeze line', runMoment.kind === 'complete' && runMoment.freezeEarned && runMoment.freezeEarned.freezes === 2 && W.momentCopy(runMoment).freeze === 'FREEZE EARNED · YOU HOLD 2 OF 2');
   check('strip: a freeze already seen is not shown again', W.sessionMoment({ rows: [...run3, just], settings: T4, now: NOW.getTime(), shown: { seen: [runMoment.freezeEarned.id] } }).freezeEarned === null);
+  // A cardio finisher banks a Cardio row of its own after the session's, before the end screen.
+  const ago = (min) => new Date(NOW.getTime() - min * 60000).toISOString();
+  const mainRow = { ...row('2026-11-26', 18, { type: 'Quick Mission' }), completedAt: ago(12) };
+  const finRow = { id: 'fin', type: 'Cardio', completedAt: ago(1), completedCount: 1, totalCount: 1, xpEarned: 30, completedTimeSeconds: 600 };
+  const withFin = W.sessionMoment({ rows: [...base, mainRow, finRow], settings: T4, now: NOW.getTime(), finisher: true });
+  check('strip: a session with a cardio finisher still gets TRAINING DAY 3 OF 4', withFin && withFin.kind === 'kept' && withFin.done === 3, JSON.stringify(withFin));
+  const longFin = W.sessionMoment({ rows: [...base, { ...mainRow, completedAt: ago(40) }, finRow], settings: T4, now: NOW.getTime(), finisher: true });
+  check('strip: …even when the finisher ran longer than the fresh window', longFin && longFin.done === 3);
+  const finWeek = W.sessionMoment({ rows: [...run3, mainRow, finRow], settings: T4, now: NOW.getTime(), finisher: true });
+  check('strip: …and the week it completes with the freeze it earns', finWeek && finWeek.kind === 'complete' && finWeek.freezeEarned?.freezes === 2);
+  check('strip: a finisher does not make a second session of the day the first', W.sessionMoment({ rows: [...base, row('2026-11-26', 8), mainRow, finRow], settings: T4, now: NOW.getTime(), finisher: true }) === null);
+  check('strip: without a finisher a Cardio row is still another session', W.sessionMoment({ rows: [...base, mainRow, finRow], settings: T4, now: NOW.getTime() }) === null);
+  check('strip: a finisher with no Cardio row counted leaves the rule as it was', W.sessionMoment({ rows: [...base, row('2026-11-26', 8), { ...just, type: 'Quick Mission' }, { ...finRow, completedTimeSeconds: 0 }], settings: T4, now: NOW.getTime(), finisher: true }) === null
+    && W.sessionMoment({ rows: [...base, { ...just, type: 'Quick Mission' }, { ...finRow, completedTimeSeconds: 0 }], settings: T4, now: NOW.getTime(), finisher: true })?.done === 3);
 }
 {
   const rows = [...week(M[4], [0, 1, 2, 3]), ...week(M[5], [0, 1, 2, 3]), ...week(M[6], [0])];
@@ -369,6 +383,42 @@ const NOW = at('2026-11-26', 18); // Thursday of the week of Nov 23
   D.rememberDailyMission({ ...fresh.mission, date: '2026-11-29' });
   const next = JSON.parse(store.get(D.DAILY_MISSION_KEY));
   check('a new day\'s deal starts not done', next.date === '2026-11-29' && !next.done && next.doneAt === null && next.xp === 0);
+}
+
+// ── cross-feature review fixes (2026-11-23) ─────────────────────────────────
+{
+  const MS = await import('../components/training-mode/data/missionSolo.js');
+  const { generateQuickMission } = await import('../components/training-mode/fit-mode/quickMissionGenerator.js');
+  // The daily mission's 3-minute generated Quick Mission, run GUIDED (no settle of its own),
+  // tapped through too fast: its screen reads VALIDATION FAILED.
+  const gen = generateQuickMission({ duration: 3, focus: 'Full Body', difficulty: 'Easy' });
+  const n6 = 6;
+  const tooFast = { completed: true, exercisesCompleted: n6, totalExercises: n6, mission: gen, integrityResult: { awardXp: false, validityStatus: 'tooFast', reason: 'Too fast.' } };
+  check('refused: a guided generated mission the integrity check refused', gen && gen.v2 !== true && MS.guidedRunRefused(tooFast));
+  check('refused: not a clean run', !MS.guidedRunRefused({ ...tooFast, integrityResult: { awardXp: true, validityStatus: 'complete' } }));
+  check('refused: not an ordinary early exit (no cheat flag)', !MS.guidedRunRefused({ ...tooFast, completed: false, exercisesCompleted: 1, integrityResult: { awardXp: false, validityStatus: 'partial' } }));
+  check('refused: not a run with no integrity result', !MS.guidedRunRefused({ ...tooFast, integrityResult: null }));
+
+  // What App banks for it with the switch on: the row pays as before (old behaviour), marked
+  // unverified, so it fills no training day; and the daily mission is not valid, so no bonus.
+  U.addBonusXp(1); store.clear(); // a save drops the stats cache; then start empty
+  const today = Date.now();
+  const refused = MS.guidedRunRefused(tooFast);
+  const xp = U.addQuickMissionSession(n6, n6, true, refused ? { unverified: true } : undefined, U.quickMissionXp(n6, n6, true, gen));
+  const qmRow = U.loadStats().sessions.at(-1);
+  check('refused: its row still banks its XP, marked unverified', xp > 0 && qmRow.xpEarned === xp && qmRow.unverified === true);
+  check('refused: …and fills no training day', !W.isTrainingRow(qmRow) && S.loadWeekStreak(today).thisWeek.done === 0);
+  const cfg = { dailyMission: W.localIso(today) };
+  const xpBefore = U.loadStats().xp;
+  check('refused: …and pays no daily mission bonus', D.settleDailyMission({ cfg, valid: !!tooFast.completed && xp > 0 && !refused, now: today }) === 0 && U.loadStats().xp === xpBefore && !store.has(D.DAILY_MISSION_KEY));
+
+  // A cardio finisher banks its Cardio row after the session's, before the end screen mounts.
+  U.addBonusXp(1); store.clear();
+  U.addQuickMissionSession(n6, n6, true, undefined, U.quickMissionXp(n6, n6, true, gen));
+  U.addCardioSession({ completedTimeSeconds: 600, methodLabel: 'Run' });
+  const stripFin = S.takeEndScreenStrip(Date.now(), { finisher: true });
+  check('finisher: the end screen still shows today\'s strip', stripFin?.moment?.done === 1 && W.momentCopy(stripFin.moment).title === 'TRAINING DAY 1 OF 4', JSON.stringify(stripFin));
+  check('finisher: without the flag the Cardio row reads as a second session (the old miss)', S.takeEndScreenStrip(Date.now()) === null);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

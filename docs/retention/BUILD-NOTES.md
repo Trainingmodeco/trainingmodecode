@@ -448,3 +448,26 @@ switch off is the bug the spec asked to fix first (a cleared classic stage read 
 3. **The clear fix is live for everyone** (the spec asked for it first): a cleared One Hundred stage now says STAGE
    CLEARED instead of MISSION FAILED. Ship it as a fix, or hold it for the switch?
 4. **A session ended with nothing done** shows no panel. Keep, or show "3 rounds to go" there too?
+
+## Cross-feature review fixes (2026-11-23)
+
+The first review of the three features together (the whole diff from `41194802`). Both fixes sit behind the `weeks`
+switch; with it off the rows, storage and XP are as before.
+
+- **A refused guided Quick Mission paid the daily mission bonus and filled a training day.** A generated mission or a
+  classic run GUIDED (the daily mission's 3-minute Quick Mission is one) has no settle of its own, so App banked it and
+  called it valid even when its screen read VALIDATION FAILED (tapped through too fast). Now, with the switch on, App
+  asks `missionSolo.guidedRunRefused(result)` (the same verdict `QuickMissionComplete` shows): such a run pays no daily
+  mission bonus, and its row is marked `unverified`, so `isTrainingRow` leaves it out of the week. Its own XP still
+  banks as it always has (ND-05: the screen shows 0 above a row that paid; old, not changed). AT YOUR PACE and a v2
+  guided run were already safe: their settle pays 0 for a refused run.
+- **The strip was lost on a session with a cardio finisher.** The finisher banks its own Cardio row before the end
+  screen mounts, so `sessionMoment` saw two rows today and showed nothing (no TRAINING DAY, WEEK COMPLETE or FREEZE
+  EARNED, and the day's marker never set). `MissionComplete` now passes `finisher: !!cardioResult` (through
+  `takeEndScreenStrip`); a newest Cardio row is then the session's own. The freshness test reads the newest row (the
+  finisher's), so a finisher longer than 15 minutes still shows the strip. A second session of the day still shows none.
+  On a timestamp tie the row banked later is the newest.
+- Checked: `test:streak` 140 (refused guided run: not a training day, no bonus, an ordinary early exit not refused; the
+  finisher strip, a long finisher, the week it completes with its freeze, a second session with a finisher, the store
+  path), `test:path` 88, `test:nearmiss` 73, `test:xp` 121, `test:missions` 217, `test:concepts` 180, `test:maxout` 103,
+  `test:qm` 83, `test:ayp` 54, eslint on every changed file, `tsc`. The browser checks are run separately.

@@ -62,8 +62,9 @@ export function markWeekMoments({ day, seen = [] } = {}) {
 }
 
 // The end screen's strip for the session that just banked (null if none).
-export function takeSessionMoment(now = Date.now()) {
-  return sessionMoment({ rows: loadStats().sessions, settings: weekSettings(), now, shown: loadWeekMoments() });
+// `finisher`: the session ran a cardio finisher (its Cardio row is the session's own).
+export function takeSessionMoment(now = Date.now(), { finisher = false } = {}) {
+  return sessionMoment({ rows: loadStats().sessions, settings: weekSettings(), now, shown: loadWeekMoments(), finisher });
 }
 
 // Home's quiet freeze notice (null if none).
@@ -74,9 +75,9 @@ export function takeHomeNotice(week) {
 // The end screen's strip: the week moment of the session that just banked,
 // and the daily mission bonus it paid, each shown once.
 // Returns null or { moment, missionXp, today }.
-export function takeEndScreenStrip(now = Date.now()) {
+export function takeEndScreenStrip(now = Date.now(), { finisher = false } = {}) {
   const today = localIso(now);
-  const moment = takeSessionMoment(now);
+  const moment = takeSessionMoment(now, { finisher });
   const done = justDoneDailyMission(now);
   const missionXp = done && !loadWeekMoments().seen.includes(`mission:${today}`) ? done.xp : 0;
   return moment || missionXp ? { moment, missionXp, today } : null;

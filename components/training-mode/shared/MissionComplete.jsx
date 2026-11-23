@@ -139,8 +139,9 @@ export default function MissionComplete({
   // Retention feature 1 (week streak switch): the one quiet strip in YOUR
   // PROGRESS when this session filled a training day, completed the week,
   // earned a freeze or was the daily mission. Worked out once, marked shown.
+  // A cardio finisher (cardioResult) banked a Cardio row of its own after the session's.
   const [weeksOn] = useState(() => retentionOn('weeks'));
-  const [weekStrip] = useState(() => (!unpaid && weeksOn ? takeEndScreenStrip() : null));
+  const [weekStrip] = useState(() => (!unpaid && weeksOn ? takeEndScreenStrip(Date.now(), { finisher: !!cardioResult }) : null));
   useEffect(() => { markEndScreenStrip(weekStrip); }, [weekStrip]);
 
   // Retention feature 3 (near-miss switch): on a partial or failed end, how

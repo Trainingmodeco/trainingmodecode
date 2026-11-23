@@ -41,7 +41,7 @@ import { rememberSession, loadLastSession, programFor } from './data/lastSession
 import { startProgramDay, completeProgramDay } from './data/workoutPrograms';
 import { completePlanDay } from './data/workoutLibrary';
 import { qmV2Enabled } from './data/qmV2';
-import { settleSoloXp, settleGuidedXp, roundSplits, hasRoundTimer } from './data/missionSolo';
+import { settleSoloXp, settleGuidedXp, guidedRunRefused, roundSplits, hasRoundTimer } from './data/missionSolo';
 import { resolveQuickMissionRun, missionRunsAtYourPace, isGeneratedMission } from './data/soloFromGenerated';
 import { loadShelfPrefs } from './data/loadoutMissions';
 import PracticeInvite from './PracticeInvite';
@@ -807,16 +807,20 @@ export default function App() {
         // pays the minutes worked, and the complete screen shows this same
         // number. A generated mission or a classic banks as before.
         const settle = result?.mission?.v2 === true ? settleGuidedXp(result) : null;
+        // Week streak switch: a generated mission or a classic the integrity check refused (its
+        // screen reads VALIDATION FAILED) banks as before, but marked unverified, so it fills no
+        // training day, and it pays no daily mission bonus.
+        const refused = weeksOn && !settle && guidedRunRefused(result);
         // A generated mission pays its minutes at its level's rate (the sets split it), the same figure the complete screen shows.
         const xp = addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed,
-          settle && meta && settle.workedSec ? { ...meta, workedSec: settle.workedSec } : meta,
+          settle && meta && settle.workedSec ? { ...meta, workedSec: settle.workedSec } : refused ? { ...(meta || {}), unverified: true } : meta,
           settle ? settle.xp : quickMissionXp(result.exercisesCompleted, result.totalExercises, result.completed, result.mission));
         // A plan day only moves the rotation on once it is (mostly) done — quit
         // halfway and the same day is still up next.
         if (dayCounts(result.exercisesCompleted, result.totalExercises, result.completed)) completePlanDay(qmCfg?.mission);
         // As in SOLO, a v2 run that pays nothing (a quit) does not complete the Mission of the Day.
         if (!settle || settle.xp > 0) tryCompleteDailyMission('quickMission');
-        if (weeksOn) settleDailyMission({ cfg: qmCfg, valid: !!result.completed && xp > 0 });
+        if (weeksOn) settleDailyMission({ cfg: qmCfg, valid: !!result.completed && xp > 0 && !refused });
         trackEvent('session_complete', { mode: 'quickMission', exercises: result.exercisesCompleted });
         setQmResult(settle ? { ...result, xpEarned: xp, settle } : result);
       }
