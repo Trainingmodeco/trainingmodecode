@@ -51,8 +51,9 @@ const SEED = {
   tm_user_stats: JSON.stringify({ xp: SESSIONS.reduce((a, r) => a + r.xpEarned, 0), sessions: SESSIONS }),
 };
 
-// { s, expect, overlay?, report?, url? }: `expect` is matched against the page's
-// text; `url` opens another page than ?s=<s> (the gallery: no state).
+// { s, expect, absent?, overlay?, report?, url? }: `expect` is matched against
+// the page's text and `absent` must not match it; `url` opens another page than
+// ?s=<s> (the gallery: no state).
 const STATES = [
   { s: 'select', expect: /FULL BODY WARRIOR[\s\S]*SHUFFLE[\s\S]*CHOOSE[\s\S]*ROUNDS[\s\S]*99[\s\S]*396[\s\S]*About 27 min[\s\S]*Dive Bomber Push-Ups[\s\S]*Reverse Curls[\s\S]*BALANCED[\s\S]*PULL-UP BAR[\s\S]*START[\s\S]*BONUS TRAINING[\s\S]*YOUR WORKOUTS/i },
   { s: 'rounds5', expect: /99[\s\S]*5[\s\S]*495[\s\S]*About 35 min/ },
@@ -64,7 +65,8 @@ const STATES = [
   { s: 'program', expect: /PULL DAY[\s\S]*PUSH \/ PULL \/ LEGS[\s\S]*Day 2 of 3[\s\S]*SHUFFLE THIS DAY[\s\S]*52[\s\S]*208/ },
   { s: 'tracker', expect: /AT YOUR PACE[\s\S]*FULL BODY WARRIOR[\s\S]*17:47[\s\S]*ROUND 3 OF 5[\s\S]*2 OF 5 ROUNDS[\s\S]*50%[\s\S]*250[\s\S]*reps done[\s\S]*245[\s\S]*ROUND 1 DONE[\s\S]*ROUND 2 DONE[\s\S]*ROUND 3[\s\S]*IN PROGRESS[\s\S]*4 OF 8[\s\S]*ROUND 4[\s\S]*ROUND 5[\s\S]*SHUFFLE[\s\S]*STOP/ },
   { s: 'confirm', overlay: true, expect: /START OVER\?[\s\S]*So far: 2 rounds and 4 moves[\s\S]*KEEP GOING/ },
-  { s: 'results', expect: /MISSION COMPLETE[\s\S]*FULL BODY WARRIOR[\s\S]*5\/5[\s\S]*495[\s\S]*38:12[\s\S]*100% COMPLETE[\s\S]*REPEAT[\s\S]*NEW CHALLENGE[\s\S]*SAVE AS MY WORKOUT/ },
+  { s: 'results', expect: /MISSION COMPLETE[\s\S]*FULL BODY WARRIOR[\s\S]*5\/5[\s\S]*495[\s\S]*38:12[\s\S]*100% COMPLETE[\s\S]*REPEAT[\s\S]*NEW CHALLENGE[\s\S]*SAVE WORKOUT/, absent: /Saved|SAVED/ },
+  { s: 'saved', expect: /100% COMPLETE[\s\S]*Saved\. Find it in CHOOSE\.[\s\S]*REPEAT[\s\S]*NEW CHALLENGE[\s\S]*SAVED/, absent: /SAVE WORKOUT/ },
   { s: 'history', expect: /YOUR WORKOUTS[\s\S]*LAST 7 DAYS[\s\S]*1,000[\s\S]*SAT[\s\S]*21[\s\S]*FULL BODY WARRIOR[\s\S]*5 rounds · 495 reps[\s\S]*38:12[\s\S]*100%[\s\S]*3 of 4 rounds/ },
   { s: 'today', report: true, expect: /QUICK MISSION[\s\S]*START/ },
   { s: 'gallery', url: 'fit-looks', expect: /THE WORKOUT CARD[\s\S]*SELECT · select[\s\S]*TODAY · today/ },
@@ -174,6 +176,7 @@ for (const st of STATES) {
       res = await page.evaluate(measure, { checkSelectors: check, navClear: false });
       const t = await page.evaluate(() => document.body.innerText);
       if (st.expect && !st.expect.test(t)) res.fails.unshift(`expected ${st.expect} on screen`);
+      if (st.absent && st.absent.test(t)) res.fails.unshift(`expected no ${st.absent} on screen`);
       const more = st.overlay || st.report ? 0 : await page.evaluate(overflowY);
       if (more > 0) {
         await page.setViewportSize({ width: w, height: Math.min(9000, h + more) });

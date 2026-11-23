@@ -27,7 +27,8 @@ export const STATES = [
   { s: 'program', group: 'The workout card', title: 'Program day', note: 'The same card on a program day: PUSH / PULL / LEGS, day 2 of 3.', render: () => <ProgramPage/> },
   { s: 'tracker', group: 'The run', title: 'Check-off', note: 'AT YOUR PACE with CHECK-OFF: round 3 of 5, 2 rounds done, 4 of 8 ticked.', tab: 'train', scroll: true, render: () => <TrackerPage/> },
   { s: 'confirm', group: 'The run', title: 'Start over?', note: 'SHUFFLE mid-run asks before it throws the ticks away.', tab: 'train', scroll: true, overlay: true, render: () => <TrackerPage confirm/> },
-  { s: 'results', group: 'After', title: 'Results', note: 'MISSION COMPLETE: 5 rounds, 495 reps, 38:12, 100%, REPEAT / NEW CHALLENGE / SAVE AS MY WORKOUT.', tab: 'progress', scroll: true, render: () => <ResultsPage/> },
+  { s: 'results', group: 'After', title: 'Results', note: 'MISSION COMPLETE: 5 rounds, 495 reps, 38:12, 100%, REPEAT, then NEW CHALLENGE / SAVE WORKOUT.', tab: 'progress', scroll: true, render: () => <ResultsPage/> },
+  { s: 'saved', group: 'After', title: 'Saved', note: 'After SAVE WORKOUT: the button reads SAVED and the recap says where to find it.', tab: 'progress', scroll: true, render: () => <ResultsPage saved/> },
   { s: 'history', group: 'After', title: 'Your workouts', note: 'YOUR WORKOUTS: past workouts with date, rounds, reps and time.', render: () => <HistoryPage/> },
   { s: 'today', group: 'For comparison', title: 'Today', note: 'The Quick Mission page as it is today (the real screen).', render: () => <QuickMissionSetup onBack={NOOP} onFightMode={NOOP} onStart={NOOP} onCardioOnly={NOOP} onPaywall={NOOP}/> },
 ];

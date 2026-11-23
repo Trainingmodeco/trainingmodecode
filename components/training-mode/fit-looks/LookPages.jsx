@@ -35,7 +35,9 @@ function rowsOf(moves, { swaps = {}, patterns = false, key = 'm' } = {}) {
     swapKey: `${key}-${i}-${m.id}`, i, name: m.name, dose: doseWord(m), canSwap: true, undoable: !!swaps[i],
     prefix: patterns ? <PatternTag pattern={m.pattern}/> : null,
     note: m.noBarFor ? (
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><NoBarTag/>for {m.noBarFor}</span>
+      // The caption in the dose's colour at 12px: MoveRow's note grey at 11px
+      // read too dim beside the tag.
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, font: `500 12px ${BODY}`, color: '#CFC9E4' }}><NoBarTag/>for {m.noBarFor}</span>
     ) : null,
   }));
 }
@@ -219,8 +221,8 @@ export function TrackerPage({ confirm = false }) {
 }
 
 // ── the results ───────────────────────────────────────────────────────────────
-export function ResultsPage() {
-  const [saved, setSaved] = useState(false);
+export function ResultsPage({ saved: saved0 = false }) {
+  const [saved, setSaved] = useState(saved0);
   const elapsed = RESULT.splits.reduce((a, b) => a + b, 0);
   const t = challengeTotals(WARRIOR, 5);
   return (
@@ -228,7 +230,7 @@ export function ResultsPage() {
       title="FULL BODY WARRIOR" subtitle="Circuit · Medium · At your pace"
       rounds={5} totalRounds={5} reps={t.totalReps} elapsedSec={elapsed} pct={100} ticked={40} cells={40}
       splits={RESULT.splits} xp={RESULT.xp}
-      savedLine={saved ? 'Kept as MY WORKOUT. Find it in CHOOSE.' : 'Saved to YOUR WORKOUTS.'}
+      saved={saved}
       onRepeat={() => go('select')} onNew={() => go('shuffled')} onSave={() => setSaved(true)} onBack={noop}
     />
   );

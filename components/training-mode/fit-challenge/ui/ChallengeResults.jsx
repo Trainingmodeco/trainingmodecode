@@ -1,4 +1,6 @@
+import { Check, RotateCcw } from 'lucide-react';
 import MissionComplete from '../../shared/MissionComplete';
+import { GoldButton, GhostButton, GOLD as KIT_GOLD } from '../../shared/FitSetupKit';
 import { mmss } from '../../data/challengeTotals';
 
 // The results: the app's own end screen (shared/MissionComplete, as
@@ -7,8 +9,15 @@ import { mmss } from '../../data/challengeTotals';
 // summary, which shows on every phone).
 //
 // The session is banked once, automatically, before this screen opens (as
-// every Fit run is). SAVE AS MY WORKOUT keeps the moves as a routine to run
-// again (data/savedRoutines): it never writes stats or XP a second time.
+// every Fit run is), so the screen does not say it: a "Saved to YOUR WORKOUTS"
+// line beside a SAVE button read as a contradiction. SAVE WORKOUT keeps the
+// moves as a routine to run again from CHOOSE (data/savedRoutines): it never
+// writes stats or XP a second time. Once tapped it reads SAVED and the recap
+// says where to find it.
+//
+// The buttons are the Fit kit's (chamfered, Chakra Petch), as on the card and
+// the run, through MissionComplete's `ctas` slot: REPEAT, then NEW CHALLENGE
+// and SAVE WORKOUT side by side, so the screen holds two rows, not three.
 const GOLD = '#fde047';
 
 function Recap({ pct, ticked, cells, splits, totalSec, saved }) {
@@ -24,14 +33,33 @@ function Recap({ pct, ticked, cells, splits, totalSec, saved }) {
       </div>
       <div style={line}>{ticked} of {cells} moves ticked</div>
       <div style={line}>{splits.map((s, i) => `R${i + 1} ${mmss(s)}`).join(' · ')}</div>
-      {saved && <div style={{ ...line, color: '#9a90b8' }}>{saved}</div>}
+      {saved && <div role="status" style={{ ...line, color: GOLD }}>Saved. Find it in CHOOSE.</div>}
+    </div>
+  );
+}
+
+function Ctas({ onRepeat, onNew, onSave, saved }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <GoldButton label="REPEAT" icon={<RotateCcw size={18} strokeWidth={2.6}/>} height={52} onClick={onRepeat} style={{ fontSize: 16 }}/>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        {/* Two words each, no icon before SAVE WORKOUT and a little less
+            tracking than the kit's: at 360px a half-width button holds them
+            with room to the chamfers. */}
+        <GhostButton label="NEW CHALLENGE" height={46} onClick={onNew} style={{ letterSpacing: '0.1em' }}/>
+        <GhostButton
+          label={saved ? 'SAVED' : 'SAVE WORKOUT'} height={46} onClick={saved ? undefined : onSave}
+          icon={saved ? <Check size={16} strokeWidth={3} color={KIT_GOLD}/> : null}
+          style={{ letterSpacing: '0.1em', ...(saved ? { color: KIT_GOLD, cursor: 'default' } : {}) }}
+        />
+      </div>
     </div>
   );
 }
 
 export default function ChallengeResults({
   title, subtitle, rounds, totalRounds, reps, elapsedSec, pct, ticked, cells, splits = [], xp,
-  onRepeat, onNew, onSave, onBack, savedLine = 'Saved to YOUR WORKOUTS.',
+  onRepeat, onNew, onSave, onBack, saved = false,
 }) {
   return (
     <MissionComplete
@@ -47,12 +75,8 @@ export default function ChallengeResults({
         { value: String(reps), label: 'TOTAL REPS', color: '#fff' },
         { value: mmss(elapsedSec), label: 'TIME', color: '#fff' },
       ]}
-      summary={<Recap pct={pct} ticked={ticked} cells={cells} splits={splits} totalSec={elapsedSec} saved={savedLine}/>}
-      actions={[
-        { label: 'REPEAT', onClick: onRepeat, kind: 'primary', role: 'retry' },
-        { label: 'NEW CHALLENGE', onClick: onNew, kind: 'secondary' },
-        { label: 'SAVE AS MY WORKOUT', onClick: onSave, kind: 'secondary' },
-      ]}
+      summary={<Recap pct={pct} ticked={ticked} cells={cells} splits={splits} totalSec={elapsedSec} saved={saved}/>}
+      ctas={<Ctas onRepeat={onRepeat} onNew={onNew} onSave={onSave} saved={saved}/>}
     />
   );
 }

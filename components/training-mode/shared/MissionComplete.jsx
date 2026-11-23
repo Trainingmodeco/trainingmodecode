@@ -110,6 +110,8 @@ export default function MissionComplete({
   failReason,               // engine's guidance line, shown on fail / validation_failed
   achievements = [],        // item 10b — newly unlocked, shown as a toast on top
   actions = [],             // [{ label, onClick, kind: 'primary'|'secondary'|'ghost', role?: 'retry'|'home' }]
+  ctas = null,              // optional ReactNode drawn in place of the actions' buttons
+                            // (the Fit looks' end screen, in the Fit kit's buttons)
   nearMiss = null,          // retention feature 3 (switch `nearMiss`): this session's facts
                             // { key, token, unit, done, total, outcome, boss?, maxEffort?,
                             //   onRetry, onLeave, retryLabel? } (data/nearMissStore), or a
@@ -285,7 +287,7 @@ export default function MissionComplete({
           )}
 
           {/* CTAs */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {ctas || <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {shownActions.map((a, i) => {
               if (a.kind === 'ghost') {
                 return <button key={i} onClick={a.onClick} style={{ width: '100%', height: 38, border: '1px solid rgba(255,255,255,0.12)', borderRadius: 11, background: 'transparent', color: '#9a90b8', font: "700 11px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer' }}>{a.label}</button>;
@@ -295,7 +297,7 @@ export default function MissionComplete({
               }
               return <button key={i} onClick={a.onClick} style={{ width: '100%', height: 44, border: 'none', borderRadius: 11, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 13px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 20px rgba(253,224,71,0.35)' }}>{a.label}</button>;
             })}
-          </div>
+          </div>}
 
           <button className="mc-beta" onClick={() => openExternalUrl(BETA_FEEDBACK_FORM_URL)} style={{ margin: '6px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, border: 'none', background: 'rgba(253,224,71,0.06)', cursor: 'pointer' }}>
             <span style={{ font: "700 8px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.08em' }}>💬 GIVE BETA FEEDBACK</span>

@@ -9,8 +9,9 @@ import { tickProgress, roundComplete, roundTotals, doseWord, holdWord, mmss } fr
 //               in seconds, never in reps)
 //   done        a round with every move ticked folds to one row: a check, its
 //               reps and its time
-//   current     the first round not done, open: each move a 48px tick button,
-//               the next move lit gold (MoveRow's highlight)
+//   current     the first round not done, open: each move a tick button,
+//               the next move lit gold (MoveRow's highlight); a 40px box
+//               in a 52px row, the whole row the button
 //   later       dim, one row each
 //
 // A round counts only when all its moves are ticked (data/challengeTotals).
@@ -27,13 +28,15 @@ export function ProgressBar({ pct }) {
   );
 }
 
-function TickBox({ on }) {
+// The visible box is 40px (the whole 52px row is the button): a 30px box read
+// as a small target on the phone. The next move's empty box is outlined gold.
+function TickBox({ on, next }) {
   return (
     <span aria-hidden="true" style={{
-      width: 30, height: 30, flexShrink: 0, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: on ? GOLD : 'transparent', border: on ? 'none' : '2px solid rgba(255,255,255,0.32)', boxSizing: 'border-box',
+      width: 40, height: 40, flexShrink: 0, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: on ? GOLD : 'rgba(255,255,255,0.04)', border: on ? 'none' : `2px solid ${next ? GOLD : 'rgba(255,255,255,0.32)'}`, boxSizing: 'border-box',
       boxShadow: on ? '0 0 10px rgba(242,190,69,0.45)' : 'none',
-    }}>{on && <Check size={18} strokeWidth={3} color="#1A1204"/>}</span>
+    }}>{on && <Check size={24} strokeWidth={3} color="#1A1204"/>}</span>
   );
 }
 
@@ -41,16 +44,15 @@ function TickRow({ move, index, on, next, onTick }) {
   return (
     <li style={{ listStyle: 'none' }}>
       <button type="button" role="checkbox" aria-checked={on ? 'true' : 'false'} aria-label={`${move.name}, ${doseWord(move)}`} onClick={onTick} style={{
-        width: '100%', minHeight: 48, display: 'flex', alignItems: 'center', gap: 10, padding: '4px 8px', borderRadius: 8,
+        width: '100%', minHeight: 52, display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px', borderRadius: 8,
         boxSizing: 'border-box', border: 'none', cursor: 'pointer', textAlign: 'left',
         background: next ? 'rgba(242,190,69,0.08)' : 'transparent', boxShadow: next ? `inset 3px 0 0 ${GOLD}` : 'none',
       }}>
-        <TickBox on={on}/>
+        <TickBox on={on} next={next}/>
         <span style={{ width: 18, flexShrink: 0, font: `700 11px ${HEAD}`, color: on ? MUTED : GOLD }}>{String(index + 1).padStart(2, '0')}</span>
-        <span style={{
-          flex: 1, minWidth: 0, font: `600 14px ${BODY}`, lineHeight: 1.25, color: on ? MUTED : '#fff',
-          textDecoration: on ? 'line-through' : 'none', textDecorationColor: 'rgba(242,190,69,0.55)',
-        }}>{move.name}</span>
+        {/* A done move is dimmed, not struck through: the gold check says done,
+            and a strike made the name hard to read. */}
+        <span style={{ flex: 1, minWidth: 0, font: `600 14px ${BODY}`, lineHeight: 1.25, color: on ? MUTED : '#fff' }}>{move.name}</span>
         <span style={{ flexShrink: 0, font: `600 12px ${HEAD}`, color: on ? MUTED : '#CFC9E4', whiteSpace: 'nowrap' }}>{doseWord(move)}</span>
       </button>
     </li>
@@ -109,7 +111,7 @@ export default function CheckOffTracker({ moves, ticks, roundTimes = [], onTick 
             <li key={i} style={{ listStyle: 'none', borderRadius: 12, background: 'rgba(242,190,69,0.05)', border: '1.5px solid rgba(242,190,69,0.55)', padding: '10px 6px 8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 6px 6px' }}>
                 <span style={{ font: `700 16px ${HEAD}`, letterSpacing: '0.1em', color: GOLD }}>ROUND {i + 1}</span>
-                <span style={{ font: `700 9px ${HEAD}`, letterSpacing: '0.14em', padding: '3px 6px', borderRadius: 3, background: 'rgba(157,108,255,0.22)', color: VIOLET_TEXT }}>IN PROGRESS</span>
+                <span style={{ font: `700 10px ${HEAD}`, letterSpacing: '0.12em', padding: '3px 6px', borderRadius: 3, background: 'rgba(157,108,255,0.22)', color: VIOLET_TEXT }}>IN PROGRESS</span>
                 <span style={{ marginLeft: 'auto', font: `600 12px ${HEAD}`, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{tickedHere} OF {moves.length}</span>
               </div>
               <ul aria-label={`Round ${i + 1}`} style={{ margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>

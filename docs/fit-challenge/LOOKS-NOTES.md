@@ -9,8 +9,8 @@ parts so the owner can decide before anything is built.
 - Photograph: `CHROME_PATH=/opt/pw-browsers/chromium node scripts/fit-looks-preview.mjs <out-dir>`
   (dev server first: `CI=1 EXPO_NO_TELEMETRY=1 npx expo start --web --port 8081`, restarted after
   an edit). Every state at 360x780, 390x844 and 430x932, device scale 2, whole page. The script fails
-  when the page scrolls sideways, any text is cut, a state's own words are missing, or a page's last
-  line runs under the tab bar. It runs on a fixed Monday (23 November 2026) with a sample athlete in
+  when the page scrolls sideways, any text is cut, a state's own words are missing (or words it must
+  not show are there: `results` never says "Saved"), or a page's last line runs under the tab bar. It runs on a fixed Monday (23 November 2026) with a sample athlete in
   storage, so the end screen's YOUR PROGRESS reads like a real athlete's.
 - Test: `npm run test:challenge` (the totals, 40 checks). Not in `check:all` yet.
 
@@ -38,13 +38,14 @@ slider picks minutes and the rounds follow. Everything else on it already exists
 | `rounds5` | the same card at 5 rounds: 495, about 35 min | as above | the totals following the rounds live |
 | `choose` | CHOOSE: the library by the spec's categories (Full Body, Upper Body, Lower Body, Core & Abs, Combat Conditioning), the card's own workout marked ON CARD, SURPRISE ME pinned at the foot | shared/BottomSheet, MissionLibrarySheet's row look, the app's own titles (Deadly Seven, Push-Up Division, Legendary Squat, 3 Level Abs, 5 Minutes of Hell · MMA) | ChooseSheet (grouping) |
 | `swap` | the swap sheet on Pull-Ups: EASIER Pull-Up Negatives, SIMILAR Chin-Ups, HARDER Archer Pull-Ups, NO GEAR Reverse Snow Angels; "4 rounds stay; the totals update" | MoveSwapSheet's NOW box and its OptionRow (exported, unchanged) | ChallengeSwapSheet: the same sheet fed plain props, so a generated workout can swap too (today only library missions can) |
-| `nobar` | the bar switch off: Pull-Ups → Reverse Snow Angels, Hanging Knee Raises → Leg Raises, each with a NO BAR tag and "for Pull-Ups"; 103 a round, 412 | MoveRow's note line, MoveSwapSheet's MiniTag | `withoutBar`, the NO BAR tag |
-| `shuffled` | SHUFFLE: CALISTHENICS CIRCUIT (one of the generator's own titles), a new balanced deal at the same level, gear, focus and rounds, a pattern tag on every move, a 30 s Hollow Body Hold: 80 reps + 30s hold a round, 320 + 2:00 | MoveRow's prefix slot | PatternTag, holds counted in seconds, never in reps |
+| `nobar` | the bar switch off: Pull-Ups → Reverse Snow Angels, Hanging Knee Raises → Leg Raises, each with a NO BAR tag (10px caps) and "for Pull-Ups" (12px, the dose's colour); 103 a round, 412 | MoveRow's note line, MoveSwapSheet's MiniTag | `withoutBar`, the NO BAR tag |
+| `shuffled` | SHUFFLE: CALISTHENICS CIRCUIT (one of the generator's own titles), a new balanced deal at the same level, gear, focus and rounds, a pattern tag on every move (10px caps, one 42px width for every pattern, so the names start in one column), a 30 s Hollow Body Hold: 80 reps + 30s hold a round, 320 + 2:00 | MoveRow's prefix slot | PatternTag, holds counted in seconds, never in reps |
 | `bonus` | BONUS TRAINING open: Morning Run (→ Cardio), L-Sit Hold, Handstand Hold, Mobility, Farmer Carries (WEIGHTS), Shadowboxing (→ Fight); "never changes the rounds, reps or XP" | CardioToggleCard's card look | BonusBlock |
 | `program` | the same card on a program day: PUSH / PULL / LEGS, day 2 of 3 (PULL DAY), SHUFFLE THIS DAY, no CHOOSE, 52 reps + 20s hold × 4 | ProgramsScreen's day pips and its banner | ProgramDayHeader |
-| `tracker` | AT YOUR PACE with CHECK-OFF: 17:47, round 3 of 5; rounds 1 and 2 folded with a check, 99 reps and their time; round 3 open with 4 of 8 ticked (48px tick buttons, the next move lit gold); rounds 4 and 5 dim; 50%, 250 done, 245 left; SHUFFLE / ROUNDS · 5; PAUSE / STOP | QuickMissionSolo's top bar, clock, strip and buttons, the builder's progress bar, MoveRow's highlight | CheckOffTracker, CheckOffRun |
+| `tracker` | AT YOUR PACE with CHECK-OFF: 17:47, round 3 of 5; rounds 1 and 2 folded with a check, 99 reps and their time; round 3 open with 4 of 8 ticked (a 40px tick box in a 52px row, the whole row the button; the next move lit gold, its box outlined gold; a done move dimmed, not struck through); rounds 4 and 5 dim; 50%, 250 done, 245 left; SHUFFLE / ROUNDS · 5; PAUSE / STOP | QuickMissionSolo's top bar, clock, strip and buttons, the builder's progress bar, MoveRow's highlight | CheckOffTracker, CheckOffRun |
 | `confirm` | START OVER? over the tracker: "SHUFFLE deals new moves and clears your ticks. So far: 2 rounds and 4 moves." KEEP GOING / SHUFFLE | the kit's Modal in AT YOUR PACE's END MISSION? shape | DiscardConfirm |
-| `results` | MISSION COMPLETE: FULL BODY WARRIOR, +555 XP, 5/5 rounds, 495 total reps, 38:12; a recap with 100% complete, 40 of 40 moves ticked, each round's time, "Saved to YOUR WORKOUTS."; REPEAT / NEW CHALLENGE / SAVE AS MY WORKOUT | the real shared/MissionComplete (badge, stats, YOUR PROGRESS, its buttons) | ChallengeResults (props and the recap) |
+| `results` | MISSION COMPLETE: FULL BODY WARRIOR, +555 XP, 5/5 rounds, 495 total reps, 38:12; a recap with 100% complete, 40 of 40 moves ticked, each round's time; REPEAT (the kit's gold button), then NEW CHALLENGE / SAVE WORKOUT side by side (the kit's ghost buttons). It does not say the run was saved: every run is banked on its own, and "Saved to YOUR WORKOUTS." beside a SAVE button read as a contradiction | the real shared/MissionComplete (badge, stats, YOUR PROGRESS), the kit's GoldButton and GhostButton | ChallengeResults (props, the recap, the buttons through MissionComplete's new `ctas` slot) |
+| `saved` | the results after SAVE WORKOUT: the button reads ✓ SAVED (gold) and the recap adds "Saved. Find it in CHOOSE." | as `results` | |
 | `history` | YOUR WORKOUTS: last 7 days (3, 1,000 reps, 1:24:57), then one row a workout: date, name, rounds, reps, time, % | SetupHeader, the kit's card look | WorkoutHistoryList (no list of past workouts exists today) |
 | `today` | the real Quick Mission page as it is now (QuickMissionSetup renders on its own) | | |
 
@@ -70,15 +71,17 @@ in both voices (checked against both manifests).
   (+ BarSwitch), ChooseSheet, ChallengeSwapSheet, BonusBlock, CheckOffTracker (+ ProgressBar),
   CheckOffRun, DiscardConfirm, ChallengeResults, WorkoutHistoryList, ProgramDayHeader, Tags. Plain
   props only, Fit kit palette (Chakra Petch, #F2BE45; never the Orbitron palette on the same screen,
-  except the shared end screen, which is Orbitron everywhere in the app). Tap targets 44px or more,
-  ticks 48px.
+  except the shared end screen, which is Orbitron everywhere in the app: here only its buttons are the
+  kit's). Tap targets 44px or more; a tick row 52px with a 40px box. Small tags 10px.
 - `components/training-mode/fit-looks/` (FitLooks, LookPages, sampleData) and `app/fit-looks.tsx`.
 - `scripts/test-challenge-totals.mjs`, `scripts/fit-looks-preview.mjs`; `test:challenge` and
   `preview:fit-looks` in package.json.
 - `shared/MoveSwapSheet.jsx`: `MiniTag` and `OptionRow` are now exported. No other change.
+- `shared/MissionComplete.jsx`: an optional `ctas` node drawn in place of the `actions` buttons. Every
+  other end screen passes none and is unchanged.
 
-Kept as they are (existing components, under 44px): the Modal's close button (32px) and
-MissionComplete's secondary (40px) and ghost (38px) buttons.
+Kept as they are (existing component, under 44px): the Modal's close button (32px). The end screen's
+own secondary (40px) and ghost (38px) buttons are no longer on these looks.
 
 ## Wiring it later: what it would touch
 
@@ -105,12 +108,13 @@ Rough sizes are lines changed, tests included.
    SHUFFLE, or before a rounds change below the rounds already done (a change that keeps every finished
    round needs no question).
 5. **Results** (`QuickMissionComplete.jsx`, ~50): rounds, total reps and time in the stats, the recap
-   with the share done, REPEAT / NEW CHALLENGE / SAVE AS MY WORKOUT.
+   with the share done, REPEAT / NEW CHALLENGE / SAVE WORKOUT in the kit's buttons (MissionComplete's
+   `ctas`), no "saved" line until SAVE WORKOUT is tapped.
 6. **History** (`data/userStats.js` ~15, a new screen ~150, `ScreenRouter.jsx`): the session row gets
    scalar fields only (title, rounds, roundsOf, totalReps, holdSec: the synced snapshot is rewritten
    whole on every save, so no arrays); YOUR WORKOUTS reads `stats.sessions`. Older rows have no title
    and read "Quick Mission".
-7. **SAVE AS MY WORKOUT** (`data/savedRoutines.js`, ~40): a routine holds builder exercises today; a
+7. **SAVE WORKOUT** (`data/savedRoutines.js`, ~40): a routine holds builder exercises today; a
    card-shaped one needs a kind field. `tm_saved_routines` is already synced.
 8. **Program days** (`ProgramsScreen.jsx`, `data/workoutPrograms.js`, the builder path): the largest
    step. A program day today is muscle chips + a sets × reps scheme that the Workout Builder fills; on
@@ -133,8 +137,8 @@ Rough sizes are lines changed, tests included.
   count toward the share.
 - A swap or a no-bar stand-in never changes XP or the clock (as swaps today).
 - Bonus work pays nothing and is never in the totals.
-- The session is banked once, automatically, before the results open (as every run). SAVE AS MY
-  WORKOUT only keeps the moves as a routine: never a second stats write. REPEAT is a new run under the
+- The session is banked once, automatically, before the results open (as every run). SAVE WORKOUT
+  only keeps the moves as a routine: never a second stats write. REPEAT is a new run under the
   usual rules.
 - Library missions keep 15 a slot + 30; a program day kept on the builder keeps 15 an exercise + 30.
 
@@ -174,3 +178,24 @@ Rough sizes are lines changed, tests included.
    use the card only to preview the day?
 10. **YOUR WORKOUTS.** On the Quick Mission page (as shown), on Progress, or both? Only Fit runs, or
     every mode?
+11. **End-screen buttons.** The results here use the Fit kit's chamfered buttons, so they match the
+    card and the run; every other end screen in the app keeps its rounded Orbitron buttons. Keep this
+    one different, or move every Fit end screen to the kit's buttons?
+
+## Review fixes (2026-11-23)
+
+An independent look at the screenshots found four things; each fixed and re-shot at all three widths.
+
+- **Tags too small** (`shuffled`, `nobar`): the PUSH / PULL / LEGS / CORE / ARMS and NO BAR tags were
+  8px (caps about 6px). Now 10px; NO BAR's "for Pull-Ups" is 12px in the dose's colour, not the 11px
+  note grey. The tracker's IN PROGRESS tag went from 9px to 10px with them.
+- **Names out of line** (`shuffled`): the tags were as wide as their words, so the names started up to
+  2px apart. Every pattern tag is now 42px wide, centred.
+- **Tick boxes small** (`tracker`): the box drew at 30px in a 48px row. Now 40px in a 52px row (the
+  whole row is still the button), the next move's box outlined gold, and a done move dimmed instead of
+  struck through.
+- **Results** (`results`): "Saved to YOUR WORKOUTS." sat beside a SAVE AS MY WORKOUT button. The line
+  is gone (every run is banked on its own, and no other end screen says so); the button is SAVE
+  WORKOUT, reads ✓ SAVED once tapped, and the recap then says "Saved. Find it in CHOOSE." (the new
+  `saved` state). REPEAT, NEW CHALLENGE and SAVE WORKOUT are the kit's chamfered buttons, two rows
+  instead of three.
