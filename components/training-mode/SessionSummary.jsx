@@ -1,6 +1,11 @@
+import { useState } from 'react';
 import MissionComplete from './shared/MissionComplete';
 import { C } from './Styles';
 import { settleFightXp, fightSummaryCopy } from './data/fightSessionXp';
+import { retentionOn } from './data/retentionFlags';
+import { conceptEndStars } from './data/pathNextUp';
+import { playStarTone } from './data/audioEngine';
+import StageStarsCard from './retention/ui/StageStarsCard';
 
 // Fight Focus / Combo Coach session complete — rendered by the shared
 // design-24f screen, with a round-by-round recap as the extra card.
@@ -27,6 +32,10 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
   });
   const stoppedEarly = verdict.outcome !== 'pass';
   const copy = fightSummaryCopy({ verdict, xp });
+  // Retention feature 2 (switch `path`): a concept saga stage run to the end
+  // gets a small stars row, the stage's stars as stored after this session.
+  const [conceptStars] = useState(() => (retentionOn('path') && cfg.conceptKind === 'arcade' && completed >= totalPlanned ? conceptEndStars(cfg) : null));
+  const note = copy.note ? <div style={{ font: "600 10.5px 'Rajdhani',sans-serif", color: '#c9a6ff', textAlign: 'center' }}>{copy.note}</div> : null;
   const displayRounds = rounds.slice(0, completed);
   const totalMin = Math.round((completed * cfg.roundMin * 60 + Math.max(0, completed - 1) * cfg.restSec) / 60);
   // Just Train runs on the Fight Focus timer but is its own thing to the
@@ -128,7 +137,9 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
       integrityResult={copy.quiet ? undefined : integrityResult}
       stats={statRow}
       extra={recap}
-      summary={copy.note ? <div style={{ font: "600 10.5px 'Rajdhani',sans-serif", color: '#c9a6ff', textAlign: 'center' }}>{copy.note}</div> : null}
+      summary={conceptStars
+        ? <><StageStarsCard stars={conceptStars.stars} max={conceptStars.max} line={conceptStars.line} onLand={playStarTone}/>{note && <div style={{ marginTop: 6 }}>{note}</div>}</>
+        : note}
       failReason={verdict.response}
       shareData={{ mode: modeName, completedCount: completed, totalCount: totalPlanned, difficulty: cfg.difficulty }}
       actions={[

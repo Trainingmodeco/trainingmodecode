@@ -17,6 +17,11 @@ import GearSheet from './shared/GearSheet';
 import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
+import { retentionOn } from './data/retentionFlags';
+import { campPath } from './data/pathStars';
+import { takePathFocus } from './data/pathNextUp';
+import PathMap from './retention/ui/PathMap';
+import ReplaySheet from './retention/ui/ReplaySheet';
 
 // Phase 2 · 2.3 — TRAINING CAMP ladder (design 45a) + level modal (45b).
 // CSS neon-spine ladder over the tower backdrop: nodes 01–12 climb the spine,
@@ -138,6 +143,18 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   const [current] = useState(loadCampProgress);
   const [campDone] = useState(isCampComplete);   // item 13b — the title fight is won
   const [sessAll] = useState(() => loadCampSessions());     // 2.4b — per-level S1/S2 state
+  // Retention feature 2 (switch `path`): the path in place of the ladder. The
+  // current level opens the level card (START → readiness → gear), a cleared
+  // one its replay sheet (REPLAY opens the same card), a locked one the card's
+  // "finish level N first".
+  const [pathOn] = useState(() => retentionOn('path'));
+  const [replayLevel, setReplayLevel] = useState(null);
+  // Home's NEXT UP opens the camp on the current level's card (once).
+  useEffect(() => {
+    if (!pathOn || !takePathFocus('camp') || campDone || showParq) return undefined;
+    const t = setTimeout(() => setOpenLevel(current), 320);
+    return () => clearTimeout(t);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Item 14 — the athlete picks their archetype (was hardcoded to [0]). Stored
   // per discipline, so a boxer's choice survives leaving and coming back.
@@ -277,6 +294,36 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
 
         {/* Ladder */}
         <div data-guide="tc-ladder" style={{ position: 'relative', flex: 1, minHeight: 0, padding: '2px 12px 4px' }}>
+          {pathOn ? (
+            <>
+              <PathMap
+                unit="LEVEL" bossLabel="TITLE"
+                nodes={campPath({ levels: campLevels, current, campDone, sessions: sessAll }).nodes.map((n) => ({
+                  ...n,
+                  guide: n.boss ? 'tc-belt' : n.state === 'current' ? 'tc-current' : undefined,
+                  pipsGuide: n.number === 4 ? 'tc-pips4' : undefined,
+                }))}
+                onPick={(n) => (n.state === 'cleared' ? setReplayLevel(n.number) : tapLevel(n.number))}
+              />
+              {replayLevel != null && (() => {
+                const lv = campLevels.find((l) => l.level === replayLevel);
+                const split = isSplitAvailable(replayLevel);
+                const boss = lv?.phase === 'final_boss';
+                return (
+                  <ReplaySheet
+                    eyebrow={boss ? 'TITLE FIGHT · WON' : `LEVEL ${replayLevel} · ${lv?.phase_label || ''} · CLEARED`}
+                    title={boss ? 'TITLE FIGHT 🏆' : lv?.title || `Level ${replayLevel}`}
+                    check
+                    tiles={split ? [{ label: 'SESSION 1 ✓', value: 'SKILL' }, { label: 'SESSION 2 ✓', value: 'CONDITIONING' }] : []}
+                    line="Camp has no stars yet: a cleared level gets a check. A replay counts as a session; the level stays cleared."
+                    onReplay={() => { setReplayLevel(null); setOpenLevel(replayLevel); }}
+                    onClose={() => setReplayLevel(null)}
+                    bottomPad={30}
+                  />
+                );
+              })()}
+            </>
+          ) : (<>
           <div style={{ position: 'absolute', left: '50%', top: 8, bottom: 8, width: 3, transform: 'translateX(-50%)', background: spine, borderRadius: 2, boxShadow: '0 0 12px rgba(168,85,247,0.6)' }} />
           <div style={{ position: 'absolute', left: '50%', bottom: 0, width: 54, height: 18, transform: 'translateX(-50%)', background: 'radial-gradient(ellipse at 50% 100%, rgba(168,85,247,0.5), transparent 70%)' }} />
 
@@ -309,6 +356,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
               );
             })}
           </div>
+          </>)}
         </div>
       </div>
 

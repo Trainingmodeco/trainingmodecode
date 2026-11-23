@@ -100,6 +100,74 @@ async function runDailyMission(page, w) {
   await wait(page, 2500);
   if (!/YOUR PROGRESS/.test(await page.evaluate(() => document.body.innerText))) throw new Error('the daily mission did not reach its end screen');
 }
+// ── feature 2: the path + stars ──────────────────────────────────────────────
+// The classic saga: stages 1-5 cleared with 3, 3, 2, 1, 3 stars and best times; stage 6 is current.
+const OP_STARS = [3, 3, 2, 1, 3];
+const OP_BEST = [14 * 60 + 20, 21 * 60 + 5, 17 * 60 + 40, 30 * 60 + 5, 15 * 60 + 51];
+const DAY = 86400000;
+const stageEntry = (i, extra) => ({ fit: true, fight: true, completed: true, completedAt: Date.now() - (8 - i) * DAY, ...extra });
+const sagaProgress = (id, entries) => ({ [id]: { completedStages: entries, unlockedStages: [1], currentStage: Object.keys(entries).length + 1, xpEarned: 0, badges: [], statXp: {}, attempts: [] } });
+const OP_SEED = () => ({
+  tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 3, thisWeek: Math.min(2, todayIdx) }), 5200),
+  tm_arcade_progress: JSON.stringify(sagaProgress('one-punch-protocol', Object.fromEntries(OP_STARS.map((st, i) => [`op-stage-${i + 1}`, stageEntry(i, { stars: st, bestTimeSeconds: OP_BEST[i], lastTimeSeconds: OP_BEST[i] })])))),
+  tm_last_session_v1: JSON.stringify({ kind: 'arcade', cfg: { seriesId: 'one-punch-protocol', title: 'One Hundred', stageNumber: 5, mode: 'fit', settings: null }, disc: null, at: Date.now() - DAY }),
+});
+// A multi-path v2 saga (The Grappler): FIT, FIT + FIGHT, all three cleared on stages 1-3; stage 4 is current.
+const GRAP_SEED = () => ({
+  tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 2, thisWeek: Math.min(1, todayIdx) }), 3000),
+  tm_arcade_intro_seen: JSON.stringify({ 'grappler-protocol': true }),
+  tm_arcade_progress: JSON.stringify(sagaProgress('grappler-protocol', {
+    ARC_GRAPPLER_STG01: stageEntry(0, { paths: ['fit'], stars: 1 }),
+    ARC_GRAPPLER_STG02: stageEntry(1, { paths: ['fit', 'fight'], stars: 2 }),
+    ARC_GRAPPLER_STG03: stageEntry(2, { paths: ['fight', 'fit', 'both'], stars: 3 }),
+  })),
+  tm_last_session_v1: JSON.stringify({ kind: 'arcade', cfg: { seriesId: 'grappler-protocol', title: 'The Grappler', stageNumber: 3, mode: 'both', settings: { difficulty: 'normal', voiceCoach: true, sound: 'on' } }, disc: null, at: Date.now() - DAY }),
+});
+// Training Camp: levels 1-4 cleared, level 5 current with S1 done.
+const CAMP_SEED = () => ({
+  tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 2, thisWeek: Math.min(1, todayIdx) }), 3000),
+  tm_camp_progress: '5', tm_camp_sessions: JSON.stringify({ 4: { s1: true, s2: true }, 5: { s1: true } }),
+  tm_last_session_v1: JSON.stringify({ kind: 'camp', cfg: { level: 5, difficulty: 'normal', format: 'single', archetypeName: 'Pressure Fighter' }, disc: 'Boxing', at: Date.now() - DAY }),
+});
+// Home's Continue card (the last session) opens the saga or the camp.
+async function continueLast(page, w) {
+  await home(page, w);
+  await page.locator('[data-guide="home-continue"] button.hm-go').first().click({ timeout: 4000 });
+  await wait(page, 2200);
+}
+async function nextUp(page, w) {
+  await home(page, w);
+  await page.locator('[data-retention="next-up"]').first().click({ timeout: 4000 });
+  await wait(page, 2400);
+}
+const tapNode = (sel) => async (page, w) => {
+  await continueLast(page, w);
+  await page.locator(sel).first().click({ timeout: 4000 });
+  await wait(page, 900);
+};
+
+// The real v2 stage, replayed from the path on a fake clock: The Grappler's
+// stage 1 (FIT cleared) → its replay sheet → FIGHT → REPLAY → the rounds run →
+// the shared end screen with its stars row (now 2 of 3).
+async function replayV2Stage(page, w) {
+  await continueLast(page, w);
+  await page.locator('[aria-label^="Stage 1,"]').first().click({ timeout: 4000 }); await wait(page, 800);
+  await page.locator('[data-retention="replay-sheet"] [role="radio"]', { hasText: 'FIGHT' }).first().click({ timeout: 4000 });
+  const now = () => page.evaluate(() => Date.now());
+  await page.clock.pauseAt((await now()) + 500);
+  await page.locator('[data-retention="replay-sheet"] button', { hasText: 'REPLAY' }).first().click({ timeout: 4000 });
+  for (let i = 0; i < 900; i++) {
+    await page.clock.runFor(2000);
+    const t = await page.evaluate(() => document.body.innerText);
+    if (/YOUR PROGRESS/.test(t)) break;
+    const cont = page.getByRole('button', { name: /^CONTINUE$/ });
+    if (/LEVEL UP/i.test(t) && await cont.count()) await cont.first().click({ timeout: 2000 }).catch(() => {});
+  }
+  await page.clock.resume();
+  await wait(page, 3000);
+  if (!/YOUR PROGRESS/.test(await page.evaluate(() => document.body.innerText))) throw new Error('the stage did not reach its end screen');
+}
+
 const scrollTo = (sel) => async (page) => { await page.locator(sel).first().scrollIntoViewIfNeeded({ timeout: 4000 }); await page.evaluate((s) => document.querySelector(s)?.scrollIntoView({ block: 'center' }), sel); await wait(page, 400); };
 
 // ── the states ─────────────────────────────────────────────────────────────
@@ -186,6 +254,92 @@ const STATES = [
     clock: true, once: true, needsDays: 3,
     seed: () => ({ tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 3, thisWeek: 3 }), 3300) }),
     open: runDailyMission, after: scrollTo('[data-retention="week-moment"]'), check: ['[data-retention="week-moment"]'], expect: /WEEK COMPLETE[\s\S]*FREEZE EARNED/,
+  },
+  {
+    name: 'f2-home-next-up',
+    note: 'Home: NEXT UP under the Continue card, the last saga\'s current node (One Punch, stage 6).',
+    seed: OP_SEED, open: home, after: scrollTo('[data-retention="next-up"]'),
+    check: ['[data-retention="next-up"]'], expect: /NEXT UP · [\s\S]*Stage 6/,
+  },
+  {
+    name: 'f2-home-next-up-camp',
+    note: 'Home: NEXT UP for Training Camp, the current level (5).',
+    seed: CAMP_SEED, open: home, after: scrollTo('[data-retention="next-up"]'),
+    check: ['[data-retention="next-up"]'], expect: /NEXT UP · TRAINING CAMP[\s\S]*Level 5/,
+  },
+  {
+    name: 'f2-saga-path',
+    note: 'The classic saga as a path: stages 1-5 cleared with their stars, stage 6 pulsing with START, the boss at the top; ★ 12/30 in the header.',
+    seed: OP_SEED, open: continueLast,
+    check: ['[data-retention="path-map"]', 'header'], expect: /★ 12\/30/,
+  },
+  {
+    name: 'f2-saga-popup',
+    note: 'NEXT UP opens the saga on the current node\'s own pop-up (ENTER STAGE: the existing start flow).',
+    seed: OP_SEED, open: nextUp,
+    check: ['.stage-modal'], expect: /ENTER STAGE/,
+  },
+  {
+    name: 'f2-saga-replay',
+    note: 'A cleared node\'s replay sheet: 2 of 3 stars, the best time, what the third star needs and how far off.',
+    seed: OP_SEED, open: tapNode('[aria-label^="Stage 3,"]'),
+    check: ['[data-retention="replay-sheet"]'], expect: /STAGE 3 · CLEARED[\s\S]*YOUR BEST[\s\S]*NEEDS[\s\S]*off the third star/,
+  },
+  {
+    name: 'f2-saga-replay-one-star',
+    note: 'A 1-star clear, best time over every tier: the second star\'s time and the gap.',
+    seed: OP_SEED, open: tapNode('[aria-label^="Stage 4,"]'),
+    check: ['[data-retention="replay-sheet"]'], expect: /off the second star/,
+  },
+  {
+    name: 'f2-saga-path-v2',
+    note: 'A multi-path v2 saga (The Grappler): one star per path, stage 4 current.',
+    seed: GRAP_SEED, open: continueLast,
+    check: ['[data-retention="path-map"]', 'header'], expect: /★ 6\/30/,
+  },
+  {
+    name: 'f2-saga-replay-paths',
+    note: 'The Grappler\'s replay sheet: one star per path, says so; the path to replay (a missing one picked).',
+    seed: GRAP_SEED, open: tapNode('[aria-label^="Stage 1,"]'),
+    check: ['[data-retention="replay-sheet"]'], expect: /One star for each path cleared[\s\S]*PATH TO REPLAY/,
+  },
+  {
+    name: 'f2-saga-locked',
+    note: 'A locked node: the ladder\'s own hint toast.',
+    seed: OP_SEED, open: tapNode('[aria-label^="Stage 8,"]'),
+    check: ['[data-retention="path-map"]'], expect: /CLEAR STAGE 7 TO UNLOCK/,
+  },
+  {
+    name: 'f2-camp-path',
+    note: 'Training Camp as a path: levels 1-4 checked, level 5 current with S1 done, the title fight at the top.',
+    seed: CAMP_SEED, open: continueLast,
+    check: ['[data-retention="path-map"]'], expect: /TRAINING CAMP · BOXING[\s\S]*START/,
+  },
+  {
+    name: 'f2-camp-replay',
+    note: 'A cleared camp level\'s replay sheet: a check (camp has no stars yet), both sessions done.',
+    seed: CAMP_SEED, open: tapNode('[aria-label^="Level 4,"]'),
+    check: ['[data-retention="replay-sheet"]'], expect: /LEVEL 4 · [\s\S]*CLEARED[\s\S]*CONDITIONING/,
+  },
+  {
+    name: 'f2-camp-next-up',
+    note: 'NEXT UP opens the camp on the current level\'s own card (START → readiness → gear).',
+    seed: CAMP_SEED, open: nextUp,
+    check: ['[data-retention="path-map"]'], expect: /START SESSION 2/,
+  },
+  {
+    name: 'f2-end-v2-stars',
+    note: 'A real v2 stage replayed from the path (fake clock): The Grappler stage 1 on FIGHT → the end screen\'s stars row, 2 of 3, landing.',
+    clock: true, once: true,
+    seed: GRAP_SEED, open: replayV2Stage, after: scrollTo('[data-retention="stage-stars"]'),
+    check: ['[data-retention="stage-stars"]'], expect: /STAGE STARS · 2 OF 3/,
+  },
+  {
+    name: 'f2-gallery',
+    note: 'The design gallery (/retention-looks), feature 2: every card renders the real components with sample data.',
+    seed: () => ({}),
+    open: async (page) => { await page.goto(`${BASE}retention-looks`, { waitUntil: 'networkidle' }); await wait(page, 4000); },
+    check: ['#f2'], shot: '#f2', expect: /THE PATH \+ STARS/,
   },
 ];
 

@@ -142,3 +142,128 @@ read or write sits behind the switch.
    default for anyone who only set the minutes). Keep, or reset everyone to 4?
 4. **Which other "streaks" should become the week streak** (Profile, Progress, the share card, the come-back
    reminder's "Keep Streak")?
+
+## 2. The path + stars (switch `path`), 2026-11-23
+
+All of it is behind `retentionOn('path')`: off for everyone, on with the owner preview. With the switch off the
+screens, storage writes and XP are the same as before (checked, below).
+
+### What was built
+
+- **`data/pathStars.js`** (pure): the star rule per saga type (`sagaStarRule`, `stageStarRule`), a stage's stars as
+  stored today and what the next star needs (`stageStars`, `nextStarLine`, `endStarsLine`), the saga's path with the
+  ladder's own gate (`sagaPath`, `openStageCount`), Training Camp's 12 levels (`campPath`), Home's NEXT UP from the
+  last session (`nextUpFrom`, `nextUpCopy`), and where the path's nodes sit for the box's real width (`pathLayout`).
+  It reads and writes nothing and changes no star rule.
+- **`data/pathNextUp.js`**: the real stores behind NEXT UP (`loadNextUp`), the NEXT UP tap (`openNextUp`: the saga
+  with the settings it last ran with, like Continue, or the camp), a one-shot "open on the current node" kept in
+  memory (`requestPathFocus` / `takePathFocus`, dropped after 15 s), and the end screens' stars (`arcadeEndStars`,
+  `conceptEndStars`). No new storage key.
+- **UI** in `retention/ui/`: `PathMap` (the path), `ReplaySheet` (+ `PathChoice`), `NextUpRow`, `StarsRow` (stars,
+  landing one by one with a callback per star), `StageStarsCard` (the end screen's row); new keyframes in `tokens.js`.
+- **Arcade sagas** (`ArcadeSeriesDetail.jsx`): the path in place of the ladder. A tap on the current node opens the
+  screen's own stage pop-up (centred and full width on the path, so its objectives read whole); a locked node gives
+  the ladder's own hint toast; a cleared node opens the replay sheet, whose REPLAY is ENTER STAGE (`handleStart`: the
+  Pro gate, the path, the v2 path + difficulty step). The header counts the saga's stars (★ 12/30) instead of the
+  stages cleared, when the saga has stars. NEXT UP opens the saga on the current node's pop-up (after a campaign's
+  first-time intro, which already does that).
+- **Training Camp** (`TrainingCampMap.jsx`): the same path for the 12 levels, S1/S2 pips under levels 4 to 11, the
+  title fight (level 12) as the boss. The current and locked levels open the level card as before (START → readiness
+  → gear); a cleared level opens the replay sheet (a check, both sessions), whose REPLAY opens the level card. The
+  screen guide's anchors (`tc-current`, `tc-belt`, `tc-pips4`, `arc-stage`, `arc-boss`) sit on the path's nodes.
+- **Home** (`HomeDashboard.jsx`): NEXT UP under the Continue card, from `loadLastSession()`: the saga's current node
+  (a concept stage, saved as a timer session, counts) or the camp's current level. Hidden with no last session, any
+  other kind, a saga that cannot be played (locked, under construction, retired from the carousel), a concept gate
+  not yet open, everything cleared, or the title won.
+- **Stars landing**: the classic clear screen (`ArcadeStageClearOverlay` StageClearedScreen) lands its stars (or the
+  benchmark's rank stars) one by one, a rising tone each; the arcade v2 end screen (`ScreenRouter` camp_complete) and
+  a concept stage's end screen (`SessionSummary`) get the small `StageStarsCard` row in MissionComplete's `summary`
+  slot when the stage has stars, with one line ("One star per path: FIT ✓ · FIGHT ✓ · BOTH"). Nothing else added.
+  `audioEngine.playStarTone` is the end screens' tone (through the app's cue output and volume).
+- **Gallery** (`retention/lookPath.jsx`): every card renders the real components with sample data on the real sagas
+  (One Hundred, The Grappler) and the real camp levels, including the real stage-clear screen.
+- **Tests**: `npm run test:path` (`scripts/test-path-stars.mjs`, 76 checks, in `check:all`).
+- **Preview**: `scripts/retention-preview.mjs` feature 2 states: Home's NEXT UP (saga and camp), the saga path (classic
+  and multi-path v2), the pop-up from NEXT UP, three replay sheets (2★ with a gap, 1★, one star per path), a locked
+  tap, the camp path, its replay sheet, NEXT UP into the camp's level card, the gallery, and a real v2 stage replayed
+  from the path on a fake clock (The Grappler stage 1 on FIGHT) to its end screen with the stars row (2 of 3).
+
+### Decisions (each easy to change)
+
+- **Stars per saga type**, from what is stored today, never recomputed: the classic saga 3 (time tiers; a stage with
+  no tiers, as in Demon Back, shows a check); a multi-path v2 saga one per path available (Martial Monster 2, The
+  Destroyer and The Grappler 3; the sheet says "One star for each path cleared" and names the paths left); a
+  single-path v2 saga 1 (Gravity Chamber); a concept saga one per arc (3). A stored count above the saga's maximum
+  (an old difficulty-based 3 on a 2-path saga) is shown at the maximum. A clear with no stars saved reads 1, as the
+  ladder did.
+- **What the next star needs**: the classic saga names the time ("under 22:00") and, when a best time is stored, the
+  gap in plain words ("2:41 off the third star"); the tiers are strict (under, not at), so the gap is one second more
+  than the difference. Multi-path sagas name the paths not yet cleared; an old clear saved before paths were kept
+  says only the rule. The sheet's REPLAY on a multi-path saga runs the path picked in the sheet (a missing one is
+  picked first).
+- **The path climbs**: the first node at the bottom, the boss at the top, like the ladder it replaces ("THE CLIMB")
+  and the camp's tower and its guide ("the title fight at the top"). The approved look ran top to bottom; flipping
+  it is one line in `data/pathStars.js` (`pathLayout`).
+- **The benchmark's stars on its clear screen**: the benchmark saves its time's stars but does not put them on its
+  result, so the screen showed 1. With the switch on it shows what was saved (the same `getStarsForTime`).
+- **Camp has no stars**: cleared levels show a check (proposal below). With the title won, level 12 shows cleared too.
+- **NEXT UP and Continue** can name the same saga (Continue opens the path; NEXT UP opens the current node's pop-up).
+- **The ELITE node** (switched off in the ladder) is not drawn on the path.
+- **The path's stage nodes keep the ladder's `ladder-node` class and its DOM order** (the boss first, stage 1 last),
+  so what finds a stage node on the ladder still finds it: `smoke:web`'s "concept gauntlet stage start" turns the
+  owner preview on (so the path is on) and taps the last `.ladder-node`.
+
+### Checked
+
+- `test:path` (76: the rules per saga type, the next star and its gap, the path against the ladder's gate on every
+  prefix, the camp's levels and pips, NEXT UP from every kind of last session, the end screens' stars, the layout
+  inside 16 px of the sides from 300 to 768 px wide, nothing written to storage), `test:streak`, `test:concepts`,
+  `test:xp`, `test:missions`, `test:entitlements`, `test:maxout`, `test:ayp`, `test:levels`, `test:storage`,
+  `test:qm`, `test:athlete`, `test:voice`, `test:clips`, `test:spoken`, `voice:coverage` (0 missing: no new spoken
+  line; the stars are tones), `check-guides`, eslint on every changed file, `tsc`, `build:web`.
+- `scripts/retention-preview.mjs` at 360, 390 and 430 px: every state fits (no overflow, no cut text). Looked at each
+  photo: the pop-up on the path was too narrow at 360 (its first objective cut with an ellipsis), so it opens full
+  width on the path; START on the current node was a size smaller so it clears the ring; the camp's replay sheet
+  keeps its buttons clear of the beta chip; the path fades out at the box's edges instead of being cut under the
+  header.
+- Switch off, base commit against this build, on a fixed fake clock and a seeded `Math.random`: Home (with an arcade
+  last session), the saga ladder, its stage pop-up, a locked tap, the camp ladder, its level card, and a v2 stage
+  played to its end screen: the same DOM, and the same storage apart from sub-second timestamps and a row id. The
+  classic clear screen and a concept stage's end screen were checked by reading the code (the switch-off branch is
+  the old markup, untouched).
+- `smoke:web` (the production build): the first run failed "concept gauntlet stage start" (the owner preview turns
+  the path on, and the check taps the ladder's last `.ladder-node`); with the class and order kept, all 147 checks
+  pass.
+
+### Not covered
+
+- A fresh clear does not animate on the path (the node simply shows its stars the next time the path opens).
+- Concept saga progress and the last session are per device (`tm_concepts_v1`, `tm_last_session_v1` are not in
+  SYNC_KEYS, as before), so NEXT UP and concept stars do not follow a sign-in to another phone.
+
+### For the owner (old, not changed)
+
+- **Gravity Chamber's pop-up** advertises EASY / NORMAL / HARD as 1 / 2 / 3 stars, but its stars are stored per path
+  cleared, and it has one path, so it can never show more than 1. The path shows 1 of 1. Either keep one star for a
+  clear (and drop the difficulty stars from its pop-up), or store difficulty stars for single-path sagas.
+- **Multi-path sagas start on NORMAL** (difficulty is not offered when a saga has paths), and Martial Monster's
+  FULL ARC is not mapped, so it has 2 paths and 2 stars.
+
+### Proposed camp star rule (not built)
+
+Training Camp has no star, grade or best result stored. A proposal that rewards finishing well, not training harder
+than the readiness check advises:
+
+- ★ the level cleared (every existing clear gets this one);
+- ★★ every round of the level done and verified (the end screen's "All rounds verified"), in both sessions on a split level;
+- ★★★ the level's sessions done the way the camp asks: on a split level S2 4 to 8 hours after S1 (the camp's own
+  guidance), on a single level no round stopped early or skipped; the title fight won with the form gate held.
+- Kept as max-of in a new `tm_camp_stars_v1` (`{ [level]: 1..3 }`, in SYNC_KEYS), written in `App.goCampComplete`
+  and `goCampFullComplete` when the level clears. Stars by difficulty (★★★ on HARD) were left out on purpose: the
+  readiness check offers an EASY session "that still counts", and a star for HARD would pull against it.
+
+### Needs the owner's answer
+
+1. **The camp star rule** above: yes, change it, or keep the check marks?
+2. **Gravity Chamber**: one star for a clear, or difficulty stars for single-path sagas?
+3. **The path's direction**: climbing up (built) or top to bottom (the look)?

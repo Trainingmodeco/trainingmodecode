@@ -472,6 +472,13 @@ export function playBeep() {
   playTone(1200, 0.12, 'sine', 0.6, null);
 }
 
+// Retention feature 2: one rising ping per star as the stars land on an end
+// screen (0, 1, 2 → three steps up).
+export function playStarTone(i = 0) {
+  const freq = [880, 1108.7, 1318.5][Math.max(0, Math.min(2, i))];
+  playTone(freq, 0.22, 'triangle', 0.5, null);
+}
+
 // LT-2 — riser sting under the "RUSH MODE — GO!" call. Synthesised rather than
 // shipped as an asset so it costs nothing in the bundle.
 export function playRiser() {

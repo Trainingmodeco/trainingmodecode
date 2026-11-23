@@ -1,83 +1,168 @@
-import { useEffect, useRef, useState } from 'react';
-import { C } from '../Styles';
-import { ARCADE } from '../ArcadeUI';
-import { HOME, head, orb, goldText, Look, Feature, Stars, Btn, Sparks, HomeHeader } from './looksKit';
+import { useEffect, useState } from 'react';
+import { HOME, head, orb, goldText, Look, Feature } from './looksKit';
 import { WeekChip } from './lookStreak';
+import HomeHeader from '../shared/HomeHeader';
+import PathMap from './ui/PathMap';
+import ReplaySheet, { PathChoice } from './ui/ReplaySheet';
+import NextUpRow from './ui/NextUpRow';
+import StageStarsCard from './ui/StageStarsCard';
+import ArcadeStageClearOverlay from '../ArcadeStageClearOverlay';
+import { sagaPath, campPath, stageStars, nextStarLine, endStarsLine, fmtTime, nextUpCopy } from '../data/pathStars';
+import { getSeriesById } from '../data/trainingArcadeData';
+import { campLevels } from '../protocol/content';
 
-// 2 · The path + stars. One path component for the Arcade sagas and Training
-// Camp: it opens on the current node; cleared nodes show 1 to 3 stars.
+// 2 · The path + stars. One path for the Arcade sagas and Training Camp: it
+// climbs from the first node at the bottom to the boss at the top and opens
+// on the current node; cleared nodes show their stars. Every card renders the
+// REAL components (retention/ui, data/pathStars, the real stage-clear screen)
+// with sample data: what is drawn here is what ships behind the `path` switch.
 
-const SAGA = [
-  { n: 1, stars: 3 }, { n: 2, stars: 3 }, { n: 3, stars: 2 }, { n: 4, stars: 1 }, { n: 5, stars: 3 },
-  { n: 6, current: true }, { n: 7 }, { n: 8 }, { n: 9 }, { n: 10 }, { n: 11 }, { n: 12, boss: true },
-];
-const CAMP = [
-  { n: 'D1', stars: 3 }, { n: 'D2', stars: 2 }, { n: 'D3', current: true }, { n: 'D4' }, { n: 'D5' }, { n: 'REST', rest: true }, { n: 'FIGHT\nNIGHT', boss: true },
-];
+// Sample progress on the real sagas: One Hundred (time tiers) and The Grappler
+// (one star per path).
+const OP = getSeriesById('one-punch-protocol');
+const GRAP = getSeriesById('grappler-protocol');
+const OP_DONE = [[3, 860], [3, 1265], [2, 1060], [1, 1805], [3, 951]];
+const OP_PROGRESS = { completedStages: Object.fromEntries(OP_DONE.map(([stars, best], i) => [`op-stage-${i + 1}`, { completed: true, stars, bestTimeSeconds: best }])) };
+const GRAP_PROGRESS = { completedStages: Object.fromEntries((GRAP?.stages || []).slice(0, 3).map((s, i) => [s.id, { completed: true, stars: i + 1, paths: [['fit'], ['fit', 'fight'], ['fit', 'fight', 'both']][i] }])) };
+const CAMP = campPath({ levels: campLevels, current: 5, sessions: { 4: { s1: true, s2: true }, 5: { s1: true } } });
 
-const GAP = 104, TOP = 70;
-const xAt = (i) => 180 + Math.sin(i * 0.9) * 92;
-
-function Node({ s, i, onPick }) {
-  const x = xAt(i), y = TOP + i * GAP;
-  const cleared = s.stars != null;
-  const size = s.boss ? 78 : s.current ? 70 : 58;
-  const style = {
-    position: 'absolute', left: x - size / 2, top: y - size / 2, width: size, height: size, borderRadius: s.boss ? 18 : size / 2,
-    display: 'grid', placeItems: 'center', cursor: cleared || s.current ? 'pointer' : 'default',
-    fontFamily: ARCADE.fontHead, fontWeight: 900, whiteSpace: 'pre', textAlign: 'center', lineHeight: 1.05,
-  };
-  let look;
-  if (s.current) look = { background: 'radial-gradient(circle at 50% 35%, #3b1670, #14052a)', border: `2px solid ${ARCADE.goldBright}`, color: C.text, animation: 'rl-pulse 1.8s infinite', fontSize: 11 };
-  else if (cleared) look = { background: 'rgba(253,224,71,0.08)', border: '2px solid rgba(253,224,71,0.6)', color: ARCADE.gold, fontSize: 16 };
-  else if (s.boss) look = { background: 'rgba(253,224,71,0.06)', border: '2px solid rgba(253,224,71,0.35)', color: 'rgba(253,224,71,0.6)', fontSize: 9 };
-  else if (s.rest) look = { background: 'rgba(143,232,172,0.08)', border: '1.5px dashed rgba(143,232,172,0.5)', color: HOME.green, fontSize: 9 };
-  else look = { background: 'rgba(10,0,20,0.8)', border: '1.5px solid rgba(168,85,247,0.22)', color: 'rgba(196,164,216,0.5)', fontSize: 14 };
+// The saga screen's header as it is with the path (title, the climb, ★ total).
+function Screen({ title, sub, right, art = 'radial-gradient(ellipse at 50% 30%, rgba(30,0,70,.8), #050010 75%)', children }) {
   return (
-    <>
-      {s.current && <span style={{ position: 'absolute', left: x - size / 2, top: y - size / 2, width: size, height: size, borderRadius: size / 2, border: `2px solid ${ARCADE.goldBright}`, animation: 'rl-ring 1.8s infinite', pointerEvents: 'none' }}/>}
-      <button type="button" onClick={() => onPick?.(s)} style={{ ...style, ...look }}>
-        {s.current ? <span><span style={{ fontSize: 9, color: HOME.muted, display: 'block' }}>{typeof s.n === 'number' ? `STAGE ${s.n}` : s.n}</span><span style={{ fontSize: 15, ...goldText }}>START</span></span>
-          : s.boss ? <span><span style={{ fontSize: 22, display: 'block' }}>👑</span>{typeof s.n === 'number' ? 'BOSS' : s.n}</span>
-          : cleared ? s.n : s.rest ? '💤\nREST' : <span>🔒<span style={{ display: 'block', fontSize: 10 }}>{s.n}</span></span>}
-      </button>
-      {cleared && <div style={{ position: 'absolute', left: x - 30, top: y + size / 2 + 2, width: 60, textAlign: 'center' }}><Stars n={s.stars} size={13}/></div>}
-    </>
-  );
-}
-
-function PathView({ nodes, title, sub, total, onPick }) {
-  const ref = useRef(null);
-  const h = TOP + nodes.length * GAP;
-  const ci = nodes.findIndex((s) => s.current);
-  // Opens on the current node.
-  useEffect(() => { if (ref.current) ref.current.scrollTop = Math.max(0, TOP + ci * GAP - 260); }, [ci]);
-  const pts = nodes.map((_, i) => `${xAt(i)},${TOP + i * GAP}`);
-  const done = pts.slice(0, ci + 1).join(' ');
-  return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'radial-gradient(ellipse at 50% 30%, rgba(30,0,70,.8), #050010 75%)' }}>
-      <div style={{ padding: '14px 16px 10px', borderBottom: '1px solid rgba(168,85,247,.2)', display: 'flex', alignItems: 'center', gap: 10 }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: art }}>
+      <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid rgba(168,85,247,.2)', display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ color: HOME.muted, fontSize: 18 }}>‹</span>
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ ...orb(13), ...goldText }}>{title}</div>
           <div style={{ ...head(10, 600), color: HOME.muted }}>{sub}</div>
         </div>
-        <span style={{ ...head(12), color: ARCADE.gold }}>★ {total}</span>
+        {right}
       </div>
-      <div ref={ref} style={{ flex: 1, overflowY: 'auto', position: 'relative' }}>
-        <div style={{ position: 'relative', height: h }}>
-          <svg width="360" height={h} style={{ position: 'absolute', left: 0, top: 0 }}>
-            <polyline points={pts.join(' ')} fill="none" stroke="rgba(168,85,247,0.25)" strokeWidth="6" strokeDasharray="2 12" strokeLinecap="round"/>
-            <polyline points={done} fill="none" stroke="rgba(253,224,71,0.7)" strokeWidth="5" strokeLinecap="round"/>
-          </svg>
-          {nodes.map((s, i) => <Node key={i} s={s} i={i} onPick={onPick}/>)}
+      <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>{children}</div>
+    </div>
+  );
+}
+const StarTotal = ({ path }) => (
+  <span style={{ ...orb(10, { fontWeight: 800 }), color: '#fde047', background: 'rgba(253,224,71,0.08)', border: '1px solid rgba(253,224,71,0.28)', borderRadius: 8, padding: '5px 9px', whiteSpace: 'nowrap' }}>
+    ★ {path.earned}<span style={{ color: 'rgba(200,170,255,0.6)' }}>/{path.total}</span>
+  </span>
+);
+
+function SagaPathLook({ series, progress, children }) {
+  const path = sagaPath(series, progress);
+  const cleared = path.nodes.filter((n) => n.state === 'cleared').length;
+  return (
+    <Screen title={series.title.toUpperCase()} sub={`THE CLIMB · ${cleared} of ${path.nodes.length} · tap a stage`} right={<StarTotal path={path}/>}>
+      <PathMap nodes={path.nodes} unit="STAGE" bossLabel="BOSS"/>
+      {children}
+    </Screen>
+  );
+}
+
+function ReplayLook({ series, progress, index }) {
+  const stage = series.stages[index];
+  const info = stageStars(series, stage, progress.completedStages[stage.id]);
+  const [mode, setMode] = useState(info.missing[0] || 'fit');
+  const tiles = [
+    ...(info.bestSec != null ? [{ label: 'YOUR BEST', value: fmtTime(info.bestSec) }] : []),
+    ...(info.kind === 'time' && info.next ? [{ label: `${'★'.repeat(info.next.stars)} NEEDS`, value: info.next.needs, gold: true }] : []),
+  ];
+  const multi = (series.modeOptions || []).length > 1;
+  return (
+    <SagaPathLook series={series} progress={progress}>
+      <ReplaySheet eyebrow={`STAGE ${stage.stageNumber} · CLEARED`} title={stage.title} stars={info.stars} max={info.max} check={info.check}
+        tiles={tiles} line={nextStarLine(info)} onReplay={() => {}} onClose={() => {}}>
+        {multi && <PathChoice paths={series.modeOptions} cleared={info.paths} value={mode} onChange={setMode}/>}
+      </ReplaySheet>
+    </SagaPathLook>
+  );
+}
+
+// The real stage-clear screen (classic saga): position fixed, held inside
+// the phone frame (its transform makes it the containing block).
+function StageClearLook() {
+  const stage = OP.stages[4];
+  return (
+    <ArcadeStageClearOverlay
+      series={OP} stage={stage}
+      result={{ invalid: false, rank: null, points: 300, xpEarned: 300, elapsedSeconds: 951, stars: 3, newBest: true, completedTasks: 3, totalTasks: 3 }}
+      xpEarned={300} completedStageIds={OP.stages.slice(0, 5).map((s) => s.id)}
+      onContinue={() => {}} onReturnToArcade={() => {}} onNextStage={() => {}}
+    />
+  );
+}
+
+// The end screen's stars row (arcade v2 and concept stages), in the shared
+// end screen's stat area.
+function EndStarsLook() {
+  const stage = GRAP.stages[1];
+  const info = stageStars(GRAP, stage, GRAP_PROGRESS.completedStages[stage.id]);
+  return (
+    <div style={{ padding: '18px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ font: "700 7px 'Press Start 2P',monospace", color: '#86efac', letterSpacing: '0.16em', textAlign: 'center' }}>◈ STAGE CLEARED ◈</div>
+      <div style={{ font: "900 18px 'Orbitron',sans-serif", color: '#fff', textAlign: 'center' }}>STAGE 2 CLEAR</div>
+      <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#c4a4d8', textAlign: 'center', marginBottom: 6 }}>TRAINING ARCADE · The Grappler · normal</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}>
+        <div style={{ borderRadius: 10, border: '1px solid rgba(253,224,71,0.45)', background: 'rgba(253,224,71,0.08)', padding: '8px 10px', textAlign: 'center' }}>
+          <div style={{ font: "900 17px 'Orbitron',sans-serif", color: '#fde047' }}>+164</div>
+          <div style={{ font: "600 7.5px 'Orbitron',sans-serif", color: '#86efac', letterSpacing: '0.08em' }}>XP EARNED</div>
+        </div>
+        <div style={{ borderRadius: 10, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(8,2,18,0.6)', padding: '8px 10px', textAlign: 'center' }}>
+          <div style={{ font: "900 17px 'Orbitron',sans-serif", color: '#fff' }}>5/5</div>
+          <div style={{ font: "600 7.5px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.08em' }}>ROUNDS</div>
         </div>
       </div>
+      <StageStarsCard stars={info.stars} max={info.max} line={endStarsLine(info)}/>
     </div>
   );
 }
 
-function CountUp({ to, ms = 900, delay = 0 }) {
+export default function LookPath() {
+  const op = sagaPath(OP, OP_PROGRESS);
+  const next = { kind: 'arcade', saga: OP.title, number: op.nodes[op.current].number, title: op.nodes[op.current].title, boss: false };
+  return (
+    <Feature id="f2" num="FEATURE 2" title="THE PATH + STARS"
+      reuse="ArcadeConstellationMap's pulsing current node, boss node and gold-for-cleared colours; each screen's own stage pop-up, locked hint, Pro gate and start flow; the stars as they are stored today; the arcade gold title type."
+      isNew="the stage ladder and the camp ladder become one path: big tap targets on a winding road that climbs and scrolls, opens on the current node, shows the stars (or a check) under each cleared node and START on the current one; the replay sheet; NEXT UP on Home; the stars landing one by one. Every card here is the real component.">
+
+      <Look name="The path: a saga" note="One Hundred: opens on the current node (stage 6). Gold road behind, dashed road ahead, the boss at the top. The header counts the saga's stars. A tap on the current node opens the stage's own pop-up." height={640}>
+        <SagaPathLook series={OP} progress={OP_PROGRESS}/>
+      </Look>
+
+      <Look name="The path: Training Camp" note="The same component for the camp's 12 levels: S1/S2 pips under the split levels, the title fight at the top. Camp has no star rule yet, so a cleared level shows a check." height={640}>
+        <Screen title="TRAINING CAMP · BOXING" sub="Level 5 of 12 · DEVELOPMENT" art="linear-gradient(180deg, #1a0a2e 0%, #10061f 45%, #0a0416 100%)">
+          <PathMap nodes={CAMP.nodes} unit="LEVEL" bossLabel="TITLE"/>
+        </Screen>
+      </Look>
+
+      <Look name="Home: NEXT UP" note="One row under the Continue card: the last saga's current node (or the camp's level). A tap opens the saga on that node's pop-up." height={170}>
+        <div style={{ padding: '14px 16px 0' }}>
+          <HomeHeader level={14} tierName="Champion" levelXp={250} levelNeeded={500} xpPercent={50} compact chip={<WeekChip/>}/>
+        </div>
+        <div style={{ padding: '12px 16px' }}><NextUpRow {...nextUpCopy(next)} number={next.number} onGo={() => {}}/></div>
+      </Look>
+
+      <Look name="Replay sheet (a cleared node)" note="Best stars, best time, what the next star needs and how far off it is. REPLAY runs the stage's own start flow; replays keep the best result." height={560} animated>
+        <ReplayLook series={OP} progress={OP_PROGRESS} index={2}/>
+      </Look>
+
+      <Look name="Replay sheet: one star per path" note="A multi-path saga says how its stars work and picks a path not yet cleared to replay." height={560} animated>
+        <ReplayLook series={GRAP} progress={GRAP_PROGRESS} index={0}/>
+      </Look>
+
+      <Look name="Stage clear: stars land one by one" note="The real classic-saga clear screen: each star slams in with its own tone (with the owner preview on). Nothing else changed on it." height={680} animated>
+        <StageClearLook/>
+      </Look>
+
+      <Look name="End screen: the stars row" note="Arcade v2 and concept stages end on the shared end screen: a small stars row lands the same way when the stage has stars." height={260} animated>
+        <EndStarsLook/>
+      </Look>
+    </Feature>
+  );
+}
+
+// The gallery's CLEARED look counts its XP with this.
+export function CountUp({ to, ms = 900, delay = 0 }) {
   const [v, setV] = useState(0);
   useEffect(() => {
     let raf, t0;
@@ -88,83 +173,4 @@ function CountUp({ to, ms = 900, delay = 0 }) {
     return () => { clearTimeout(id); cancelAnimationFrame(raf); };
   }, [to, ms, delay]);
   return <>{v}</>;
-}
-export { CountUp };
-
-function ReplaySheet() {
-  return (
-    <div style={{ height: '100%', position: 'relative' }}>
-      <div style={{ position: 'absolute', inset: 0, filter: 'brightness(.35)' }}><PathView nodes={SAGA} title="IRON PATH" sub="SAGA 2 · STAGE 6 OF 12" total="12 / 36"/></div>
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, borderRadius: '20px 20px 0 0', background: '#0E0B18', borderTop: '1px solid rgba(253,224,71,.4)', padding: 18, animation: 'rl-rise .4s both' }}>
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(255,255,255,.2)', margin: '-6px auto 12px' }}/>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ ...head(10, 600), color: HOME.muted }}>STAGE 3 · CLEARED</div>
-            <div style={{ ...head(18), color: C.text, letterSpacing: '0.02em' }}>Ladder Push 6×6</div>
-          </div>
-          <Stars n={2} size={22}/>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 14 }}>
-          <div style={{ background: HOME.tile, borderRadius: 10, padding: 10 }}><div style={{ ...head(9, 600), color: HOME.muted }}>YOUR BEST</div><div style={{ ...head(18), color: HOME.gold }}>6:42</div></div>
-          <div style={{ background: 'rgba(253,224,71,.08)', border: '1px solid rgba(253,224,71,.35)', borderRadius: 10, padding: 10 }}><div style={{ ...head(9, 600), color: HOME.muted }}>★★★ NEEDS</div><div style={{ ...head(18), color: C.text }}>under 6:30</div></div>
-        </div>
-        <div style={{ fontSize: 13, color: HOME.muted, marginTop: 10 }}>12 seconds off the third star. Replays keep your best result.</div>
-        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}><Btn>↻ REPLAY</Btn><Btn tone="ghost">CLOSE</Btn></div>
-      </div>
-    </div>
-  );
-}
-
-function StarsLanding() {
-  return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, position: 'relative', textAlign: 'center', padding: 22,
-      background: 'radial-gradient(ellipse at center, rgba(34,197,94,.18) 0%, rgba(8,0,18,1) 65%)' }}>
-      <Sparks/>
-      <div style={{ ...orb(12), color: HOME.muted, animation: 'rl-rise .4s both' }}>STAGE 5</div>
-      <div style={{ ...orb(44), ...goldText, animation: 'rl-slam .6s .15s both' }}>CLEAR</div>
-      <Stars n={3} size={46} land gap={10} delay={0.8}/>
-      <div style={{ ...head(12), color: HOME.green, animation: 'rl-rise .4s 2.3s both' }}>★★★ UNDER 5:00 · NEW BEST 4:51</div>
-      <div style={{ ...orb(26), color: ARCADE.gold, animation: 'rl-rise .4s 2.5s both' }}>+<CountUp to={180} delay={2500}/> XP</div>
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8, marginTop: 6, animation: 'rl-rise .4s 3s both' }}>
-        <Btn>NEXT: STAGE 6 ▶</Btn><Btn tone="ghost">BACK TO THE PATH</Btn>
-      </div>
-    </div>
-  );
-}
-
-export default function LookPath() {
-  return (
-    <Feature id="f2" num="FEATURE 2" title="THE PATH + STARS"
-      reuse="ArcadeConstellationMap's pulsing current node, boss node and gold-for-cleared colours; the stage stars on ArcadeStageClearOverlay; the arcade gold title type."
-      isNew="from the constellation map: nodes become big tap targets on a winding road that scrolls, opens on the current node, shows 1 to 3 stars under each cleared node and START on the current one. One component serves sagas and Training Camp.">
-
-      <Look name="The path: a saga" note="Opens on the current node (stage 6). Gold road behind, dashed road ahead. Tap a cleared node for its replay sheet." height={640}>
-        <PathView nodes={SAGA} title="IRON PATH" sub="SAGA 2 · STAGE 6 OF 12" total="12 / 36"/>
-      </Look>
-
-      <Look name="The path: Training Camp" note="The same component for a camp week: days as nodes, a rest day that is part of the plan, fight night as the boss." height={640}>
-        <PathView nodes={CAMP} title="TRAINING CAMP" sub="WEEK 2 · DAY 3 OF 7" total="5 / 15"/>
-      </Look>
-
-      <Look name="Home: NEXT UP" note="One row on home that jumps straight onto the current node." height={170}>
-        <HomeHeader right={<WeekChip/>}/>
-        <div style={{ margin: '8px 14px', height: 64, borderRadius: 14, background: HOME.tile, border: '1px solid rgba(253,224,71,.35)', display: 'flex', alignItems: 'center', gap: 12, padding: '0 12px' }}>
-          <span style={{ width: 42, height: 42, borderRadius: 21, display: 'grid', placeItems: 'center', border: `2px solid ${ARCADE.goldBright}`, animation: 'rl-pulse 1.8s infinite', ...orb(12), color: C.text }}>6</span>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ ...head(10, 600), color: HOME.muted }}>NEXT UP · IRON PATH</div>
-            <div style={{ ...head(15), color: C.text, letterSpacing: '0.02em' }}>Stage 6: Burpee Ladder</div>
-          </div>
-          <span style={{ ...head(12), color: HOME.gold }}>START ▶</span>
-        </div>
-      </Look>
-
-      <Look name="Replay sheet (a cleared node)" note="Best stars, best result, and in plain words what the third star needs." height={560} animated>
-        <ReplaySheet/>
-      </Look>
-
-      <Look name="Stage clear: stars land one by one" note="Each star slams in with its own beat (sound cue per star), then the XP counts up." height={560} animated>
-        <StarsLanding/>
-      </Look>
-    </Feature>
-  );
 }

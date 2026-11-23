@@ -27,6 +27,9 @@ import { noticeCopy, localIso } from './data/weekStreak';
 import { todaysDailyMission, rememberDailyMission } from './data/dailyMission';
 import WeekChip from './retention/ui/WeekChip';
 import DailyMissionCard from './retention/ui/DailyMissionCard';
+import NextUpRow from './retention/ui/NextUpRow';
+import { loadNextUp } from './data/pathNextUp';
+import { nextUpCopy } from './data/pathStars';
 
 // Home — the Simplify revamp hub.
 //
@@ -95,7 +98,7 @@ export default function HomeDashboard({
   onPractice, onFightFocus, onQuickMission, onStartQuickMission, onFitSetup, onComboCoach, onJustTrain, onPrograms,
   onStartHere, onCombatConditioning, onTrainingArcade, onReplayLast, onOpenGhost,
   pausedSession, onResume, onDiscardPaused,
-  pausedAlt, onResumeAlt, onDiscardAlt, onOpenConcept, onDailyMission,
+  pausedAlt, onResumeAlt, onDiscardAlt, onOpenConcept, onDailyMission, onNextUp,
 }) {
   // Retention feature 1 (weekly streak + daily mission), behind its switch.
   const [weeksOn] = useState(() => retentionOn('weeks'));
@@ -103,6 +106,10 @@ export default function HomeDashboard({
   const [helpOpen, setHelpOpen] = useState(false);
   const [surprise, setSurprise] = useState(null);
   const [last] = useState(() => loadLastSession());
+  // Retention feature 2 (the path): NEXT UP, the last saga's current node or
+  // the camp's current level, from the last session.
+  const [pathOn] = useState(() => retentionOn('path'));
+  const [nextUp] = useState(() => (pathOn ? loadNextUp(last) : null));
   // The choice saved on the Quick Mission page. AT YOUR PACE ('solo') makes a
   // Quick Mission START here run the moves and a timer (App
   // goQuickMissionActive reads the same saved choice), so the card says so.
@@ -441,6 +448,11 @@ export default function HomeDashboard({
             </div>
           )}
         </div>
+
+        {/* NEXT UP on the path (switch on): straight onto the current node. */}
+        {pathOn && nextUp && (
+          <NextUpRow {...nextUpCopy(nextUp)} number={nextUp.number} boss={nextUp.boss} onGo={() => onNextUp?.(nextUp)}/>
+        )}
 
         {/* The featured concept drop, when one is live. */}
         <ConceptFeatureCard mode="home" onOpen={onOpenConcept} style={{ flexShrink: 0 }}/>

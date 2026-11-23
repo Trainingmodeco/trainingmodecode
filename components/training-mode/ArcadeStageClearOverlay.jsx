@@ -5,6 +5,9 @@ import { ArcadePrimaryButton, ArcadeSecondaryButton } from './ArcadeUI';
 import { RotateCcw, Play, Share2, ChevronLeft, Star } from 'lucide-react';
 import { resolveOutcome } from './shared/sessionOutcome';
 import AchievementToast from './shared/AchievementToast';
+import { retentionOn } from './data/retentionFlags';
+import { getStarsForTime } from './data/trainingArcadeData';
+import StarsRow from './retention/ui/StarsRow';
 
 const OVERLAY_STYLES = `
 @keyframes ov-fade-in {
@@ -81,6 +84,11 @@ function StageClearedScreen({
   const [displayXp, setDisplayXp] = useState(0);
   const [countDone, setCountDone] = useState(false);
   const animRef = useRef(null);
+  // Retention feature 2 (switch `path`): the stars land one by one, a tone
+  // each. A run's stars are what it saved: the benchmark saves its time's
+  // stars but does not put them on its result, so they are read the same way.
+  const [pathOn] = useState(() => retentionOn('path'));
+  const runStars = Number.isFinite(result?.stars) && result.stars > 0 ? Math.round(result.stars) : getStarsForTime(stage, result?.elapsedSeconds);
   const rank = result?.rank || null;
   const stages = series?.stages || [];
   const stageIdx = stages.findIndex(s => s.id === stage?.id);
@@ -205,6 +213,11 @@ function StageClearedScreen({
               tier rating earned this run */}
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: '0.1em', marginBottom: 2 }}>{rank ? 'RANK' : 'STARS'}</div>
+            {pathOn ? (
+              rank
+                ? <StarsRow n={getRankStars(rank)} of={5} size={12} gap={2} land delay={0.35} step={0.3} onLand={(i) => playTone(880 + i * 110, 0.18, 0.05)} label={`Rank ${rank}`} color="#22c55e" glow="rgba(34,197,94,0.6)"/>
+                : <StarsRow n={runStars} of={3} size={15} gap={3} land delay={0.35} step={0.45} onLand={(i) => playTone([880, 1108, 1318][i] || 1318, 0.22, 0.06)}/>
+            ) : (
             <div style={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
               {rank
                 ? Array.from({ length: 5 }, (_, i) => (
@@ -214,6 +227,7 @@ function StageClearedScreen({
                     <Star key={i} size={13} fill={i < (result?.stars || 1) ? '#fde047' : 'transparent'} color={i < (result?.stars || 1) ? '#fde047' : 'rgba(255,255,255,0.18)'} strokeWidth={1.5}/>
                   ))}
             </div>
+            )}
           </div>
         </div>
       )}

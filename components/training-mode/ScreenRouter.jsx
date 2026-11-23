@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback, lazy } from 'react';
+import { useRef, useState, useEffect, useCallback, useMemo, lazy } from 'react';
 import { reportError } from './data/analytics';
 import SplashScreen from './SplashScreen';
 import XpVerdictPlate, { useVerdictFlash } from './shared/XpVerdictPlate';
@@ -18,6 +18,10 @@ import GhostVsScreen from './shared/GhostVsScreen';
 import GhostResultScreen from './shared/GhostResultScreen';
 import { getLastBattle, getMyBestGhost, getLastRecordedGhost } from './data/ghostBattles';
 import MissionComplete from './shared/MissionComplete';
+import { retentionOn } from './data/retentionFlags';
+import { openNextUp, arcadeEndStars } from './data/pathNextUp';
+import StageStarsCard from './retention/ui/StageStarsCard';
+import { playStarTone } from './data/audioEngine';
 import CampTransitionCard from './shared/CampTransitionCard';
 import CampFitRunner from './CampFitRunner';
 import CampFitSetRunner from './CampFitSetRunner';
@@ -245,6 +249,10 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
   const [ghostResultSeen, setGhostResultSeen] = useState(false);
   useEffect(() => { setVsAccepted(false); }, [cfg]);
   useEffect(() => { if (screen !== 'summary') setGhostResultSeen(false); }, [screen]);
+  // Retention feature 2 (switch `path`): an arcade v2 stage's end screen gets
+  // a small stars row when the stage has stars (as stored after the clear).
+  const [pathOn] = useState(() => retentionOn('path'));
+  const arcadeStars = useMemo(() => (pathOn && campResult?.arcade && campResult.cleared ? arcadeEndStars(campResult) : null), [pathOn, campResult]);
 
   const handleNavigate = (tab) => {
     if (tab === 'home') goHome();
@@ -269,7 +277,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
       // enough to scroll, and to inherit the previous screen's scroll position
       // with the header cut off. Lock still scrolls if a short phone needs it.
       <WithNav activeTab="home" onNavigate={handleNavigate} lock>
-        <HomeDashboard onOpenConcept={(tab) => goConcept(tab, null, 'home')} onHome={goHome} onFightMode={goFightHub} onFitMode={goFitHub} onJustTrain={goJustTrain} onPrograms={goPrograms} onStartQuickMission={goQuickMissionActive} onReplayLast={actions.replayLastSession} onProfile={goProfile} profile={profile} onPractice={goPractice} onFightFocus={goSetup} onQuickMission={goQuickMissionSetup} onFitSetup={goFitSetup} onComboCoach={goComboSetup} onStartHere={goStartHere} onStartDailyMission={goStartDailyMission} onDailyMission={actions.startDailyMission} onCombatConditioning={goCombatCondSetup} onBetaFeedback={goBetaFeedback} onTrainingArcade={goTrainingArcade} onTrain={goFitHub} onOpenGhost={actions.openGhostChallenge} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} pausedAlt={pausedAlt} onResumeAlt={onResumeAlt} onDiscardAlt={onDiscardAlt}/>
+        <HomeDashboard onOpenConcept={(tab) => goConcept(tab, null, 'home')} onHome={goHome} onFightMode={goFightHub} onFitMode={goFitHub} onJustTrain={goJustTrain} onPrograms={goPrograms} onStartQuickMission={goQuickMissionActive} onReplayLast={actions.replayLastSession} onProfile={goProfile} profile={profile} onPractice={goPractice} onFightFocus={goSetup} onQuickMission={goQuickMissionSetup} onFitSetup={goFitSetup} onComboCoach={goComboSetup} onStartHere={goStartHere} onStartDailyMission={goStartDailyMission} onDailyMission={actions.startDailyMission} onCombatConditioning={goCombatCondSetup} onBetaFeedback={goBetaFeedback} onTrainingArcade={goTrainingArcade} onTrain={goFitHub} onOpenGhost={actions.openGhostChallenge} onNextUp={(n) => openNextUp(n, { goArcadeDetail, goTrainingCamp })} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} pausedAlt={pausedAlt} onResumeAlt={onResumeAlt} onDiscardAlt={onDiscardAlt}/>
       </WithNav>
     );
   }
@@ -378,6 +386,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
             onHero={goTrainingArcade}
             integrityResult={r.integrityResult}
             stats={[{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }]}
+            summary={arcadeStars ? <StageStarsCard stars={arcadeStars.stars} max={arcadeStars.max} line={arcadeStars.line} onLand={playStarTone}/> : null}
             shareData={{ title: aTitle, subtitle: aSub, mode: 'Training Arcade' }}
             actions={[
               { label: 'BACK TO ARCADE', onClick: goArcadeComplete, kind: 'primary' },
