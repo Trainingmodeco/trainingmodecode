@@ -102,6 +102,9 @@ function cleanKeys(k) {
     difficulty: QM_INTENSITY.includes(k?.difficulty) ? k.difficulty : KEY_DEFAULTS.difficulty,
     duration: snapQuickMissionTime(k?.duration) ?? KEY_DEFAULTS.duration,
     focus: QM_FOCI.includes(k?.focus) ? k.focus : KEY_DEFAULTS.focus,
+    // The workout card's PULL-UP BAR switch (switch fitCard): kept only once
+    // the card has set it, so the stored keys are as before without the card.
+    ...(typeof k?.bar === 'boolean' ? { bar: k.bar } : {}),
   };
 }
 export function loadQuickMissionKeys() {

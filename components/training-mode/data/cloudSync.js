@@ -44,6 +44,8 @@ export const SYNC_KEYS = [
   // retention: the daily mission of the day and the week streak's shown-moment markers;
   // the near-miss retry's tries per stage or session today; POWER's shown-moment markers
   'tm_daily_mission_v2', 'tm_week_moments_v1', 'tm_retry_log_v1', 'tm_power_moments_v1',
+  // the Fit workout card (switch fitCard): saved workouts, recent card runs, CHECK-OFF
+  'tm_fit_card_v1',
   'tm_audio_settings', 'tm_reminder_settings', 'tm_notification_prefs',
   // first-run milestones (so a restored device doesn't re-onboard)
   'tm_starthere_completed', 'trainingModeOnboardingComplete', 'trainingModeTourComplete',

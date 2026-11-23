@@ -6,8 +6,11 @@
 //   path     — the path + stars
 //   nearMiss — near-miss retry
 //   power    — POWER, RUSTY and REVIVE (the fighter drains while away)
+//   fitCard  — the Fit WORKOUT CARD on Quick Mission, program days, YOUR
+//              WORKOUTS (docs/fit-challenge/BUILD-NOTES.md). Off: Fit Mode
+//              is exactly as before.
 import { isOwnerPreview } from './concepts';
 
-const FOR_EVERYONE = { weeks: false, path: false, nearMiss: false, power: false };
+const FOR_EVERYONE = { weeks: false, path: false, nearMiss: false, power: false, fitCard: false };
 
 export const retentionOn = (key) => !!FOR_EVERYONE[key] || isOwnerPreview();
