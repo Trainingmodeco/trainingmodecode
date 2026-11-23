@@ -17,6 +17,10 @@ the owner preview (`tm_owner_preview`, data/concepts). Every screen reads it onc
 | Programs | the day's card (`fit-challenge/ProgramDayCard.jsx`) | the CONTINUE PROGRAM card as before |
 | Progress | a YOUR WORKOUTS card and page | as before |
 
+`tm_preview_off` (a comma list, e.g. `fitCard`) holds a switch off inside the owner preview: the
+smoke test keeps the Mission Library page under the preview that way, and the owner can too. It
+never turns a switch on.
+
 The rest only reacts to data that only the card writes, so it never fires with the switch off: a run
 config with `card` / `checkOff` (ScreenRouter picks `FitCheckOffSolo` and `FitCardResults`), a result
 with `card` (App adds scalar fields to its one session row), a cardio add-on with `bonus` (no XP), an
@@ -125,6 +129,14 @@ off-progress (the switch off: as before).
 `npm run test:challenge` (114 checks, now in `check:all`): the looks' arithmetic, the rounds from the
 time and the + button, the balanced deal and WARRIOR, the coach's count, the bar and swaps, the switch
 off, SAVE WORKOUT and YOUR WORKOUTS, the cool-down hand-off, END in the confirm box, XP paid once.
+
+Run for this build, all passing: test:qm, test:missions, test:xp, test:levels, check:exercises,
+test:voice, test:clips, test:spoken, voice:coverage (and `--strict`), test:challenge, test:ayp,
+test:storage, practice-moves, streak, nearmiss, power, maxout, athlete, path, concepts,
+entitlements, audit:cc; tsc; eslint on the changed files; check-guides; lock-assets; build:web; the
+web smoke for Home, Fit hub, Quick Mission, Programs, Progress, Max Out and the owner's Quick Mission
+checks (with a new one for the card: SHUFFLE, CHOOSE, the rounds, + and START); the preview above (25
+states at 3 widths, all fit).
 
 ## What needs the owner
 
