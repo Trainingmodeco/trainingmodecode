@@ -78,12 +78,13 @@ function DealRow({ onShuffle, onChoose, shuffleLabel = 'SHUFFLE' }) {
 }
 
 // A closed card's quiet move row (QuickMissionSetup's PlainMove): number,
-// name, dose; no swap (SEE ALL has them).
+// name, dose; no swap (SEE ALL has them). A long name (a program day's
+// library names run to forty letters) wraps instead of being cut.
 function PlainMove({ index, row }) {
   return (
-    <li style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 22, font: `500 14px ${BODY}`, color: '#fff' }}>
+    <li style={{ display: 'flex', alignItems: 'baseline', gap: 10, minHeight: 22, font: `500 14px ${BODY}`, lineHeight: 1.25, color: '#fff' }}>
       <span style={{ width: 18, flexShrink: 0, font: `700 11px ${HEAD}`, color: GOLD }}>{String(index + 1).padStart(2, '0')}</span>
-      <span style={{ flex: 1, minWidth: 0, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.name}</span>
+      <span style={{ flex: 1, minWidth: 0, fontWeight: 600, overflowWrap: 'anywhere' }}>{row.name}</span>
       {row.dose && <span style={{ flexShrink: 0, font: `600 12px ${HEAD}`, color: '#CFC9E4', whiteSpace: 'nowrap' }}>{row.dose}</span>}
     </li>
   );
@@ -113,11 +114,11 @@ export default function WorkoutCard({
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(7,6,12,0.96) 0%, rgba(7,6,12,0.9) 55%, rgba(7,6,12,0.8) 100%)' }}/>
       <div className="fc-in" style={{ position: 'relative', padding: '12px 14px 14px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div className="fc-head" style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: eyebrowAction ? 20 : 14 }}>
             <span style={{ minWidth: 0, font: `600 10px ${HEAD}`, letterSpacing: '0.18em', textTransform: 'uppercase', color: GOLD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{eyebrow}</span>
             {eyebrowAction && (
               <button type="button" className="fk-quiet" onClick={eyebrowAction.onClick} aria-label={eyebrowAction.aria || eyebrowAction.label} style={{
-                flexShrink: 0, display: 'flex', alignItems: 'center', gap: 2, height: 44, padding: '0 10px', margin: '-15px -10px -15px 0',
+                flexShrink: 0, display: 'flex', alignItems: 'center', gap: 2, height: 44, padding: '0 10px', margin: '-12px -10px -12px 0',
                 background: 'transparent', border: 'none', cursor: 'pointer', font: `700 10px ${HEAD}`, letterSpacing: '0.12em', color: VIOLET_TEXT,
               }}><ChevronLeft size={14}/>{eyebrowAction.label}</button>
             )}
@@ -152,7 +153,12 @@ export default function WorkoutCard({
           ))}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {showAll ? (
+          {showAll && !onSwap ? (
+            // No swaps (a program day, a classic): the quiet rows, every one.
+            <ol id="fc-moves" aria-label="Moves" style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {rows.map((row, i) => <PlainMove key={row.swapKey} row={row} index={i}/>)}
+            </ol>
+          ) : showAll ? (
             <ol id="fc-moves" aria-label="Moves" style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column' }}>
               {rows.map((row, i) => <MoveRow key={row.swapKey} row={row} index={i} onSwap={onSwap} onUndo={onUndo} noSwap={!onSwap}/>)}
             </ol>

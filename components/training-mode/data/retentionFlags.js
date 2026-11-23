@@ -13,4 +13,12 @@ import { isOwnerPreview } from './concepts';
 
 const FOR_EVERYONE = { weeks: false, path: false, nearMiss: false, power: false, fitCard: false };
 
-export const retentionOn = (key) => !!FOR_EVERYONE[key] || isOwnerPreview();
+// `tm_preview_off` (a comma list of keys) holds one switch off inside the
+// owner preview: the smoke test keeps the old Quick Mission page under the
+// preview this way ('fitCard'), and the owner could too. It never turns a
+// switch on.
+function heldOff(key) {
+  try { return String(localStorage.getItem('tm_preview_off') || '').split(',').map((k) => k.trim()).includes(key); } catch { return false; }
+}
+
+export const retentionOn = (key) => !!FOR_EVERYONE[key] || (isOwnerPreview() && !heldOff(key));

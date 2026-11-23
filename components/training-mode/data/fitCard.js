@@ -76,7 +76,7 @@ export function warriorMission(cfg = {}) {
   const rest = DIFFICULTY_CONFIG[level].rest;
   const base = {
     title: WARRIOR_TITLE, workoutType: 'Bodyweight', difficulty: level, format: 'Auto', focus: 'Full Body',
-    exercises: WARRIOR_MOVES.map((m) => ({ name: m.name, mode: 'reps', reps: m.reps, rest })),
+    exercises: WARRIOR_MOVES.map((m) => ({ name: m.name, mode: 'reps', reps: m.reps, rest, counted: true })),
     finisherExercises: [], cardioFinisher: false, rounds: 1, duration: 0,
   };
   const target = Math.max(5, Number(cfg.duration) || 20) * 60;
@@ -95,6 +95,7 @@ export function snapshotMission(s) {
     name: e.name, mode: e.mode === 'timed' ? 'timed' : 'reps',
     ...(e.mode === 'timed' ? { work: Math.max(5, Math.round(e.work) || 30) } : { reps: Math.max(1, Math.round(e.reps) || 10) }),
     rest: Math.max(0, Math.round(e.rest) || 0), ...(e.isWeighted ? { isWeighted: true } : {}),
+    ...(e.counted && e.mode !== 'timed' && !e.isWeighted ? { counted: true } : {}),
   }));
   const m = {
     title: String(s?.title || 'MY WORKOUT').toUpperCase(), workoutType: s?.workoutType || 'Bodyweight',
@@ -113,7 +114,7 @@ export function snapshotOf(mission, extra = {}) {
     rounds: mission.rounds,
     exercises: (mission.exercises || []).map((e) => ({
       name: e.name, mode: e.mode, ...(e.mode === 'timed' ? { work: e.work } : { reps: e.reps }), rest: e.rest,
-      ...(e.isWeighted ? { isWeighted: true } : {}),
+      ...(e.isWeighted ? { isWeighted: true } : {}), ...(e.counted ? { counted: true } : {}),
     })),
     ...extra,
   };
@@ -212,7 +213,8 @@ export function cardSwapOptions(mission, index, { bar = true } = {}) {
     if (!m || out.some((o) => o.name === m.name)) return;
     out.push({
       id: m.name, kind, label, name: m.name, doseFrom: dose, doseTo: dose,
-      gear: m.bar || m.table ? 'gear' : 'none', gearLabel: m.bar ? 'PULL-UP BAR' : m.table ? 'TABLE' : '',
+      // The same gear as the move it replaces shows no tag (the NOW box says it).
+      gear: (m.bar && !info.bar) || (m.table && !info.table) ? 'gear' : 'none', gearLabel: m.bar ? 'PULL-UP BAR' : m.table ? 'TABLE' : '',
       cues: cuesOf(m.name),
     });
   };

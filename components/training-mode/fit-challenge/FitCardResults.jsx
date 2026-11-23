@@ -4,6 +4,7 @@ import { OUTCOME_PRESET, resolveOutcome } from '../shared/sessionOutcome';
 import { levelWord } from '../data/quickMissionConfig';
 import { estimateQuickMissionSeconds } from '../fit-mode/quickMissionGenerator';
 import { cardRunDone, snapshotOf } from '../data/fitCard';
+import { holdWord } from '../data/challengeTotals';
 import { saveCardWorkout, isSaved } from '../data/fitCardStore';
 
 // The results of a card run (switch fitCard): the app's own end screen
@@ -50,7 +51,7 @@ export default function FitCardResults({ result, onRepeat, onNew, onBack }) {
         rounds={done.roundsDone} totalRounds={card.rounds} reps={done.repsDone} elapsedSec={elapsedSec}
         pct={done.pct} ticked={done.ticked} cells={done.cells} splits={splits} xp={result.xpEarned || 0}
         variant={preset.variant} eyebrow={preset.eyebrow} failReason={preset.variant === 'success' ? undefined : failReason}
-        doneWord={result.checkOff ? 'ticked' : 'done'} note={done.holdSec ? `Holds: ${done.holdSec}s in all.` : null}
+        doneWord={result.checkOff ? 'ticked' : 'done'} note={done.holdSec ? `Holds: ${holdWord(done.holdSec)} in all.` : null}
         saved={saved} onSave={save} onRepeat={onRepeat} onNew={onNew} onBack={onBack}
       />
     </div>

@@ -28,6 +28,7 @@ export default function ProgramDayCard({ program, current, equipment, onStart })
   const exercises = useMemo(() => applySetScheme(generateFitModeWorkout(cfg), cfg.setScheme), [cfg, deal]);
   const rows = exercises.map((e, i) => ({ swapKey: `p${i}-${e.name}`, name: e.name, dose: doseOf(e), canSwap: false }));
   return (
+    <div data-fc="program" style={{ flexShrink: 0 }}>
     <WorkoutCard
       guide="pg-card"
       eyebrow={current ? 'Continue program' : 'Start a program'}
@@ -41,5 +42,6 @@ export default function ProgramDayCard({ program, current, equipment, onStart })
       art="/static/fitmode/banner-gym-programs.webp"
       open={open} onToggle={() => setOpen((o) => !o)}
     />
+    </div>
   );
 }

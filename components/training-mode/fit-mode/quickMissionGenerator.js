@@ -428,7 +428,10 @@ export function generateQuickMission({
     const ex = useTimed
       ? { name: move.name, mode: 'timed', work: rand(c.workMin, c.workMax, rng), rest: c.rest }
       : { name: move.name, mode: 'reps', reps: rand(c.repsMin, c.repsMax, rng), rest: c.rest };
-    return { ex: move.loaded ? { ...ex, isWeighted: true } : ex, table: c, loaded: !!move.loaded };
+    // The card's balanced deal: a bodyweight rep move is counted by the coach
+    // (data/quickMissionTiming isCadenceEligible), whatever its name.
+    const counted = balanced && move.pattern && !move.loaded && !useTimed ? { counted: true } : {};
+    return { ex: move.loaded ? { ...ex, isWeighted: true } : { ...ex, ...counted }, table: c, loaded: !!move.loaded };
   };
 
   // Deal ten, in a fixed order, whatever the minutes: the first moves and their

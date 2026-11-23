@@ -31,7 +31,7 @@ export function WorkoutsRow({ n, onClick, guide }) {
       </span>
       <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
         <span style={{ font: `700 15px ${HEAD}`, letterSpacing: '0.1em' }}>YOUR WORKOUTS</span>
-        <span style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.35 }}>Every mode. Tap a card workout to repeat it.</span>
+        <span style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.35 }}>Every mode, newest first.</span>
       </span>
       <CountPill n={n}/>
     </button>

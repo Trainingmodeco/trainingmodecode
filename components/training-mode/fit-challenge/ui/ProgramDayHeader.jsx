@@ -14,7 +14,7 @@ export default function ProgramDayHeader({ program, dayIndex, days }) {
         {days.map((d, i) => (
           <span key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ height: 5, borderRadius: 3, background: i <= dayIndex ? GOLD : 'rgba(255,255,255,0.12)' }}/>
-            <span style={{ font: `600 9px ${HEAD}`, letterSpacing: '0.12em', color: i === dayIndex ? GOLD : MUTED, textAlign: 'center' }}>{d}</span>
+            <span style={{ font: `600 10px ${HEAD}`, letterSpacing: '0.12em', color: i === dayIndex ? GOLD : MUTED, textAlign: 'center' }}>{d}</span>
           </span>
         ))}
       </div>

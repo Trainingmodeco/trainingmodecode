@@ -12,7 +12,9 @@ import { HEAD, BODY, MUTED, GOLD, VIOLET, VIOLET_TEXT } from '../../shared/FitSe
 // what its tick does: the workout goes straight into it).
 // ticked: { [id]: true }
 export default function BonusBlock({ open, onToggle, items = [], ticked = {}, onTick }) {
-  const count = Object.values(ticked).filter(Boolean).length;
+  // An item with an onLine (the cool-down) says it is on; the rest count as done.
+  const lined = items.filter((it) => it.onLine && ticked[it.id]).length;
+  const count = Object.values(ticked).filter(Boolean).length - lined;
   return (
     <div data-look="bonus" style={{
       borderRadius: 14, background: '#0F0B1E', overflow: 'hidden',
@@ -28,7 +30,7 @@ export default function BonusBlock({ open, onToggle, items = [], ticked = {}, on
         <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <span style={{ font: `700 15px ${HEAD}`, letterSpacing: '0.1em', color: '#fff' }}>BONUS TRAINING</span>
           <span style={{ font: `500 12px ${BODY}`, lineHeight: 1.3, color: MUTED }}>
-            {count ? `${count} done · ` : ''}Optional. Never in your totals.
+            {lined ? 'Cool-down on · ' : ''}{count ? `${count} done · ` : ''}Optional. Never in your totals.
           </span>
         </span>
         <ChevronDown size={18} color={VIOLET_TEXT} style={{ flexShrink: 0, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .18s ease' }}/>

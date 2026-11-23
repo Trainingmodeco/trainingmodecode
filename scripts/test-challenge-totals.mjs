@@ -180,6 +180,19 @@ section('the balanced deal and FULL BODY WARRIOR');
   check('… Inverted Rows stay, noted "table or low bar"', C.gearNoteOf('Inverted Rows') === 'table or low bar' && w.exercises.some((e) => e.name === 'Inverted Rows'));
 }
 
+section('GUIDED: the coach counts every bodyweight card move (no unrecorded manual line)');
+{
+  const TM = await import('../components/training-mode/data/quickMissionTiming.js');
+  const MM = await import('../components/training-mode/data/missionMoves.js');
+  const bw = [5, 15, 25, 35, 50, 60].flatMap((d) => [0, 1, 2].flatMap((n) => C.cardMission(cfgOf({ duration: d }), { source: { kind: 'deal', seed: SEED + n, shuffles: n } }).exercises));
+  const all = [...bw, ...C.cardMission(cfgOf(), { source: { kind: 'warrior' }, bar: false }).exercises, ...C.cardMission(cfgOf(), { source: { kind: 'warrior' } }).exercises];
+  const reps = all.filter((e) => e.mode === 'reps');
+  check(`every bodyweight rep move on the card is counted (${new Set(reps.map((e) => e.name)).size} names)`, reps.every((e) => TM.isCadenceEligible(e, { cadenceCount: true, workoutType: 'Bodyweight' })));
+  check('… so no card lead line ends on the manual line', all.every((e) => !MM.leadLine(e, { legacyCounted: TM.isCadenceEligible(e, { cadenceCount: true, workoutType: 'Bodyweight' }) }).includes(MM.MANUAL_LINE)));
+  check('a saved card keeps the count', C.snapshotMission(C.snapshotOf(C.cardMission(cfgOf(), { source: { kind: 'warrior' } }))).exercises.every((e) => e.counted === true));
+  check('without the card nothing is counted by this field (only CADENCE_SAFE_NAMES)', !TM.isCadenceEligible({ name: 'Pull-Ups', mode: 'reps' }, { cadenceCount: true, workoutType: 'Bodyweight' }));
+}
+
 section('no pull-up bar, and swaps: the clock and the XP never move');
 {
   const w = C.cardMission(cfgOf(), { source: { kind: 'warrior' } });
@@ -202,7 +215,7 @@ section('no pull-up bar, and swaps: the clock and the XP never move');
 section('the switch off: Fit Mode exactly as before');
 {
   const F = read('data/retentionFlags.js');
-  check('fitCard is off for everyone (FOR_EVERYONE), on only with the owner preview', /fitCard: false/.test(F) && /retentionOn = \(key\) => !!FOR_EVERYONE\[key\] \|\| isOwnerPreview\(\)/.test(F));
+  check('fitCard is off for everyone (FOR_EVERYONE), on only with the owner preview', /fitCard: false/.test(F) && /retentionOn = \(key\) => !!FOR_EVERYONE\[key\] \|\| \(isOwnerPreview\(\) && !heldOff\(key\)\)/.test(F));
   const rng = (n) => G.seededRng(n);
   const same = [5, 9, 20, 37, 60].every((d) => ['Bodyweight', 'Weighted', 'Hybrid'].every((g) => ['Full Body', 'Upper', 'Core'].every((f) => {
     const a = G.generateQuickMission({ workoutType: g, duration: d, focus: f, difficulty: 'Normal', rng: rng(d * 7 + 1) });
@@ -210,7 +223,7 @@ section('the switch off: Fit Mode exactly as before');
     return JSON.stringify(a) === JSON.stringify(b);
   })));
   check('the generator without `balanced` deals exactly what it did (no new field, the same draws)', same);
-  check('a mission dealt without the card carries no pattern or card fields', !JSON.stringify(G.generateQuickMission({ duration: 20, rng: rng(3) })).match(/pattern|noBarFor|"card"/));
+  check('a mission dealt without the card carries no pattern or card fields', !JSON.stringify(G.generateQuickMission({ duration: 20, rng: rng(3) })).match(/pattern|noBarFor|counted|"card"/));
   check('the Quick Mission page: QuickMissionSetup unless the switch is on (read once per mount)', /useState\(\(\) => retentionOn\('fitCard'\)\)/.test(code('fit-challenge/QuickMissionScreen.jsx')) && /card \? <FitCardSetup \{\.\.\.props\}\/> : <QuickMissionSetup \{\.\.\.props\}\/>/.test(code('fit-challenge/QuickMissionScreen.jsx')));
   const R = code('ScreenRouter.jsx');
   check('the router: CHECK-OFF and the card results only for a cfg, stash or result that says so', /qmCfg\.checkOff === true/.test(R) && /resumeData\.checkOff === true/.test(R) && /screen === 'qm_complete' && qmResult\?\.card/.test(R));

@@ -12,19 +12,29 @@
 // a swap into every slot), and says each slot the way the runner does: the lead
 // line in every round (its "Round N." prefix), the chained, short-rest, switch
 // and up-next lines (data/missionMoves), and the round-end rest call.
+//
+// A bodyweight rep move is said exactly as the runner says it: counted
+// (isCadenceEligible: the card deals its moves with `counted`, so the coach
+// counts pull-ups and rows too and never falls back to the manual line). A
+// loaded set is never counted, and its manual line ("Your pace. Tap DONE when
+// the set is done.") has no recording yet; that gap is today's (every weighted
+// Quick Mission has it, see the pool sweep in spoken-sweeps.mjs), so a loaded
+// move is said here the way that sweep says it.
 const range = (lo, hi, step = 1) => { const out = []; for (let v = lo; v <= hi + 1e-9; v += step) out.push(v); return out; };
 
 export default async function sweep() {
   const C = await import('../../components/training-mode/data/fitCard.js');
   const mm = await import('../../components/training-mode/data/missionMoves.js');
+  const { isCadenceEligible } = await import('../../components/training-mode/data/quickMissionTiming.js');
   const lead = new Set(), other = new Set(), rest = new Set();
   const sayMission = (m) => {
     const slots = m.exercises;
+    const counted = (sl) => (sl.isWeighted ? true : isCadenceEligible(sl, { cadenceCount: true, workoutType: m.workoutType }));
     for (let r = 1; r <= m.rounds; r++) {
-      slots.forEach((sl, idx) => lead.add(mm.leadLine(sl, { round: r, idx, rounds: m.rounds, slotsPerRound: slots.length, legacyCounted: true })));
+      slots.forEach((sl, idx) => lead.add(mm.leadLine(sl, { round: r, idx, rounds: m.rounds, slotsPerRound: slots.length, legacyCounted: counted(sl) })));
       if (r < m.rounds) rest.add(mm.restOpener({ restSec: slots[slots.length - 1].rest, roundEnd: true, completedRound: r }));
     }
-    for (const sl of slots) other.add(mm.chainedLine(sl, { legacyCounted: true })).add(mm.shortRestLine(sl)).add(mm.switchLine(sl)).add(`Up next: ${mm.spokenMove(sl)}.`);
+    for (const sl of slots) other.add(mm.chainedLine(sl, { legacyCounted: counted(sl) })).add(mm.shortRestLine(sl)).add(mm.switchLine(sl)).add(`Up next: ${mm.spokenMove(sl)}.`);
   };
   const LEVELS = ['Easy', 'Normal', 'Hard', 'Advanced'];
   const GEAR = ['Bodyweight', 'Weighted', 'Hybrid'];

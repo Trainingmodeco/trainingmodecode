@@ -376,8 +376,11 @@ const V2_PUBLIC = /QM_V2_FOR_EVERYONE\s*=\s*true/.test(
   fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'components', 'training-mode', 'data', 'qmV2.js'), 'utf8'));
 const quick = async () => { await fit(); await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200); };
 // Every owner check starts clean: preview() boots with wiped storage.
+// The preview turns the workout card on (switch fitCard); these checks are
+// about the Mission Library page, so they hold the card off (tm_preview_off).
 const ownerQuick = async () => {
   await preview();
+  await page.evaluate(() => localStorage.setItem('tm_preview_off', 'fitCard'));
   await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 3000 }).catch(() => {});
   await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200);
   await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
@@ -1894,6 +1897,18 @@ await check('build workout: a finish whose stats write fails still lands on the 
   if (n !== 1) throw new Error('the screen has no "cannot save" notice (' + n + ')');
 }, /WORKOUT COMPLETE/);
 await check('programs', async () => { await fit(); await page.locator('[data-guide="fit-programs"]').click(); await S(1500); }, /PROGRAM/i);
+// The workout card (switch fitCard, on under the preview): Quick Mission opens
+// on it, + adds a round, and START runs it.
+await check('owner: the workout card on Quick Mission: SHUFFLE, CHOOSE, the rounds, + and START', async () => {
+  await preview();
+  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 3000 }).catch(() => {});
+  await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200);
+  await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
+  const before = await page.locator('[data-guide="fc-rounds"]').innerText();
+  await btn(/One round more/).click({ timeout: 4000 }); await S(300);
+  if (before === await page.locator('[data-guide="fc-rounds"]').innerText()) throw new Error('+ did not add a round');
+  await btn(/^START$/).click({ timeout: 4000 }); await S(4000);
+}, /ROUND|WORK|EXERCISE/);
 await check('cardio setup', async () => { await fit(); await page.locator('[data-guide="fit-cardio"]').click(); await S(1800); }, /START/);
 await check('cardio GPS run start', async () => { await btn(/START RUN|^START$/).click({ timeout: 4000 }); for (let i = 0; i < 25; i++) { await S(1000); if (/ELAPSED|LOCKING GPS/.test(await text())) break; } }, /GPS LIVE|GPS ACQUIRING|LOCKING GPS|ELAPSED/);
 await check('just train start', async () => { await fight(); await page.locator('.fb', { hasText: 'JUST TRAIN' }).first().click(); await S(1200); await btn(/START/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WARM/i);

@@ -17,7 +17,7 @@ import { namedWorkoutById, buildNamedMission } from '../data/namedWorkouts';
 import { isPro } from '../data/entitlements';
 import {
   GUIDED_HELP, SOLO_ONLY_HELP, CLASSIC_HELP, missionDefById, levelsOf, gearProfile, buildLoadoutMission, missionCardModel,
-  shelfEntries, shelfEntryLine, loadShelfPrefs, saveShelfPrefs, classicMeta,
+  shelfEntries, shelfEntryLine, loadShelfPrefs, saveShelfPrefs,
 } from '../data/loadoutMissions';
 import {
   fitKitCSS, SetupHeader, SetupPage, Label, HEAD, BODY, MUTED, GOLD_FILL,
@@ -61,6 +61,13 @@ const OPEN_KEY = 'tm_fit_card_open_v1';
 const loadOpen = () => { try { return localStorage.getItem(OPEN_KEY) === '1'; } catch { return false; } };
 const saveOpen = (v) => { try { localStorage.setItem(OPEN_KEY, v ? '1' : '0'); } catch { /* storage full or blocked */ } };
 const notes = (a) => /^[+×]\s/.test(a);
+// A library row's line in sentence case, the clock words in capitals
+// (QuickMissionSetup's sentence()): "~16 min · barbell · EMOM".
+const CAPS = new Set(['AMRAP', 'EMOM', 'DB', 'MMA']);
+const sentence = (line) => {
+  const s = String(line || '').split(' ').map((w) => (CAPS.has(w) ? w : w.toLowerCase())).join(' ');
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};
 
 // The card's own CSS on top of the page's (QM_CSS: the slider, the toggle).
 // A phone under about 800px tall keeps the closed card and START above the
@@ -212,28 +219,26 @@ export default function FitCardSetup({ entry, onBack, onFightMode, onStart, onPa
   // ── CHOOSE ───────────────────────────────────────────────────────────────
   const onCardId = source.kind === 'warrior' ? WARRIOR_ID : source.kind === 'saved' ? source.id : source.kind === 'v2' || source.kind === 'classic' ? source.id : 'today';
   const chooseGroups = useMemo(() => {
-    const entryLine = (e) => {
-      if (e.kind === 'classic') { const w = namedWorkoutById(e.id); return `~${w?.estMin || '?'} min · ${classicMeta(w).loadoutLabel || 'No gear'}`; }
-      return String(shelfEntryLine(e) || '').toLowerCase().replace(/^./, (c) => c.toUpperCase());
+    // The library by body part: a mission's own focus (Upper, Lower, Core,
+    // Combat or striking); everything else is Full Body.
+    const partOf = (e) => {
+      const f = String((e.kind === 'v2' ? missionDefById(e.id) : namedWorkoutById(e.id))?.focus || '').toLowerCase();
+      if ((e.themes || []).includes('striking') || /combat/.test(f)) return 'combat';
+      return /upper/.test(f) ? 'upper' : /lower/.test(f) ? 'lower' : /core/.test(f) ? 'core' : 'full';
     };
-    const theme = (e, ...t) => (e.themes || []).some((x) => t.includes(x));
-    const lib = shelf.map((e) => ({ id: e.id, kind: e.kind, title: e.title, line: entryLine(e), onCard: onCardId === e.id, e }));
-    const upper = lib.filter((x) => theme(x.e, 'upper', 'push', 'pull', 'arms'));
-    const lower = lib.filter((x) => !upper.includes(x) && theme(x.e, 'legs', 'lower'));
-    const core = lib.filter((x) => !upper.includes(x) && !lower.includes(x) && theme(x.e, 'core', 'abs'));
-    const combat = lib.filter((x) => !upper.includes(x) && !lower.includes(x) && !core.includes(x) && theme(x.e, 'fight', 'combat'));
-    const full = lib.filter((x) => ![upper, lower, core, combat].some((g) => g.includes(x)));
+    const lib = shelf.map((e) => ({ id: e.id, kind: e.kind, title: e.title, line: sentence(shelfEntryLine(e)), onCard: onCardId === e.id, part: partOf(e) }));
+    const part = (p) => lib.filter((x) => x.part === p);
     const groups = [
       { id: 'card', label: 'On the card', items: [
         { id: 'today', kind: 'today', title: "TODAY'S DEAL", line: 'A fresh balanced deal for your time', onCard: onCardId === 'today' },
         { id: WARRIOR_ID, kind: 'warrior', title: WARRIOR_TITLE, line: '8 moves · 99 reps a round', onCard: onCardId === WARRIOR_ID },
       ] },
       ...(saved.length ? [{ id: 'saved', label: 'Your saved', items: saved.map((s) => ({ id: s.id, kind: 'saved', title: s.title, line: `${s.exercises.length} moves · ${s.rounds} ${s.rounds === 1 ? 'round' : 'rounds'}`, onCard: onCardId === s.id, s })) }] : []),
-      { id: 'full', label: 'Full Body', items: full },
-      { id: 'upper', label: 'Upper Body', items: upper },
-      { id: 'lower', label: 'Lower Body', items: lower },
-      { id: 'core', label: 'Core & Abs', items: core },
-      { id: 'combat', label: 'Combat Conditioning', items: combat },
+      { id: 'full', label: 'Full Body', items: part('full') },
+      { id: 'upper', label: 'Upper Body', items: part('upper') },
+      { id: 'lower', label: 'Lower Body', items: part('lower') },
+      { id: 'core', label: 'Core & Abs', items: part('core') },
+      { id: 'combat', label: 'Combat Conditioning', items: part('combat') },
     ];
     return groups.filter((g) => g.items.length);
   }, [shelf, saved, onCardId]);
@@ -336,6 +341,7 @@ export default function FitCardSetup({ entry, onBack, onFightMode, onStart, onPa
     runOff = { solo: true };
   }
   const onLibrary = !mission;
+  const standIns = mission ? mission.exercises.filter((e) => e.noBarFor).length : 0;
   const solo = runMode === 'solo';
   const runExtra = solo && !libCard?.soloOnly ? (
     <CheckOffRow on={checkOff} onToggle={() => { const v = !checkOff; setCheckOffState(v); setCheckOff(v); }}/>
@@ -393,7 +399,7 @@ export default function FitCardSetup({ entry, onBack, onFightMode, onStart, onPa
             onUndo={mission ? undoSwap : libCard ? (row) => setV2swaps((s) => { const n = { ...s }; delete n[row.swapKey]; return n; }) : null}
             balance={balance?.line || null} details={details}
             adjust={adjust ? { ...adjust } : null}
-            bar={mission && mission.workoutType !== 'Weighted' ? { on: bar, onToggle: toggleBar, summary: bar ? 'Bar moves stay in.' : `No bar: stand-ins in.` } : null}
+            bar={mission && mission.workoutType !== 'Weighted' ? { on: bar, onToggle: toggleBar, summary: bar ? 'Bar moves stay in.' : standIns ? `${standIns} ${standIns === 1 ? 'stand-in' : 'stand-ins'}` : 'No bar moves' } : null}
             runMode={runMode} onRunMode={pickMode} runOff={runOff} runHelp={runHelp} runExtra={runExtra}
             onStart={handleStart}
             open={open} onToggle={toggleOpen}
