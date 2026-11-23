@@ -203,6 +203,8 @@ An independent look at the screenshots found four things; each fixed and re-shot
 ## Owner preview (2026-11-23)
 
 Screenshots of every look at 360, 390 and 430 wide, with keep / take / skip and the owner's decisions as tap-to-answer
-choices: https://claude.ai/artifact/6Y7wU6x5mWPkzemw2bHhyB. Answers are in its database: collection `answers` (one doc
-per question id, `{ choice }`; no doc means the recommended first choice) and `notes` (per screen, plus `general`).
-Read them with ArtifactData before building any of it.
+choices, first at https://claude.ai/artifact/6Y7wU6x5mWPkzemw2bHhyB, then merged (the owner's ask) into the one
+board https://claude.ai/artifact/8rkLzhnBSc19h5L5pitdys. Read the board: in its `answers` collection the Fit card's
+questions carry a `fit-` prefix (`fit-go`, `fit-rounds`, ...; no doc means the recommended first choice), the Fit
+screen's merged Quick Mission card is `q-hub`, and `notes` are keyed by screen (`fit-select`, `hub-after`, ...)
+plus `general`. Read them with ArtifactData before building any of it.

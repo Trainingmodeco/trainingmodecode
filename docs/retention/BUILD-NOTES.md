@@ -567,5 +567,7 @@ change sits behind its feature's switch; with the switches off the screens, stor
 Real screenshots of all three features at 360, 390 and 430 wide, with the open decisions as tap-to-answer choices:
 https://claude.ai/artifact/8rkLzhnBSc19h5L5pitdys. The owner's answers are in its database: collection `answers`
 (one doc per question id, `{ choice }`; a question with no doc keeps the default marked "in use") and `notes`
-(one doc per screen state, `{ text }`, plus `general`). Read them with ArtifactData before acting on any decision.
+(one doc per screen state, `{ text }`, plus `general`). Read them with ArtifactData before acting on any decision. The same page is now the one preview board for
+everything waiting on the owner (the Fit card's questions are prefixed `fit-`, the Fit screen's Quick Mission merge is
+`q-hub`).
 Final check on 49b1e182: unit suites pass, build:web passes, smoke:web 147 of 147.
