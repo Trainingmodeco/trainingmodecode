@@ -108,7 +108,7 @@ async function check(name, fn, expectRe) {
 }
 
 await check('home', async () => { await home(); }, /FIT MODE/);
-await check('fit hub', async () => { await fit(); }, /Quick Mission/);
+await check('fit hub', async () => { await fit(); }, /Quick Mission/i);
 await check('quick mission start', async () => { await fit(); await page.locator('[data-guide="fit-quick"]').click(); await S(1200); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WORK|EXERCISE/);
 
 // The Fit hub on the fullest day it gets: a run ghost waiting (GHOST ACTIVE
@@ -163,10 +163,10 @@ const fitsHub = (m, label) => {
   }
   if (m.stack[0] > m.stack[1] + 1) throw new Error(`${label}: the stack needs scrolling (${m.stack[0]} > ${m.stack[1]})`);
 };
-await check('fit hub fits 412x811 with a ghost, Coach\'s Tapes and a drop', async () => { await fullFitHub(); await resizeTo(412, 811); fitsHub(await hubMetrics(), '412x811'); }, /Quick Mission/);
+await check('fit hub fits 412x811 with a ghost, Coach\'s Tapes and a drop', async () => { await fullFitHub(); await resizeTo(412, 811); fitsHub(await hubMetrics(), '412x811'); }, /Quick Mission/i);
 await check('fit hub fits 412x790, 360x740 and 390x844 (the title wraps on the narrow one)', async () => {
   try { for (const [w, h] of [[412, 790], [360, 740], [390, 844]]) { await resizeTo(w, h); fitsHub(await hubMetrics(), `${w}x${h}`); } } finally { await resizeTo(390, 844); }
-}, /Quick Mission/);
+}, /Quick Mission/i);
 // Under about 700px tall even the floors cannot fit, so the stack scrolls; the
 // last row has to scroll fully clear of the tab bar and the fade above it.
 await check('fit hub at 375x667 scrolls the Cardio row fully clear of the tab bar', async () => {
@@ -186,7 +186,7 @@ await check('fit hub at 375x667 scrolls the Cardio row fully clear of the tab ba
     if (!clear.hit) throw new Error('something sits on top of the Cardio row at the end of the scroll');
     if (clear.mask && clear.mask !== 'none') throw new Error('the scroll fade is still on at the end of the scroll');
   } finally { await resizeTo(390, 844); }
-}, /Quick Mission/);
+}, /Quick Mission/i);
 // A 320px phone is the narrowest one in use: no row subtitle may be cut off.
 await check('fit hub at 320x640: no row subtitle is cut off', async () => {
   try {
@@ -194,7 +194,7 @@ await check('fit hub at 320x640: no row subtitle is cut off', async () => {
     const cut = await page.evaluate(() => [...document.querySelectorAll('.fm-s')].filter(e => e.scrollWidth > e.clientWidth + 0.5).map(e => e.textContent));
     if (cut.length) throw new Error(`cut off at 320 wide: ${cut.join(' | ')}`);
   } finally { await resizeTo(390, 844); }
-}, /Quick Mission/);
+}, /Quick Mission/i);
 // The gold ring ScreenGuide draws on the highlighted element (null on a step with none).
 const guideRing = () => page.evaluate(() => {
   const el = [...document.querySelectorAll('body div')].find(d => d.style.position === 'fixed' && d.style.pointerEvents === 'none' && /2px solid/.test(d.style.border));
@@ -222,7 +222,7 @@ await check('fit hub guide ends on the concept step, and GOT IT closes it', asyn
   await btn(/^NEXT/).click({ timeout: 3000 }); await S(450);
   await btn(/^GOT IT/).click({ timeout: 3000 }); await S(500);
   if (await page.locator('[aria-label="Close guide"]').count()) throw new Error('GOT IT did not close the guide');
-}, /Quick Mission/);
+}, /Quick Mission/i);
 // (Runs last on the Fit hub: tapping SURPRISE ME swaps the long title for a short one.)
 // Every tap on the hub is a real 44px one. SURPRISE ME and ADJUST are 44px
 // buttons that overlap the card above and the spacer below, so the browser's own
@@ -1018,7 +1018,7 @@ await check('fit hub: on the fullest day, with "At your pace" saved, the card st
   await fullFitHub({ atYourPace: true });
   try { for (const [w, h] of [[412, 811], [360, 740]]) { await resizeTo(w, h); fitsHub(await hubMetrics(), `${w}x${h} At your pace`); } } finally { await resizeTo(390, 844); }
   if (!/\s·\s+At\s+your\s+pace/.test(await page.evaluate(() => document.querySelector('[data-guide="fit-today"]').innerText))) throw new Error('the card does not say At your pace');
-}, /Quick Mission/);
+}, /Quick Mission/i);
 await check('quick mission: ▾ opens the card, ADJUST is a sheet', async () => {
   await quick();
   const n = Number((await page.locator('[data-guide="qm-expand"]').innerText()).match(/\d+/)?.[0] || 3);
