@@ -13,16 +13,19 @@ hidden gallery at `/retention-looks` (code in `components/training-mode/retentio
   filled with arcade-style house scores, clearly tagged `CPU`, at a spread of levels. Real players rank among them.
   Once a mode has 5 or more real players, house scores stay only below the lowest real score, so they fade out as
   people join. House scores are never shown as real people.
-- **Release now (owner, 2026-11-23, replacing the January plan for this batch):** "Everything that we worked on now,
-  the retry, the scoreboard, everything that was a question that we just reviewed: you could push that into the app
-  once generated." So this batch is switched on for everyone (its switches set in `FOR_EVERYONE`) as each piece is
-  built, reviewed and passes the full check: the weekly streak with Today's Bout and 1UPs, the path and stars (camp
-  stars too), near-miss retry, POWER / RUSTY / REVIVE, the Fit workout card, the owner's board answers, and the
-  game-over score board (its server table and security rules are shown to the owner before anything is created on the
-  live database).
-- **Next year, one batch per quarter:** "the team workouts, the league, and all that other stuff": squads (team
-  workouts), weekly leagues, the season reward track, and the notifications pass (low-POWER alerts, "Remind me
-  tomorrow"). They stay off until their quarter.
+- **Build everything now, visible only to the owner; open it to the public in January (owner, 2026-11-23, final).**
+  "Everything that we expressed on the training mode preview board, everything I approved, and if I left anything
+  blank, that means it's good to go. Make it so only I can see it, but then come January, you could put all those
+  things on the app... so that way I can view it, see if I want to make any changes, and then make any edits from
+  there." So this batch is built for real behind its switches, on only with the owner preview (the owner's phone):
+  the weekly streak with Today's Bout and 1UPs, the path and stars (camp stars too), near-miss retry, POWER / RUSTY /
+  REVIVE, the Fit workout card, the board answers (a blank question means its default, marked "in use", or the
+  recommendation where nothing was in use), and the game-over score board (its server table and security rules are
+  shown to the owner before anything is created on the live database). In January the switches in `FOR_EVERYONE` are
+  turned on and it opens to the public.
+- **Then the same, quarterly, next year:** each batch is built owner-only first, the owner reviews and edits, then it
+  opens at its quarter: squads (team workouts), weekly leagues, the season reward track, the notifications pass
+  (low-POWER alerts, "Remind me tomorrow").
 
 ## Defaults used while the open questions are unanswered
 
@@ -34,8 +37,9 @@ all features free.
 
 | When | What |
 | --- | --- |
-| Now, as each piece passes its checks | Weekly streak + Today's Bout + 1UPs, the path + stars (camp stars too), near-miss retry, POWER / RUSTY / REVIVE, the Fit workout card, the board answers, the game-over score board (after the owner approves its server design) |
-| Next year, quarter 1 to 4 (one batch per quarter) | Squads (team workouts), weekly leagues, the season reward track, the notifications pass |
+| Now (owner only) | Built and reviewed behind the switches, visible only to the owner: weekly streak + Today's Bout + 1UPs, the path + stars (camp stars too), near-miss retry, POWER / RUSTY / REVIVE, the Fit workout card, the board answers, the game-over score board (after the owner approves its server design) |
+| January (public) | All of the above opens to everyone |
+| Next year, one batch per quarter | Squads (team workouts), weekly leagues, the season reward track, the notifications pass: each built owner-only first, then opened at its quarter |
 
 ## Visual rule for every new screen (owner, 2026-11-22)
 
