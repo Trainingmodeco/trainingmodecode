@@ -38,7 +38,7 @@ export default function LookCleared() {
   return (
     <Feature id="f7" num="ALSO" title="THE CLEARED MOMENT"
       reuse="ArcadeStageClearOverlay, shown here as the real component with sample data."
-      isNew="a louder version: bigger CLEARED, a gold burst, three stars that slam in one by one, a longer XP count-up, and one line for what the session did for the streak, the league and the squad. Sound cue note: a rising tone per star (the screen already plays tones at 880 and 1200 Hz), then a short chord when the XP lands.">
+      isNew="a louder version: bigger CLEARED, a gold burst, three stars that slam in one by one, a longer XP count-up, and one line for what the session did for the streak, the score board and the squad. Sound cue note: a rising tone per star (the screen already plays tones at 880 and 1200 Hz), then a short chord when the XP lands.">
       <Look name="Today: stage cleared" note="The app's current screen, unchanged (it plays two short tones)." height={640} animated>
         <ArcadeStageClearOverlay series={SERIES} stage={STAGES[4]} result={RESULT} pointsEarned={120} xpEarned={180} statRewards={[]}
           totalArcadeXpBefore={2400} completedStageIds={['s1', 's2', 's3', 's4']} onContinue={noop} onRetry={noop} onReturnToArcade={noop} onNextStage={noop} onShare={noop}/>

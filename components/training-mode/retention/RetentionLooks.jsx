@@ -3,7 +3,7 @@ import { HOME, head, orb, goldText, LOOKS_CSS } from './looksKit';
 import LookStreak from './lookStreak';
 import LookPath from './lookPath';
 import LookNearMiss from './lookNearMiss';
-import LookLeague from './lookLeague';
+import LookScores from './lookScores';
 import LookSquad from './lookSquad';
 import LookSeason from './lookSeason';
 import LookCleared from './lookCleared';
@@ -16,13 +16,13 @@ import LookPower from './lookPower';
 // nothing saved. Sample names are neutral (Trainee, Squad Alpha).
 
 const NAV = [
-  ['f1', '1 STREAK'], ['f2', '2 PATH'], ['f3', '3 RETRY'], ['f4', '4 LEAGUES'], ['f5', '5 SQUADS'], ['f6', '6 SEASON'], ['f7', 'CLEARED'], ['f8', 'POWER'], ['qs', 'QUESTIONS'],
+  ['f1', '1 STREAK'], ['f2', '2 PATH'], ['f3', '3 RETRY'], ['f4', '4 SCORES'], ['f5', '5 SQUADS'], ['f6', '6 SEASON'], ['f7', 'CLEARED'], ['f8', 'POWER'], ['qs', 'QUESTIONS'],
 ];
 
 const QUESTIONS = [
   ['Weekly training-day target', 'Default 4, range 2 to 6. A change starts next week.'],
   ['1UPs', 'A spare life for a short week (once called a freeze). One earned per 4 weeks on target, hold at most 2. New athletes start with 1, so the first bad week does not end a streak that has just begun.'],
-  ['League tier names, opt-in or on', 'GARAGE, GYM, CLUB, ARENA, MAIN EVENT, TITLE BOUT. Opt-in, with a one-tap JOIN card on home after the first full week, so nobody is listed by surprise.'],
+  ['Where the score board shows', 'The HIGH SCORES card on the end screen after every finished session, with VIEW BOARD; the full GAME OVER board straight after FINISH only when it is news (a new best that ranks, or your first score on a board). Opt-in, asked once, display name only.'],
   ['Squad size, beta or launch', '5 to 20. Open to the beta now, with preset cheers and squad names checked against the existing name filter, so the safety tools are tested before launch.'],
   ['Rewards for the drop track', 'SHOTO ends Nov 30, so the first track fits the next drop (Dec 1). The shape shown: a drop badge (4 days), a frame (8), a title (12), an animated frame (16), a gold emblem (20).'],
   ['Free or Pro', 'All six free. They exist to bring people back, and Pro stays as it is.'],
@@ -52,7 +52,7 @@ export default function RetentionLooks() {
         <LookStreak/>
         <LookPath/>
         <LookNearMiss/>
-        <LookLeague/>
+        <LookScores/>
         <LookSquad/>
         <LookSeason/>
         <LookCleared/>
