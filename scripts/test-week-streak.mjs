@@ -341,6 +341,129 @@ const NOW = at('2026-11-26', 18); // Thursday of the week of Nov 23
   check('a pick is plain data (it is stored for the day)', eq(JSON.parse(JSON.stringify(a)), a) && eq(JSON.parse(JSON.stringify(n2)), n2));
 }
 
+// ── Today's Bout: fresh days and repeat days (owner, 2026-11-23) ─────────────
+{
+  const L = await import('../components/training-mode/data/lastSession.js');
+  const P = await import('../components/training-mode/data/pathStars.js');
+  const fighter = { goal: 'Train Like a Fighter', discipline: 'Muay Thai', encouragement: 'high' };
+  const fitter = { goal: 'Get Fit', discipline: 'Boxing' };
+  const level6 = { xp: 2600, sessions: [{ type: 'Fight Focus', completedAt: at('2026-11-10').toISOString(), completedCount: 3, totalCount: 3, xpEarned: 2600 }] };
+  const date = '2026-11-26';
+  // The deal (the old Daily Mission's, 3 minutes, side and level).
+  const a = D.freshBout({ date, profile: fighter, stats: level6 });
+  check('fresh: same date, same deal', eq(a, D.freshBout({ date, profile: fighter, stats: level6 })));
+  check('fresh: a fighter gets one 3-minute Fight Focus round of their discipline', a.kind === 'fresh' && a.turn === 'fresh' && a.side === 'fight' && a.title === 'One Round: Muay Thai' && a.minutes === 3 && a.cta === 'START', JSON.stringify(a));
+  check('fresh: …on their level (level 6 is Hard), the card says it is new', eq(a.parts, ['Fight Focus', 'Hard']) && a.why === 'Something new today' && eq(D.boutMeta(a), ['3 MIN', 'SOMETHING NEW TODAY']));
+  check('fresh: …paying the same bonus', a.bonusXp === 25);
+  const c = a.run.last.cfg;
+  check('fresh: START runs 1 round of 3 minutes, no warm-up, the athlete\'s encouragement, its discipline', a.run.type === 'replay' && a.run.last.kind === 'timer' && a.run.last.disc === 'Muay Thai' && c.rounds === 1 && c.roundMin === 3 && c.warmupMin === 0 && c.difficulty === 'Hard' && c.encouragement === 'high' && c.mode === 'Technical' && !c.ghost);
+  check('fresh: its config is tagged with the day (never stored as the last session)', c.freshBout === date);
+  const yest = { ...level6, sessions: [...level6.sessions, row('2026-11-25', 19)] };
+  const lighter = D.freshBout({ date, profile: fighter, stats: yest });
+  check('fresh: the day after a session, one step easier, and it says so', lighter.run.last.cfg.difficulty === 'Normal' && eq(lighter.parts, ['Fight Focus', 'Normal', 'Lighter after yesterday']));
+  const adv = { xp: 6750, sessions: [{ type: 'Fight Focus', completedAt: at('2026-11-10').toISOString(), completedCount: 3, totalCount: 3, xpEarned: 6750 }, row('2026-11-25', 19)] };
+  const advFresh = D.freshBout({ date, profile: fighter, stats: adv });
+  check('fresh: an Advanced fighter one step down is still Hard, so no "lighter" claim', advFresh.run.last.cfg.difficulty === 'Hard' && eq(advFresh.parts, ['Fight Focus', 'Hard']));
+  const award = { ...level6, sessions: [...level6.sessions, row('2026-11-25', 19, { type: 'Mission of the Day', completedCount: 1, totalCount: 1, xpEarned: 25 })] };
+  check('fresh: an award row yesterday is not a session', eq(D.freshBout({ date, profile: fighter, stats: award }).parts, ['Fight Focus', 'Hard']));
+  const f = D.freshBout({ date, profile: fitter, stats: { xp: 0, sessions: [] } });
+  check('fresh: a fit athlete gets a 3-minute Quick Mission', f.side === 'fit' && f.minutes === 3 && D.FRESH_FOCI.includes(f.run.qm.focus) && f.title === `Quick Mission: ${f.run.qm.focus}` && f.run.type === 'freshQm' && f.run.qm.duration === 3);
+  check('fresh: …level 1 is Easy', f.run.qm.difficulty === 'Easy' && eq(f.parts, ['No gear', 'Easy']));
+  const easyYest = D.freshBout({ date, profile: fitter, stats: { xp: 0, sessions: [row('2026-11-25', 8, { type: 'Quick Mission' })] } });
+  check('fresh: …Easy cannot go lower, so it does not claim to be lighter', easyYest.run.qm.difficulty === 'Easy' && eq(easyYest.parts, ['No gear', 'Easy']));
+  const foci = new Set(Array.from({ length: 30 }, (_, i) => D.freshBout({ date: W.addDaysIso('2026-11-01', i), profile: fitter, stats: {} }).run.qm.focus));
+  check('fresh: the focus changes with the date', foci.size >= 3);
+  check('fresh: no goal, the side with more XP', D.freshSide({}, { xp: 900, sessions: [{ type: 'Quick Mission', completedAt: at('2026-11-10').toISOString(), xpEarned: 900, completedCount: 3 }] }) === 'fit' && D.freshSide({}, {}) === 'fight');
+  check('fresh: plain data (it is stored for the day)', eq(JSON.parse(JSON.stringify(a)), a) && eq(JSON.parse(JSON.stringify(f)), f));
+  // The fit deal really is about 3 minutes, at every level and focus.
+  const { generateQuickMission, estimateQuickMissionSeconds } = await import('../components/training-mode/fit-mode/quickMissionGenerator.js');
+  const off = [];
+  for (const xp of [0, 1500, 3500, 9000]) for (let i = 0; i < 20; i++) {
+    const m = D.freshBout({ date: W.addDaysIso('2026-11-01', i), profile: { goal: 'Get Fit' }, stats: { xp, sessions: [{ type: 'Quick Mission', completedAt: at('2026-10-01').toISOString(), xpEarned: xp, completedCount: 3 }] } });
+    const secs = estimateQuickMissionSeconds(generateQuickMission(m.run.qm));
+    if (Math.abs(secs - 180) > 30) off.push(`${m.run.qm.focus}/${m.run.qm.difficulty}: ${secs}s`);
+  }
+  check('fresh: a 3-minute Quick Mission runs 3 minutes (within 30 s) at every level and focus', off.length === 0, off.slice(0, 3).join(', '));
+
+  // Whose turn.
+  check('turns: a fresh day only after a repeat day', D.turnAfter('repeat') === 'fresh' && D.turnAfter('fresh') === 'repeat' && D.turnAfter('pick') === 'repeat' && D.turnAfter(null) === 'repeat');
+  check('turns: a bout held before turns existed reads from its kind', D.turnOf({ kind: 'last' }) === 'repeat' && D.turnOf({ kind: 'next' }) === 'repeat' && D.turnOf({ kind: 'bout' }) === 'pick' && D.turnOf({ kind: 'fresh' }) === 'fresh' && D.turnOf({ kind: 'surprise', turn: 'fresh' }) === 'fresh' && D.turnOf(null) === null);
+  const timer = { kind: 'timer', cfg: { mode: 'Technical', rounds: 3, roundMin: 3, restSec: 60, difficulty: 'Normal' }, disc: 'Boxing', at: 1 };
+  const pick = (prevTurn, extra = {}) => D.pickTodaysBout({ date, last: timer, lastInfo: L.describeSession(timer), prevTurn, profile: fighter, stats: level6, ...extra });
+  check('pick: after a repeat day, a fresh deal', eq(pick('repeat'), a));
+  check('pick: after a fresh day, the last session again ("Same as last time")', pick('fresh').kind === 'last' && pick('fresh').turn === 'repeat' && pick('fresh').why === 'Same as last time');
+  check('pick: with no day held before, or after a new athlete\'s pick, a repeat day', pick(null).kind === 'last' && pick('pick').kind === 'last');
+  const camp = { kind: 'camp', cfg: { level: 5, difficulty: 'normal', format: 'single' }, disc: 'Boxing', at: 1 };
+  const next = { kind: 'camp', saga: 'Training Camp', number: 5, title: 'Volume', disc: 'Boxing' };
+  const nx = D.pickTodaysBout({ date, last: camp, lastInfo: L.describeSession(camp), next, nextLine: P.nextUpLine(next), prevTurn: 'fresh' });
+  check('pick: the next stage is a repeat day too (a fresh day follows it)', nx.kind === 'next' && nx.turn === 'repeat' && D.turnAfter(D.turnOf(nx)) === 'fresh');
+  check('pick: a saga or camp player\'s fresh day is a fresh deal', D.pickTodaysBout({ date, last: camp, lastInfo: L.describeSession(camp), next, nextLine: P.nextUpLine(next), prevTurn: 'repeat', profile: fighter, stats: level6 }).kind === 'fresh');
+  const newbie = D.pickTodaysBout({ date, prevTurn: 'repeat', suggestion: { title: 'Quick Mission — 12 Min Starter', actionType: 'quickMission', actionPayload: { duration: 12 }, mode: 'fit' }, profile: fitter, stats: { xp: 0, sessions: [] } });
+  check('pick: a brand-new athlete (no last session) keeps the setup\'s pick, whatever the turn', newbie.kind === 'bout' && newbie.turn === 'pick' && newbie.title === 'Quick Mission — 12 Min Starter');
+  const plan = D.pickTodaysBout({ date, plan: { kind: 'train', session: { label: 'Combo Coach' }, gapMin: 20, actionType: 'comboCoach' } });
+  check('pick: the Game Plan\'s bout for a new athlete is a pick too', plan.turn === 'pick');
+
+  // Held day by day: the turns alternate, from the box.
+  const hold = (iso, extra = {}) => {
+    const t = D.todaysBout({ now: at(iso, 9).getTime() });
+    if (t.bout) return t.bout;
+    const b = D.pickTodaysBout({ date: iso, last: timer, lastInfo: L.describeSession(timer), prevTurn: t.prevTurn, profile: fighter, stats: level6, ...extra });
+    D.holdBout(b);
+    return D.todaysBout({ now: at(iso, 9).getTime() }).bout;
+  };
+  store.clear();
+  const days = ['2026-11-23', '2026-11-24', '2026-11-25', '2026-11-26', '2026-11-27'].map((iso) => hold(iso).kind);
+  check('held: repeat, fresh, repeat, fresh, repeat', eq(days, ['last', 'fresh', 'last', 'fresh', 'last']), days.join(','));
+  check('held: the same day reads the same bout all day (a reload)', hold('2026-11-27').kind === 'last' && D.todaysBout({ now: at('2026-11-27', 23, 59).getTime() }).bout.kind === 'last');
+  check('held: a skipped day does not break the turns (3 days later, after a repeat: fresh)', hold('2026-11-30').kind === 'fresh' && hold('2026-12-04').kind === 'last');
+  check('held: prevTurn reads only an earlier day', D.todaysBout({ now: at('2026-12-04', 12).getTime() }).prevTurn === null && D.todaysBout({ now: at('2026-12-05', 12).getTime() }).prevTurn === 'repeat');
+  // SURPRISE ME keeps the day's turn.
+  store.clear();
+  hold('2026-11-23');
+  D.rerollBout(D.surpriseBout({ date: '2026-11-23', cfg: { duration: 15, focus: 'Core', difficulty: 'Hard' }, level: 'Hard' }));
+  check('SURPRISE ME on a repeat day: still a repeat day, so a fresh day follows', D.todaysBout({ now: at('2026-11-23', 12).getTime() }).bout.kind === 'surprise' && hold('2026-11-24').kind === 'fresh');
+  D.rerollBout(D.surpriseBout({ date: '2026-11-24', cfg: { duration: 15, focus: 'Core', difficulty: 'Hard' }, level: 'Hard' }));
+  check('SURPRISE ME on a fresh day: still a fresh day, so a repeat day follows', hold('2026-11-25').kind === 'last');
+  // A new athlete: the setup's pick first, then a repeat day, then a fresh one.
+  store.clear();
+  const first = D.pickTodaysBout({ date: '2026-11-23', prevTurn: D.todaysBout({ now: at('2026-11-23', 9).getTime() }).prevTurn, suggestion: { title: 'Fight Focus — 3 Round Starter', actionType: 'fightFocus', actionPayload: 'Boxing', mode: 'fight' } });
+  D.holdBout(first);
+  check('new athlete: the setup\'s pick, then their last session, then something fresh', first.kind === 'bout' && hold('2026-11-24').kind === 'last' && hold('2026-11-25').kind === 'fresh');
+  // The boxes from before.
+  store.clear();
+  store.set(D.DAILY_MISSION_KEY, JSON.stringify({ date: '2026-11-25', mission: { title: 'One Round: Boxing' }, done: true }));
+  check('an old daily mission box (a fresh deal every day): the next day is a repeat day', D.todaysBout({ now: at('2026-11-26', 9).getTime() }).prevTurn === 'fresh' && hold('2026-11-26').kind === 'last');
+  store.set(D.DAILY_MISSION_KEY, JSON.stringify({ v: 3, date: '2026-11-25', bout: { date: '2026-11-25', kind: 'last', title: 'Fight Focus' }, done: false }));
+  check('a bout held before the turns (the last session): the next day is fresh', D.todaysBout({ now: at('2026-11-26', 9).getTime() }).prevTurn === 'repeat' && hold('2026-11-26').kind === 'fresh');
+  store.set(D.DAILY_MISSION_KEY, '{not json');
+  check('an unreadable box: a repeat day', D.todaysBout({ now: at('2026-11-26', 9).getTime() }).prevTurn === null && hold('2026-11-26').kind === 'last');
+
+  // A fresh session is never stored as the last session; any other is.
+  store.clear();
+  L.rememberSession('timer', timer.cfg, 'Boxing');
+  const before = store.get('tm_last_session_v1');
+  L.rememberSession('timer', a.run.last.cfg, 'Muay Thai');
+  L.rememberSession('quick_mission', { duration: 3, focus: 'Core', difficulty: 'Easy', freshBout: date });
+  check('last session: a fresh round or a fresh Quick Mission is not stored', store.get('tm_last_session_v1') === before && L.loadLastSession().disc === 'Boxing');
+  L.rememberSession('timer', { ...timer.cfg, rounds: 5 }, 'Boxing');
+  check('last session: any other session is, as before', L.loadLastSession().cfg.rounds === 5);
+
+  // The bonus on a fresh day: the same rules (started from the card, run to its end, once a day).
+  U.addBonusXp(1); store.clear();
+  const now = Date.now();
+  const fr = D.freshBout({ date: W.localIso(now), profile: fighter, stats: level6 });
+  D.holdBout(fr);
+  await new Promise((res) => setTimeout(res, 3)); D.armTodaysBout(); await new Promise((res) => setTimeout(res, 3));
+  U.addFightFocusSession(1, 1);
+  check('fresh day: its 1-round session from START pays +25 once', D.settleTodaysBout() === 25 && D.todaysBout({ stats: U.loadStats() }).done && D.todaysBout().bout.kind === 'fresh');
+
+  // Wiring: Home builds the fresh Quick Mission tagged with its day; App's replay of a timer goes through rememberSession.
+  const fs = await import('node:fs');
+  const src = (f) => fs.readFileSync(new URL(`../components/training-mode/${f}`, import.meta.url), 'utf8');
+  const home = src('HomeDashboard.jsx');
+  check('wiring: Home runs a fresh Quick Mission tagged with its day, and passes the turn to the pick', /freshBout: b\?\.date/.test(home) && /r\.type === 'freshQm'/.test(home) && /prevTurn: t\.prevTurn/.test(home));
+}
+
 // ── Today's Bout: what pays ──────────────────────────────────────────────────
 {
   const today = '2026-11-26';
@@ -377,7 +500,7 @@ const NOW = at('2026-11-26', 18); // Thursday of the week of Nov 23
   check('…not even after a session not started from the card', eq(D.todaysBout({ now: day + 7 * 3600000, stats: U.loadStats() }).bout, bout) && !D.todaysBout({ now: day, stats: U.loadStats() }).done);
   check('a new bout at local midnight', D.todaysBout({ now: at('2026-11-27', 0, 1).getTime() }).bout === null && D.todaysBout({ now: at('2026-11-26', 23, 59).getTime() }).bout !== null);
   const sp = D.surpriseBout({ date: '2026-11-26', cfg: { duration: 15, focus: 'Core', difficulty: 'Hard' }, level: 'Hard' });
-  check('SURPRISE ME replaces the held bout for the day', D.rerollBout(sp) && eq(D.todaysBout({ now: day }).bout, sp));
+  check('SURPRISE ME replaces the held bout for the day (the day keeps its turn)', D.rerollBout(sp) && eq(D.todaysBout({ now: day }).bout, { ...sp, turn: 'pick' }));
 
   // The bonus: started from the card, run to its end, once a day.
   reset();
@@ -572,6 +695,68 @@ const NOW = at('2026-11-26', 18); // Thursday of the week of Nov 23
   const stripFin = S.takeEndScreenStrip(Date.now(), { finisher: true });
   check('finisher: the end screen still shows today\'s strip', stripFin?.moment?.done === 1 && W.momentCopy(stripFin.moment).title === 'TRAINING DAY 1 OF 4', JSON.stringify(stripFin));
   check('finisher: without the flag the Cardio row reads as a second session (the old miss)', S.takeEndScreenStrip(Date.now()) === null);
+}
+
+// ── the week streak where the day streak was (owner, 2026-11-23) ─────────────
+// Profile, Progress, the Level page, the share card and the come-back reminder
+// show the week streak with the switch on; with it off, as before.
+{
+  // The come-back reminder's streak case.
+  const wk = (streak, done, target, todayIndex) => ({ streak, thisWeek: { done, target, todayIndex } });
+  check('at stake: a streak, 1 day still to get, days left', eq(W.streakAtStake(wk(9, 3, 4, 3)), { streak: 9, need: 1 }));
+  check('at stake: not without a streak', W.streakAtStake(wk(0, 1, 4, 2)) === null);
+  check('at stake: not once this week is on target', W.streakAtStake(wk(9, 4, 4, 2)) === null && W.streakAtStake(wk(9, 5, 4, 5)) === null);
+  check('at stake: not when the days left cannot get there (Sunday, 2 to go)', W.streakAtStake(wk(9, 2, 4, 6)) === null && eq(W.streakAtStake(wk(9, 3, 4, 6)), { streak: 9, need: 1 }));
+  check('at stake: Monday counts today', eq(W.streakAtStake(wk(3, 0, 4, 0)), { streak: 3, need: 4 }));
+  check('reminder line: the week streak and the days, plain', W.streakReminderCopy({ streak: 9, need: 2 }) === '9-week streak: 2 more days this week.'
+    && W.streakReminderCopy({ streak: 1, need: 1 }) === '1-week streak: 1 more day this week.' && W.streakReminderCopy(null) === null);
+  check('reminder line: no guilt words', !/(lose|losing|break|fail|miss)/i.test(W.streakReminderCopy({ streak: 9, need: 2 })));
+
+  // The reminder itself, on the real clock: trained yesterday, a long week streak behind.
+  const R = await import('../components/training-mode/data/reminderEngine.js');
+  U.addBonusXp(1); store.clear();
+  const now = Date.now();
+  const today = W.localIso(now);
+  const yIso = W.addDaysIso(today, -1);
+  const mon = W.weekStartIso(today);
+  const rows = [];
+  for (let k = 1; k <= 9; k++) for (const i of [0, 1, 2, 3]) rows.push(row(W.addDaysIso(W.addDaysIso(mon, -7 * k), i), 12));
+  rows.push(row(yIso, 12));
+  store.set('tm_user_stats', JSON.stringify({ xp: 0, sessions: rows })); U.addBonusXp(0);
+  store.set('tm_user_stats', JSON.stringify({ xp: 0, sessions: rows }));
+  const week = S.loadWeekStreak(now);
+  const stake = W.streakAtStake(week);
+  const r = R.getDashboardReminder({ weeks: true });
+  check('reminder (switch on): the week streak\'s case when the week is at stake, else not the streak case',
+    stake ? (r.category === 'streak' && r.message === W.streakReminderCopy(stake) && r.actionLabel === 'Keep Streak' && r.streak === week.streak)
+      : (r?.category !== 'streak'), JSON.stringify({ r, stake, week: week.thisWeek, streak: week.streak }));
+  check('reminder (switch on): the streak is the week streak, not the day count', week.streak >= 9);
+  const off = R.getDashboardReminder();
+  check('reminder (switch off): the old day streak case, its old lines', off.category === 'streak' && off.streak === U.getStreak(U.loadStats()) && !/week streak/.test(off.message));
+  // A week streak with this week's target already met: no streak case.
+  const met = [...rows];
+  for (let i = 0; i < 7; i++) { const d = W.addDaysIso(mon, i); if (d < today && d !== yIso) met.push(row(d, 12)); }
+  store.set('tm_user_stats', JSON.stringify({ xp: 0, sessions: met })); U.addBonusXp(0); store.set('tm_user_stats', JSON.stringify({ xp: 0, sessions: met }));
+  const w2 = S.loadWeekStreak(now);
+  check('reminder (switch on): this week already on target, so no streak case', w2.thisWeek.done >= w2.thisWeek.target ? R.getDashboardReminder({ weeks: true })?.category !== 'streak' : true);
+  check('weekStreakCount is the week streak', S.weekStreakCount(now) === S.loadWeekStreak(now).streak && S.weekStreakCount(now, []) === 0);
+
+  // The share text.
+  const SU = await import('../components/training-mode/data/shareUtils.js');
+  const txt = (extra) => SU.buildShareText({ mode: 'Fight Focus', xpEarned: 90, ...extra });
+  check('share text: the week streak in weeks', /Streak: 9 weeks/.test(txt({ streak: 9, streakUnit: 'week' })) && /Streak: 1 week\n/.test(txt({ streak: 1, streakUnit: 'week' })));
+  check('share text (switch off): days, as before', /Streak: 9 days/.test(txt({ streak: 9 })) && !/Streak/.test(txt({ streak: 0, streakUnit: 'week' })));
+
+  // Wiring: every screen that showed the day streak reads the week streak under the switch.
+  const fs = await import('node:fs');
+  const src = (f) => fs.readFileSync(new URL(`../components/training-mode/${f}`, import.meta.url), 'utf8');
+  check('wiring: Profile\'s tile', /weeksOn \? weekStreakCount\(Date\.now\(\), stats\.sessions\) : getStreak\(stats\)/.test(src('Profile.jsx')) && /weeksOn \? 'WEEK STREAK' : 'STREAK'/.test(src('Profile.jsx')));
+  check('wiring: Progress\'s rank card', /weeksOn \? weekStreakCount\(Date\.now\(\), stats\.sessions\) : getStreak\(stats\)/.test(src('ProgressScreen.jsx')) && /WEEK STREAK/.test(src('ProgressScreen.jsx')));
+  check('wiring: the Level page', /weekStreak: weekStreakCount\(/.test(src('LevelView.jsx')));
+  check('wiring: the end screen hands the share card the week streak', /weeksOn \? weekStreakCount\(Date\.now\(\), stats0\.sessions\) : getStreak\(stats0\)/.test(src('shared/MissionComplete.jsx')) && /streakUnit: 'week'/.test(src('shared/MissionComplete.jsx')));
+  check('wiring: the share card (end screens, Cardio, ghost battles) labels it WEEK STREAK', /streakLabel: 'WEEK STREAK'/.test(src('SharePromptModal.jsx')) && /streakLabel: 'WEEK STREAK'/.test(src('shared/GhostResultScreen.jsx'))
+    && (src('data/shareCard.js').match(/data\.streakLabel \|\| 'DAY STREAK'/g) || []).length === 2);
+  check('wiring: Home\'s come-back reminder gets the switch', /<ReminderCard[\s\S]{0,120}weeks=\{weeksOn\}/.test(src('HomeDashboard.jsx')) && /getDashboardReminder\(\{ weeks \}\)/.test(src('shared/ReminderCard.jsx')));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

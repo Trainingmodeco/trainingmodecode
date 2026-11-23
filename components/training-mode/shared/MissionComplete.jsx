@@ -12,7 +12,7 @@ import { loadProfile } from '../data/userProfile';
 import { BETA_FEEDBACK_FORM_URL, openExternalUrl } from '../data/links';
 import AchievementToast from './AchievementToast';
 import { retentionOn } from '../data/retentionFlags';
-import { takeEndScreenStrip, markEndScreenStrip } from '../data/weekStreakStore';
+import { takeEndScreenStrip, markEndScreenStrip, weekStreakCount } from '../data/weekStreakStore';
 import WeekMomentStrip from '../retention/ui/WeekMomentStrip';
 import { settleNearMiss, noteAttempt } from '../data/nearMissStore';
 import NearMissPanel from '../retention/ui/NearMissPanel';
@@ -171,7 +171,8 @@ export default function MissionComplete({
     : actions;
 
   const [stats0] = useState(() => loadStats());
-  const streak = getStreak(stats0);
+  // The share card's streak: the week streak with the switch on (WEEK STREAK on the card).
+  const streak = weeksOn ? weekStreakCount(Date.now(), stats0.sessions) : getStreak(stats0);
   const level = getLevel(stats0.xp);
   const lp = getLevelProgress(stats0.xp);
   const sex = String(loadProfile()?.sex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
@@ -294,7 +295,7 @@ export default function MissionComplete({
               to offer. It does not. */}
           {shareData && !unpaid && (
             <div style={{ marginBottom: 6 }}>
-              <SharePromptModal placement="inline" shareData={{ ...shareData, xpEarned: xp, streak, level }}/>
+              <SharePromptModal placement="inline" shareData={{ ...shareData, xpEarned: xp, streak, ...(weeksOn ? { streakUnit: 'week' } : {}), level }}/>
             </div>
           )}
 

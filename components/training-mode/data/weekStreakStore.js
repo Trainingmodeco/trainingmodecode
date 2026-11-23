@@ -28,6 +28,10 @@ export function loadWeekStreak(now = Date.now(), rows = loadStats().sessions) {
   return computeWeekStreak(rows, weekSettings(), now);
 }
 
+// The week streak alone, for the screens that show a streak (switch on: Profile,
+// Progress, the Level page, the share card), in place of the old day count.
+export const weekStreakCount = (now = Date.now(), rows = loadStats().sessions) => loadWeekStreak(now, rows).streak;
+
 // The value the picker shows as chosen (it holds from next Monday).
 export const chosenWeekTarget = (now = Date.now()) => pendingTarget(weekSettings(), now);
 

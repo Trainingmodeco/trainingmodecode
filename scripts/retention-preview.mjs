@@ -352,6 +352,27 @@ async function reviveMoment(page, w) {
   await page.locator('[data-retention="rusty-card"] button', { hasText: 'REVIVE' }).first().click({ timeout: 4000 });
   await page.waitForTimeout(420);
 }
+// Today's Bout takes turns (the owner, 2026-11-23): yesterday's box says which
+// turn yesterday was, so today is the other one.
+const YESTERDAY = (() => { const d = new Date(NOW); d.setDate(d.getDate() - 1); return iso(d); })();
+const HELD_BOX = (bout) => JSON.stringify({ v: 3, date: bout.date, bout, done: false, doneAt: null, xp: 0 });
+const HELD_REPEAT = { date: YESTERDAY, bonusXp: 25, kind: 'last', turn: 'repeat', side: 'fight', title: 'Fight Focus', parts: ['Boxing · 3 rounds', 'Normal'], cta: 'START', minutes: 11, why: 'Same as last time', run: { type: 'replay', last: BOUT_LAST3 } };
+const HELD_FRESH = { date: YESTERDAY, bonusXp: 25, kind: 'fresh', turn: 'fresh', side: 'fight', title: 'One Round: Boxing', parts: ['Fight Focus', 'Hard'], cta: 'START', minutes: 3, why: 'Something new today', run: { type: 'replay', last: { ...BOUT_LAST, cfg: { ...BOUT_LAST.cfg, difficulty: 'Hard', freshBout: YESTERDAY }, at: null } } };
+const FIT_LAST = { kind: 'quick_mission', cfg: { workoutType: 'Bodyweight', duration: 12, difficulty: 'Normal', focus: 'Core', format: 'Auto', cardioFinisher: false, cadenceCount: true, cadencePreset: 'moderate', cadenceMs: 1000, voiceOn: true, cardioAddon: null }, disc: null, at: NOW_MS - DAY };
+// A fresh day for real (fake clock): START runs the dealt 3-minute round to its
+// end screen; the last session seeded (BOUT_LAST3) is still the one stored after.
+async function runFreshBout(page, w) {
+  await runDailyMission(page, w);
+  const lastAfter = await page.evaluate(() => localStorage.getItem('tm_last_session_v1'));
+  if (lastAfter !== JSON.stringify(BOUT_LAST3)) throw new Error(`the fresh session was stored as the last session: ${lastAfter}`);
+}
+// The end screen's SHARE YOUR WIN, then SHARE: the share card sheet with the rendered card.
+async function openShareCard(page, w) {
+  await runDailyMission(page, w);
+  await page.getByRole('button', { name: /^SHARE$/ }).first().click({ timeout: 8000 });
+  await page.locator('img[alt="Share card preview"]').first().waitFor({ timeout: 8000 });
+  await wait(page, 800);
+}
 const STATES = [
   {
     name: 'f1-home-mission-ready',
@@ -399,7 +420,7 @@ const STATES = [
   },
   {
     name: 'f1-home-guide-bout',
-    note: 'Home\'s ? guide on its TODAY\'S BOUT step: the one card, its daily bonus and its done state (no DAILY MISSION step).',
+    note: 'Home\'s ? guide on its TODAY\'S BOUT step: the one card (the last session one day, something new the next), its daily bonus and its done state (no DAILY MISSION step).',
     seed: () => BOUT_SEED(history({ onTarget: 9, thisWeek: Math.min(3, todayIdx) }), 6750, BOUT_LAST3)(),
     open: async (page, w) => {
       await home(page, w);
@@ -408,7 +429,7 @@ const STATES = [
       for (let i = 0; i < 3; i++) { await page.getByRole('button', { name: /NEXT/ }).first().click({ timeout: 4000 }); await wait(page, 900); }
     },
     check: ['div:has(> button[aria-label="Close guide"])'],
-    expect: /TODAY'S BOUT[\s\S]*\+25 XP, once a day[\s\S]*TRAIN AGAIN[\s\S]*ADJUST opens its settings/, absent: /DAILY MISSION|AT YOUR PACE/,
+    expect: /TODAY'S BOUT[\s\S]*your last session one\s+day, something new the next\.[\s\S]*\+25 XP, once a day[\s\S]*TRAIN AGAIN[\s\S]*ADJUST opens its settings/, absent: /DAILY MISSION|AT YOUR PACE/,
   },
   {
     name: 'f1-home-freeze-used',
@@ -462,6 +483,83 @@ const STATES = [
     clock: true, once: true, needsDays: 3,
     seed: () => BOUT_SEED(history({ onTarget: 3, thisWeek: 3 }), 3300)(),
     open: runDailyMission, after: scrollTo('[data-retention="week-moment"]'), check: ['[data-retention="week-moment"]'], expect: /WEEK COMPLETE[\s\S]*1UP EARNED · YOU HOLD 2 OF 2[\s\S]*TODAY'S BOUT · \+25 XP/, absent: /DAILY MISSION|FREEZE|❄|REVIVED/,
+  },
+  // ── Today's Bout takes turns: a fresh day after a repeat day (owner, 2026-11-23) ──
+  {
+    name: 'f1-home-bout-fresh',
+    note: 'Home on a fresh day (yesterday\'s bout was the last session again): something new, dealt like the old Daily Mission: one 3-minute Fight Focus round of the fighter\'s discipline on their level, "3 MIN · SOMETHING NEW TODAY", +25 XP beside START.',
+    seed: () => ({ ...BOUT_SEED(history({ onTarget: 9, thisWeek: Math.min(3, todayIdx) }), 6750, BOUT_LAST3)(), tm_daily_mission_v2: HELD_BOX(HELD_REPEAT) }),
+    open: home, check: HOME_CHECK, apart: HOME_APART,
+    expect: /TODAY'S BOUT[\s\S]*FIGHT MODE[\s\S]*One Round: Boxing[\s\S]*Fight Focus · Hard\s+3 MIN\s*·\s*SOMETHING NEW TODAY[\s\S]*START[\s\S]*\+25 XP[\s\S]*SURPRISE ME[\s\S]*ADJUST/, absent: /SAME AS LAST TIME|DAILY MISSION/,
+  },
+  {
+    name: 'f1-home-bout-fresh-fit',
+    note: 'Home on a fresh day for a fit athlete (last session a 12-minute Quick Mission): a 3-minute Quick Mission dealt from the date, on their level, one step easier after yesterday\'s session.',
+    seed: () => ({
+      tm_user_profile: JSON.stringify(FITTER), tm_user_stats: stats(history({ onTarget: 3, thisWeek: Math.min(3, todayIdx), type: 'Quick Mission' }), 2600),
+      tm_last_session_v1: JSON.stringify(FIT_LAST), tm_daily_mission_v2: HELD_BOX({ ...HELD_REPEAT, side: 'fit', title: 'Quick Mission', parts: ['Core', 'Medium'], minutes: 12 }),
+    }),
+    open: home, check: HOME_CHECK, apart: HOME_APART,
+    expect: /TODAY'S BOUT[\s\S]*FIT MODE[\s\S]*Quick Mission: (Full Body|Upper|Lower|Core|Combat)[\s\S]*No gear · \w+[\s\S]*3 MIN\s*·\s*SOMETHING NEW TODAY[\s\S]*START[\s\S]*\+25 XP/, absent: /SAME AS LAST TIME|DAILY MISSION/,
+  },
+  {
+    name: 'f1-home-bout-repeat',
+    note: 'Home on a repeat day (yesterday was a fresh day): the fighter\'s own last session again, "SAME AS LAST TIME". The fresh round was never stored as the last session, so this is their own 3-round Fight Focus.',
+    seed: () => ({ ...BOUT_SEED(history({ onTarget: 9, thisWeek: Math.min(3, todayIdx) }), 6750, BOUT_LAST3)(), tm_daily_mission_v2: HELD_BOX(HELD_FRESH) }),
+    open: home, check: HOME_CHECK, apart: HOME_APART,
+    expect: /TODAY'S BOUT[\s\S]*Fight Focus[\s\S]*Boxing · 3 rounds · Normal\s+11 MIN\s*·\s*SAME AS LAST TIME[\s\S]*START[\s\S]*\+25 XP/, absent: /SOMETHING NEW TODAY|One Round/,
+  },
+  {
+    name: 'f1-end-fresh',
+    note: 'A fresh day for real (fake clock): START runs the dealt 3-minute round to its end screen, the strip and TODAY\'S BOUT · +25 XP; the athlete\'s own last session is still the one stored.',
+    clock: true, once: true,
+    seed: () => ({ ...BOUT_SEED(history({ onTarget: 9, thisWeek: Math.min(2, todayIdx) }), 6750, BOUT_LAST3)(), tm_daily_mission_v2: HELD_BOX(HELD_REPEAT) }),
+    open: runFreshBout, after: scrollTo('[data-retention="week-moment"]'), check: ['[data-retention="week-moment"]'], expect: /TRAINING DAY[\s\S]*TODAY'S BOUT · \+25 XP/,
+  },
+  // ── the week streak where the day streak was (owner, 2026-11-23) ──
+  {
+    name: 'f1-profile-week-streak',
+    note: 'Profile: the streak tile is the week streak (🔥9, WEEK STREAK), the same number as Home\'s chip; it was the day count.',
+    seed: () => BOUT_SEED(history({ onTarget: 9, thisWeek: Math.min(3, todayIdx) }), 6750, BOUT_LAST3)(),
+    open: async (page, w) => { await home(page, w); await page.getByRole('button', { name: /^PROFILE$/ }).first().click({ timeout: 4000 }); await wait(page, 1200); },
+    check: ['[data-guide="pr-avatar"]', '[data-retention="profile-week-streak"]'], expect: /🔥9\s*WEEK STREAK[\s\S]*SESSIONS[\s\S]*TROPHIES/,
+  },
+  {
+    name: 'f1-progress-week-streak',
+    note: 'Progress: the rank card\'s streak is the week streak, labelled (🔥12 over WEEK STREAK), beside the longest rank name and a 2-digit level.',
+    seed: () => {
+      const rows = history({ onTarget: 12, thisWeek: Math.min(3, todayIdx) }).map((r) => ({ ...r, xpEarned: 700 }));
+      return { tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(rows, 33500) };
+    },
+    open: async (page, w) => { await home(page, w); await page.getByRole('button', { name: /^PROGRESS$/ }).first().click({ timeout: 4000 }); await wait(page, 1200); },
+    check: ['[data-tour="rank-card"]', '[data-retention="progress-week-streak"]'], expect: /LV\s\d\d[\s\S]*🔥12\s*WEEK STREAK/,
+    clear: [['[data-retention="progress-week-streak"]', '[data-tour="rank-card"] > div:nth-child(2)']],
+  },
+  {
+    name: 'f1-level-week-streak',
+    note: 'The Level page: the streak fact is WEEK STREAK 9 (was DAY STREAK).',
+    seed: () => BOUT_SEED(history({ onTarget: 9, thisWeek: Math.min(3, todayIdx) }), 6750, BOUT_LAST3)(),
+    open: async (page, w) => {
+      await home(page, w);
+      await page.getByRole('button', { name: /^PROFILE$/ }).first().click({ timeout: 4000 }); await wait(page, 1200);
+      await page.getByRole('button', { name: /View your level/ }).first().click({ timeout: 4000 }); await wait(page, 1200);
+      await page.getByText('WEEK STREAK').first().scrollIntoViewIfNeeded({ timeout: 4000 }); await wait(page, 400);
+    },
+    check: ['[aria-label="Your level"]'], expect: /WEEK STREAK\s*9/, absent: /DAY STREAK/,
+  },
+  {
+    name: 'f1-share-week-streak',
+    note: 'The share card from the end screen (SHARE YOUR WIN → SHARE): its stat reads WEEK STREAK with the weeks (the card is a picture: look at the photo); the share text says "Streak: 9 weeks".',
+    clock: true, once: true,
+    seed: () => BOUT_SEED(history({ onTarget: 9, thisWeek: Math.min(2, todayIdx) }), 6750)(),
+    open: openShareCard, check: ['[data-streak-label="WEEK STREAK"]'], expect: /SHARE YOUR WIN[\s\S]*SHARE IMAGE/,
+  },
+  {
+    name: 'f1-home-reminder-week',
+    note: 'Home\'s come-back reminder (trained yesterday, this week 3 of 4): its streak case is the week streak\'s, "9-week streak: 1 more day this week.", KEEP STREAK.',
+    seed: () => ({ ...BOUT_SEED(history({ onTarget: 9, thisWeek: Math.min(3, todayIdx) }), 6750, BOUT_LAST3)(), tm_reminder_card_dismissed: '' }),
+    open: home, check: HOME_CHECK, apart: HOME_APART,
+    expect: /9-week streak: 1 more day this week\.[\s\S]*KEEP STREAK/,
   },
   // ── 1UP, POWER, RUSTY and REVIVE (switch `power`) ──
   {

@@ -282,6 +282,23 @@ export function momentCopy(m) {
   return { title, sub, freeze };
 }
 
+// The come-back reminder's streak case (Home's toast, switch on): the athlete
+// holds a week streak, this week still needs training days, and the days left
+// (today included: the reminder only shows before training today) can still
+// get them. Null otherwise (a 1UP or a reset is not news for a reminder).
+export function streakAtStake(week) {
+  const t = week?.thisWeek;
+  if (!t || !(week.streak > 0)) return null;
+  const need = t.target - t.done;
+  const left = 7 - t.todayIndex;
+  return need > 0 && need <= left ? { streak: week.streak, need } : null;
+}
+// Two lines beside KEEP STREAK in Home's toast at 360 px.
+export function streakReminderCopy(s) {
+  if (!s) return null;
+  return `${s.streak}-week streak: ${plural(s.need, 'more day')} this week.`;
+}
+
 // Short enough for two lines in the nudge slot at 360 px (a third line would
 // reach past the header onto the card below); the chip shows the 1UPs left.
 export function noticeCopy(n) {

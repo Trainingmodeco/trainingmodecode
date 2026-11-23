@@ -75,7 +75,9 @@ const MUTED = '#A9A3C4';
 // TODAY'S BOUT (week streak switch): the day's held bout, or a fresh pick from
 // Home's own pick engine when none is held yet (holdBout saves it, from an
 // effect). The same order as the card: the last session (folded with the
-// path's NEXT UP), else the Game Plan, else the setup's first pick.
+// path's NEXT UP), else the Game Plan, else the setup's first pick; on every
+// other day (after a repeat day) someone with a last session is dealt
+// something fresh instead (data/dailyMission freshBout).
 function readTodaysBout({ at, stats, profile, pathOn }) {
   const t = todaysBout({ now: at, stats });
   if (t.bout) return t;
@@ -87,6 +89,7 @@ function readTodaysBout({ at, stats, profile, pathOn }) {
       date: t.date, last, lastInfo: describeSession(last), next, nextLine: nextUpLine(next),
       plan: getTodayBout({ ignoreTrainedToday: true }),
       suggestion: firstPick({ profile: profile || {}, stats, dailyMission: null }),
+      prevTurn: t.prevTurn, profile: profile || {}, stats,
     }),
   };
 }
@@ -398,21 +401,26 @@ export default function HomeDashboard({
   // ADJUST arms the day's bonus (data/dailyMission) until it is paid.
   const b = weeksOn && !pausedSession ? today?.bout : null;
   const boutDone = !!today?.done;
+  // A fresh day's Quick Mission: built here and tagged with its day, so it is
+  // never stored as the last session (data/lastSession rememberSession).
+  const freshQmCfg = (r) => ({ ...quickMissionConfig(r.qm), freshBout: b?.date || localIso(Date.now()) });
   const runBout = (r) => {
     if (!r) { onTrain?.(); return; }
     if (r.type === 'replay') primeThen(() => onReplayLast?.({ last: r.last }));
     else if (r.type === 'next') primeThen(() => onNextUp?.(r.next));
+    else if (r.type === 'freshQm') primeThen(() => onStartQuickMission?.(freshQmCfg(r)));
     else if (r.type === 'surprise') primeThen(() => onStartQuickMission?.(r.cfg));
     else if (r.type === 'qmSetup') onQuickMission?.();
     else routeAction(r.actionType, r.payload);
   };
   const armBout = () => { if (b && !boutDone) armTodaysBout({ kind: b.kind }); };
   const boutAdjust = !b ? null
-    : b.kind === 'surprise' ? onQuickMission
-    : (b.kind === 'last' || b.kind === 'next') && b.run?.last ? () => adjustFor(b.run.last)
+    : b.kind === 'surprise' || b.run?.type === 'freshQm' ? onQuickMission
+    : (b.kind === 'last' || b.kind === 'next' || b.kind === 'fresh') && b.run?.last ? () => adjustFor(b.run.last)
     : null;
   const boutAtPace = !!b && (
     b.run?.type === 'surprise' ? startsAtYourPace(b.run.cfg, savedMode)
+    : b.run?.type === 'freshQm' ? startsAtYourPace(quickMissionConfig(b.run.qm), savedMode)
     : b.run?.type === 'replay' ? b.run.last?.kind === 'quick_mission' && startsAtYourPace(b.run.last.cfg, savedMode)
     : b.run?.type === 'route' && b.run.actionType === 'quickMission' && !!b.run.payload && typeof b.run.payload === 'object'
       ? startsAtYourPace(quickMissionConfig(b.run.payload), savedMode) : false);
@@ -679,6 +687,8 @@ export default function HomeDashboard({
         ) : (
           <ReminderCard
             compact
+            // The week streak (switch on): its streak case is the week streak's.
+            weeks={weeksOn}
             // Opaque over the week streak's busier header, like the toast.
             style={weeksOn ? { background: '#140C26' } : undefined}
             onAction={(type) => {
