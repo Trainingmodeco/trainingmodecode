@@ -204,13 +204,20 @@ export function nextUpFrom(last, find) {
   return null;
 }
 
-// The row's words: eyebrow, title.
+// The row's words: eyebrow, title, and the label a screen reader says. The
+// row's badge shows the stage or level number, so the title is the stage's
+// name alone, without the tagline after a dash ("Loop-de-Loop — Land,
+// Stabilize & Build the Base" reads "Loop-de-Loop"): the longest name keeps to
+// two lines at 360 px. The label says the number and the whole title.
 export function nextUpCopy(n) {
   if (!n) return null;
   const what = n.kind === 'camp' ? 'Level' : 'Stage';
+  const full = String(n.title || '').trim();
+  const name = full.split(/\s+[—–]\s+/)[0].trim();
   return {
     eyebrow: `NEXT UP · ${String(n.saga).toUpperCase()}`,
-    title: `${what} ${n.number}: ${n.title}`,
+    title: name || `${what} ${n.number}`,
+    label: `Next up in ${n.saga}: ${what} ${n.number}${full ? `, ${full}` : ''}. Start`,
   };
 }
 
@@ -241,4 +248,41 @@ export function pathLayout(count, width) {
   const height = PATH_END * 2 + Math.max(0, count - 1) * PATH_GAP;
   const pts = Array.from({ length: count }, (_, i) => ({ x: w / 2 + Math.sin(i * 0.9) * amp, y: height - PATH_END - i * PATH_GAP }));
   return { width: w, height, pts };
+}
+
+// The label under a node (its stars, or the camp's S1/S2 pips) hangs on the
+// side away from the road that comes up from the node below, so the road never
+// runs through it: the label's edge nearest the road keeps PATH_LABEL_CLEAR
+// from the road's stroke, and the label moves off centre only as far as that
+// needs. Where the road comes straight up, the label takes the side towards
+// the middle of the box. If that side has no room the label tries the other;
+// only where neither fits does it stay over the road (its backdrop is solid).
+// The first node has no road below it and keeps its label centred.
+//   pts: pathLayout's points · i: the node · top: the label's top, px below the
+//   node's centre · w, h: the label's size · width: the box's width
+// → the label's left, px from the box's left.
+export const PATH_LABEL_GAP = 10;  // the node's edge to the label's top
+export const PATH_ROAD_HALF = 3;   // half the road's widest stroke, rounded up
+export const PATH_LABEL_CLEAR = 5; // the road's stroke to the label's edge
+export const PATH_LABEL_EDGE = 8;  // the box's sides to the label
+export function pathLabelLeft(pts, i, { top, w, h, width }) {
+  const p = pts[i];
+  const centred = p.x - w / 2;
+  const min = PATH_LABEL_EDGE, max = width - PATH_LABEL_EDGE - w;
+  const fits = (left) => left >= min - 0.01 && left <= max + 0.01;
+  const clamp = (left) => Math.max(min, Math.min(max, left));
+  const below = pts[i - 1];
+  if (!below || !(below.y > p.y)) return clamp(centred);
+  const dx = below.x - p.x;
+  const at = (t) => (dx * t) / (below.y - p.y); // the road's x offset, t px below the centre
+  const a = at(top), b = at(top + h);
+  const roadL = p.x + Math.min(a, b) - PATH_ROAD_HALF - PATH_LABEL_CLEAR;
+  const roadR = p.x + Math.max(a, b) + PATH_ROAD_HALF + PATH_LABEL_CLEAR;
+  const left = Math.min(centred, roadL - w); // all of it left of the road
+  const right = Math.max(centred, roadR);    // all of it right of the road
+  const first = Math.abs(dx) < 1 ? (p.x > width / 2 ? left : right) : dx > 0 ? left : right;
+  const second = first === left ? right : left;
+  if (fits(first)) return first;
+  if (fits(second)) return second;
+  return clamp(first);
 }

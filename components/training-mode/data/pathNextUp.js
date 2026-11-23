@@ -68,6 +68,16 @@ export function conceptEndStars(cfg) {
     return endStars(series, stage, conceptSagaProgress(cfg.conceptId).completedStages?.[stage.id]);
   } catch { return null; }
 }
+// The concept stage's end screen asks here with this session's own result:
+// the row shows only for a session that ran every round and passed, paid XP
+// and was not refused. A replay of a stage cleared on an earlier day that
+// fails validation (or pays nothing) shows no stars: only finished, valid
+// sessions move anything.
+export function conceptSessionStars(cfg, { completed, total, outcome, refused, xp } = {}) {
+  if (outcome !== 'pass' || refused || !(Number(xp) > 0)) return null;
+  if (!(Number(completed) >= Math.max(1, Number(total) || 1))) return null;
+  return conceptEndStars(cfg);
+}
 function endStars(series, stage, entry) {
   const info = stageStars(series, stage, entry);
   if (!info.cleared || !info.max || info.stars == null) return null;

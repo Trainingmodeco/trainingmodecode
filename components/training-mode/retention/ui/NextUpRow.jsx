@@ -2,10 +2,13 @@ import { HOME, head, ARC, RETENTION_CSS } from './tokens';
 
 // Home's NEXT UP row (retention feature 2): the saga's current node or the
 // camp's current level, one tap to open it there. Copy from data/pathStars
-// nextUpCopy.
-export default function NextUpRow({ eyebrow, title, number, boss = false, onGo, style }) {
+// nextUpCopy: the badge carries the number, the title the name (at most two
+// lines), `label` the whole of it for a screen reader.
+const TWO_LINES = { display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden' };
+
+export default function NextUpRow({ eyebrow, title, label, number, boss = false, onGo, style }) {
   return (
-    <button type="button" data-retention="next-up" className="rt-go rt-anim" onClick={onGo} style={{
+    <button type="button" data-retention="next-up" aria-label={label} className="rt-go rt-anim" onClick={onGo} style={{
       width: '100%', minHeight: 64, boxSizing: 'border-box', borderRadius: 14, background: HOME.tile, border: '1px solid rgba(253,224,71,.35)',
       display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', cursor: 'pointer', textAlign: 'left', flexShrink: 0, ...style,
     }}>
@@ -17,7 +20,7 @@ export default function NextUpRow({ eyebrow, title, number, boss = false, onGo, 
       }}>{boss ? '👑' : number}</span>
       <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span style={{ ...head(10, 600), color: HOME.muted, overflowWrap: 'anywhere' }}>{eyebrow}</span>
-        <span style={{ ...head(15, 700, { letterSpacing: '0.02em', lineHeight: 1.2 }), color: '#fff', overflowWrap: 'anywhere' }}>{title}</span>
+        <span style={{ ...head(15, 700, { letterSpacing: '0.02em', lineHeight: 1.2 }), ...TWO_LINES, color: '#fff', overflowWrap: 'anywhere' }}>{title}</span>
       </span>
       <span style={{ ...head(12), color: HOME.gold, whiteSpace: 'nowrap', flexShrink: 0 }}>START ▶</span>
     </button>

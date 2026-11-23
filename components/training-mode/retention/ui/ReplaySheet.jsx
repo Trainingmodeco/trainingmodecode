@@ -20,7 +20,7 @@ export default function ReplaySheet({ eyebrow, title, stars, max = 3, check = fa
   return (
     <div className="rt-anim" style={{ position: 'absolute', inset: 0, zIndex: 30, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
       <style dangerouslySetInnerHTML={{ __html: RETENTION_CSS }}/>
-      <div onClick={onClose} aria-hidden style={{ position: 'absolute', inset: 0, background: 'rgba(4,0,10,0.55)' }}/>
+      <div onClick={onClose} aria-hidden style={{ position: 'absolute', inset: 0, background: 'rgba(4,0,10,0.68)' }}/>
       <section role="dialog" aria-label={title} data-retention="replay-sheet" style={{
         position: 'relative', maxHeight: '100%', overflowY: 'auto', boxSizing: 'border-box',
         borderRadius: '20px 20px 0 0', background: HOME.tile, borderTop: '1px solid rgba(253,224,71,.45)',

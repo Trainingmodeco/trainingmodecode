@@ -259,13 +259,13 @@ const STATES = [
     name: 'f2-home-next-up',
     note: 'Home: NEXT UP under the Continue card, the last saga\'s current node (One Punch, stage 6).',
     seed: OP_SEED, open: home, after: scrollTo('[data-retention="next-up"]'),
-    check: ['[data-retention="next-up"]'], expect: /NEXT UP · [\s\S]*Stage 6/,
+    check: ['[data-retention="next-up"]'], expect: /NEXT UP · ONE HUNDRED\s+The Standard Hundred/,
   },
   {
     name: 'f2-home-next-up-camp',
     note: 'Home: NEXT UP for Training Camp, the current level (5).',
     seed: CAMP_SEED, open: home, after: scrollTo('[data-retention="next-up"]'),
-    check: ['[data-retention="next-up"]'], expect: /NEXT UP · TRAINING CAMP[\s\S]*Level 5/,
+    check: ['[data-retention="next-up"]'], expect: /NEXT UP · TRAINING CAMP\s+Volume/,
   },
   {
     name: 'f2-saga-path',

@@ -23,6 +23,7 @@ const N = await import('../components/training-mode/data/pathNextUp.js');
 const A = await import('../components/training-mode/data/trainingArcadeData.js');
 const CS = await import('../components/training-mode/data/concepts/saga.js');
 const CI = await import('../components/training-mode/data/concepts/index.js');
+const FX = await import('../components/training-mode/data/fightSessionXp.js');
 const { campLevels } = await import('../components/training-mode/protocol/content.ts');
 
 let pass = 0, fail = 0;
@@ -134,6 +135,46 @@ check('at 300 to 768 px every node (boss size) keeps 16 px from the sides', insi
 check('node 1 at the bottom, each next one higher', climbs);
 check('the road is centred on the box, not on a fixed 360', P.pathLayout(1, 430).pts[0].x === 215 && P.pathLayout(1, 360).pts[0].x === 180);
 
+// The label under a node (stars, or the camp's S1/S2 pips) hangs clear of the
+// road: no point of either road segment at the node comes within the road's
+// half stroke of the label, and the label stays inside the box. Sizes: 3, 2
+// and 1 stars, the cleared and the locked pips, under a plain node and under
+// the current one (bigger, with its ring).
+const roadHits = (a, b, r, pad) => {
+  for (let k = 0; k <= 400; k++) {
+    const t = k / 400, x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t;
+    if (x >= r.l - pad && x <= r.r + pad && y >= r.t - pad && y <= r.b + pad) return true;
+  }
+  return false;
+};
+let crossed = [], outside = [], centredFirst = true;
+for (const w of [280, 300, 320, 340, 360, 375, 390, 412, 430]) {
+  for (const count of [5, 10, 12]) {
+    const { pts } = P.pathLayout(count, w);
+    for (let i = 0; i < count; i++) {
+      for (const [lw, lh, size] of [[53, 19, P.PATH_SIZE.node], [38, 19, P.PATH_SIZE.node], [23, 19, P.PATH_SIZE.node], [76, 18, P.PATH_SIZE.node], [56, 18, P.PATH_SIZE.node], [76, 18, P.PATH_SIZE.current]]) {
+        const top = size / 2 + P.PATH_LABEL_GAP;
+        const left = P.pathLabelLeft(pts, i, { top, w: lw, h: lh, width: w });
+        const r = { l: left, r: left + lw, t: pts[i].y + top, b: pts[i].y + top + lh };
+        if ((pts[i - 1] && roadHits(pts[i], pts[i - 1], r, P.PATH_ROAD_HALF)) || (pts[i + 1] && roadHits(pts[i], pts[i + 1], r, P.PATH_ROAD_HALF))) crossed.push(`${w}px/${count}/#${i}/${lw}`);
+        if (left < P.PATH_LABEL_EDGE - 0.01 || left + lw > w - P.PATH_LABEL_EDGE + 0.01) outside.push(`${w}px/${count}/#${i}/${lw}`);
+        if (i === 0 && Math.abs(left - (pts[0].x - lw / 2)) > 0.01) centredFirst = false;
+      }
+    }
+  }
+}
+check('at 280 to 430 px the road never runs through a node\'s stars or pips', !crossed.length, crossed.slice(0, 6).join(' '));
+check('… and every label stays 8 px inside the box', !outside.length, outside.slice(0, 6).join(' '));
+check('… the first node (no road below it) keeps its label centred', centredFirst);
+check('… a label moves off centre only as far as the road needs (the gap is the clearance)', (() => {
+  const { pts } = P.pathLayout(10, 360);
+  const top = P.PATH_SIZE.node / 2 + P.PATH_LABEL_GAP, lw = 53, lh = 19;
+  const left = P.pathLabelLeft(pts, 4, { top, w: lw, h: lh, width: 360 });
+  const dx = pts[3].x - pts[4].x; // the road below stage 5 heads right, so the label hangs left
+  const roadAt = pts[4].x + (dx * top) / (pts[3].y - pts[4].y);
+  return dx > 0 && Math.abs(left + lw - (roadAt - P.PATH_ROAD_HALF - P.PATH_LABEL_CLEAR)) < 0.01;
+})());
+
 section('Home NEXT UP');
 const find = (over = {}) => ({
   series: ({ seriesId, conceptId: cid }) => (cid ? CONCEPT : byId(seriesId)),
@@ -146,7 +187,9 @@ check('no last session: hidden', P.nextUpFrom(null, find()) === null);
 check('a Fight Focus last session: hidden', P.nextUpFrom({ kind: 'timer', cfg: { mode: 'Fight Focus' } }, find()) === null);
 let nu = P.nextUpFrom({ kind: 'arcade', cfg: { seriesId: 'one-punch-protocol', stageNumber: 2 } }, find());
 check('arcade: the saga\'s current node (stage 3)', nu?.kind === 'arcade' && nu.seriesId === 'one-punch-protocol' && nu.number === 3, JSON.stringify(nu));
-check('… copy', eq(P.nextUpCopy(nu), { eyebrow: `NEXT UP · ${OP.title.toUpperCase()}`, title: 'Stage 3: Pull Balance Foundation' }), JSON.stringify(P.nextUpCopy(nu)));
+check('… copy: the name alone (the badge has the number), the label says both', eq(P.nextUpCopy(nu), { eyebrow: `NEXT UP · ${OP.title.toUpperCase()}`, title: 'Pull Balance Foundation', label: `Next up in ${OP.title}: Stage 3, Pull Balance Foundation. Start` }), JSON.stringify(P.nextUpCopy(nu)));
+const dashed = P.nextUpCopy({ kind: 'arcade', saga: 'The Climb', number: 4, title: 'Loop-de-Loop — Land, Stabilize & Build the Base' });
+check('… a title with a tagline: the name alone on the row, the whole title in the label', dashed.title === 'Loop-de-Loop' && dashed.label === 'Next up in The Climb: Stage 4, Loop-de-Loop — Land, Stabilize & Build the Base. Start', JSON.stringify(dashed));
 check('arcade, all cleared: hidden', P.nextUpFrom({ kind: 'arcade', cfg: { seriesId: 'one-punch-protocol' } }, find({ progress: () => prog(Object.fromEntries(OP.stages.map((s) => [s.id, {}]))) })) === null);
 check('a saga that cannot be played: hidden', P.nextUpFrom({ kind: 'arcade', cfg: { seriesId: 'demon-back-protocol' } }, find()) === null);
 check('an unknown saga: hidden', P.nextUpFrom({ kind: 'arcade', cfg: { seriesId: 'nope' } }, find({ series: () => null })) === null);
@@ -155,7 +198,7 @@ nu = P.nextUpFrom({ kind: 'timer', cfg: { conceptId, conceptKind: 'arcade', conc
 check('a concept stage (stored as a timer session): its saga, stage 1, title case', nu?.conceptId === conceptId && nu.number === 1 && /[a-z]/.test(nu.title), JSON.stringify(nu));
 nu = P.nextUpFrom({ kind: 'camp', cfg: { level: 6 }, disc: 'Muay Thai' }, find());
 check('camp: the cursor\'s level (7), the discipline kept', nu?.kind === 'camp' && nu.number === 7 && nu.disc === 'Muay Thai');
-check('… copy', P.nextUpCopy(nu).eyebrow === 'NEXT UP · TRAINING CAMP' && /^Level 7: /.test(P.nextUpCopy(nu).title));
+check('… copy', P.nextUpCopy(nu).eyebrow === 'NEXT UP · TRAINING CAMP' && !/^Level/.test(P.nextUpCopy(nu).title) && /: Level 7, /.test(P.nextUpCopy(nu).label), JSON.stringify(P.nextUpCopy(nu)));
 nu = P.nextUpFrom({ kind: 'camp', cfg: {} }, find({ camp: () => ({ levels: campLevels, current: 12, campDone: false, sessions: {} }) }));
 check('camp on level 12: the Title Fight', nu?.title === 'Title Fight' && nu.boss);
 check('camp, title won: hidden', P.nextUpFrom({ kind: 'camp', cfg: {} }, find({ camp: () => ({ levels: campLevels, current: 12, campDone: true, sessions: {} }) })) === null);
@@ -189,6 +232,24 @@ es = N.conceptEndStars({ conceptId, conceptKind: 'arcade', conceptStage: 0 });
 check('a concept stage cleared on FIGHT and BOTH: 2 of 3 arcs', es?.stars === 2 && es.max === 3 && es.line === 'One star per arc: FIT · FIGHT ✓ · BOTH ✓', JSON.stringify(es));
 check('a concept fight day (not a stage): no row', N.conceptEndStars({ conceptId, conceptKind: 'fight' }) === null);
 check('a concept stage not cleared: no row', N.conceptEndStars({ conceptId, conceptKind: 'arcade', conceptStage: 1 }) === null);
+// The concept stage's end screen asks with this session's own result
+// (SessionSummary, through the same settleFightXp the host banks with): a
+// replay of a stage cleared on an earlier day shows its stored stars only when
+// this run is finished and valid.
+const stageCfg0 = { conceptId, conceptKind: 'arcade', conceptStage: 0, difficulty: 'Normal', mode: 'Fight Focus' };
+const settle = (completed, integrityResult = null) => {
+  const r = FX.settleFightXp({ completed, total: 3, difficulty: 'Normal', integrityResult, mode: 'fight' });
+  return { completed, total: 3, outcome: r.verdict.outcome, refused: r.refused, xp: r.xp };
+};
+es = N.conceptSessionStars(stageCfg0, settle(3));
+check('a replay that passes: the stored stars, 2 of 3', es?.stars === 2 && es.max === 3, JSON.stringify(es));
+const cheat = settle(3, { awardXp: false, validityStatus: 'tooFast', validCompletedUnits: 0, totalRequiredUnits: 3 });
+check('… the regression: a replay of the cleared stage that fails validation shows no stars', cheat.outcome === 'validation_failed' && N.conceptSessionStars(stageCfg0, cheat) === null, JSON.stringify(cheat));
+check('… a refused run (the integrity check paid nothing) shows no stars', N.conceptSessionStars(stageCfg0, settle(3, { awardXp: false, validityStatus: 'incomplete', validCompletedUnits: 0, totalRequiredUnits: 3 })) === null);
+check('… a full run the engine failed shows no stars', N.conceptSessionStars(stageCfg0, { completed: 3, total: 3, outcome: 'fail', refused: false, xp: 0 }) === null);
+check('… a pass that paid no XP shows no stars', N.conceptSessionStars(stageCfg0, { completed: 3, total: 3, outcome: 'pass', refused: false, xp: 0 }) === null);
+check('… a run ended before the last round shows no stars', N.conceptSessionStars(stageCfg0, settle(2)) === null);
+check('… no result at all shows no stars', N.conceptSessionStars(stageCfg0) === null);
 
 section('the NEXT UP tap');
 const calls = [];

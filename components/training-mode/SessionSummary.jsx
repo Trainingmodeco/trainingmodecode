@@ -3,7 +3,7 @@ import MissionComplete from './shared/MissionComplete';
 import { C } from './Styles';
 import { settleFightXp, fightSummaryCopy } from './data/fightSessionXp';
 import { retentionOn } from './data/retentionFlags';
-import { conceptEndStars } from './data/pathNextUp';
+import { conceptSessionStars } from './data/pathNextUp';
 import { playStarTone } from './data/audioEngine';
 import StageStarsCard from './retention/ui/StageStarsCard';
 
@@ -33,8 +33,11 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
   const stoppedEarly = verdict.outcome !== 'pass';
   const copy = fightSummaryCopy({ verdict, xp });
   // Retention feature 2 (switch `path`): a concept saga stage run to the end
-  // gets a small stars row, the stage's stars as stored after this session.
-  const [conceptStars] = useState(() => (retentionOn('path') && cfg.conceptKind === 'arcade' && completed >= totalPlanned ? conceptEndStars(cfg) : null));
+  // and passed (valid, paid XP) gets a small stars row, the stage's stars as
+  // stored after this session.
+  const [conceptStars] = useState(() => (retentionOn('path') && cfg.conceptKind === 'arcade'
+    ? conceptSessionStars(cfg, { completed, total: totalPlanned, outcome: verdict.outcome, refused, xp })
+    : null));
   const note = copy.note ? <div style={{ font: "600 10.5px 'Rajdhani',sans-serif", color: '#c9a6ff', textAlign: 'center' }}>{copy.note}</div> : null;
   const displayRounds = rounds.slice(0, completed);
   const totalMin = Math.round((completed * cfg.roundMin * 60 + Math.max(0, completed - 1) * cfg.restSec) / 60);

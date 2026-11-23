@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
 import StarsRow from './StarsRow';
-import { pathLayout, PATH_SIZE } from '../../data/pathStars';
+import { pathLayout, pathLabelLeft, PATH_SIZE, PATH_LABEL_GAP } from '../../data/pathStars';
 import { ARC, RETENTION_CSS } from './tokens';
 
 // The path (retention feature 2), one component for the Arcade sagas and
@@ -23,13 +23,20 @@ import { ARC, RETENTION_CSS } from './tokens';
 const SIZE = PATH_SIZE;
 const FADE = 'linear-gradient(to bottom, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%)';
 
+// The label under a node (its stars or its pips) sits on one solid backdrop.
+const LABEL_BG = '#0d0418';
+// Its size before it is measured: what the stars or the pips take, rounded up.
+const labelGuess = (node, stars) => ({
+  w: Math.max(node.pips ? 76 : 0, stars ? node.max * 13 + (node.max - 1) * 2 + 12 : 0),
+  h: (node.pips ? 18 : 0) + (stars ? 19 : 0) + (node.pips && stars ? 3 : 0),
+});
+
 function Pips({ pips, state }) {
   const pip = (label, done, next) => (
     <span style={{
       font: `800 8px ${ARC.head}`, letterSpacing: '0.02em', borderRadius: 5, padding: '2px 5px', whiteSpace: 'nowrap',
       color: done ? '#22c55e' : next ? ARC.gold : '#b7abd6',
-      // Solid fills: the road runs under the pips.
-      background: done ? '#0b2416' : next ? '#2a2208' : '#0d0418',
+      background: done ? '#0b2416' : next ? '#2a2208' : LABEL_BG,
       border: `1px solid ${done ? 'rgba(34,197,94,0.55)' : next ? 'rgba(253,224,71,0.55)' : 'rgba(168,85,247,0.35)'}`,
     }}>{label}{done ? ' ✓' : ''}</span>
   );
@@ -78,6 +85,25 @@ export default function PathMap({ nodes = [], onPick, unit = 'STAGE', bossLabel 
   const boxRef = useRef(null);
   const [width, setWidth] = useState(0);
   const scrolled = useRef(false);
+  // Each label's real size (fonts differ by phone), so it can hang clear of
+  // the road (pathLabelLeft). Measured before paint, again once fonts load.
+  const labelEls = useRef([]);
+  const [labelSize, setLabelSize] = useState({});
+  const [fontsReady, setFontsReady] = useState(0);
+  useLayoutEffect(() => {
+    const next = {};
+    labelEls.current.forEach((el, i) => { if (el) next[i] = { w: el.offsetWidth, h: el.offsetHeight }; });
+    setLabelSize((prev) => {
+      const keys = Object.keys(next);
+      const same = keys.length === Object.keys(prev).length && keys.every((k) => prev[k] && prev[k].w === next[k].w && prev[k].h === next[k].h);
+      return same ? prev : next;
+    });
+  }, [nodes, width, fontsReady]);
+  useEffect(() => {
+    let alive = true;
+    document.fonts?.ready?.then(() => { if (alive) setFontsReady((n) => n + 1); });
+    return () => { alive = false; };
+  }, []);
 
   useLayoutEffect(() => {
     const el = boxRef.current;
@@ -142,6 +168,9 @@ export default function PathMap({ nodes = [], onPick, unit = 'STAGE', bossLabel 
             const what = node.state === 'current' ? 'start' : cleared ? (node.stars != null && node.max ? `cleared, ${node.stars} of ${node.max} stars` : 'cleared') : 'locked';
             const name = node.boss ? `${bossLabel === 'BOSS' ? 'Boss stage' : 'Title fight'} ${node.number}` : `${unit === 'LEVEL' ? 'Level' : 'Stage'} ${node.number}`;
             const under = cleared && node.stars != null && node.max > 0;
+            const labelled = under || !!node.pips;
+            const box = labelled ? labelSize[i] || labelGuess(node, under) : null;
+            const labelTop = size / 2 + PATH_LABEL_GAP;
             return (
               <div key={node.id || i}>
                 {node.state === 'current' && (
@@ -168,9 +197,20 @@ export default function PathMap({ nodes = [], onPick, unit = 'STAGE', bossLabel 
                     </span>
                   )}
                 </button>
-                {(under || node.pips) && (
-                  <div aria-hidden data-guide={node.pipsGuide} style={{ position: 'absolute', left: x - 50, top: y + size / 2 + 4, width: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, pointerEvents: 'none', zIndex: 3 }}>
-                    {under && <StarsRow n={node.stars} of={node.max} size={13} style={{ background: 'rgba(10,0,20,0.85)', borderRadius: 8, padding: '2px 5px' }}/>}
+                {labelled && (
+                  // Hung on the side away from the road below (pathLabelLeft),
+                  // on a solid backdrop, so the road never runs through it.
+                  <div
+                    aria-hidden
+                    data-guide={node.pipsGuide}
+                    ref={(el) => { labelEls.current[i] = el; }}
+                    style={{
+                      position: 'absolute', top: y + labelTop, left: pathLabelLeft(pts, i, { top: labelTop, w: box.w, h: box.h, width }),
+                      width: 'max-content', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 3,
+                      background: LABEL_BG, borderRadius: 8, padding: node.pips ? 2 : '3px 6px', boxShadow: '0 2px 6px rgba(0,0,0,0.55)',
+                    }}
+                  >
+                    {under && <StarsRow n={node.stars} of={node.max} size={13}/>}
                     {node.pips && <Pips pips={node.pips} state={node.state}/>}
                   </div>
                 )}

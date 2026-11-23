@@ -241,6 +241,30 @@ screens, storage writes and XP are the same as before (checked, below).
 - Concept saga progress and the last session are per device (`tm_concepts_v1`, `tm_last_session_v1` are not in
   SYNC_KEYS, as before), so NEXT UP and concept stars do not follow a sign-in to another phone.
 
+### Review fixes (2026-11-23)
+
+- **Concept stage end screen**: the stars row now needs this session's own pass, not only every round run: a pass
+  verdict, not refused by the integrity check, and XP paid (`pathNextUp.conceptSessionStars`, from the same
+  `settleFightXp` the host banks with). A replay of a stage cleared on an earlier day that fails validation shows no
+  stars. `test:path` has the regression case (a `tooFast` replay through the real `settleFightXp`), plus refused,
+  failed, unpaid and ended-early runs. How a concept stage is marked cleared (`recordConceptSession`, every round
+  done) is not changed.
+- **The road no longer runs through a node's stars or pips.** The label under a node hangs on the side away from
+  the road coming up from the node below, moving off centre only as far as the road needs (`pathStars.pathLabelLeft`,
+  from the label's measured size); where the road comes straight up it takes the side towards the middle. Stars and
+  pips sit on one solid backdrop, and the gap from the node is 10 px (was 4), so the current node's pips are clear of
+  its ring. `test:path` checks every node at 280 to 430 px for 5, 10 and 12 nodes: no road segment within its stroke
+  of a label, every label 8 px inside the box.
+- **Home NEXT UP**: the badge carries the number, so the title is the stage or level name alone ("The Standard
+  Hundred", "Volume"), without the tagline after a dash ("Loop-de-Loop — Land, Stabilize & Build the Base" reads
+  "Loop-de-Loop"). The longest name (29 characters) keeps to two lines at 360, and the title is clamped at two lines
+  as a guard. A screen reader hears the whole: "Next up in One Hundred: Stage 6, The Standard Hundred. Start".
+- **Replay sheet**: the map behind it is a little darker (scrim 0.55 to 0.68). Nothing else changed there: the sheet
+  covering the bottom of the road matches the app's other sheets.
+- Checked: `test:path` (88), `test:xp`, `test:concepts`, `test:missions`, `test:streak`, `test:storage`,
+  `test:levels`, `test:ayp`, `test:maxout`, eslint, `tsc`, `check:all` through `build:web`, then `smoke:web` on its
+  own (147 checks, about 40 minutes), and `retention-preview.mjs` at 360, 390 and 430 (every feature 2 state fits).
+
 ### For the owner (old, not changed)
 
 - **Gravity Chamber's pop-up** advertises EASY / NORMAL / HARD as 1 / 2 / 3 stars, but its stars are stored per path
