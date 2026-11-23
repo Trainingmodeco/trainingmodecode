@@ -60,7 +60,7 @@ export const SCREEN_GUIDES = {
     { screen: 'fit_hub', target: 'mode-fit', title: 'FIT MODE — BUILD THE BODY', body: 'Choose this for strength and cardio, no fighting required. Here is what is inside.' },
     { screen: 'fit_hub', target: 'fit-builder', title: '🛠 BUILD WORKOUT', body: 'Tell it which muscles to hit, what equipment you have and how hard — it builds the workout. Then shape it: tap any exercise name for a demo and form cues, swipe to remove, hold to reorder, and double-tap ⛓ to link exercises into a superset or circuit. Once you have trained once, TRAIN AGAIN repeats your last session with the progression already added.' },
     { screen: 'fit_hub', target: 'fit-builder', title: 'AND WHILE YOU TRAIN', body: 'The coach counts your reps out loud and times your rest. You are never locked into the order — a WORKOUT MAP sits above the tab bar, and holding any exercise starts that one instead. Every set you log builds a history, so the app knows what to ask of you next time.' },
-    { screen: 'fit_hub', target: 'fit-quick', title: '🎯 QUICK MISSION', body: 'Short on time? Pick a length and it generates a circuit on the spot. No setup, no decisions — just start moving.' },
+    { screen: 'fit_hub', target: 'fit-today', title: '🎯 QUICK MISSION', body: 'Short on time? The card at the top is a quick circuit picked for you: tap START. ADJUST lets you pick the length and it builds a new one on the spot.' },
     { screen: 'fit_hub', target: 'fit-programs', title: '📋 PROGRAMS', body: 'Rather follow a plan? Programs runs a split for you — Push/Pull/Legs, Upper/Lower and more — and remembers which day is next, so every session is one tap.' },
     { screen: 'fit_hub', target: 'fit-cardio', title: '❤ CARDIO MODE', body: 'Cardio on its own: runs on GPS or a treadmill, machine work, and fight rounds or Tabata, with pace coaching and a target you set by distance or time.' },
     { screen: 'fit_hub', target: 'fit-cardio', title: '🗺️ AND IT TRACKS YOUR RUN', body: 'Start an outdoor run and Training Mode maps it. The route draws itself as you move, coloured green where you are on pace and orange where you drop off it, with a split called at every half mile or kilometre. Afterwards it all goes to PROGRESS → RUNS — career totals, a weekly distance goal, your best time at each distance, and the map of every run you have done.' },
@@ -122,8 +122,8 @@ export const SCREEN_GUIDES = {
 
   fit_hub: [
     { target: null, title: '💪 FIT MODE', body: 'This is the Fit Mode hub — strength, conditioning and cardio, no fighting required. The card at the top is today\'s workout; everything below it is for when you want to choose your own.' },
-    { target: 'fit-today', title: "TODAY'S MISSION", body: 'A workout picked for you from your goal and your last session. The line under the title is exactly what START runs. Not feeling it? SURPRISE ME deals a random one in its place, and ADJUST lets you set the length and intensity yourself.' },
-    { target: 'fit-quick', title: 'QUICK MISSION', body: 'Circuit-style workouts for when you are short on time — slide to the minutes you have and it builds the circuit at your level.' },
+    { target: 'fit-today', title: 'QUICK MISSION', body: 'Today\'s quick workout, picked from your goal and your last session. The line under the title is exactly what START runs. Not feeling it? SURPRISE ME deals a random one in its place.' },
+    { target: 'fit-quick', title: 'ADJUST', body: 'Opens the Quick Mission page: slide to the minutes you have and it builds the circuit at your level.' },
     { target: 'fit-builder', title: 'BUILD WORKOUT', body: 'Want a workout built off the muscle groups you select? Pick your muscles, gear and difficulty. It remembers what you lifted and pushes you a little further each time, and TRAIN AGAIN repeats your last session in one tap.' },
     { target: 'fit-programs', title: 'PROGRAMS', body: 'Follow a plan instead of deciding each day. Pick a split — Full Body, Push/Pull/Legs, Upper/Lower or Bro Split — and it remembers which day is next.' },
     { target: 'fit-cardio', title: 'CARDIO', body: 'Runs on GPS or a treadmill, machine work and intervals, with pace coaching and a target you set by distance or time.' },
@@ -307,7 +307,7 @@ export const SCREEN_GUIDES = {
 // with the Quick Mission row naming the Mission Library's missions and today's
 // mission saying what "At your pace" on its line means.
 SCREEN_GUIDES.fit_hub_v2 = SCREEN_GUIDES.fit_hub.map(s => (s.target === 'fit-quick'
-  ? { ...s, body: 'A quick workout without the planning: set your gear and time, then START. Ready-made missions for no gear, one bell or one bar wait in its Mission Library.' }
+  ? { ...s, body: 'Opens the Quick Mission page: set your gear and time, then START. Ready-made missions for no gear, one bell or one bar wait in its Mission Library.' }
   : s.target === 'fit-today'
     ? { ...s, body: `${s.body} If the line ends "At your pace", START runs the moves and a timer, no coach voice: you choose that on the Quick Mission page.` }
     : s));

@@ -118,7 +118,8 @@ await check('quick mission start', async () => { await fit(); await page.locator
 // with its bottom chopped off and the Cardio row was cut under the tab bar, so
 // the stack has to FIT, not scroll: every block above the tab bar, none on top
 // of another, the title whole. Boots once; the next checks only resize.
-const FIT_BLOCKS = ['fit-today', 'fit-concept', 'fit-quick', 'fit-builder', 'fit-programs', 'fit-tapes', 'fit-cardio'];
+// Quick Mission is the top card now (its page opens from ADJUST, fit-quick), so it is not a block of its own.
+const FIT_BLOCKS = ['fit-today', 'fit-concept', 'fit-builder', 'fit-programs', 'fit-tapes', 'fit-cardio'];
 // atYourPace: the saved AT YOUR PACE choice puts "· At your pace" on the card's
 // line, so the day uses the Quick Mission pick (no earlier session, which would
 // make today's pick the long Recovery Circuit) with its two-line title.

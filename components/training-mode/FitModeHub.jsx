@@ -10,7 +10,7 @@ import { ChevronLeft, ChevronRight, Home, Shuffle, SlidersHorizontal, Heart, Pla
 import { loadProfile } from './data/userProfile';
 import { loadStats } from './data/userStats';
 import { getFitMiniSuggestion } from './data/recommendations';
-import { quickMissionConfig, surpriseQuickMission, quickMissionLine } from './data/quickMissionConfig';
+import { quickMissionConfig, surpriseQuickMission, quickMissionLine, loadQuickMissionKeys } from './data/quickMissionConfig';
 import { hasAnyRunGhost } from './data/runGhosts';
 import { qmV2Enabled } from './data/qmV2';
 import { loadShelfPrefs } from './data/loadoutMissions';
@@ -111,9 +111,30 @@ export default function FitModeHub({
   // SURPRISE ME re-rolls this card in place rather than launching anything:
   // a timed session should never begin from a tap whose outcome you haven't
   // seen.
+  // The card is always Quick Mission (the owner, 2026-11-23: one Quick Mission
+  // on the hub, the yellow START kept). A pick that names another mode, Build
+  // Workout for a strength goal or Combat Conditioning for fight conditioning,
+  // becomes a Quick Mission for the same goal on the gear saved on the Quick
+  // Mission page; Build Workout keeps its row, Combat Conditioning its Fight tab.
+  const [goalQuick] = useState(() => {
+    if (!pick || pick.actionType === 'quickMission') return null;
+    const { workoutType } = loadQuickMissionKeys();
+    return pick.actionType === 'combatConditioning'
+      ? { title: 'Fighter Circuit', cfg: quickMissionConfig({ duration: 15, focus: 'Combat', workoutType, stats }) }
+      : { title: 'Strength Circuit', cfg: quickMissionConfig({ duration: 20, focus: 'Full Body', workoutType, stats }) };
+  });
   const mission = surprise
-    || (pick?.actionType === 'quickMission' ? quickMissionConfig(pick.actionPayload || {}) : null);
-  const title = surprise ? 'Surprise Mission' : (pick?.title || 'Quick Mission');
+    || (pick?.actionType === 'quickMission' ? quickMissionConfig(pick.actionPayload || {}) : goalQuick?.cfg || null);
+  // One Quick Mission on the hub (the owner, 2026-11-23: two Quick Mission
+  // buttons on top read as two different things). The card IS Quick Mission:
+  // its label says so and the title drops the repeated "Quick Mission —".
+  // ADJUST opens the Quick Mission page, so the row is gone.
+  const isQuick = !!mission;
+  const label = isQuick ? 'Quick Mission' : 'Today\u2019s pick';
+  const title = surprise ? 'Surprise Mission'
+    : goalQuick ? goalQuick.title
+      : isQuick ? ((pick?.title || '').replace(/^Quick Mission\s*[\u2014\u2013-]\s*/i, '') || 'Quick Mission')
+        : (pick?.title || 'Quick Mission');
   const line = mission ? quickMissionLine(mission, { v2, atYourPace }) : (pick?.subtitle || '');
 
   const startPick = () => {
@@ -123,13 +144,14 @@ export default function FitModeHub({
     else onQuickMission?.();
   };
 
+  // Quick Mission is the card at the top (with ADJUST for its page), so the
+  // rows are the other ways to train, numbered in the order shown.
   const ROWS = [
-    { n: '01', key: 'quick', title: 'Quick Mission', sub: v2 ? 'Short notice · any gear · any room' : 'Ready-made workout', onClick: onQuickMission },
-    { n: '02', key: 'builder', title: 'Build Workout', sub: 'Customize everything', onClick: onWorkoutBuilder },
-    { n: '03', key: 'programs', title: 'Programs', sub: 'Follow a plan', onClick: onPrograms },
+    { key: 'builder', title: 'Build Workout', sub: 'Customize everything', onClick: onWorkoutBuilder },
+    { key: 'programs', title: 'Programs', sub: 'Follow a plan', onClick: onPrograms },
     // Coach's Tapes — only passed in while the shelf is owner-only (data/tapes).
-    { n: '04', key: 'tapes', title: "Coach's Tapes", sub: 'Follow along · on YouTube', onClick: onTapes, badge: 'NEW' },
-  ].filter(r => r.onClick);
+    { key: 'tapes', title: "Coach's Tapes", sub: 'Follow along · on YouTube', onClick: onTapes, badge: 'NEW' },
+  ].filter(r => r.onClick).map((r, i) => ({ ...r, n: String(i + 1).padStart(2, '0') }));
 
   // Concept drop on? The card renders nothing when none is featured, so the
   // gap that would sit beside it and the guide's last step both go with it.
@@ -220,7 +242,7 @@ export default function FitModeHub({
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(7,6,12,0.96) 0%, rgba(7,6,12,0.8) 52%, rgba(7,6,12,0.18) 100%)' }}/>
             <div style={{ position: 'relative', flex: '1 0 auto', boxSizing: 'border-box', padding: '8px 14px 10px', display: 'flex', flexDirection: 'column', gap: 3 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-                <span style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTED }}>Today&apos;s mission</span>
+                <span style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: isQuick ? GOLD : MUTED }}>{label}</span>
                 {/* Ghost is a state of today's mission now, not a separate row
                     below it — it only shows when a ghost is actually waiting. */}
                 {onGhostMode && hasGhost && (
@@ -263,7 +285,7 @@ export default function FitModeHub({
               height: 44, display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none',
               cursor: 'pointer', color: MUTED, font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em',
             }}><Shuffle size={15}/>SURPRISE ME</button>
-            <button type="button" className="fm-quiet" onClick={onQuickMission} style={{
+            <button type="button" className="fm-quiet" data-guide="fit-quick" aria-label="Adjust: open the Quick Mission page" onClick={onQuickMission} style={{
               height: 44, display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none',
               cursor: 'pointer', color: MUTED, font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em',
             }}><SlidersHorizontal size={15}/>ADJUST</button>
