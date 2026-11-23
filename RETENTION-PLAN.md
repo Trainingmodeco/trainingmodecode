@@ -13,10 +13,16 @@ hidden gallery at `/retention-looks` (code in `components/training-mode/retentio
   filled with arcade-style house scores, clearly tagged `CPU`, at a spread of levels. Real players rank among them.
   Once a mode has 5 or more real players, house scores stay only below the lowest real score, so they fade out as
   people join. House scores are never shown as real people.
-- **Nothing new is switched on for users until Training Mode is in the App Store** (planned for January). Every
-  feature is built behind its own switch, on for the owner's phone (owner preview) and off for everyone else.
-- **After launch, drop the rest a few at a time, one batch per quarter** (every 3 to 4 months): the score board,
-  squads, the season reward track, and the notifications pass.
+- **Release now (owner, 2026-11-23, replacing the January plan for this batch):** "Everything that we worked on now,
+  the retry, the scoreboard, everything that was a question that we just reviewed: you could push that into the app
+  once generated." So this batch is switched on for everyone (its switches set in `FOR_EVERYONE`) as each piece is
+  built, reviewed and passes the full check: the weekly streak with Today's Bout and 1UPs, the path and stars (camp
+  stars too), near-miss retry, POWER / RUSTY / REVIVE, the Fit workout card, the owner's board answers, and the
+  game-over score board (its server table and security rules are shown to the owner before anything is created on the
+  live database).
+- **Next year, one batch per quarter:** "the team workouts, the league, and all that other stuff": squads (team
+  workouts), weekly leagues, the season reward track, and the notifications pass (low-POWER alerts, "Remind me
+  tomorrow"). They stay off until their quarter.
 
 ## Defaults used while the open questions are unanswered
 
@@ -24,14 +30,12 @@ The owner said "just work on" features 1 to 3, so the gallery's recommendations 
 weekly target 4 days (2 to 6 in settings), one freeze per 4 weeks on target, hold at most 2, new athletes start with 1,
 all features free.
 
-## Release order (proposal, the owner sets the dates)
+## Release order (owner, 2026-11-23)
 
 | When | What |
 | --- | --- |
-| Launch (January) | Weekly streak + daily mission + freezes, the path + stars, near-miss retry |
-| Launch + 1 quarter | Game-over score board |
-| Launch + 2 quarters | Squads |
-| Launch + 3 quarters | Season reward track, notifications pass |
+| Now, as each piece passes its checks | Weekly streak + Today's Bout + 1UPs, the path + stars (camp stars too), near-miss retry, POWER / RUSTY / REVIVE, the Fit workout card, the board answers, the game-over score board (after the owner approves its server design) |
+| Next year, quarter 1 to 4 (one batch per quarter) | Squads (team workouts), weekly leagues, the season reward track, the notifications pass |
 
 ## Visual rule for every new screen (owner, 2026-11-22)
 
