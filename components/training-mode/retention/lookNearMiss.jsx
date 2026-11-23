@@ -42,6 +42,7 @@ function EndTop({ eyebrow, title, sub, xp, stat, tone = '#a855f7', eyebrowColor 
 
 export default function LookNearMiss() {
   const ff = settled({ unit: 'rounds', done: 2, total: 3, outcome: 'partial' });
+  const nothing = settled({ unit: 'rounds', done: 0, total: 3, outcome: 'fail' });
   const boss = settled({ unit: 'rounds', done: 9, total: 12, outcome: 'partial' }, { boss: 'boss' });
   const again = settled({ unit: 'exercises', done: 10, total: 12, outcome: 'partial' }, { attemptsToday: 2 });
   const stage = OP.stages[4];
@@ -55,11 +56,17 @@ export default function LookNearMiss() {
   return (
     <Feature id="f3" num="FEATURE 3" title="NEAR-MISS RETRY"
       reuse="the shared end screen (MissionComplete) and the classic Arcade's stage screens, their verdicts from sessionOutcome, each mode's own start (the same session again: Fight Focus, Combo, Quick Mission, Combat Conditioning, Fit, arcade v2; the camp map's readiness and gear checks; the classic stage's own RETRY)."
-      isNew="how close it was in plain words from the session's real counts, with a bar; RETRY and COME BACK FRESH TOMORROW as two buttons of the same size; no RETRY after a boss, the title fight, MAX OUT, a second go at the same session or three sessions in a day: the screen says when to come back and offers DONE FOR TODAY; the classic clear with fewer than three stars offers the third star next to the next stage (with no replay today, the gap over the next stage and no come-back line). There is no reminder to hook a REMIND ME TOMORROW into, so it is left out.">
+      isNew="how close it was in plain words from the session's real counts, with a bar; RETRY and COME BACK FRESH TOMORROW as two buttons of the same size; no RETRY after a boss, the title fight, MAX OUT, a second go at the same session or three sessions in a day: the screen says when to come back and offers DONE FOR TODAY; a session ended with nothing done shows what was left (still no try); the classic clear with fewer than three stars offers the third star next to the next stage (with no replay today, the gap over the next stage and no come-back line). There is no reminder to hook a REMIND ME TOMORROW into yet: it comes with the notifications pass.">
 
       <Look name="Stopped short, retry is safe" note="Fight Focus, 2 of 3 rounds. The panel sits under the stats; RETRY runs the same session, and the way home is the same size." height={420}>
         <EndTop eyebrow="SESSION STOPPED" title="GOOD EFFORT" sub="Boxing · Normal · Fight Focus" xp="+40" stat={['2/3', 'ROUNDS']}>
           <NearMissPanel miss={ff.miss} gate={ff.gate} onRetry={noop} onLeave={noop}/>
+        </EndTop>
+      </Look>
+
+      <Look name="Ended with nothing done" note="The quiet SESSION ENDED card (Fight Focus stopped before a round was done) shows what was left too, under WHAT'S LEFT, with the same two buttons. It is not a try: it never counts toward the two goes or the three sessions a day." height={420}>
+        <EndTop eyebrow="SESSION ENDED" title="ENDED EARLY" sub="Boxing · Normal · Fight Focus" xp="0" stat={['0/3', 'ROUNDS']} tone="#a8b3c7" eyebrowColor="#cbd5e1">
+          <NearMissPanel miss={nothing.miss} gate={nothing.gate} onRetry={noop} onLeave={noop}/>
         </EndTop>
       </Look>
 

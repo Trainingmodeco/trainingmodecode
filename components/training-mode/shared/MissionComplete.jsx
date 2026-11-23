@@ -158,8 +158,10 @@ export default function MissionComplete({
   const [rusty] = useState(() => powerOn && loadPower().state === 'rusty');
 
   // Retention feature 3 (near-miss switch): on a partial or failed end, how
-  // close it came and RETRY / COME BACK FRESH TOMORROW, under the stats. Worked
-  // out once; the session counts as one try at its stage or session today.
+  // close it came and RETRY / COME BACK FRESH TOMORROW, under the stats; on a
+  // session ended with nothing done (the quiet SESSION ENDED card), what was
+  // left. Worked out once; a finished, valid session counts as one try at its
+  // stage or session today (one with nothing done never does).
   // With the panel up, it is the screen's retry and its way home: the screen's
   // own retry and home buttons step aside and its main button goes quiet.
   const [nearMissOn] = useState(() => retentionOn('nearMiss'));

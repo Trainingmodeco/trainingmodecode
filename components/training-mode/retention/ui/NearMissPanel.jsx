@@ -6,17 +6,21 @@ import { ARC, RETENTION_CSS } from './tokens';
 // of the same size: RETRY and COME BACK FRESH TOMORROW. When a retry is not
 // safe (data/retrySafety: a boss, MAX OUT, a second go today, three sessions
 // today) the line says when to come back and the one button is DONE FOR TODAY.
-// There is no reminder to hook a REMIND ME TOMORROW into, so it is left out.
+// There is no reminder to hook a REMIND ME TOMORROW into, so it is left out
+// (it comes with the notifications pass).
+// A session ended with nothing done (miss.nothing) shows what was left under
+// WHAT'S LEFT instead of HOW CLOSE: an empty bar is not close.
 //
-//   miss:  nearMiss() → { line, value, max, left, right }
+//   miss:  nearMiss() → { line, value, max, left, right, nothing? }
 //   gate:  canRetryNow() → { allowed, line } (a gate with no line shows none:
 //          the classic clear, where a win never reads "come back tomorrow")
 //   onRetry / retryLabel: the same session again (only when allowed)
 //   onLeave / leaveLabel: the way out (home); null leaves the button out (a
 //          screen that keeps its own way out, the classic clear)
 //   alt:   { label, onClick } in place of the way out (the clear's next stage)
-export default function NearMissPanel({ miss, gate, onRetry, retryLabel = 'RETRY', onLeave, leaveLabel, alt = null, eyebrow = 'HOW CLOSE', style }) {
+export default function NearMissPanel({ miss, gate, onRetry, retryLabel = 'RETRY', onLeave, leaveLabel, alt = null, eyebrow: eyebrowIn, style }) {
   if (!miss) return null;
+  const eyebrow = eyebrowIn || (miss.nothing ? 'WHAT\'S LEFT' : 'HOW CLOSE');
   const allowed = !!gate?.allowed && typeof onRetry === 'function';
   const pct = miss.max > 0 ? Math.max(0, Math.min(100, (miss.value / miss.max) * 100)) : 0;
   const second = alt || (onLeave ? { label: leaveLabel || (allowed ? 'COME BACK FRESH TOMORROW' : 'DONE FOR TODAY'), onClick: onLeave } : null);

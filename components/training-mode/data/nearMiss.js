@@ -11,8 +11,11 @@
 //         left: 'YOUR TIME 6:42', right: '★★★ UNDER 6:30', nextStars: 3 }
 //
 // Counts: the gap is the work left of the session (total − done). A session
-// stopped short says "to go"; one that failed says "short". Nothing done at all
-// is not a near miss (null): the screen stays as it is.
+// stopped short says "to go"; one that failed says "short". A session ended
+// with nothing done says what was left, "to go" (never "short"), with an empty
+// bar and `nothing: true` (owner, 2026-11-23: "Show '3 rounds to go' there
+// too"); it is still no try (data/retrySafety countsAsTry). A count that is
+// missing (null, undefined, not a number) gives no line.
 // Time: the classic saga's star tiers (fastest first or in any order,
 // { stars, maxMinutes }, strict: under, not at). `stars` is what the stage
 // holds now; the gap is this run's time to the next star above it.
@@ -39,14 +42,15 @@ export function nearMiss(input = {}) {
 
 function countMiss({ unit, done, total, outcome }) {
   const words = UNIT_WORDS[unit];
-  if (!words) return null;
+  if (!words || done == null || done === '') return null;
   const d = whole(done), t = whole(total);
-  if (!(t > 0) || !(d > 0) || d >= t) return null;
+  if (!(t > 0) || !(d >= 0) || d >= t) return null;
   const gap = t - d;
   const word = gap === 1 ? words[0] : words[1];
+  const nothing = d === 0;
   return {
-    kind: 'count', unit, gap,
-    line: `${gap} ${word} ${outcome === 'fail' ? 'short' : 'to go'}`,
+    kind: 'count', unit, gap, nothing,
+    line: `${gap} ${word} ${outcome === 'fail' && !nothing ? 'short' : 'to go'}`,
     value: d, max: t,
     left: `${d} OF ${t} ${words[1].toUpperCase()}`,
     right: null,
