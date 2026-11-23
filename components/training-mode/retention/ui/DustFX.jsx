@@ -92,11 +92,14 @@ const outFrom = (x, y, r) => {
   const ang = Math.atan2((y - CENTRE[1]) * 0.6, x - CENTRE[0]) + (r() - 0.5) * 0.9;
   return [Math.cos(ang), Math.sin(ang)];
 };
-// [left %, top %, dx px, dy px, size px, delay ms]
+// [left %, top %, dx px, dy px, size px, delay ms]. A cloud that would start
+// over the head and face (the top middle of the picture) starts beside it
+// instead, so the face is never hidden; the small grains may cross it.
 const PUFFS = (() => {
   const r = lcg(11);
   return Array.from({ length: 9 }, () => {
-    const x = 24 + r() * 52; const y = 18 + r() * 62;
+    let x = 24 + r() * 52; const y = 18 + r() * 62;
+    if (y < 52 && x > 30 && x < 72) x = x < 50 ? x - 24 : x + 24;
     const [cx, cy] = outFrom(x, y, r); const d = 50 + r() * 70;
     return [x, y, Math.round(cx * d * 1.3), Math.round(cy * d + 14), Math.round(70 + r() * 60), Math.round(r() * 160)];
   });

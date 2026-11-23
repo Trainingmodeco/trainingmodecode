@@ -229,7 +229,9 @@ const ago = (days) => W.addDaysIso(TODAY, -days);
   const tok = src('retention/ui/tokens.js');
   const kf = (tok.match(/@keyframes rt-revive \{ 0% \{ transform: scale\(([\d.]+)\)/) || [])[1];
   check('the REVIVE title grows from its own left edge, never past the card (its own slam, 1.35 at most)', /animation: reviving \? 'rt-revive [^']*' : undefined, transformOrigin: '0% 100%'/.test(pop) && !!kf && Number(kf) <= 1.35, kf);
+  check('REVIVE: the revive picture shows only once loaded; a failed file leaves the rusty art (no failure box over it)', /reviveArt !== 'missing' && \(/.test(pop) && /onFail=\{\(\) => setReviveArt\('missing'\)\}/.test(pop) && /opacity: reviving && reviveArt === 'ok' \? 1 : 0/.test(pop));
   const dust = src('retention/ui/DustFX.jsx');
+  check('dust: no cloud starts over the head and face (the top middle of the picture)', /if \(y < 52 && x > 30 && x < 72\) x = x < 50 \? x - 24 : x \+ 24;/.test(dust));
   check('dust: nothing clickable, still under reduced motion (the burst hidden)', /pointerEvents: 'none'/.test(dust) && /prefers-reduced-motion: reduce[\s\S]*\.dfx-drift, \.dfx-drift \* \{ animation: none !important; \}[\s\S]*\.dfx-burst \{ display: none !important; \}/.test(dust) && !/Math\.random/.test(dust));
   check('no spoken line: nothing in the POWER UI speaks', !/speak|voiceCoach|playClip|say\(/.test(['retention/ui/RustyPopup.jsx', 'retention/ui/PowerLine.jsx', 'retention/ui/ReviveLine.jsx', 'retention/ui/RustyLook.jsx', 'retention/ui/DustFX.jsx', 'data/power.js', 'data/powerStore.js'].map(src).join('\n').replace(/\/\/.*$/gm, '')));
 }

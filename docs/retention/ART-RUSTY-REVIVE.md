@@ -11,7 +11,9 @@ Where they show now:
   "Shaking off the rust." (it slams in from 1.3x anchored at its own left edge, `rt-revive`, so no letter ever
   leaves the card, even at 360 wide), and TODAY'S BOUT's START runs as it settles (1.35 s after the tap). Taps
   during it do nothing, and the click after the bout screen comes in is eaten too. With reduced motion the bout
-  starts at once.
+  starts at once. The revive art shows only once it has loaded: a missing or failed file leaves the rusty art in
+  place for the comeback (never SafeImage's failure box). No dust cloud starts over the head and face (the top
+  middle of the picture); clouds that would start there start beside it.
 - **End screen REVIVED line:** a 26 px square of the revive art, zoomed on the face (`ReviveLine` `FACE`: where the
   face sits in each picture, in % of its width and height; change it if the art is replaced).
 

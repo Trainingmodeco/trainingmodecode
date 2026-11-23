@@ -44,6 +44,10 @@ export function RustyCard({ sex, tierId = 'rookie', daysSince, onRevive, onLater
   const c = rustyCopy({ daysSince });
   const [playing, setPlaying] = useState(false);
   const reviving = playing || shown;
+  // The revive picture shows only once it has loaded: a missing or failed
+  // file leaves the rusty art in place (SafeImage's failure box would
+  // otherwise cover it during the comeback).
+  const [reviveArt, setReviveArt] = useState('pending');
   const timer = useRef(0);
   useEffect(() => () => clearTimeout(timer.current), []);
   const tapRevive = () => {
@@ -77,11 +81,14 @@ export function RustyCard({ sex, tierId = 'rookie', daysSince, onRevive, onLater
           standIn={<RustyPortraitImage src={tierImage(tierId, sex)} rusty loading="eager" imgStyle={ART_STYLE}/>}
         />
         {/* The comeback picture, loaded with the pop-up so it is there the moment REVIVE is tapped. */}
-        <SafeImage src={retentionArt('revive', sex)} alt="" loading="eager" preferWebp={false}
-          style={{ ...ART_STYLE, opacity: reviving ? 1 : 0, transition: 'opacity .45s ease' }}/>
+        {reviveArt !== 'missing' && (
+          <SafeImage src={retentionArt('revive', sex)} alt="" loading="eager" preferWebp={false}
+            onLoaded={() => setReviveArt('ok')} onFail={() => setReviveArt('missing')}
+            style={{ ...ART_STYLE, opacity: reviving && reviveArt === 'ok' ? 1 : 0, transition: 'opacity .45s ease' }}/>
+        )}
         {reviving ? <DustBurst/> : <DustDrift/>}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(12,2,24,0) 46%, rgba(12,2,24,0.82) 80%, #0c0218 100%)' }}/>
-        <div style={{ position: 'absolute', left: 18, right: 18, bottom: 10 }}>
+        <div aria-live="polite" style={{ position: 'absolute', left: 18, right: 18, bottom: 10 }}>
           <div key={reviving ? 'revive' : 'rusty'} style={{
             font: "italic 900 40px 'Orbitron',sans-serif", lineHeight: 1, letterSpacing: '0.03em',
             background: reviving ? 'linear-gradient(180deg, #FFFFFF 0%, #D8B4FE 48%, #9333EA 100%)' : 'linear-gradient(180deg, #F6DDB8 0%, #D08A4E 52%, #8A4A20 100%)',
