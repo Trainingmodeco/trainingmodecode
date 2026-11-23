@@ -8,7 +8,9 @@ import { loadProfile } from './data/userProfile';
 import { getArchetypeId, setArchetypeId } from './data/campArchetype';
 import { loadCampProgress, isCampComplete } from './data/campProgress';
 import { loadCampSessions } from './data/campSessions';
-import { loadParq, saveParq } from './data/parq';
+import { loadParq, saveParq, parqDue } from './data/parq';
+import { loadStats } from './data/userStats';
+import { playCampClimb } from './data/audioEngine';
 import { canAccessCampLevel, GATES } from './data/entitlements';
 import ProGateOverlay from './shared/ProGateOverlay';
 import ReadinessSheet from './shared/ReadinessSheet';
@@ -19,6 +21,7 @@ import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { retentionOn } from './data/retentionFlags';
 import { campPath } from './data/pathStars';
+import { campStarsMap, campLevelStars, campKind, campNextStarLine, campReplaySlot } from './data/campStars';
 import { takePathFocus } from './data/pathNextUp';
 import { takeCampRetry } from './data/nearMissStore';
 import PathMap from './retention/ui/PathMap';
@@ -128,10 +131,14 @@ function NodePips({ level, state, sess }) {
 
 export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStartSession, onPaywall }) {
   const discKey = DISC_KEY[discipline] || 'boxing';
-  // 2.6 (stage 1) — PAR-Q+ one-time screening. If it was taken and flagged a
-  // "yes", the camp softly defaults to Easy (never a hard block). Shown once.
+  // 2.6 (stage 1) — PAR-Q+ screening. If it was taken and flagged a "yes",
+  // the camp softly defaults to Easy (never a hard block). Asked the first
+  // time, and again after a long break (30 days without training, the owner's
+  // "once in the beginning or after a long hiatus"; data/parq parqDue). A
+  // flagged athlete keeps the advice and is not re-asked, as before.
   const [parq, setParq] = useState(loadParq);
-  const [showParq, setShowParq] = useState(() => !loadParq().done);
+  const [parqWhy] = useState(() => parqDue(loadParq(), loadStats().sessions, Date.now()));
+  const [showParq, setShowParq] = useState(() => parqWhy != null);
   const [difficulty, setDifficulty] = useState(() => (loadParq().anyYes ? 'easy' : 'normal'));
   const [openLevel, setOpenLevel] = useState(null);
   const [readinessCtx, setReadinessCtx] = useState(null);   // 2.6 — {level, difficulty, slot}
@@ -150,6 +157,11 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   // "finish level N first".
   const [pathOn] = useState(() => retentionOn('path'));
   const [replayLevel, setReplayLevel] = useState(null);
+  // The camp's stars (data/campStars), from the session rows as the map opens.
+  const [rows] = useState(() => (pathOn ? loadStats().sessions : []));
+  const [starsMap] = useState(() => (pathOn ? campStarsMap({ levels: campLevels, current, campDone, rows }) : null));
+  // The replay sheet's height: the level behind it stays whole above it.
+  const [sheetH, setSheetH] = useState(0);
   // Home's NEXT UP opens the camp on the current level's card (once).
   useEffect(() => {
     if (!pathOn || !takePathFocus('camp') || campDone || showParq) return undefined;
@@ -234,8 +246,14 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
     onStartSession?.({ discipline, level, difficulty: diff, archetypeId: archetype?.id, archetypeName: archetype?.name, cfg: buildCfg(level, diff, kind), split, slot: split ? slot : 's1' });
   };
   // 2.4b — on split levels the next mission is S1 until it's ✓, then S2.
+  // With the path's stars on, a replay of a cleared split level runs as a run
+  // does, S1 then S2 (its third star asks for S2 four to eight hours after S1),
+  // instead of S2 alone.
   const openSess = open ? (sessAll[open.level] || {}) : {};
-  const nextSlot = openSess.s1 ? 's2' : 's1';
+  const openCleared = open != null && (open.level < current || campDone);
+  const nextSlot = pathOn && openCleared && isSplitAvailable(open.level)
+    ? campReplaySlot(open.level, rows)
+    : openSess.s1 ? 's2' : 's1';
   // FULL CAMP is only offered on a fresh split level (neither mission done yet).
   const canFull = open != null && isSplitAvailable(open.level) && !openSess.s1 && !openSess.s2;
   const useFull = canFull && format === 'full';
@@ -252,7 +270,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   const requestStart = () => {
     if (!open || !canStart) return;
     if (levelGated) { setProGate({ level: open.level }); return; }
-    setReadinessCtx({ level: open.level, difficulty, slot: openSess.s1 ? 's2' : 's1', full: useFull });
+    setReadinessCtx({ level: open.level, difficulty, slot: nextSlot, full: useFull });
     setOpenLevel(null);
   };
   // After a gear check, actually launch (split mission or full camp).
@@ -312,26 +330,35 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
             <>
               <PathMap
                 unit="LEVEL" bossLabel="TITLE"
-                nodes={campPath({ levels: campLevels, current, campDone, sessions: sessAll }).nodes.map((n) => ({
+                nodes={campPath({ levels: campLevels, current, campDone, sessions: sessAll, stars: starsMap }).nodes.map((n) => ({
                   ...n,
                   guide: n.boss ? 'tc-belt' : n.state === 'current' ? 'tc-current' : undefined,
                   pipsGuide: n.number === 4 ? 'tc-pips4' : undefined,
                 }))}
                 onPick={(n) => (n.state === 'cleared' ? setReplayLevel(n.number) : tapLevel(n.number))}
+                // The owner's suggestion: a low climb sound as the road climbs
+                // to the current level (once per open, never with reduced
+                // motion, not under the health check; silent until its file
+                // exists: audioEngine).
+                climb={!parqWhy} onClimb={() => { try { playCampClimb(); } catch { /* sound is a nicety */ } }}
+                // The level being replayed stays whole above its sheet.
+                reveal={replayLevel != null && sheetH > 0 ? { index: replayLevel - 1, room: sheetH } : null}
               />
               {replayLevel != null && (() => {
                 const lv = campLevels.find((l) => l.level === replayLevel);
                 const split = isSplitAvailable(replayLevel);
                 const boss = lv?.phase === 'final_boss';
+                const info = campLevelStars({ level: replayLevel, kind: campKind(lv), cleared: true, rows });
                 return (
                   <ReplaySheet
                     eyebrow={boss ? 'TITLE FIGHT · WON' : `LEVEL ${replayLevel} · ${lv?.phase_label || ''} · CLEARED`}
                     title={boss ? 'TITLE FIGHT 🏆' : lv?.title || `Level ${replayLevel}`}
-                    check
+                    stars={info.stars} max={info.max}
                     tiles={split ? [{ label: 'SESSION 1 ✓', value: 'SKILL' }, { label: 'SESSION 2 ✓', value: 'CONDITIONING' }] : []}
-                    line="Camp has no stars yet: a cleared level gets a check. A replay counts as a session; the level stays cleared."
-                    onReplay={() => { setReplayLevel(null); setOpenLevel(replayLevel); }}
-                    onClose={() => setReplayLevel(null)}
+                    line={campNextStarLine(info)}
+                    onReplay={() => { setReplayLevel(null); setSheetH(0); setOpenLevel(replayLevel); }}
+                    onClose={() => { setReplayLevel(null); setSheetH(0); }}
+                    onSize={setSheetH}
                     bottomPad={30}
                   />
                 );
@@ -527,7 +554,7 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
           sheet can't accidentally start a session. */}
       {helpOpen && (
         <ScreenGuide
-          steps={SCREEN_GUIDES.training_camp}
+          steps={pathOn ? SCREEN_GUIDES.training_camp_stars : SCREEN_GUIDES.training_camp}
           onStep={(_i, cfg) => {
             setOpenLevel(cfg?.campModal ? Math.min(current, 12) : null);
             setReadinessCtx(cfg?.campSheet
@@ -561,15 +588,21 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
         />
       )}
 
-      {/* 2.6 (stage 1) — one-time PAR-Q+ screening on first camp entry. Any
-          "yes" softly defaults the camp to Easy; it never blocks entry. */}
+      {/* 2.6 (stage 1) — PAR-Q+ screening on the first camp entry, and again
+          after a long break (parqDue). Any "yes" softly defaults the camp to
+          Easy; it never blocks entry. */}
       {showParq && (
-        <ParQSheet onDone={(anyYes) => {
-          const rec = saveParq(anyYes);
-          setParq(rec);
-          if (anyYes) setDifficulty('easy');
-          setShowParq(false);
-        }} />
+        <ParQSheet
+          intro={parqWhy === 'break'
+            ? 'Welcome back. After a long break, a quick check before you train again. Answer honestly — it keeps every workout safe for you.'
+            : undefined}
+          onDone={(anyYes) => {
+            const rec = saveParq(anyYes);
+            setParq(rec);
+            if (anyYes) setDifficulty('easy');
+            setShowParq(false);
+          }}
+        />
       )}
 
       <ProGateOverlay

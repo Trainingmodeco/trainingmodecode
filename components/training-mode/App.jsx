@@ -6,7 +6,7 @@ import { stakesFor } from './data/xpStakes';
 import { pickXpBanner } from './data/xpBanners';
 import { settleFightXp } from './data/fightSessionXp';
 import { consumeLabCode } from './data/strikeLab';
-import { completeCampLevel, markCampComplete } from './data/campProgress';
+import { completeCampLevel, markCampComplete, loadCampProgress, isCampComplete } from './data/campProgress';
 import { campSessionState, markCampSessionDone } from './data/campSessions';
 import { campSessionXp } from './protocol/content';
 import { clearArcadeStage } from './data/arcadeCampaignProgress';
@@ -239,6 +239,9 @@ export default function App() {
   // pop-up takes a turn in the open's one-interstitial queue (goAfterSplash)
   // and Home shows it (its REVIVE is Home's top START).
   const [powerOn] = useState(() => retentionOn('power'));
+  // The path + stars (switch `path`): a replayed Session 1 of a cleared split
+  // level ends on its own SESSION 1 COMPLETE screen (a run is S1 then S2).
+  const [pathOn] = useState(() => retentionOn('path'));
   const [rustyTurn, setRustyTurn] = useState(false);
   const rustyTurnRef = useRef(false); // the turn is out with Home (answered once)
   const [screen,   setScreen  ] = useState('start');
@@ -1081,7 +1084,9 @@ export default function App() {
     goCampSession: (ctx) => {
       trackSessionStart('trainingCamp', { level: ctx?.level, format: ctx?.format || 'single' });
       freshStart(ctx?.format === 'full' ? 'camp_full' : 'camp_session');
-      setCampCtx(ctx); setDisc(ctx.discipline);
+      // When the session started: the camp's third star on a split level asks
+      // for Session 2 four to eight hours after Session 1 (data/campStars).
+      setCampCtx({ ...ctx, startedAt: new Date().toISOString() }); setDisc(ctx.discipline);
       rememberSession('camp', { level: ctx.level, difficulty: ctx.difficulty, format: ctx.format || 'single', archetypeName: ctx.archetypeName || null }, ctx.discipline);
       // FULL CAMP runs both blocks in one sitting; cfg holds the skill block so
       // the warm-up wrapper still reads warmupMin.
@@ -1155,11 +1160,19 @@ export default function App() {
       // 2.8 — XP from the engine ruleset (active-min × difficulty × completion).
       // The anti-cheat gate is preserved: not awarded → no XP, no record.
       const diff = c?.difficulty || campCtx?.difficulty || 'normal';
+      // What the camp's stars read (data/campStars): which session, every
+      // round verified, rounds cut short, when it started. Recorded on every
+      // camp row from this build; it never changes the XP.
+      const campMeta = { camp: {
+        slot: split ? slot : 'one', verified: !!fullyValid,
+        cut: Number.isInteger(vs.cut) ? vs.cut : null, startedAt: campCtx?.startedAt || null,
+      } };
+      const wasCleared = level != null && (level < loadCampProgress() || isCampComplete());
       const xpEarned = awarded
         ? addCampSession(level, done, total, campSessionXp({
             difficulty: diff, roundMin: c?.roundMin ?? 2,
             doneRounds: done, totalRounds: total, valid: true,
-          }))
+          }), campMeta)
         : 0;
       let cleared;
       if (split) {
@@ -1174,7 +1187,10 @@ export default function App() {
       const titleWon = cleared && level === 12 && markCampComplete();
       trackEvent('session_complete', { mode: 'trainingCamp', level, slot: split ? slot : undefined, rounds: done });
       const staked = stagePlate(cleared || sessionValid, awarded, done, total, diff, xpEarned);
-      setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: done, total, xpEarned: staked.xp, plate: staked.plate, integrityResult, cleared, unlockedTo, split, slot, sessionValid, titleWon });
+      // A replayed Session 1 of a cleared split level (switch `path`): the run
+      // waits for its Session 2, so the screen says so instead of LEVEL CLEAR.
+      const replayS1 = pathOn && split && slot === 's1' && sessionValid && wasCleared;
+      setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: done, total, xpEarned: staked.xp, plate: staked.plate, integrityResult, cleared, unlockedTo, split, slot, sessionValid, titleWon, ...(replayS1 ? { replayS1: true } : {}) });
       routeAfterXp(beforeLevel, 'camp_complete');
     },
     goCampMap: () => setScreen('training_camp'),
@@ -1213,9 +1229,12 @@ export default function App() {
       const diff = campCtx?.difficulty || 'normal';
       const bothValid = s.valid && f.valid;
       let xpEarned = 0;
+      // The camp's stars (data/campStars): both blocks start with the sitting,
+      // so its Session 2 is never four to eight hours after its Session 1.
+      const fullMeta = (slot, b) => ({ camp: { slot, verified: !!b.valid, cut: Number.isInteger(b.cut) ? b.cut : null, startedAt: campCtx?.startedAt || null } });
       if (level != null) {
-        if (s.valid) { xpEarned += addCampSession(level, s.done, s.total, campSessionXp({ difficulty: diff, roundMin: campCtx?.cfgSkill?.roundMin ?? 2, doneRounds: s.done, totalRounds: s.total, valid: true, fullArc: bothValid })); markCampSessionDone(level, 's1'); }
-        if (f.valid) { xpEarned += addCampSession(level, f.done, f.total, campSessionXp({ difficulty: diff, roundMin: campCtx?.cfgFit?.roundMin ?? 2, doneRounds: f.done, totalRounds: f.total, valid: true, fullArc: bothValid })); markCampSessionDone(level, 's2'); }
+        if (s.valid) { xpEarned += addCampSession(level, s.done, s.total, campSessionXp({ difficulty: diff, roundMin: campCtx?.cfgSkill?.roundMin ?? 2, doneRounds: s.done, totalRounds: s.total, valid: true, fullArc: bothValid }), fullMeta('s1', s)); markCampSessionDone(level, 's1'); }
+        if (f.valid) { xpEarned += addCampSession(level, f.done, f.total, campSessionXp({ difficulty: diff, roundMin: campCtx?.cfgFit?.roundMin ?? 2, doneRounds: f.done, totalRounds: f.total, valid: true, fullArc: bothValid }), fullMeta('s2', f)); markCampSessionDone(level, 's2'); }
       }
       const st = level != null ? campSessionState(level) : {};
       const cleared = !!(st.s1 && st.s2);

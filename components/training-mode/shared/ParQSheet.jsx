@@ -27,7 +27,10 @@ function card(children) {
 
 // Beta ND-06 — the sheet now guards more than the camp (onboarding + arcade),
 // so the advisory CTA label is a prop; semantics are unchanged everywhere.
-export default function ParQSheet({ onDone, ctaLabel = '▶ ENTER CAMP ON EASY' }) {
+// `intro`: the line under HEALTH CHECK (the camp's check after a long break
+// says so; data/parq parqDue).
+const INTRO = 'A one-time check before you start training. Answer honestly — it keeps every workout safe for you.';
+export default function ParQSheet({ onDone, ctaLabel = '▶ ENTER CAMP ON EASY', intro = INTRO }) {
   // answers[i] = null | true | false
   const [answers, setAnswers] = useState(() => QUESTIONS.map(() => null));
   const [advisory, setAdvisory] = useState(false); // showing the "any yes" advisory
@@ -66,7 +69,7 @@ export default function ParQSheet({ onDone, ctaLabel = '▶ ENTER CAMP ON EASY' 
         <ShieldCheck size={26} color={TEAL} style={{ marginBottom: 5 }} />
         <div style={{ font: "900 14px 'Orbitron',sans-serif", color: '#fff', letterSpacing: '0.05em' }}>HEALTH CHECK</div>
         <div style={{ font: "600 8.5px 'Rajdhani',sans-serif", color: '#b9a9d8', marginTop: 3, lineHeight: 1.35 }}>
-          A one-time check before you start training. Answer honestly — it keeps every workout safe for you.
+          {intro}
         </div>
       </div>
 

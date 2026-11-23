@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { RotateCcw } from 'lucide-react';
 import StarsRow from './StarsRow';
 import { HOME, head, ARC, GOLD_BUTTON, RETENTION_CSS } from './tokens';
@@ -12,17 +12,32 @@ import { HOME, head, ARC, GOLD_BUTTON, RETENTION_CSS } from './tokens';
 // what floats over the box's bottom edge (the beta chip over the camp's).
 //   tiles: [{ label, value, gold?, stars? }]  at most two; `stars` puts that
 //          many stars before the label, a size up so they read ("★★★ NEEDS")
-export default function ReplaySheet({ eyebrow, title, stars, max = 3, check = false, tiles = [], line, onReplay, onClose, replayLabel = 'REPLAY', bottomPad = 16, children }) {
+//   onSize(px): the sheet's height as it changes, so the path behind it can
+//          keep the tapped node whole above it (PathMap `reveal`)
+export default function ReplaySheet({ eyebrow, title, stars, max = 3, check = false, tiles = [], line, onReplay, onClose, replayLabel = 'REPLAY', bottomPad = 16, onSize, children }) {
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose?.(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
+  const sheetRef = useRef(null);
+  const sizeRef = useRef(onSize);
+  sizeRef.current = onSize;
+  useLayoutEffect(() => {
+    const el = sheetRef.current;
+    if (!el || !sizeRef.current) return undefined;
+    const tell = () => sizeRef.current?.(el.offsetHeight);
+    tell();
+    if (typeof ResizeObserver === 'undefined') return undefined;
+    const ro = new ResizeObserver(tell);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   return (
     <div className="rt-anim" style={{ position: 'absolute', inset: 0, zIndex: 30, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
       <style dangerouslySetInnerHTML={{ __html: RETENTION_CSS }}/>
       <div onClick={onClose} aria-hidden style={{ position: 'absolute', inset: 0, background: 'rgba(4,0,10,0.68)' }}/>
-      <section role="dialog" aria-label={title} data-retention="replay-sheet" style={{
+      <section ref={sheetRef} role="dialog" aria-label={title} data-retention="replay-sheet" style={{
         position: 'relative', maxHeight: '100%', overflowY: 'auto', boxSizing: 'border-box',
         borderRadius: '20px 20px 0 0', background: HOME.tile, borderTop: '1px solid rgba(253,224,71,.45)',
         boxShadow: '0 -14px 36px rgba(0,0,0,0.55)', padding: `12px 16px ${bottomPad}px`, animation: 'rt-sheet .3s both',

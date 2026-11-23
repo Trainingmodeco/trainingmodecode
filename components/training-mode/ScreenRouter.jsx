@@ -19,7 +19,7 @@ import GhostResultScreen from './shared/GhostResultScreen';
 import { getLastBattle, getMyBestGhost, getLastRecordedGhost } from './data/ghostBattles';
 import MissionComplete from './shared/MissionComplete';
 import { retentionOn } from './data/retentionFlags';
-import { openNextUp, arcadeEndStars } from './data/pathNextUp';
+import { openNextUp, arcadeEndStars, campSessionEndStars } from './data/pathNextUp';
 import StageStarsCard from './retention/ui/StageStarsCard';
 import { playStarTone } from './data/audioEngine';
 import { arcadeRetryKey, campRetryKey } from './data/retrySafety';
@@ -256,6 +256,8 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
   // a small stars row when the stage has stars (as stored after the clear).
   const [pathOn] = useState(() => retentionOn('path'));
   const arcadeStars = useMemo(() => (pathOn && campResult?.arcade && campResult.cleared ? arcadeEndStars(campResult) : null), [pathOn, campResult]);
+  // Training Camp's own stars row (a valid session on a cleared level).
+  const campStars = useMemo(() => (pathOn && campResult && !campResult.arcade ? campSessionEndStars(campResult) : null), [pathOn, campResult]);
 
   const handleNavigate = (tab) => {
     if (tab === 'home') goHome();
@@ -413,16 +415,19 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
       );
     }
     // Three outcomes: level cleared · one split mission done (level pending) ·
-    // stopped/invalid (GOOD EFFORT, nothing counted).
-    const missionDone = r.split && r.sessionValid && !r.cleared;
+    // stopped/invalid (GOOD EFFORT, nothing counted). A replayed Session 1 of a
+    // cleared level (switch `path`) reads as a mission done: its run waits for
+    // Session 2, so it is not "LEVEL n CLEAR".
+    const missionDone = r.split && r.sessionValid && (!r.cleared || !!r.replayS1);
+    const clearedShown = r.cleared && !r.replayS1;
     const slotNum = r.slot === 's2' ? 2 : 1;
     const kindLbl = r.slot === 's2' ? 'CONDITIONING' : 'SKILL';
     // Item 13b — winning L12 is not "level 12 clear", it is the end of the camp.
     const titleFightWon = r.level === 12 && r.cleared;
     const eyebrow = titleFightWon ? '🏆 TITLE FIGHT WON'
-      : r.cleared ? 'LEVEL CLEARED' : missionDone ? `SESSION ${slotNum} COMPLETE` : 'SESSION STOPPED';
+      : clearedShown ? 'LEVEL CLEARED' : missionDone ? `SESSION ${slotNum} COMPLETE` : 'SESSION STOPPED';
     const title = titleFightWon ? 'CAMP COMPLETE'
-      : r.cleared ? `LEVEL ${r.level} CLEAR` : missionDone ? `S${slotNum} · ${kindLbl} ✓` : 'GOOD EFFORT';
+      : clearedShown ? `LEVEL ${r.level} CLEAR` : missionDone ? `S${slotNum} · ${kindLbl} ✓` : 'GOOD EFFORT';
     const subtitle = titleFightWon
       ? `TRAINING CAMP · ${r.discipline} · ALL 12 LEVELS`
       : missionDone && slotNum === 1
@@ -455,6 +460,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
             ? [{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }, { value: '12', label: 'LEVELS', highlight: true }]
             : [{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }]}
           shareData={titleFightWon ? { mode: 'Training Camp', eyebrow: 'TITLE FIGHT WON', workoutName: 'CAMP COMPLETE', difficulty: r.difficulty } : undefined}
+          summary={campStars ? <StageStarsCard title="LEVEL STARS" stars={campStars.stars} max={campStars.max} line={campStars.line} onLand={playStarTone}/> : null}
           nearMiss={cNearMiss}
           actions={titleFightWon
             ? [
@@ -462,7 +468,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
                 { label: 'HOME', onClick: goHome, kind: 'ghost' },
               ]
             : [
-                r.unlockedTo
+                r.unlockedTo && !r.replayS1
                   ? { label: `CONTINUE → L${r.unlockedTo}`, onClick: goCampMap, kind: 'primary' }
                   : { label: 'BACK TO CAMP', onClick: goCampMap, kind: 'primary' },
                 { label: 'HOME', onClick: goHome, kind: 'ghost', role: 'home' },

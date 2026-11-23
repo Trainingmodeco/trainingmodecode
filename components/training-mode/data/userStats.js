@@ -103,7 +103,11 @@ export function addFightFocusSession(roundsCompleted, totalRounds, { justTrain =
 // Progress can show camp history. 2.8: XP is now computed by the engine's
 // campSessionXp (active-minutes × difficulty × completion + bonuses) and passed
 // in as `xpAward`. Falls back to the old round-based economy if omitted.
-export function addCampSession(level, roundsCompleted, totalRounds, xpAward) {
+// `meta` (optional): extra fields for the row. A Training Camp session (not an
+// arcade v2 stage, which banks here too) passes `{ camp: { slot, verified,
+// cut, startedAt } }`, what the camp's stars read (data/campStars). It never
+// changes the XP.
+export function addCampSession(level, roundsCompleted, totalRounds, xpAward, meta) {
   const stats = loadStats();
   const xpEarned = typeof xpAward === 'number'
     ? Math.max(0, Math.round(xpAward))
@@ -117,6 +121,7 @@ export function addCampSession(level, roundsCompleted, totalRounds, xpAward) {
     totalCount: totalRounds,
     xpEarned,
     campLevel: level,
+    ...(meta && typeof meta === 'object' ? meta : {}),
   });
   saveStats(stats);
   return xpEarned;
