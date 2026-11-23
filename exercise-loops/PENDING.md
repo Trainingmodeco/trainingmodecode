@@ -23,3 +23,5 @@ Nothing is shipped to the app until the owner says push.
 ## 3. Ticked on the board but never made (40 stretches)
 
 Needs a Generate run. Six of them are exercises the app still lacks a loop for: Calf Raises, Concentration Curls, Dumbbell Shrugs, Glute Bridges, Hack Squat (Hack Squats), Kettlebell Presses.
+
+- **Reverse Curls** (Fit workout card, 2026-11-23): not in the library or the voice banks; record both voices with the next batch if the owner keeps it.

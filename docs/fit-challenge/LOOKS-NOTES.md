@@ -199,3 +199,10 @@ An independent look at the screenshots found four things; each fixed and re-shot
   WORKOUT, reads ✓ SAVED once tapped, and the recap then says "Saved. Find it in CHOOSE." (the new
   `saved` state). REPEAT, NEW CHALLENGE and SAVE WORKOUT are the kit's chamfered buttons, two rows
   instead of three.
+
+## Owner preview (2026-11-23)
+
+Screenshots of every look at 360, 390 and 430 wide, with keep / take / skip and the owner's decisions as tap-to-answer
+choices: https://claude.ai/artifact/6Y7wU6x5mWPkzemw2bHhyB. Answers are in its database: collection `answers` (one doc
+per question id, `{ choice }`; no doc means the recommended first choice) and `notes` (per screen, plus `general`).
+Read them with ArtifactData before building any of it.
