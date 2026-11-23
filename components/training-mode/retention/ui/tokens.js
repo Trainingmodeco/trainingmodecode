@@ -53,6 +53,7 @@ export const RETENTION_CSS = `
 @keyframes rt-shine { 0% { transform: translateX(-120%) skewX(-20deg) } 100% { transform: translateX(900%) skewX(-20deg) } }
 @keyframes rt-pop { 0% { transform: scale(0.5); opacity: 0 } 60% { transform: scale(1.12); opacity: 1 } 100% { transform: scale(1) } }
 @keyframes rt-slam { 0% { transform: scale(2.4); opacity: 0 } 45% { transform: scale(0.92); opacity: 1 } 70% { transform: scale(1.04) } 100% { transform: scale(1); opacity: 1 } }
+@keyframes rt-revive { 0% { transform: scale(1.3); opacity: 0 } 35% { opacity: 1 } 60% { transform: scale(0.97) } 100% { transform: scale(1); opacity: 1 } }
 @keyframes rt-pulse { 0%,100% { box-shadow: 0 0 10px rgba(168,85,247,.55), 0 0 22px rgba(253,224,71,.25) } 50% { box-shadow: 0 0 20px rgba(168,85,247,.9), 0 0 40px rgba(253,224,71,.5) } }
 @keyframes rt-ring { 0% { transform: scale(1); opacity: .7 } 100% { transform: scale(1.7); opacity: 0 } }
 @keyframes rt-sheet { from { transform: translateY(24px); opacity: 0 } to { transform: none; opacity: 1 } }

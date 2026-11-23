@@ -8,8 +8,10 @@ Where they show now:
   rising through the light, three soft clouds passing; still under reduced motion).
 - **REVIVE tap:** the revive art fades in over the rusty one (0.45 s), the dust lifts off the whole fighter and blows
   away (`DustBurst`: soft clouds and grains of dust and rust, 1.1 s), the title turns to a violet REVIVE with
-  "Shaking off the rust.", and TODAY'S BOUT's START runs as it settles (1.35 s after the tap). Taps during it do
-  nothing. With reduced motion the bout starts at once.
+  "Shaking off the rust." (it slams in from 1.3x anchored at its own left edge, `rt-revive`, so no letter ever
+  leaves the card, even at 360 wide), and TODAY'S BOUT's START runs as it settles (1.35 s after the tap). Taps
+  during it do nothing, and the click after the bout screen comes in is eaten too. With reduced motion the bout
+  starts at once.
 - **End screen REVIVED line:** a 26 px square of the revive art, zoomed on the face (`ReviveLine` `FACE`: where the
   face sits in each picture, in % of its width and height; change it if the art is replaced).
 

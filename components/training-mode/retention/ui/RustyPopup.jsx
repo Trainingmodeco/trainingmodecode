@@ -27,7 +27,7 @@ import { DustDrift, DustBurst, BURST_MS } from './DustFX';
 // The tap that opened the app can come again a moment later (a double tap);
 // the pop-up ignores taps for its first moment, and REVIVE and LATER eat the
 // click after them (shared/swallowNextClick), so a second tap never lands on
-// what is under them.
+// what is under them. REVIVE eats one again when the bout screen comes in.
 const GUARD_MS = 350;
 export const REVIVE_HOLD_MS = BURST_MS + 250;
 
@@ -53,7 +53,9 @@ export function RustyCard({ sex, tierId = 'rookie', daysSince, onRevive, onLater
     onReviveStart?.();
     setPlaying(true);
     timer.current = setTimeout(() => {
-      if (onRevive) onRevive();
+      // The screen swaps only now, long after the tap's own guard ran out:
+      // an impatient second tap must not land on the bout screen.
+      if (onRevive) { swallowNextClick(); onRevive(); }
       else timer.current = setTimeout(() => setPlaying(false), 1400);
     }, REVIVE_HOLD_MS);
   };
@@ -85,7 +87,9 @@ export function RustyCard({ sex, tierId = 'rookie', daysSince, onRevive, onLater
             background: reviving ? 'linear-gradient(180deg, #FFFFFF 0%, #D8B4FE 48%, #9333EA 100%)' : 'linear-gradient(180deg, #F6DDB8 0%, #D08A4E 52%, #8A4A20 100%)',
             WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
             filter: reviving ? 'drop-shadow(0 0 14px rgba(168,85,247,.7)) drop-shadow(2px 2px 0 #2A0A4A)' : 'drop-shadow(0 0 12px rgba(208,138,78,.45)) drop-shadow(2px 2px 0 #2A1206)',
-            animation: reviving ? 'rt-slam .45s both' : undefined,
+            // Its own slam, from 1.3 at the word's left edge: the word only
+            // grows up and to the right, so no letter ever leaves the card.
+            animation: reviving ? 'rt-revive .45s both' : undefined, transformOrigin: '0% 100%',
           }}>{reviving ? c.reviveTitle : c.title}</div>
           <div style={{ font: "600 15px 'Rajdhani',sans-serif", color: '#F1E4D6', marginTop: 6 }}>{reviving ? c.reviving : c.since}</div>
         </div>

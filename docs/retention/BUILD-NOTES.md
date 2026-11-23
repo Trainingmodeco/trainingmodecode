@@ -813,7 +813,9 @@ switches off, Home, the end screens, Profile, storage writes and XP are as befor
 - **REVIVE runs the top card's own START**: TODAY'S BOUT's (armed, so its bonus rules apply: +25 XP once a day for a
   session started from it that runs to its end) or, with the week streak off, the Continue card's.
 - **Double taps**: the pop-up ignores taps for its first 350 ms (the tap that opened the app), REVIVE and LATER eat the
-  click after them (`swallowNextClick`, as FinishWorkoutConfirm does), and a tap outside the card is LATER.
+  click after them (`swallowNextClick`, as FinishWorkoutConfirm does), and a tap outside the card is LATER. REVIVE
+  eats one again when the bout screen comes in, 1.35 s after the tap (the tap's own 600 ms guard is long gone by
+  then), so an impatient second tap never lands on the bout screen.
 - **The pop-up's art is top-aligned** (`object-position: 50% 0%`): a tier portrait's own logo at its top edge is never
   cut, and the face sits in the upper half the card shows.
 - **Portraits that stay as they are**: the share card, the ghost result and the level-up reveal show a session just
