@@ -23,6 +23,10 @@ hidden gallery at `/retention-looks` (code in `components/training-mode/retentio
   recommendation where nothing was in use), and the game-over score board (its server table and security rules are
   shown to the owner before anything is created on the live database). In January the switches in `FOR_EVERYONE` are
   turned on and it opens to the public.
+- **Bug fixes go to everyone now (owner, 2026-11-23):** the three answers marked "for everyone" are fixes, not
+  features: the cleared One Hundred stage that could say MISSION FAILED, the classic stage RETRY clock, and the
+  app-wide bits (the scroll arrow and BETA pill over content, the end-screen banner width, the round recap on shorter
+  phones). Everything else new waits behind the switches.
 - **Then the same, quarterly, next year:** each batch is built owner-only first, the owner reviews and edits, then it
   opens at its quarter: squads (team workouts), weekly leagues, the season reward track, the notifications pass
   (low-POWER alerts, "Remind me tomorrow").
