@@ -234,7 +234,9 @@ export function addQuickMissionSoloSession(m) {
   return xpEarned;
 }
 
-export function addCombatConditioningSession(drillsCompleted, totalDrills, roundsCompleted, totalRounds, completed) {
+// `meta` (optional): { unverified: true } for a session the integrity check
+// refused (week streak switch; App), so it fills no training day.
+export function addCombatConditioningSession(drillsCompleted, totalDrills, roundsCompleted, totalRounds, completed, meta) {
   const stats = loadStats();
   const xpEarned = (drillsCompleted * XP_PER_FIT_EXERCISE) +
     (completed ? XP_FIT_FULL_BONUS : 0);
@@ -248,6 +250,7 @@ export function addCombatConditioningSession(drillsCompleted, totalDrills, round
     roundsCompleted,
     totalRounds,
     xpEarned,
+    ...(meta?.unverified ? { unverified: true } : {}),
   });
   saveStats(stats);
   return xpEarned;
@@ -272,7 +275,9 @@ export function addStartHereLesson(lessonTitle) {
   return XP_START_HERE_LESSON;
 }
 
-export function addDailyMissionBonus() {
+// `tag` (optional): Today's Bout (week streak switch) marks its row with the
+// day it paid for ({ bout: 'YYYY-MM-DD' }), so a synced copy reads as paid.
+export function addDailyMissionBonus(tag) {
   const stats = loadStats();
   stats.xp += XP_DAILY_MISSION_BONUS;
   stats.sessions.push({
@@ -282,6 +287,7 @@ export function addDailyMissionBonus() {
     completedCount: 1,
     totalCount: 1,
     xpEarned: XP_DAILY_MISSION_BONUS,
+    ...(tag && typeof tag.bout === 'string' ? { bout: tag.bout } : {}),
   });
   saveStats(stats);
   return XP_DAILY_MISSION_BONUS;

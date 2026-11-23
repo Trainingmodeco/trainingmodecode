@@ -497,6 +497,13 @@ export function settleGuidedXp(result) {
 // shows (QuickMissionComplete: VALIDATION FAILED, unpaid). Its row still banks
 // as it always has; the week streak switch reads this so such a run pays no
 // daily mission bonus and fills no training day.
+// Combat Conditioning's own verdict (CombatConditioningComplete): the screen
+// reads VALIDATION FAILED. Week streak switch: App marks that row unverified.
+export function combatRunRefused(result, difficulty) {
+  return resolveOutcome({
+    completed: result?.drillsCompleted, total: result?.totalDrills, difficulty, integrityResult: result?.integrityResult || null,
+  }).outcome === 'validation_failed';
+}
 export function guidedRunRefused(result) {
   return resolveOutcome({
     completed: result?.exercisesCompleted, total: result?.totalExercises, difficulty: result?.mission?.difficulty,

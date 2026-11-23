@@ -571,3 +571,123 @@ https://claude.ai/artifact/8rkLzhnBSc19h5L5pitdys. The owner's answers are in it
 everything waiting on the owner (the Fit card's questions are prefixed `fit-`, the Fit screen's Quick Mission merge is
 `q-hub`).
 Final check on 49b1e182: unit suites pass, build:web passes, smoke:web 147 of 147.
+
+## Home: one TODAY'S BOUT card (2026-11-23)
+
+The owner, on the two cards at the top of Home (DAILY MISSION and TODAY'S BOUT, each with a gold START): "I don't
+want two different things because honestly that's confusing… merging it into one entity… the how-to question mark
+needs to be updated as well." Behind the same switch (`retentionOn('weeks')`); with it off, Home, the end screens,
+storage and XP are as before.
+
+### What changed
+
+- **One card.** The DAILY MISSION card is gone from Home (`retention/ui/DailyMissionCard.jsx` deleted: nothing else
+  used it). Home's top card, whenever no session is paused, is **TODAY'S BOUT** (`retention/ui/TodaysBoutCard.jsx`):
+  the same art, mode tag (FIT MODE / FIGHT MODE), title and gold START as Home's card, plus the daily mission's hooks:
+  `+25 XP` beside START, a length tag (`12 MIN`) where the pick knows its length, a true personal line where it has one
+  (`SAME AS LAST TIME`, `FITS YOUR LEVEL`, and `AT YOUR PACE` joins that line), and a done state.
+- **Its pick** is Home's own engine, in the order the card always had: the last session started (ready to run again;
+  on the path, folded with NEXT UP for a saga or the camp), else the Game Plan's bout, else the setup's first pick
+  (`firstPick`). `data/dailyMission.js` `pickTodaysBout` is the pure version of that order; HomeDashboard passes it
+  what it reads (last session, NEXT UP, `getTodayBout`, `firstPick`). The old 3-minute deal (`dealDailyMission`,
+  `dailyMissionCfg`, `missionForStart`, App `startDailyMission`) is removed.
+- **Held for the local day** in `tm_daily_mission_v2` (already synced), new shape `{ v: 3, date, bout, done, doneAt,
+  xp }`: a reload, another session, a level change or another device shows the same bout and START runs the same thing
+  (a held last session is replayed from the card's own copy: App `replayLastSession({ last })`). Home picks again at
+  local midnight (its existing midnight timer). The old box (`{ date, mission, done }`) reads with no bout; its done flag
+  for today still counts. SURPRISE ME re-rolls the card in place into a Surprise Mission and holds that for the day.
+- **The bonus** (the existing Mission of the Day amount, 25 XP): paid once a local day for the first valid session
+  started from the card that runs to its end. Settled in ONE place: App listens to every stats write
+  (`training-mode-stats-updated`, fired by every `userStats` add) and calls `settleTodaysBout`. START (or ADJUST) on
+  the card arms it in `tm_bout_arm_v1`; the first session row banked after the tap is the card's session, whatever
+  screen it ran on; the arm is then spent, paid or not. It pays when that row is a training day
+  (`weekStreak.isTrainingRow`: not an award, not refused/`unverified`, not zero-work), ran to its end (its own
+  `completed` flag where it has one, else every round, set or drill done) and was banked today. Back on Home with no
+  session started since START (none paused since), the arm is dropped. The three per-route `settleDailyMission` calls
+  in App are gone.
+- **Never twice**: the done flag is written before the XP (nothing is paid if it cannot be written); the bonus row is
+  tagged with its day (`{ type: 'Mission of the Day', bout: 'YYYY-MM-DD' }`), so a done flag or a bonus row synced
+  from another device both read as paid; the arm is device-local, so a synced copy cannot carry one.
+- **Done state**: green check and border, "+25 XP earned. A new bout tomorrow.", and a quiet TRAIN AGAIN that runs
+  the bout again with no second bonus (the tone of the old card's done look).
+- **End screen**: the strip's line reads `✓ TODAY'S BOUT · +25 XP`.
+- **A refused Combat Conditioning session** (its screen reads VALIDATION FAILED; App still banks the drills' XP, old)
+  is now marked `unverified` under the switch (`missionSolo.combatRunRefused`, the screen's own verdict), like the
+  refused guided Quick Mission before it: no Today's Bout bonus, no training day, no fight trophy count. Its XP banks
+  as before. Fight Focus and Combo Coach already marked theirs; camp, arcade v2 and guided v2 bank 0 for a refused
+  block, so their rows never count.
+- **The "?"**: with the switch on Home uses `SCREEN_GUIDES.home_weeks` (TODAY'S BOUT: picked when the day starts and
+  kept all day, +25 XP once a day from START, the green done card and TRAIN AGAIN, SURPRISE ME; and the header step
+  now explains the week chip instead of the old 🔥 day count), and the first-run tour `full_intro_weeks` (its Home
+  step is ▶ TODAY'S BOUT with the bonus and the done state; its XP step says "week streak"). No DAILY MISSION step
+  existed in the guides; none is added. Switch off: `home` and `full_intro` as before.
+- **Gallery** (`/retention-looks`, feature 1): TODAY'S BOUT ready (a last session), a new fit athlete, and done, all
+  the real component.
+
+### Routes that pay
+
+Every route ends by banking a session row through `data/userStats`, so the one listener covers them all:
+Continue (Fight Focus, Just Train, Combo Coach, Quick Mission guided or at your pace, Build Workout and program days,
+Combat Conditioning, Cardio), the camp map and a saga (camp levels, v2 stages, classic stages, a block at a time), NEXT
+UP, the Game Plan's and the first pick's routes through a setup screen (Fight Focus, Combo Coach, Quick Mission, Build
+Workout, Combat Conditioning), Start Here and Practice (the drill's `Practice` row; the lesson's own award row is not a
+session), the Fit hub (`train`: whatever is started there), a recovery round (the Quick Mission page) and SURPRISE ME.
+
+Do not pay: a session stopped short, refused or with no work (by rule); a session started after going back to Home
+without starting one; a session that runs past midnight (yesterday's START: the old card did the same); a Coach's
+Tape opened from the Fit hub the card led to, when the phone reloads the app on the way back from YouTube (the app
+lands on Home first, which drops the START). The end screens that are not `MissionComplete` (Practice, Cardio,
+Tapes, the classic stage clear) pay but show no strip; Home's card shows done afterwards.
+
+### Decisions (each easy to change)
+
+- **A returning athlete's bout is their last session** (Continue / NEXT UP), held for the day; a new athlete's is
+  the setup's first pick (or the Game Plan's). A paused session keeps the top card (RESUME, no bonus line) until it
+  is finished or discarded; the bout comes back after. A paused session started from the card still pays when it is
+  finished.
+- **"Finished"** means run to its end: a guided Quick Mission with a skipped move, or 1 of 3 rounds, pays no bonus
+  (as the old daily mission: its round done, the mission completed). That START is spent; START again and finish.
+- **ADJUST arms the bonus too** (it opens today's bout's own settings).
+- The Game Plan's bout is held as if nothing was trained yet (`getTodayBout({ ignoreTrainedToday: true })`): no
+  "Trained — Nice Work" pick while the bonus is still open. Its rest-day line reads "Rest days never break your week
+  streak." (the combo line is hidden under the switch). A 1-round session reads "1 round" (Home's old line says
+  "1 rounds"; the switch-off line is unchanged).
+- The length tag is left out when the title already says it ("Quick Mission — 12 Min Starter").
+- `tm_bout_arm_v1` is the one new key and is deliberately NOT in SYNC_KEYS (an exception to the storage rule, like
+  the paused-session snapshot): a synced arm would let a session on another phone pay.
+- No new spoken line: nothing here speaks.
+
+### Checked
+
+- `test:streak` 170 (was 140): the pick in every order and its words, what pays (every row type, partial, refused,
+  zero-work, award, another day, the at-your-pace flag), held across reloads and other sessions, new at midnight,
+  SURPRISE ME then START once, the arm (an XP-only write or an award row does not spend it, a START with nothing
+  started is dropped on Home, a pause since keeps it, yesterday's START pays nothing), the done flag that cannot be
+  saved, once a day, device B with A's synced box, a stale box beside A's synced rows, the old box shape, the switch-off
+  bonus row; the cross-feature refused guided Quick Mission through the new settle, and the refused Combat
+  Conditioning row. `test:xp` 121,
+  `test:missions` 217, `test:qm` 83, `test:concepts` 180, `test:nearmiss` 76, `test:path` 96, `test:practice-moves`,
+  `test:storage`, `test:levels`, `test:athlete`, `test:ayp`, `test:maxout`, `test:tapes`, eslint on every changed file,
+  `tsc`, `check-guides` (23 guides, 237 steps).
+- `retention-preview.mjs` at 360, 390 and 430: `f1-home-mission-ready` (a fighter's last session: 11 MIN · SAME AS
+  LAST TIME, START, +25 XP), `f1-home-mission-fit-new` (Quick Mission — 12 Min Starter, FITS YOUR LEVEL),
+  `f1-home-mission-done`, the new `f1-home-bout-surprise` (after SURPRISE ME) and `f1-home-guide-bout` (the "?" on its
+  TODAY'S BOUT step), the freeze notices (the toast clear of the card), the widest header, the gallery, and both end
+  screens reached by really pressing START on the card on a fake clock (the strip ends `✓ TODAY'S BOUT · +25 XP`);
+  `f2-home-next-up` and `-camp` now read TODAY'S BOUT · One Hundred · Stage 6 · CONTINUE · +25 XP. Looked at each photo:
+  the title and line wrap balanced (never one word alone), START and +25 XP share a row at 360, nothing cut. The whole
+  preview (all 34 states of the three features, the f2 and f3 states that start from Home's card included) fits; the
+  Fight Focus stopped at 1 of 3 from the card shows its strip with no bonus line.
+- Switch off, in the browser: Home shows the old CONTINUE card ("Boxing · 3 rounds · Normal · 11 min", no bonus), the
+  "?" has its CONTINUE step, SURPRISE ME the old in-memory Surprise card, and neither `tm_daily_mission_v2` nor
+  `tm_bout_arm_v1` is written.
+
+### Needs the owner's answer
+
+1. **A returning athlete's daily bout is their last session again** (or the next stage of their saga or camp). Keep,
+   or deal something new some days (the old daily mission was a fresh 3-minute session every day)?
+2. **Only a session run to its end pays** (a skipped move or an early END does not). Keep, or pay any valid session
+   with work done?
+3. **A paused session takes the card's place** until it is finished. Keep, or show the bout with a small paused row
+   above it?
+4. **The bonus is 25 XP** (the existing Mission of the Day amount; asked before, still open).

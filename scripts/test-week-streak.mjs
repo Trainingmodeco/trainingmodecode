@@ -3,7 +3,8 @@
 // (a row near midnight UTC in a zone that is not UTC), target changes from
 // next Monday, freeze use and earn, at most 2, carry-over of a real history,
 // a row synced in late, award rows and no-work rows left out, the end-screen
-// and Home moments, and the daily mission's deal and one-time bonus.
+// and Home moments, and Today's Bout (Home's one card): its pick, held for the
+// day, and its once-a-day bonus for a session started from the card.
 // Run with `npm run test:streak`.
 const store = new Map();
 let failWrites = false;
@@ -298,91 +299,181 @@ const NOW = at('2026-11-26', 18); // Thursday of the week of Nov 23
   check('new keys are synced', SYNC_KEYS.includes('tm_week_moments_v1') && SYNC_KEYS.includes('tm_daily_mission_v2') && SYNC_KEYS.includes('tm_game_plan_v1'));
 }
 
-// ── the daily mission ─────────────────────────────────────────────────────
+// ── Today's Bout: the pick (pure) ────────────────────────────────────────────
 {
-  const fighter = { goal: 'Train Like a Fighter', discipline: 'Muay Thai', encouragement: 'high' };
-  const fitter = { goal: 'Get Fit', discipline: 'Boxing' };
-  const level6 = { xp: 2600, sessions: [{ type: 'Fight Focus', completedAt: at('2026-11-10').toISOString(), completedCount: 3, xpEarned: 2600 }] };
-  const a = D.dealDailyMission({ date: '2026-11-26', profile: fighter, stats: level6 });
-  const b = D.dealDailyMission({ date: '2026-11-26', profile: fighter, stats: level6 });
-  check('same date, same mission', eq(a, b));
-  check('a fighter gets one Fight Focus round of their discipline', a.side === 'fight' && a.title === 'One Round: Muay Thai' && a.minutes === 3 && a.discipline === 'Muay Thai');
-  check('…on their level (level 6 is Hard)', a.difficulty === 'Hard' && a.line === 'Fight Focus · Hard · fits your level', a.line);
-  check('…paying the existing bonus', a.bonusXp === U.XP_DAILY_MISSION_BONUS && U.XP_DAILY_MISSION_BONUS === 25);
-  const yest = { ...level6, sessions: [...level6.sessions, row('2026-11-25', 19)] };
-  const c = D.dealDailyMission({ date: '2026-11-26', profile: fighter, stats: yest });
-  check('the day after a session: one step easier, and it says so', c.difficulty === 'Normal' && c.lighter && c.line === 'Fight Focus · Normal · lighter after yesterday');
-  const award = { ...level6, sessions: [...level6.sessions, row('2026-11-25', 19, { type: 'Mission of the Day', completedCount: 1, xpEarned: 25 })] };
-  check('an award row yesterday is not a session', !D.dealDailyMission({ date: '2026-11-26', profile: fighter, stats: award }).lighter);
-  const f = D.dealDailyMission({ date: '2026-11-26', profile: fitter, stats: { xp: 0, sessions: [] } });
-  check('a fit athlete gets a 3-minute Quick Mission', f.side === 'fit' && f.minutes === 3 && D.DAILY_FOCI.includes(f.focus) && f.title === `Quick Mission: ${f.focus}`);
-  check('…level 1 is Easy', f.difficulty === 'Easy' && f.line === 'No gear · Easy · fits your level');
-  const easyYest = D.dealDailyMission({ date: '2026-11-26', profile: fitter, stats: { xp: 0, sessions: [row('2026-11-25', 8, { type: 'Quick Mission' })] } });
-  check('…Easy cannot go lower, so it does not claim to be lighter', easyYest.difficulty === 'Easy' && !easyYest.lighter);
-  const foci = new Set(Array.from({ length: 30 }, (_, i) => D.dealDailyMission({ date: W.addDaysIso('2026-11-01', i), profile: fitter, stats: {} }).focus));
-  check('the focus changes with the date', foci.size >= 3);
-  check('no goal: the side with more XP', D.missionSide({}, { xp: 900, sessions: [{ type: 'Quick Mission', completedAt: at('2026-11-10').toISOString(), xpEarned: 900, completedCount: 3 }] }) === 'fit' && D.missionSide({}, {}) === 'fight');
-  const cfg = D.dailyMissionCfg(a, { profile: fighter });
-  check('fight START: 1 round of 3 minutes, no warm-up, tagged with the date', cfg.rounds === 1 && cfg.roundMin === 3 && cfg.warmupMin === 0 && cfg.difficulty === 'Hard' && cfg.dailyMission === '2026-11-26' && cfg.encouragement === 'high');
-  const qcfg = D.dailyMissionCfg(f, { qmConfig: (o) => ({ ...o, built: true }) });
-  check('fit START: a 3-minute Quick Mission of the focus, tagged', qcfg.built && qcfg.duration === 3 && qcfg.focus === f.focus && qcfg.difficulty === 'Easy' && qcfg.dailyMission === '2026-11-26');
+  const L = await import('../components/training-mode/data/lastSession.js');
+  const P = await import('../components/training-mode/data/pathStars.js');
+  const date = '2026-11-26';
+  const timer = { kind: 'timer', cfg: { mode: 'Technical', rounds: 3, roundMin: 3, restSec: 60, difficulty: 'Normal' }, disc: 'Boxing', at: 1 };
+  const a = D.pickTodaysBout({ date, last: timer, lastInfo: L.describeSession(timer), suggestion: { title: 'X', actionType: 'fightFocus' } });
+  check('pick: the last session first, ready to run again', a.kind === 'last' && a.title === 'Fight Focus' && a.side === 'fight' && a.cta === 'START' && a.run.type === 'replay' && eq(a.run.last, timer), JSON.stringify(a));
+  check('pick: its length is the tag, not the line', a.minutes === 11 && eq(a.parts, ['Boxing · 3 rounds', 'Normal']));
+  check('pick: a repeat says so ("Same as last time")', a.why === 'Same as last time' && eq(D.boutMeta(a), ['11 MIN', 'SAME AS LAST TIME']));
+  check('pick: it pays the existing Mission of the Day amount', a.bonusXp === U.XP_DAILY_MISSION_BONUS && U.XP_DAILY_MISSION_BONUS === 25 && D.BOUT_BONUS_XP === 25);
+  const one = { ...timer, cfg: { ...timer.cfg, rounds: 1 } };
+  check('pick: one round reads "1 round"', D.pickTodaysBout({ date, last: one, lastInfo: L.describeSession(one) }).parts[0] === 'Boxing · 1 round');
+  const camp = { kind: 'camp', cfg: { level: 5, difficulty: 'normal', format: 'single' }, disc: 'Boxing', at: 1 };
+  const c = D.pickTodaysBout({ date, last: camp, lastInfo: L.describeSession(camp) });
+  check('pick: the camp continues on its map, no "same as last time", no length', c.kind === 'last' && c.cta === 'CONTINUE' && c.why === null && c.minutes === null);
+  const next = { kind: 'camp', saga: 'Training Camp', number: 5, title: 'Volume', disc: 'Boxing' };
+  const n2 = D.pickTodaysBout({ date, last: camp, lastInfo: L.describeSession(camp), next, nextLine: P.nextUpLine(next) });
+  check('pick: on the path, NEXT UP folds in (the node, CONTINUE, opens it)', n2.kind === 'next' && n2.run.type === 'next' && n2.run.next === next && n2.cta === 'CONTINUE' && n2.parts.includes('Level 5') && /Next up in Training Camp/.test(n2.label));
+  check('pick: NEXT UP only folds for a saga or the camp', D.pickTodaysBout({ date, last: timer, lastInfo: L.describeSession(timer), next, nextLine: P.nextUpLine(next) }).kind === 'last');
+  const prog = { kind: 'fit', cfg: { programId: 'bro', difficulty: 'Normal', duration: 40 }, at: 1 };
+  check('pick: a program moves to its next day, so no "same as last time"', D.pickTodaysBout({ date, last: prog, lastInfo: { mode: 'fit', title: 'Bro Split', sub: 'Next: Chest day', diff: 'Normal', time: '40 min' } }).why === null);
+  const plan = { kind: 'train', session: { label: 'Combo Coach' }, gapMin: 20, actionType: 'comboCoach' };
+  const p = D.pickTodaysBout({ date, plan, suggestion: { title: 'X', actionType: 'fightFocus' } });
+  check('pick: no history, a Game Plan: its session for the window', p.kind === 'bout' && p.title === 'Combo Coach' && eq(p.parts, ['Fits your ~20 min window']) && p.run.actionType === 'comboCoach' && p.minutes === null && p.why === null);
+  const rest = D.pickTodaysBout({ date, plan: { kind: 'rest_day', reason: '…Your combo is safe.' }, suggestion: { title: 'Fight Focus — 3 Round Starter', actionType: 'fightFocus', actionPayload: 'Boxing' } });
+  check('pick: a planned rest day says rest never breaks the week streak; TRAIN ANYWAY runs the first pick', rest.cta === 'TRAIN ANYWAY' && /never break your week streak/.test(rest.parts[0]) && !/combo/i.test(rest.parts[0]) && rest.run.actionType === 'fightFocus');
+  const rec = D.pickTodaysBout({ date, plan: { kind: 'recovery', reason: 'No known free block today.' } });
+  check('pick: a recovery round opens the Quick Mission page', rec.cta === 'QUICK MISSION' && rec.run.type === 'qmSetup');
+  const fit = D.pickTodaysBout({ date, suggestion: { title: 'Quick Mission — 12 Min Starter', subtitle: 'A short bodyweight circuit to get moving.', actionType: 'quickMission', actionPayload: { duration: 12, focus: 'Full Body' }, mode: 'fit' } });
+  check('pick: a new fit athlete gets the first pick on their own level', fit.side === 'fit' && fit.minutes === 12 && fit.why === 'Fits your level' && fit.run.payload.duration === 12);
+  check('pick: the tag leaves out minutes the title already says', eq(D.boutMeta(fit), ['FITS YOUR LEVEL']) && eq(D.boutMeta(fit, { atPace: true }), ['FITS YOUR LEVEL', 'AT YOUR PACE']));
+  const easy = D.pickTodaysBout({ date, suggestion: { title: 'Quick Mission — Active Recovery', actionType: 'quickMission', actionPayload: { duration: 10, difficulty: 'Easy' }, mode: 'fit' } });
+  check('pick: a fixed easy level does not claim to fit the athlete', easy.why === null && eq(D.boutMeta(easy), ['10 MIN']));
+  const sh = D.pickTodaysBout({ date, suggestion: { title: 'Start Here — Learn the Basics', subtitle: 'Complete your first beginner lesson before Fight Focus.', actionType: 'startHere', actionPayload: null, mode: 'fight' } });
+  check('pick: a pick with no length has no tag', sh.minutes === null && D.boutMeta(sh).length === 0 && sh.run.actionType === 'startHere');
+  const sp = D.surpriseBout({ date, cfg: { duration: 15, focus: 'Core', difficulty: 'Hard' }, level: 'Hard' });
+  check('SURPRISE ME: a Surprise Mission with its length', sp.kind === 'surprise' && sp.title === 'Surprise Mission' && eq(sp.parts, ['Core', 'Hard']) && eq(D.boutMeta(sp), ['15 MIN']) && sp.run.cfg.duration === 15);
+  check('a pick is plain data (it is stored for the day)', eq(JSON.parse(JSON.stringify(a)), a) && eq(JSON.parse(JSON.stringify(n2)), n2));
+}
 
-  // The fit mission really is about 3 minutes, at every level and focus.
-  const { generateQuickMission, estimateQuickMissionSeconds } = await import('../components/training-mode/fit-mode/quickMissionGenerator.js');
-  const off = [];
-  for (const goal of ['Get Fit']) for (const xp of [0, 1500, 3500, 9000]) for (let i = 0; i < 20; i++) {
-    const m = D.dealDailyMission({ date: W.addDaysIso('2026-11-01', i), profile: { goal }, stats: { xp, sessions: [{ type: 'Quick Mission', completedAt: at('2026-10-01').toISOString(), xpEarned: xp, completedCount: 3 }] } });
-    const c = D.dailyMissionCfg(m, { qmConfig: (o) => ({ ...o }) });
-    const secs = estimateQuickMissionSeconds(generateQuickMission({ duration: c.duration, focus: c.focus, difficulty: c.difficulty }));
-    if (Math.abs(secs - 180) > 30) off.push(`${m.focus}/${m.difficulty}: ${secs}s`);
-  }
-  check('a 3-minute Quick Mission runs 3 minutes (within 30 s) at every level and focus', off.length === 0, off.slice(0, 3).join(', '));
+// ── Today's Bout: what pays ──────────────────────────────────────────────────
+{
+  const today = '2026-11-26';
+  const r = (extra) => row(today, 12, extra);
+  check('counts: a finished Fight Focus', D.boutRowCounts(r(), today));
+  check('counts: not a partial (1 of 3 rounds)', !D.boutRowCounts(r({ completedCount: 1 }), today));
+  check('counts: not a refused session', !D.boutRowCounts(r({ unverified: true }), today));
+  check('counts: not a zero-work session', !D.boutRowCounts(r({ completedCount: 0, xpEarned: 0 }), today));
+  check('counts: not an award row', !D.boutRowCounts(r({ type: 'Mission of the Day', completedCount: 1, totalCount: 1, xpEarned: 25 }), today));
+  check('counts: not a row of another day', !D.boutRowCounts(r(), '2026-11-27'));
+  check('counts: a Quick Mission at your pace by its own flag (MAX REPS saves fewer sets than slots)', D.boutRowCounts(r({ type: 'Quick Mission', mode: 'solo', completed: true, completedCount: 3, totalCount: 8 }), today) && !D.boutRowCounts(r({ type: 'Quick Mission', mode: 'solo', completed: false, completedCount: 8, totalCount: 8 }), today));
+  check('counts: a guided Quick Mission with a skipped move did not run to its end', !D.boutRowCounts(r({ type: 'Quick Mission', completedCount: 5, totalCount: 6 }), today));
+  check('counts: Practice, Cardio, a cleared tape, Camp, Combat Conditioning, Combo, Fit',
+    ['Practice', 'Training Camp', 'Combat Conditioning', 'Combo Coach', 'Fit Mode'].every((type) => D.boutRowCounts(r({ type }), today))
+    && D.boutRowCounts(r({ type: 'Cardio', completedCount: 1, totalCount: 1, completedTimeSeconds: 900 }), today)
+    && D.boutRowCounts(r({ type: "Coach's Tapes", kind: 'fit', completedCount: 1, totalCount: 1, xpEarned: 0 }), today));
+}
 
-  // Storage: today's mission, kept for the day; the bonus once.
-  store.clear();
-  const now = at('2026-11-26', 10).getTime();
-  const t1 = D.todaysDailyMission({ now, profile: fighter, stats: level6 });
-  check('a fresh deal is not saved by reading', !t1.saved && !t1.done && !store.has(D.DAILY_MISSION_KEY));
-  D.rememberDailyMission(t1.mission);
-  const t2 = D.todaysDailyMission({ now: now + 3600000, profile: fitter, stats: { xp: 0, sessions: [] } });
-  check('kept all day, whatever changes', t2.saved && eq(t2.mission, t1.mission));
-  const before = U.loadStats().xp;
-  check('not paid for an invalid session', D.settleDailyMission({ cfg, valid: false, now }) === 0);
-  check('not paid for a session not started from the card', D.settleDailyMission({ cfg: { ...cfg, dailyMission: undefined }, valid: true, now }) === 0);
-  check('not paid for yesterday\'s card', D.settleDailyMission({ cfg: { ...cfg, dailyMission: '2026-11-25' }, valid: true, now }) === 0);
+// ── Today's Bout: held for the day, the bonus once ───────────────────────────
+{
+  const reset = () => { U.addBonusXp(1); store.clear(); }; // a save drops the stats cache; then start empty
+  // START on the card: a real session banks well after the tap, never in the same millisecond.
+  const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+  const arm = async () => { await sleep(3); D.armTodaysBout(); await sleep(3); };
+  reset();
+  const day = at('2026-11-26', 9).getTime();
+  const t0 = D.todaysBout({ now: day });
+  check('a fresh day holds no bout, not done', t0.bout === null && !t0.done && !t0.saved && t0.date === '2026-11-26');
+  const bout = { date: '2026-11-26', kind: 'bout', side: 'fit', title: 'Quick Mission — 12 Min Starter', parts: [], cta: 'START', minutes: 12, why: 'Fits your level', bonusXp: 25, run: { type: 'route', actionType: 'quickMission', payload: { duration: 12 } } };
+  check('holding a pick saves it', D.holdBout(bout) && D.todaysBout({ now: day }).saved);
+  const other = { ...bout, title: 'Fight Focus', side: 'fight' };
+  check('a later pick the same day does not replace it (a reload, another session, a level change)', !D.holdBout(other) && eq(D.todaysBout({ now: day + 6 * 3600000 }).bout, bout));
+  U.addFightFocusSession(3, 3);
+  check('…not even after a session not started from the card', eq(D.todaysBout({ now: day + 7 * 3600000, stats: U.loadStats() }).bout, bout) && !D.todaysBout({ now: day, stats: U.loadStats() }).done);
+  check('a new bout at local midnight', D.todaysBout({ now: at('2026-11-27', 0, 1).getTime() }).bout === null && D.todaysBout({ now: at('2026-11-26', 23, 59).getTime() }).bout !== null);
+  const sp = D.surpriseBout({ date: '2026-11-26', cfg: { duration: 15, focus: 'Core', difficulty: 'Hard' }, level: 'Hard' });
+  check('SURPRISE ME replaces the held bout for the day', D.rerollBout(sp) && eq(D.todaysBout({ now: day }).bout, sp));
+
+  // The bonus: started from the card, run to its end, once a day.
+  reset();
+  const now = Date.now();
+  const iso = W.localIso(now);
+  D.holdBout({ ...bout, date: iso });
+  check('no START, no bonus: a session not started from the card', (U.addFightFocusSession(3, 3), D.settleTodaysBout()) === 0 && !D.todaysBout({ stats: U.loadStats() }).done);
+  await arm();
+  U.addBonusXp(5);
+  check('an XP-only write is not the card\'s session (the arm stays)', D.settleTodaysBout() === 0 && D.boutArm() !== null);
+  U.addHybridTrainingBonus();
+  check('an award row is not the card\'s session (the arm stays)', D.settleTodaysBout() === 0 && D.boutArm() !== null);
+  U.addFightFocusSession(0, 3, { xp: 0 });
+  check('a zero-work session from the card pays nothing, and uses up that START', D.settleTodaysBout() === 0 && D.boutArm() === null);
+  await arm(); U.addFightFocusSession(3, 3, { xp: 0, unverified: true });
+  check('a refused session from the card pays nothing', D.settleTodaysBout() === 0 && !D.todaysBout({ stats: U.loadStats() }).done);
+  await arm(); U.addComboCoachSession(1, 3);
+  check('a session stopped short pays nothing', D.settleTodaysBout() === 0);
+  U.addFightFocusSession(3, 3);
+  check('…nor the next one, not started from the card', D.settleTodaysBout() === 0);
+  await arm();
   failWrites = true;
-  check('not paid when the done flag cannot be saved', D.settleDailyMission({ cfg, valid: true, now }) === 0 && U.loadStats().xp === before);
+  const xp0 = U.loadStats().xp;
+  check('not paid when the done flag cannot be saved', D.settleTodaysBout({ stats: { sessions: [{ ...row(iso), completedAt: new Date().toISOString() }] } }) === 0 && U.loadStats().xp === xp0);
   failWrites = false;
-  check('paid once for the valid session from today\'s card', D.settleDailyMission({ cfg, valid: true, now }) === 25 && U.loadStats().xp === before + 25);
-  check('…and never again that day', D.settleDailyMission({ cfg, valid: true, now: now + 60000 }) === 0 && U.loadStats().xp === before + 25);
-  check('…today\'s card reads done', D.todaysDailyMission({ now, profile: fighter, stats: level6 }).done);
-  check('…the bonus row is an award, not a training day', !W.isTrainingRow(U.loadStats().sessions.at(-1)) && U.loadStats().sessions.at(-1).type === 'Mission of the Day');
-  check('just done: for the end screen', D.justDoneDailyMission(now + 30000)?.xp === 25 && D.justDoneDailyMission(now + 3600000) === null);
-  const tomorrow = D.todaysDailyMission({ now: at('2026-11-27', 8).getTime(), profile: fighter, stats: level6 });
-  check('a new mission the next day, not done', !tomorrow.done && tomorrow.mission.date === '2026-11-27');
+  await arm();
+  const before = U.loadStats().xp;
+  U.addPracticeSession('Jab', 2, 2, 30);
+  const paid = D.settleTodaysBout();
+  check('paid once for a valid session from the card that ran to its end (any route: here a Practice drill)', paid === 25 && U.loadStats().xp === before + 30 + 25, `paid ${paid}`);
+  const bonusRow = U.loadStats().sessions.at(-1);
+  check('…the bonus row is an award tagged with the day, not a training day', bonusRow.type === 'Mission of the Day' && bonusRow.bout === iso && !W.isTrainingRow(bonusRow));
+  check('…the card reads done, its bout kept', D.todaysBout({ stats: U.loadStats() }).done && D.todaysBout().bout?.title === bout.title);
+  check('…the end screen finds it', D.justDoneDailyMission(Date.now() + 30000)?.xp === 25 && D.justDoneDailyMission(Date.now() + 3600000) === null);
+  await arm(); U.addFightFocusSession(3, 3);
+  check('…and never again that day (TRAIN AGAIN from the done card)', D.settleTodaysBout() === 0 && U.loadStats().sessions.filter((s) => s.type === 'Mission of the Day').length === 1);
 
-  // START from a card dealt before midnight (Home left open): today's mission runs, tagged with today.
-  store.clear();
-  const late = at('2026-11-27', 0, 20).getTime();
-  check('START: the card\'s mission when it is today\'s', D.missionForStart(tomorrow.mission, { now: at('2026-11-27', 9).getTime(), profile: fighter, stats: level6 }) === tomorrow.mission);
-  const stale = D.missionForStart(t1.mission, { now: late, profile: fighter, stats: level6 });
-  check('START: yesterday\'s card runs today\'s mission', stale.date === '2026-11-27' && D.dailyMissionCfg(stale, { profile: fighter }).dailyMission === '2026-11-27');
-  check('…and today\'s deal is saved', D.todaysDailyMission({ now: late + 60000, profile: fitter, stats: {} }).saved && eq(D.todaysDailyMission({ now: late, profile: fitter, stats: {} }).mission, stale));
-  check('…so its session pays', D.settleDailyMission({ cfg: D.dailyMissionCfg(stale, { profile: fighter }), valid: true, now: late + 240000 }) === 25);
+  // SURPRISE ME, then START: paid once.
+  reset();
+  D.holdBout({ ...bout, date: iso });
+  D.rerollBout(D.surpriseBout({ date: iso, cfg: { duration: 15, focus: 'Core', difficulty: 'Hard' }, level: 'Hard' }));
+  await arm();
+  U.addQuickMissionSoloSession({ xpEarned: 120, completed: true, completedCount: 6, totalCount: 6 });
+  const s1 = D.settleTodaysBout();
+  await arm();
+  U.addQuickMissionSoloSession({ xpEarned: 120, completed: true, completedCount: 6, totalCount: 6 });
+  check('SURPRISE ME then START: the surprise pays once', s1 === 25 && D.settleTodaysBout() === 0 && D.todaysBout().bout?.kind === 'surprise');
 
-  // A done flag written before the deal was saved keeps its time and XP when the deal is saved.
-  store.clear();
-  const early = at('2026-11-28', 7).getTime();
-  const fresh = D.todaysDailyMission({ now: early, profile: fighter, stats: level6 });
-  check('settled before the deal was saved: paid', D.settleDailyMission({ cfg: D.dailyMissionCfg(fresh.mission, { profile: fighter }), valid: true, now: early }) === 25);
-  check('…the box has no mission yet', JSON.parse(store.get(D.DAILY_MISSION_KEY)).mission === null);
-  D.rememberDailyMission(fresh.mission);
+  // Back on Home: a START that started nothing no longer counts; a session paused since keeps it.
+  reset();
+  D.armTodaysBout({ now: now - 60000 });
+  check('back on Home with a session paused since START: the arm stays', !D.releaseBoutArm({ pausedAt: [now - 30000] }) && D.boutArm() !== null);
+  check('back on Home with nothing started (an older pause only): the arm is dropped', D.releaseBoutArm({ pausedAt: [now - 120000] }) && D.boutArm() === null);
+  U.addFightFocusSession(3, 3);
+  check('…so the next session pays nothing', D.settleTodaysBout() === 0);
+  // A START from yesterday's card (a session run past midnight) pays nothing today.
+  store.set(D.BOUT_ARM_KEY, JSON.stringify({ date: '2026-01-01', at: now - 1000 }));
+  U.addFightFocusSession(3, 3);
+  check('a START from yesterday\'s card pays nothing today, and is dropped', D.settleTodaysBout() === 0 && !store.has(D.BOUT_ARM_KEY));
+
+  // Never twice across devices.
+  reset();
+  D.holdBout({ ...bout, date: iso });
+  await arm(); U.addFightFocusSession(3, 3);
+  check('device A: paid', D.settleTodaysBout() === 25);
+  const aBox = store.get(D.DAILY_MISSION_KEY), aStats = store.get('tm_user_stats');
+  // Device B restores A's synced keys (the arm is not one of them), then trains from its card.
+  reset();
+  store.set(D.DAILY_MISSION_KEY, aBox); store.set('tm_user_stats', aStats); U.addBonusXp(0);
+  check('the arm is device-local: not in cloud sync', !SYNC_KEYS.includes(D.BOUT_ARM_KEY) && SYNC_KEYS.includes(D.DAILY_MISSION_KEY));
+  check('device B shows A\'s bout, done', D.todaysBout({ stats: U.loadStats() }).done && D.todaysBout().bout?.title === bout.title);
+  await arm(); U.addFightFocusSession(3, 3);
+  check('device B: a synced done flag pays nothing more', D.settleTodaysBout() === 0);
+  // A stale box (synced from a device that had not paid) beside A's rows: the tagged bonus row still reads as paid.
+  store.set(D.DAILY_MISSION_KEY, JSON.stringify({ v: 3, date: iso, bout: { ...bout, date: iso }, done: false, doneAt: null, xp: 0 }));
+  check('a stale box beside the synced rows: the card still reads done', D.todaysBout({ stats: U.loadStats() }).done);
+  await arm(); U.addFightFocusSession(3, 3);
+  check('…and pays nothing', D.settleTodaysBout() === 0 && U.loadStats().sessions.filter((s) => s.type === 'Mission of the Day').length === 1);
+
+  // The old daily mission's box (before the merge) on the same day.
+  reset();
+  store.set(D.DAILY_MISSION_KEY, JSON.stringify({ date: iso, mission: { title: 'One Round: Boxing' }, done: true, doneAt: new Date().toISOString(), xp: 25 }));
+  const old = D.todaysBout();
+  check('an old daily mission box: no bout held (Home picks one), its done flag kept', old.bout === null && old.done && !old.saved);
+  D.holdBout({ ...bout, date: iso });
   const box = JSON.parse(store.get(D.DAILY_MISSION_KEY));
-  check('saving the deal then keeps done, its time and its XP', box.done && box.doneAt === new Date(early).toISOString() && box.xp === 25 && eq(box.mission, fresh.mission), JSON.stringify(box));
-  check('…so the end screen still finds the mission just done', D.justDoneDailyMission(early + 30000)?.xp === 25);
-  D.rememberDailyMission({ ...fresh.mission, date: '2026-11-29' });
-  const next = JSON.parse(store.get(D.DAILY_MISSION_KEY));
-  check('a new day\'s deal starts not done', next.date === '2026-11-29' && !next.done && next.doneAt === null && next.xp === 0);
+  check('…holding the pick keeps done, its time and XP (the strip still finds it)', box.v === 3 && box.done && box.xp === 25 && box.bout.title === bout.title && D.justDoneDailyMission(Date.now() + 1000)?.xp === 25);
+  await arm(); U.addFightFocusSession(3, 3);
+  check('…and that day\'s bonus does not pay again', D.settleTodaysBout() === 0);
+  D.holdBout({ ...bout, date: '2026-11-29' });
+  const nb = JSON.parse(store.get(D.DAILY_MISSION_KEY));
+  check('a new day\'s bout starts not done', nb.date === '2026-11-29' && !nb.done && nb.doneAt === null && nb.xp === 0);
+
+  // Switch off: the old Mission of the Day bonus row is as it was.
+  reset();
+  U.addDailyMissionBonus();
+  check('switch off: the old bonus row carries no tag', !('bout' in U.loadStats().sessions.at(-1)));
 }
 
 // ── cross-feature review fixes (2026-11-23) ─────────────────────────────────
@@ -400,17 +491,29 @@ const NOW = at('2026-11-26', 18); // Thursday of the week of Nov 23
   check('refused: not a run with no integrity result', !MS.guidedRunRefused({ ...tooFast, integrityResult: null }));
 
   // What App banks for it with the switch on: the row pays as before (old behaviour), marked
-  // unverified, so it fills no training day; and the daily mission is not valid, so no bonus.
+  // unverified, so it fills no training day; and, started from Today's Bout, it pays no bonus.
   U.addBonusXp(1); store.clear(); // a save drops the stats cache; then start empty
   const today = Date.now();
+  D.armTodaysBout({ now: today - 1000 });
   const refused = MS.guidedRunRefused(tooFast);
   const xp = U.addQuickMissionSession(n6, n6, true, refused ? { unverified: true } : undefined, U.quickMissionXp(n6, n6, true, gen));
   const qmRow = U.loadStats().sessions.at(-1);
   check('refused: its row still banks its XP, marked unverified', xp > 0 && qmRow.xpEarned === xp && qmRow.unverified === true);
   check('refused: …and fills no training day', !W.isTrainingRow(qmRow) && S.loadWeekStreak(today).thisWeek.done === 0);
-  const cfg = { dailyMission: W.localIso(today) };
   const xpBefore = U.loadStats().xp;
-  check('refused: …and pays no daily mission bonus', D.settleDailyMission({ cfg, valid: !!tooFast.completed && xp > 0 && !refused, now: today }) === 0 && U.loadStats().xp === xpBefore && !store.has(D.DAILY_MISSION_KEY));
+  check('refused: …and pays no Today\'s Bout bonus', D.settleTodaysBout({ now: today }) === 0 && U.loadStats().xp === xpBefore && !store.has(D.DAILY_MISSION_KEY));
+
+  // Combat Conditioning: its screen can read VALIDATION FAILED while App banks the drills' XP (old).
+  // With the switch on App marks that row unverified, so a refused session from Today's Bout pays nothing.
+  const ccTooFast = { drillsCompleted: 6, totalDrills: 6, integrityResult: { awardXp: false, validityStatus: 'tooFast', reason: 'Too fast.' } };
+  check('refused CC: the screen\'s own verdict', MS.combatRunRefused(ccTooFast, 'Normal') && !MS.combatRunRefused({ ...ccTooFast, integrityResult: { awardXp: true, validityStatus: 'complete' } }, 'Normal') && !MS.combatRunRefused({ ...ccTooFast, integrityResult: null }, 'Normal'));
+  U.addBonusXp(1); store.clear();
+  await new Promise((res) => setTimeout(res, 3)); D.armTodaysBout(); await new Promise((res) => setTimeout(res, 3));
+  U.addCombatConditioningSession(6, 6, 3, 3, true, { unverified: true });
+  const ccRow = U.loadStats().sessions.at(-1);
+  check('refused CC: its row is marked unverified, fills no training day, pays no bonus', ccRow.unverified === true && ccRow.xpEarned > 0 && !W.isTrainingRow(ccRow) && D.settleTodaysBout() === 0);
+  U.addCombatConditioningSession(6, 6, 3, 3, true);
+  check('switch off: the CC row is as before (no flag)', !('unverified' in U.loadStats().sessions.at(-1)));
 
   // A cardio finisher banks its Cardio row after the session's, before the end screen mounts.
   U.addBonusXp(1); store.clear();

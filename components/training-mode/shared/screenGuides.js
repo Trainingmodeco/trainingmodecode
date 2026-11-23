@@ -311,3 +311,27 @@ SCREEN_GUIDES.fit_hub_v2 = SCREEN_GUIDES.fit_hub.map(s => (s.target === 'fit-qui
   : s.target === 'fit-today'
     ? { ...s, body: `${s.body} If the line ends "At your pace", START runs the moves and a timer, no coach voice: you choose that on the Quick Mission page.` }
     : s));
+
+// Home and the intro tour while the week streak is on (retention feature 1,
+// data/retentionFlags `weeks`): the header's chip is the week streak, and the
+// top card is TODAY'S BOUT, with its daily bonus and its done state.
+const WEEKS_HOME = {
+  'home-level': {
+    title: 'LEVEL · RANK · WEEK STREAK',
+    body: 'Every finished workout adds XP and fills the bar; fill it to level up and climb the ranks. Beside it, your week streak: 🔥 counts the weeks in a row you hit your target (set it in PROFILE), the dots are this week\'s days, and ❄ is a freeze that saves the streak in a short week. Rest days never break it.',
+  },
+  'home-continue': {
+    title: 'TODAY\'S BOUT',
+    body: 'The one thing to do today, picked when your day starts and kept all day: the session you trained last, ready to run again, or a workout picked for you if you are new. Finish it from START and you earn +25 XP, once a day. Then the card turns green with +25 XP earned until tomorrow\'s bout, and TRAIN AGAIN runs it once more. SURPRISE ME swaps it for a random quick mission; AT YOUR PACE means the moves and a timer, no coach voice.',
+  },
+};
+SCREEN_GUIDES.home_weeks = SCREEN_GUIDES.home.map((s) => (WEEKS_HOME[s.target] ? { ...s, ...WEEKS_HOME[s.target] } : s));
+SCREEN_GUIDES.full_intro_weeks = SCREEN_GUIDES.full_intro.map((s) => {
+  if (s.screen === 'home' && s.target === 'home-continue') {
+    return { ...s, title: '▶ TODAY\'S BOUT', body: 'This card holds today\'s bout: a workout picked for you, and once you have trained, the last session you ran, ready to go again. Finish it from START and you earn +25 XP, once a day; then the card says so until tomorrow\'s bout. If you only ever press one thing, make it START (once this tour is closed).' };
+  }
+  if (s.screen === 'home' && s.target === null && /🔥 streak/.test(s.body)) {
+    return { ...s, body: s.body.replace('train days in a row to grow your 🔥 streak', 'reach your weekly target to grow your 🔥 week streak') };
+  }
+  return s;
+});

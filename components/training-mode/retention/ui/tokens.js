@@ -15,6 +15,12 @@ export const HOME = {
   font: "'Chakra Petch',sans-serif",
 };
 
+// Home's two sides (HomeDashboard's top card): the accent, the mode tag and the art.
+export const SIDES = {
+  fit: { accent: '#9D6CFF', accentText: '#C4A8FF', label: 'Fit Mode', art: '/static/banner-bg.png', filter: 'none' },
+  fight: { accent: '#3D7BFF', accentText: '#8FB4FF', label: 'Fight Mode', art: '/static/bout-bg.png', filter: 'hue-rotate(-48deg) saturate(1.1)' },
+};
+
 export const head = (size, weight = 700, extra = {}) => ({ font: `${weight} ${size}px ${HOME.font}`, letterSpacing: '0.08em', ...extra });
 
 export const GOLD_BUTTON = 'linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%)';

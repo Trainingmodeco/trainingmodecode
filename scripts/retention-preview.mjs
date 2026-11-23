@@ -90,13 +90,14 @@ async function profileEditor(page, w) {
   await page.getByRole('button', { name: /TAP TO EDIT/ }).first().click({ timeout: 4000 }); await wait(page, 1200);
   await page.locator('[data-retention="week-target"]').scrollIntoViewIfNeeded({ timeout: 4000 }); await wait(page, 500);
 }
-// The real daily mission on a fake clock: START on the card, the round runs,
-// the end screen opens with its strip.
+// Today's Bout for real on a fake clock: START on the card (the last session,
+// one 3-minute Fight Focus round), the round runs, the end screen opens with
+// its strip and the day's bonus.
 async function runDailyMission(page, w) {
   await home(page, w);
   const now = () => page.evaluate(() => Date.now());
   await page.clock.pauseAt((await now()) + 500);
-  await page.locator('[data-guide="home-daily-mission"] button').first().click({ timeout: 4000 });
+  await page.locator('[data-retention="todays-bout"] button.hm-go').first().click({ timeout: 4000 });
   for (let i = 0; i < 400; i++) {
     await page.clock.runFor(1000);
     const t = await page.evaluate(() => document.body.innerText);
@@ -106,7 +107,7 @@ async function runDailyMission(page, w) {
   }
   await page.clock.resume();
   await wait(page, 2500);
-  if (!/YOUR PROGRESS/.test(await page.evaluate(() => document.body.innerText))) throw new Error('the daily mission did not reach its end screen');
+  if (!/YOUR PROGRESS/.test(await page.evaluate(() => document.body.innerText))) throw new Error('today\'s bout did not reach its end screen');
 }
 // ── feature 2: the path + stars ──────────────────────────────────────────────
 // The classic saga: stages 1-5 cleared with 3, 3, 2, 1, 3 stars and best times; stage 6 is current.
@@ -303,35 +304,69 @@ const scrollTo = (sel) => async (page) => { await page.locator(sel).first().scro
 // `once`: open the screen once (at the first size) and resize for the others.
 // `clock`: a state that drives the clock itself (pauses it, runs it on); every
 // state starts on the fixed clock.
-const HOME_CHECK = ['header[data-guide="home-level"]', '[data-guide="home-daily-mission"]', '[role="status"]'];
-const HOME_APART = [['[role="status"]', '[data-guide="home-daily-mission"]']];
+const HOME_CHECK = ['header[data-guide="home-level"]', '[data-guide="home-continue"]', '[role="status"]'];
+const HOME_APART = [['[role="status"]', '[data-guide="home-continue"]']];
+// Today's Bout's samples: a fighter's last session (one 3-minute Fight Focus
+// round, which the end-screen states really run), and the bout held as done.
+const BOUT_LAST = { kind: 'timer', cfg: { difficulty: 'Normal', mode: 'Technical', rounds: 1, roundMin: 3, restSec: 60, voiceOn: true, rushMode: false, rushPattern: 'endRound', rushMix: 'explosive', encouragement: 'normal', warmupMin: 0, ghostChallengeId: null }, disc: 'Boxing', at: NOW_MS - DAY };
+const BOUT_LAST3 = { ...BOUT_LAST, cfg: { ...BOUT_LAST.cfg, rounds: 3 } };
+const BOUT_SEED = (rows, xp, last = BOUT_LAST) => () => ({ tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(rows, xp), tm_last_session_v1: JSON.stringify(last) });
 const STATES = [
   {
     name: 'f1-home-mission-ready',
-    note: 'Home: the week chip (9-week streak, 3 of 4 days, 2 freezes) and the DAILY MISSION card, ready.',
-    seed: () => ({ tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 9, thisWeek: Math.min(3, todayIdx) }), 6750) }),
-    open: home, check: HOME_CHECK, apart: HOME_APART, expect: /DAILY MISSION[\s\S]*START/,
+    note: 'Home: the week chip (9-week streak, 3 of 4 days, 2 freezes) and the one TODAY\'S BOUT card, ready: the last session again, its length, +25 XP beside START.',
+    seed: () => BOUT_SEED(history({ onTarget: 9, thisWeek: Math.min(3, todayIdx) }), 6750, BOUT_LAST3)(),
+    open: home, check: HOME_CHECK, apart: HOME_APART,
+    expect: /TODAY'S BOUT[\s\S]*Fight Focus[\s\S]*Boxing · 3 rounds · Normal\s+11 MIN\s*·\s*SAME AS LAST TIME[\s\S]*START[\s\S]*\+25 XP[\s\S]*SURPRISE ME/, absent: /DAILY MISSION/,
   },
   {
     name: 'f1-home-mission-fit-new',
-    note: 'Home: a new, fit-leaning athlete: no streak yet, the starting freeze, a 3-minute Quick Mission.',
+    note: 'Home: a new, fit-leaning athlete: no streak yet, the starting freeze; TODAY\'S BOUT is the setup\'s first pick, a 12-minute Quick Mission on their level.',
     seed: () => ({ tm_user_profile: JSON.stringify(FITTER), tm_user_stats: stats([], 0) }),
-    open: home, check: HOME_CHECK, apart: HOME_APART, expect: /Quick Mission:/,
+    open: home, check: HOME_CHECK, apart: HOME_APART,
+    expect: /TODAY'S BOUT[\s\S]*FIT MODE[\s\S]*Quick Mission — 12 Min Starter[\s\S]*FITS YOUR LEVEL[\s\S]*START[\s\S]*\+25 XP/, absent: /DAILY MISSION/,
   },
   {
     name: 'f1-home-mission-done',
-    note: 'Home: the mission done today; the card says so until tomorrow, today\'s dot is filled.',
+    note: 'Home: today\'s bout done (its bonus paid): the card turns green, says +25 XP earned and a new bout tomorrow, TRAIN AGAIN; today\'s dot is filled.',
     seed: () => {
-      const rows = [...history({ onTarget: 3, thisWeek: Math.min(2, todayIdx) }), row(new Date(NOW_MS - 3600000))];
       const date = iso(NOW);
-      const mission = { date, side: 'fight', minutes: 3, bonusXp: 25, tier: 'NORMAL', lighter: false, id: `${date}:fight`, discipline: 'Boxing', difficulty: 'Normal', title: 'One Round: Boxing', line: 'Fight Focus · Normal · fits your level' };
+      const paidAt = new Date(NOW_MS - 3600000);
+      const rows = [...history({ onTarget: 3, thisWeek: Math.min(2, todayIdx) }), row(paidAt), { id: 'pbonus', type: 'Mission of the Day', completedAt: paidAt.toISOString(), completedCount: 1, totalCount: 1, xpEarned: 25, bout: date }];
+      const bout = { date, bonusXp: 25, kind: 'last', side: 'fight', title: 'Fight Focus', parts: ['Boxing · 3 rounds', 'Normal'], cta: 'START', minutes: 11, why: 'Same as last time', run: { type: 'replay', last: BOUT_LAST3 } };
       return {
         tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(rows, 4200),
-        tm_daily_mission_v2: JSON.stringify({ date, mission, done: true, doneAt: new Date(NOW_MS - 3600000).toISOString(), xp: 25 }),
+        tm_last_session_v1: JSON.stringify(BOUT_LAST3),
+        tm_daily_mission_v2: JSON.stringify({ v: 3, date, bout, done: true, doneAt: paidAt.toISOString(), xp: 25 }),
         tm_week_moments_v1: JSON.stringify({ day: date, seen: [] }),
       };
     },
-    open: home, check: HOME_CHECK, apart: HOME_APART, expect: /DAILY MISSION DONE/,
+    open: home, check: HOME_CHECK, apart: HOME_APART,
+    expect: /TODAY'S BOUT[\s\S]*Fight Focus[\s\S]*\+25 XP earned\. A new bout tomorrow\.[\s\S]*TRAIN AGAIN/, absent: /DAILY MISSION|SAME AS LAST TIME/,
+  },
+  {
+    name: 'f1-home-bout-surprise',
+    note: 'Home after SURPRISE ME: today\'s bout re-rolled in place into a Surprise Mission (its length and level), still +25 XP; held for the rest of the day.',
+    seed: () => BOUT_SEED(history({ onTarget: 9, thisWeek: Math.min(3, todayIdx) }), 6750, BOUT_LAST3)(),
+    open: async (page, w) => {
+      await home(page, w);
+      await page.getByRole('button', { name: /SURPRISE ME/ }).first().click({ timeout: 4000 });
+      await wait(page, 700);
+    },
+    check: HOME_CHECK, apart: HOME_APART,
+    expect: /TODAY'S BOUT[\s\S]*FIT MODE[\s\S]*Surprise Mission[\s\S]*\d+ MIN[\s\S]*START[\s\S]*\+25 XP[\s\S]*ADJUST/, absent: /DAILY MISSION|Fight Focus/,
+  },
+  {
+    name: 'f1-home-guide-bout',
+    note: 'Home\'s ? guide on its TODAY\'S BOUT step: the one card, its daily bonus and its done state (no DAILY MISSION step).',
+    seed: () => BOUT_SEED(history({ onTarget: 9, thisWeek: Math.min(3, todayIdx) }), 6750, BOUT_LAST3)(),
+    open: async (page, w) => {
+      await home(page, w);
+      await page.locator('[data-guide="help-icon"]').first().click({ timeout: 4000 }); await wait(page, 900);
+      for (let i = 0; i < 2; i++) { await page.getByRole('button', { name: /NEXT/ }).first().click({ timeout: 4000 }); await wait(page, 900); }
+    },
+    check: ['div:has(> button[aria-label="Close guide"])'],
+    expect: /TODAY'S BOUT[\s\S]*\+25 XP, once a day[\s\S]*TRAIN AGAIN/, absent: /DAILY MISSION/,
   },
   {
     name: 'f1-home-freeze-used',
@@ -368,33 +403,33 @@ const STATES = [
     note: 'The design gallery (/retention-looks), feature 1: every card renders the real components with sample data.',
     seed: () => ({}),
     open: async (page) => { await page.goto(`${BASE}retention-looks`, { waitUntil: 'networkidle' }); await wait(page, 2500); },
-    check: ['#f1'], shot: '#f1', expect: /DAILY MISSION \+ STREAK FREEZE/,
+    check: ['#f1'], shot: '#f1', expect: /TODAY'S BOUT \+ STREAK FREEZE[\s\S]*TRAIN AGAIN/, absent: /DAILY MISSION/,
   },
   {
     name: 'f1-end-day-kept',
-    note: 'The real daily mission (fake clock) → its end screen: TRAINING DAY n OF 4 · STREAK KEPT, the new dot pops, +25 XP.',
+    note: 'Today\'s Bout for real (fake clock) → its end screen: TRAINING DAY n OF 4 · STREAK KEPT, the new dot pops, TODAY\'S BOUT · +25 XP.',
     clock: true, once: true,
-    seed: () => ({ tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 9, thisWeek: Math.min(2, todayIdx) }), 6750) }),
-    open: runDailyMission, after: scrollTo('[data-retention="week-moment"]'), check: ['[data-retention="week-moment"]'], expect: /TRAINING DAY|WEEK COMPLETE/,
+    seed: () => BOUT_SEED(history({ onTarget: 9, thisWeek: Math.min(2, todayIdx) }), 6750)(),
+    open: runDailyMission, after: scrollTo('[data-retention="week-moment"]'), check: ['[data-retention="week-moment"]'], expect: /TRAINING DAY[\s\S]*TODAY'S BOUT · \+25 XP/, absent: /DAILY MISSION/,
   },
   {
     name: 'f1-end-week-complete',
-    note: 'The daily mission lands the 4th day of the 4th week on target: WEEK COMPLETE, a freeze earned.',
+    note: 'Today\'s Bout lands the 4th day of the 4th week on target: WEEK COMPLETE, a freeze earned, TODAY\'S BOUT · +25 XP.',
     clock: true, once: true, needsDays: 3,
-    seed: () => ({ tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 3, thisWeek: 3 }), 3300) }),
-    open: runDailyMission, after: scrollTo('[data-retention="week-moment"]'), check: ['[data-retention="week-moment"]'], expect: /WEEK COMPLETE[\s\S]*FREEZE EARNED/,
+    seed: () => BOUT_SEED(history({ onTarget: 3, thisWeek: 3 }), 3300)(),
+    open: runDailyMission, after: scrollTo('[data-retention="week-moment"]'), check: ['[data-retention="week-moment"]'], expect: /WEEK COMPLETE[\s\S]*FREEZE EARNED[\s\S]*TODAY'S BOUT · \+25 XP/, absent: /DAILY MISSION/,
   },
   {
     name: 'f2-home-next-up',
-    note: 'Home: NEXT UP folded into the Continue card (the last session is that saga): One Hundred, stage 6, one card.',
+    note: 'Home: NEXT UP folded into Today\'s Bout (the last session is that saga): One Hundred, stage 6, one card.',
     seed: OP_SEED, open: home, after: scrollTo('[data-retention="next-up"]'),
-    check: ['[data-retention="next-up"]'], expect: /NEXT UP[\s\S]*One Hundred\s+Stage 6 · The Standard Hundred[\s\S]*CONTINUE/, absent: /NEXT UP · ONE HUNDRED|Arcade · Stage 5/,
+    check: ['[data-retention="next-up"]'], expect: /TODAY'S BOUT[\s\S]*One Hundred\s+Stage 6 · The Standard Hundred[\s\S]*CONTINUE[\s\S]*\+25 XP/, absent: /NEXT UP · ONE HUNDRED|Arcade · Stage 5/,
   },
   {
     name: 'f2-home-next-up-camp',
-    note: 'Home: NEXT UP for Training Camp folded into the Continue card: the current level (5), one card.',
+    note: 'Home: NEXT UP for Training Camp folded into Today\'s Bout: the current level (5), one card.',
     seed: CAMP_SEED, open: home, after: scrollTo('[data-retention="next-up"]'),
-    check: ['[data-retention="next-up"]'], expect: /NEXT UP[\s\S]*Training Camp\s+Boxing · Level 5 · Volume[\s\S]*CONTINUE/, absent: /NEXT UP · TRAINING CAMP|Level 5 · Normal/,
+    check: ['[data-retention="next-up"]'], expect: /TODAY'S BOUT[\s\S]*Training Camp\s+Boxing · Level 5 · Volume[\s\S]*CONTINUE[\s\S]*\+25 XP/, absent: /NEXT UP · TRAINING CAMP|Level 5 · Normal/,
   },
   {
     name: 'f2-saga-path',

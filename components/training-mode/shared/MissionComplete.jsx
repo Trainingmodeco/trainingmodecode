@@ -140,7 +140,7 @@ export default function MissionComplete({
 
   // Retention feature 1 (week streak switch): the one quiet strip in YOUR
   // PROGRESS when this session filled a training day, completed the week,
-  // earned a freeze or was the daily mission. Worked out once, marked shown.
+  // earned a freeze or paid Today's Bout's bonus. Worked out once, marked shown.
   // A cardio finisher (cardioResult) banked a Cardio row of its own after the session's.
   const [weeksOn] = useState(() => retentionOn('weeks'));
   const [weekStrip] = useState(() => (!unpaid && weeksOn ? takeEndScreenStrip(Date.now(), { finisher: !!cardioResult }) : null));
@@ -165,7 +165,7 @@ export default function MissionComplete({
   const lp = getLevelProgress(stats0.xp);
   const sex = String(loadProfile()?.sex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
   const tier = getCurrentTier(stats0);
-  // With the week streak on, the daily mission's bonus row is an award, not a
+  // With the week streak on, Today's Bout's bonus row is an award, not a
   // session or a mode of its own (tiers.sessionMode 'bonus').
   const weekSess = weeksOn ? getWeeklySessions(stats0).filter((s) => sessionMode(s) !== 'bonus') : getWeeklySessions(stats0);
   const weekXp = (weeksOn ? getWeeklySessions(stats0) : weekSess).reduce((a, s) => a + (s.xpEarned || 0), 0);

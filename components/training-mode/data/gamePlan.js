@@ -83,7 +83,10 @@ const BLOCK_START = { morning: 7 * 60 + 30, midday: 12 * 60 + 30, evening: 18 * 
 
 // The Today's Bout recommendation, or null when the questionnaire hasn't been
 // done (the card then falls back to the existing suggestion).
-export function getTodayBout() {
+// `ignoreTrainedToday`: Today's Bout held for the day (week streak switch)
+// is picked as if nothing was trained yet, so a first look at Home after a
+// session still offers the day's bout (its daily bonus says when it is done).
+export function getTodayBout({ ignoreTrainedToday = false } = {}) {
   const gp = loadGamePlan();
   if (!gp.setup) return null;
   const prefs = {
@@ -100,7 +103,7 @@ export function getTodayBout() {
     todayWeekday: weekdayOf(todayIso()),
     plan: generateWeeklyPlan(prefs),
     freeBlocks: [{ startMin: start, endMin: start + gp.sessionMinutes }],
-    alreadyTrainedToday: trainedToday(),
+    alreadyTrainedToday: ignoreTrainedToday ? false : trainedToday(),
     readiness: 'ready',
     prefs,
     catalog: CATALOG,

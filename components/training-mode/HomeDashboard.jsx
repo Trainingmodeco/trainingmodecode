@@ -24,9 +24,10 @@ import ConceptFeatureCard from './shared/ConceptFeatureCard';
 import { retentionOn } from './data/retentionFlags';
 import { loadWeekStreak, takeHomeNotice, markWeekMoments } from './data/weekStreakStore';
 import { noticeCopy, localIso } from './data/weekStreak';
-import { todaysDailyMission, rememberDailyMission } from './data/dailyMission';
+import { todaysBout, holdBout, rerollBout, pickTodaysBout, surpriseBout, boutMeta, armTodaysBout } from './data/dailyMission';
 import WeekChip from './retention/ui/WeekChip';
-import DailyMissionCard from './retention/ui/DailyMissionCard';
+import TodaysBoutCard from './retention/ui/TodaysBoutCard';
+import { SIDES } from './retention/ui/tokens';
 import NextUpRow from './retention/ui/NextUpRow';
 import { loadNextUp } from './data/pathNextUp';
 import { nextUpCopy, nextUpLine } from './data/pathStars';
@@ -39,6 +40,10 @@ import { nextUpCopy, nextUpLine } from './data/pathStars';
 // for someone with no history. Under it, the two modes, the Arcade, and three
 // shortcuts.
 //
+// With the week streak switch on, that card (when nothing is paused) is
+// TODAY'S BOUT: the same pick, held for the day, with the daily bonus and a
+// done state (data/dailyMission, retention/ui/TodaysBoutCard).
+//
 // What moved rather than vanished: the paused-session banner is now the
 // Continue card itself (it turns into RESUME); the come-back reminder and the
 // streak nudge show one at a time as a toast over the header, the way the
@@ -47,8 +52,8 @@ import { nextUpCopy, nextUpLine } from './data/pathStars';
 // started, and with "Choose Your Path" gone it would otherwise have been the
 // only way in.
 
-const FIT = { accent: '#9D6CFF', accentText: '#C4A8FF', label: 'Fit Mode', art: '/static/banner-bg.png', filter: 'none' };
-const FIGHT = { accent: '#3D7BFF', accentText: '#8FB4FF', label: 'Fight Mode', art: '/static/bout-bg.png', filter: 'hue-rotate(-48deg) saturate(1.1)' };
+const FIT = SIDES.fit;
+const FIGHT = SIDES.fight;
 const ARCADE = { accent: '#5FE3FF', accentText: '#5FE3FF', label: 'Training Arcade', art: '/static/bout-bg.png', filter: 'none' };
 
 // Which side of the app a paused session belongs to, for the card's colour.
@@ -56,6 +61,25 @@ const FIT_SCREENS = new Set(['qm_active', 'fit_workout', 'cardio_mode', 'cardio_
 const sideOfScreen = (screen) => (screen === 'arcade_session' ? ARCADE : FIT_SCREENS.has(screen) ? FIT : FIGHT);
 
 const MUTED = '#A9A3C4';
+
+// TODAY'S BOUT (week streak switch): the day's held bout, or a fresh pick from
+// Home's own pick engine when none is held yet (holdBout saves it, from an
+// effect). The same order as the card: the last session (folded with the
+// path's NEXT UP), else the Game Plan, else the setup's first pick.
+function readTodaysBout({ at, stats, profile, pathOn }) {
+  const t = todaysBout({ now: at, stats });
+  if (t.bout) return t;
+  const last = loadLastSession();
+  const next = pathOn ? loadNextUp(last) : null;
+  return {
+    ...t,
+    bout: pickTodaysBout({
+      date: t.date, last, lastInfo: describeSession(last), next, nextLine: nextUpLine(next),
+      plan: getTodayBout({ ignoreTrainedToday: true }),
+      suggestion: firstPick({ profile: profile || {}, stats, dailyMission: null }),
+    }),
+  };
+}
 
 const homeCSS = `
 @keyframes hm-ghost { 0%, 100% { opacity: 0; transform: translateY(0) } 50% { opacity: 1; transform: translateY(-4px) } }
@@ -98,7 +122,7 @@ export default function HomeDashboard({
   onPractice, onFightFocus, onQuickMission, onStartQuickMission, onFitSetup, onComboCoach, onJustTrain, onPrograms,
   onStartHere, onCombatConditioning, onTrainingArcade, onReplayLast, onOpenGhost,
   pausedSession, onResume, onDiscardPaused,
-  pausedAlt, onResumeAlt, onDiscardAlt, onOpenConcept, onDailyMission, onNextUp,
+  pausedAlt, onResumeAlt, onDiscardAlt, onOpenConcept, onNextUp,
 }) {
   // Retention feature 1 (weekly streak + daily mission), behind its switch.
   const [weeksOn] = useState(() => retentionOn('weeks'));
@@ -179,14 +203,15 @@ export default function HomeDashboard({
     markWeekMoments({ seen: [n.id] });
     setWeekNotice(n);
   }, [weeksOn, week]);
-  // Today's DAILY MISSION: dealt once a day and kept (saved from the effect).
-  const [daily, setDaily] = useState(() => (weeksOn ? todaysDailyMission({ profile, stats: loadStats() }) : null));
+  // TODAY'S BOUT: picked once a day and held (saved from the effect); re-read
+  // after every stats write, so the card turns done when its bonus is paid.
+  const [today, setToday] = useState(() => (weeksOn ? readTodaysBout({ at: Date.now(), stats: loadStats(), profile, pathOn }) : null));
   useEffect(() => {
     if (!weeksOn) return;
-    const d = todaysDailyMission({ now: dayAt, profile, stats });
-    if (!d.saved) rememberDailyMission(d.mission);
-    setDaily(d.saved ? d : todaysDailyMission({ now: dayAt, profile, stats }));
-  }, [weeksOn, stats, profile, dayAt]);
+    const t = readTodaysBout({ at: dayAt, stats, profile, pathOn });
+    if (!t.saved) holdBout(t.bout);
+    setToday(t);
+  }, [weeksOn, pathOn, stats, profile, dayAt]);
 
   // A live ghost challenge haunts the Continue card until it's beaten; its
   // nudges (the decline line, then at most one a day) take the toast slot.
@@ -257,19 +282,21 @@ export default function HomeDashboard({
     ? (bout.kind === 'rest_day' ? 'TRAIN ANYWAY' : bout.kind === 'already_trained' ? 'BONUS ROUND' : bout.kind === 'recovery' ? 'QUICK MISSION' : 'START')
     : 'START';
 
-  // Setup screen for the last session, for ADJUST.
-  const adjustLast = () => {
-    if (!last) return;
-    const d = last.disc || disc;
-    if (last.kind === 'timer') (last.cfg.mode === 'Just Train' ? onJustTrain : onFightFocus)?.(d);
-    else if (last.kind === 'combo') onComboCoach?.(d);
-    else if (last.kind === 'quick_mission') onQuickMission?.();
-    else if (last.kind === 'fit') (programFor(last) ? onPrograms : onFitSetup)?.();
-    else if (last.kind === 'cc') onCombatConditioning?.();
+  // Setup screen for the last session, for ADJUST. `l`: the last session
+  // (today's bout holds its own copy of it).
+  const adjustFor = (l) => {
+    if (!l) return;
+    const d = l.disc || disc;
+    if (l.kind === 'timer') (l.cfg.mode === 'Just Train' ? onJustTrain : onFightFocus)?.(d);
+    else if (l.kind === 'combo') onComboCoach?.(d);
+    else if (l.kind === 'quick_mission') onQuickMission?.();
+    else if (l.kind === 'fit') (programFor(l) ? onPrograms : onFitSetup)?.();
+    else if (l.kind === 'cc') onCombatConditioning?.();
     // Camp, Arcade and Cardio: CONTINUE already opens their own setup (map,
     // stage ladder, cardio setup), so ADJUST goes to the same place.
-    else if (last.kind === 'camp' || last.kind === 'arcade' || last.kind === 'cardio') onReplayLast?.({ adjust: true });
+    else if (l.kind === 'camp' || l.kind === 'arcade' || l.kind === 'cardio') onReplayLast?.(l === last ? { adjust: true } : { adjust: true, last: l });
   };
+  const adjustLast = () => adjustFor(last);
 
   // A session start from a tap on Home is still a user gesture, so speech can
   // be unlocked here the same way each setup screen does before it starts.
@@ -326,6 +353,44 @@ export default function HomeDashboard({
     };
   }
 
+  // TODAY'S BOUT (week streak switch): the one card at the top whenever no
+  // session is paused. START runs the held bout by its own route; START or
+  // ADJUST arms the day's bonus (data/dailyMission) until it is paid.
+  const b = weeksOn && !pausedSession ? today?.bout : null;
+  const boutDone = !!today?.done;
+  const runBout = (r) => {
+    if (!r) { onTrain?.(); return; }
+    if (r.type === 'replay') primeThen(() => onReplayLast?.({ last: r.last }));
+    else if (r.type === 'next') primeThen(() => onNextUp?.(r.next));
+    else if (r.type === 'surprise') primeThen(() => onStartQuickMission?.(r.cfg));
+    else if (r.type === 'qmSetup') onQuickMission?.();
+    else routeAction(r.actionType, r.payload);
+  };
+  const armBout = () => { if (b && !boutDone) armTodaysBout({ kind: b.kind }); };
+  const boutAdjust = !b ? null
+    : b.kind === 'surprise' ? onQuickMission
+    : (b.kind === 'last' || b.kind === 'next') && b.run?.last ? () => adjustFor(b.run.last)
+    : null;
+  const boutAtPace = !!b && (
+    b.run?.type === 'surprise' ? startsAtYourPace(b.run.cfg, savedMode)
+    : b.run?.type === 'replay' ? b.run.last?.kind === 'quick_mission' && startsAtYourPace(b.run.last.cfg, savedMode)
+    : b.run?.type === 'route' && b.run.actionType === 'quickMission' && !!b.run.payload && typeof b.run.payload === 'object'
+      ? startsAtYourPace(quickMissionConfig(b.run.payload), savedMode) : false);
+  // SURPRISE ME re-rolls today's bout in place (held for the rest of the day).
+  const surpriseMe = () => {
+    if (!weeksOn) { setSurprise(surpriseQuickMission()); return; }
+    const cfg = surpriseQuickMission();
+    const w = levelWord(cfg.difficulty);
+    const pick = surpriseBout({ date: localIso(Date.now()), cfg, level: w.charAt(0) + w.slice(1).toLowerCase() });
+    rerollBout(pick);
+    setToday({ ...todaysBout({ stats: loadStats() }), bout: pick, saved: true });
+  };
+  const ghostButton = ghostCh ? (
+    <button type="button" className="hm-ghost" data-guide="home-ghost" onClick={onOpenGhost} aria-label="Your ghost challenge" style={{
+      flexShrink: 0, background: 'none', border: 0, padding: 2, cursor: 'pointer', fontSize: 24, lineHeight: 1,
+    }}>👻</button>
+  ) : null;
+
   // One nudge at a time, over the header — the combo flash first (it only
   // ever shows once), then the daily nudge, then the come-back reminder.
   const nudge = weekNotice
@@ -369,16 +434,6 @@ export default function HomeDashboard({
           )}
         />
 
-        {/* Today's DAILY MISSION, one tap to start (week streak switch on). */}
-        {weeksOn && daily?.mission && (
-          <DailyMissionCard
-            mission={daily.mission} done={daily.done} weekDone={week.thisWeek.done} weekTarget={week.thisWeek.target}
-            onStart={() => primeThen(() => onDailyMission?.(daily.mission))}
-            // Clear of a two-line toast over the header.
-            style={{ marginTop: 6 }}
-          />
-        )}
-
         {/* The one thing to do. */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
           {/* The second paused session — one of each kind can wait. */}
@@ -393,6 +448,16 @@ export default function HomeDashboard({
               <button type="button" onClick={onDiscardAlt} aria-label="Discard this paused session" style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: 4, display: 'flex' }}><X size={14}/></button>
             </div>
           )}
+          {b ? (
+            <TodaysBoutCard
+              side={b.side === 'fit' ? FIT : FIGHT} title={b.title} parts={b.parts || []} meta={boutMeta(b, { atPace: boutAtPace })}
+              cta={b.cta || 'START'} bonusXp={b.bonusXp} done={boutDone} label={b.label}
+              retention={b.kind === 'next' ? 'next-up' : 'todays-bout'} ghost={ghostButton}
+              onGo={() => { armBout(); runBout(b.run); }}
+              // Clear of a two-line toast over the header.
+              style={{ marginTop: 6 }}
+            />
+          ) : (
           <section data-guide="home-continue" data-retention={card.next ? 'next-up' : undefined} style={{
             position: 'relative', minHeight: 176, borderRadius: 16, overflow: 'hidden', display: 'flex', flexDirection: 'column',
             border: '1px solid rgba(255,255,255,0.08)', background: '#0D0A18',
@@ -427,8 +492,9 @@ export default function HomeDashboard({
                   }}>👻</button>
                 )}
               </div>
-              {/* With the week streak on, the DAILY MISSION card above draws
-                  the eye down here: the line takes two lines before it is cut. */}
+              {/* With the week streak on (this card is then only a paused
+                  session's) and for NEXT UP, the line takes two lines before
+                  it is cut. */}
               <div style={weeksOn || card.next
                 ? { fontSize: 14, lineHeight: 1.3, color: MUTED, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }
                 : { fontSize: 14, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.parts.join(' · ')}</div>
@@ -443,17 +509,18 @@ export default function HomeDashboard({
               }}><Play size={16} fill="currentColor" strokeWidth={0}/>{card.cta}</button>
             </div>
           </section>
+          )}
 
           {/* Shown only when they'd do something different from START: a
               paused session has nothing to surprise or adjust. */}
           {card.kind !== 'paused' && (
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 4px' }}>
-              <button type="button" className="hm-quiet" onClick={() => setSurprise(surpriseQuickMission())} style={{
+              <button type="button" className="hm-quiet" onClick={surpriseMe} style={{
                 height: 40, display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none', cursor: 'pointer',
                 color: MUTED, font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em',
               }}><Shuffle size={15}/>SURPRISE ME</button>
-              {card.onAdjust && (
-                <button type="button" className="hm-quiet" onClick={card.onAdjust} style={{
+              {(b ? boutAdjust : card.onAdjust) && (
+                <button type="button" className="hm-quiet" onClick={b ? () => { armBout(); boutAdjust(); } : card.onAdjust} style={{
                   height: 40, display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none', cursor: 'pointer',
                   color: MUTED, font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em',
                 }}><SlidersHorizontal size={15}/>ADJUST</button>
@@ -466,8 +533,10 @@ export default function HomeDashboard({
             Folded into the Continue card when that card is the same saga or
             camp; left out under a paused session or a surprise pick (the
             card above is the one thing to do). What is left: a concept
-            stage's last run (Continue replays that stage's timer). */}
-        {pathOn && nextUp && card.kind === 'last' && !card.next && (
+            stage's last run (Continue replays that stage's timer), and,
+            under Today's Bout held from earlier in the day, a saga or the
+            camp played since. */}
+        {pathOn && nextUp && (b ? b.kind === 'last' : card.kind === 'last' && !card.next) && (
           <NextUpRow {...nextUpCopy(nextUp)} number={nextUp.number} boss={nextUp.boss} onGo={() => onNextUp?.(nextUp)}/>
         )}
 
@@ -557,7 +626,7 @@ export default function HomeDashboard({
         )}
       </div>
 
-      {helpOpen && <ScreenGuide steps={SCREEN_GUIDES.home} onClose={() => setHelpOpen(false)}/>}
+      {helpOpen && <ScreenGuide steps={weeksOn ? SCREEN_GUIDES.home_weeks : SCREEN_GUIDES.home} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>
   );
 }

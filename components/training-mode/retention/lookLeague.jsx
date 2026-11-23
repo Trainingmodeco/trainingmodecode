@@ -85,7 +85,7 @@ export default function LookLeague() {
         <LeagueScreen/>
       </Look>
 
-      <Look name="Home: league card" note="Small, under the daily mission: tier, place, days left, and how far the promotion zone is." height={170}>
+      <Look name="Home: league card" note="Small, under Today's Bout: tier, place, days left, and how far the promotion zone is." height={170}>
         <HomeHeader right={<WeekChip/>}/>
         <div style={{ margin: '8px 14px', height: 64, borderRadius: 14, background: HOME.tile, border: '1px solid rgba(168,85,247,.35)', display: 'flex', alignItems: 'center', gap: 12, padding: '0 12px' }}>
           <TierBadge name="ARENA" size={40}/>

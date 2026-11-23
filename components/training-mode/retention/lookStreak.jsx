@@ -2,12 +2,14 @@ import { HOME, head, Look, Feature, HomeHeader as LookHomeHeader } from './looks
 import HomeHeader from '../shared/HomeHeader';
 import NudgeToast from '../shared/NudgeToast';
 import RealWeekChip from './ui/WeekChip';
-import DailyMissionCard from './ui/DailyMissionCard';
+import TodaysBoutCard from './ui/TodaysBoutCard';
+import { SIDES } from './ui/tokens';
 import WeekMomentStrip from './ui/WeekMomentStrip';
 import WeekTargetRow from './ui/WeekTargetRow';
 import { noticeCopy } from '../data/weekStreak';
+import { boutMeta } from '../data/dailyMission';
 
-// 1 · Weekly streak + daily mission + freezes. The streak counts weeks that
+// 1 · Weekly streak + Today's Bout + freezes. The streak counts weeks that
 // reach the weekly target of training days (default 4), so a rest day never
 // breaks it. Every card below renders the REAL components (retention/ui,
 // shared/HomeHeader, shared/NudgeToast) with sample data: what is drawn here
@@ -15,14 +17,24 @@ import { noticeCopy } from '../data/weekStreak';
 
 // done | rest | today | future, Monday first
 const WEEK = ['done', 'done', 'rest', 'done', 'today', 'future', 'future'];
-const FIGHT_MISSION = {
-  date: '2026-11-26', side: 'fight', minutes: 3, bonusXp: 25, tier: 'NORMAL', lighter: false,
-  discipline: 'Boxing', difficulty: 'Normal', title: 'One Round: Boxing', line: 'Fight Focus · Normal · fits your level',
+// Today's Bout as data/dailyMission pickTodaysBout holds it: a fighter's last
+// session, ready to run again, and a new fit athlete's first pick.
+const FIGHT_BOUT = {
+  date: '2026-11-26', kind: 'last', side: 'fight', bonusXp: 25, title: 'Fight Focus', parts: ['Boxing · 3 rounds', 'Normal'],
+  cta: 'START', minutes: 11, why: 'Same as last time', run: { type: 'replay' },
 };
-const FIT_MISSION = {
-  date: '2026-11-26', side: 'fit', minutes: 3, bonusXp: 25, tier: 'EASY', lighter: true,
-  focus: 'Core', difficulty: 'Easy', title: 'Quick Mission: Core', line: 'No gear · Easy · lighter after yesterday',
+const FIT_BOUT = {
+  date: '2026-11-26', kind: 'bout', side: 'fit', bonusXp: 25, title: 'Quick Mission — 12 Min Starter', parts: ['A short bodyweight circuit to get moving.'],
+  cta: 'START', minutes: 12, why: 'Fits your level', run: { type: 'route' },
 };
+// The real card with a sample bout.
+function Bout({ bout, done = false }) {
+  return (
+    <div style={{ padding: '14px 16px' }}>
+      <TodaysBoutCard side={SIDES[bout.side]} title={bout.title} parts={bout.parts} meta={boutMeta(bout)} cta={bout.cta} bonusXp={bout.bonusXp} done={done}/>
+    </div>
+  );
+}
 
 // The week chip with sample data, for the other features' looks (they show
 // it in their home headers): the real component.
@@ -67,9 +79,9 @@ function YourProgress({ children }) {
 
 export default function LookStreak() {
   return (
-    <Feature id="f1" num="FEATURE 1" title="DAILY MISSION + STREAK FREEZE"
-      reuse="the home header and its nudge slot, the existing Mission of the Day bonus (+25 XP), Profile's Game Plan “Days per week”, the end screen's YOUR PROGRESS card."
-      isNew="the streak counts weeks that hit the weekly target (rest days never break it), the week chip with day dots, freezes (❄), the DAILY MISSION card, the end-screen strip, the target picker. Every card here is the real component.">
+    <Feature id="f1" num="FEATURE 1" title="TODAY'S BOUT + STREAK FREEZE"
+      reuse="the home header and its nudge slot, Home's top card and its pick, the existing Mission of the Day bonus (+25 XP), Profile's Game Plan “Days per week”, the end screen's YOUR PROGRESS card."
+      isNew="the streak counts weeks that hit the weekly target (rest days never break it), the week chip with day dots, freezes (❄), TODAY'S BOUT (Home's one card, held for the day, with the daily bonus and a done state), the end-screen strip, the target picker. Every card here is the real component.">
 
       <Look name="Home header: today vs new" note="Top: the chip as it is today (12-day combo, 1 guard). Bottom: the real header with the week chip: 9-week streak, this week's days (gold done, green rest, ring today), 3 of 4 days, 2 freezes. The XP numbers give way so it fits at 360 px." height={190}>
         <div style={{ ...head(9, 600), color: HOME.muted, padding: '10px 14px 0' }}>TODAY</div>
@@ -78,22 +90,22 @@ export default function LookStreak() {
         <NewHeader/>
       </Look>
 
-      <Look name="Home: DAILY MISSION, ready" note="Top of home. One tap starts a 3-minute session on the athlete's level: one Fight Focus round for a fighter, a short Quick Mission for a fit athlete. One a day, the same all day." height={270} animated>
+      <Look name="Home: TODAY'S BOUT, ready" note="Home's one card at the top: the day's pick, held all day (here the last session, ready to run again), its length, why it was picked, and the daily bonus beside START: +25 XP once a day for a session started here that runs to its end." height={296}>
         <NewHeader/>
-        <div style={{ padding: '14px 16px' }}><DailyMissionCard mission={FIGHT_MISSION} weekDone={3} weekTarget={4}/></div>
+        <Bout bout={FIGHT_BOUT}/>
       </Look>
 
-      <Look name="Home: DAILY MISSION, fit and lighter" note="A fit athlete who trained yesterday: a Quick Mission one level easier, and it says why." height={270}>
-        <NewHeader done={2} streak={0} freezes={1} days={['done', 'rest', 'done', 'today', 'future', 'future', 'future']}/>
-        <div style={{ padding: '14px 16px' }}><DailyMissionCard mission={FIT_MISSION} weekDone={2} weekTarget={4}/></div>
+      <Look name="Home: TODAY'S BOUT, new fit athlete" note="No history yet: the setup's first pick, a 12-minute Quick Mission on the athlete's own level." height={312}>
+        <NewHeader done={0} streak={0} freezes={1} days={['today', 'future', 'future', 'future', 'future', 'future', 'future']}/>
+        <Bout bout={FIT_BOUT}/>
       </Look>
 
-      <Look name="Home: DAILY MISSION, done" note="After a valid, finished session started from the card: the card turns green and says when the next one comes. Today's dot is filled." height={250}>
+      <Look name="Home: TODAY'S BOUT, done" note="Once the bonus is paid: the card turns green, says so and that a new bout comes tomorrow; TRAIN AGAIN runs it once more, with no second bonus. Today's dot is filled." height={270}>
         <NewHeader done={4} days={['done', 'done', 'rest', 'done', 'done', 'future', 'future']}/>
-        <div style={{ padding: '14px 16px' }}><DailyMissionCard mission={FIGHT_MISSION} done weekDone={4} weekTarget={4}/></div>
+        <Bout bout={FIGHT_BOUT} done/>
       </Look>
 
-      <Look name="Streak kept (end screen)" note="One quiet strip in YOUR PROGRESS when the session fills a training day; today's dot pops in. The daily mission's bonus says so." height={230} animated>
+      <Look name="Streak kept (end screen)" note="One quiet strip in YOUR PROGRESS when the session fills a training day; today's dot pops in. Today's Bout's bonus says so." height={230} animated>
         <YourProgress>
           <WeekMomentStrip missionXp={25} moment={{ kind: 'kept', done: 3, target: 4, streak: 9, freezes: 2, popIndex: 3, days: ['done', 'done', 'rest', 'done', 'future', 'future', 'future'], freezeEarned: null }}/>
         </YourProgress>

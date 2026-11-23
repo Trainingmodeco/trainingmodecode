@@ -41,7 +41,7 @@ import { rememberSession, loadLastSession, programFor } from './data/lastSession
 import { startProgramDay, completeProgramDay } from './data/workoutPrograms';
 import { completePlanDay } from './data/workoutLibrary';
 import { qmV2Enabled } from './data/qmV2';
-import { settleSoloXp, settleGuidedXp, guidedRunRefused, roundSplits, hasRoundTimer } from './data/missionSolo';
+import { settleSoloXp, settleGuidedXp, guidedRunRefused, combatRunRefused, roundSplits, hasRoundTimer } from './data/missionSolo';
 import { resolveQuickMissionRun, missionRunsAtYourPace, isGeneratedMission } from './data/soloFromGenerated';
 import { loadShelfPrefs } from './data/loadoutMissions';
 import PracticeInvite from './PracticeInvite';
@@ -57,8 +57,7 @@ import { maybeOfferChallenge, declineChallenge, settleChallenge, getActiveChalle
 import { dueComeback, markComebackShown, remindComebackNextWeek } from './data/comeback';
 import { getLastBattle } from './data/ghostBattles';
 import { retentionOn } from './data/retentionFlags';
-import { dailyMissionCfg, settleDailyMission, missionForStart } from './data/dailyMission';
-import { quickMissionConfig } from './data/quickMissionConfig';
+import { settleTodaysBout, releaseBoutArm } from './data/dailyMission';
 
 // 2.10 — v2 campaign stars: completion-quality is the gate (you only earn stars
 // by fully + validly clearing), difficulty sets the count. FULL ARC gets +1 for
@@ -440,6 +439,23 @@ export default function App() {
     };
   }, [screen, disc, cfg, comboCfg, fitCfg, qmCfg, ccMission, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, cardioContext, ccResult, qmResult, session]);
 
+  // Today's Bout (week streak switch): its daily bonus is settled in ONE place,
+  // whatever route the card opened. Every session banks its row through
+  // data/userStats, which announces each write; the first session row after
+  // the card's START is the card's session (data/dailyMission settleTodaysBout).
+  useEffect(() => {
+    if (!weeksOn || typeof window === 'undefined') return undefined;
+    const onBank = () => { settleTodaysBout(); };
+    window.addEventListener('training-mode-stats-updated', onBank);
+    return () => window.removeEventListener('training-mode-stats-updated', onBank);
+  }, [weeksOn]);
+  // Back on Home with no session started from the card's START (none paused
+  // since), that START no longer counts.
+  useEffect(() => {
+    if (!weeksOn || screen !== 'home') return;
+    releaseBoutArm({ pausedAt: pausedSlots.map((p) => p?.timestamp) });
+  }, [weeksOn, screen, pausedSlots]);
+
   // The setup page's opening request is used once: leaving the page clears it.
   useEffect(() => { if (screen !== 'qm_setup') setQmEntry(null); }, [screen]);
 
@@ -684,6 +700,8 @@ export default function App() {
   // questionnaire and from Profile → Replay intro guide, and nowhere else.
   const markTourDone = () => { safeSetItem(TOUR_KEY, 'true'); };
   const startFullIntro = () => { setScreen('home'); setPathTour('full_intro'); };
+  // With the week streak on, the tour's Home steps name TODAY'S BOUT and the week streak.
+  const tourSteps = pathTour === 'full_intro' && weeksOn ? SCREEN_GUIDES.full_intro_weeks : SCREEN_GUIDES[pathTour];
   // Practice Mode's welcome poster, for new learners, once — the last step
   // of first-run setup (after the walkthrough, so the two never overlap).
   const maybePracticeIntro = () => {
@@ -796,7 +814,6 @@ export default function App() {
           completedCount: result.exercisesCompleted, totalCount: result.totalSlots, splits,
         });
         if (xp > 0) tryCompleteDailyMission('quickMission');
-        if (weeksOn) settleDailyMission({ cfg: qmCfg, valid: !!result.completed && xp > 0 });
         trackEvent('session_complete', { mode: 'quickMission', solo: true, mission: result.missionId, exercises: result.exercisesCompleted });
         setQmResult({ ...result, xpEarned: xp, settle, rounds: splits });
       } else {
@@ -809,7 +826,7 @@ export default function App() {
         const settle = result?.mission?.v2 === true ? settleGuidedXp(result) : null;
         // Week streak switch: a generated mission or a classic the integrity check refused (its
         // screen reads VALIDATION FAILED) banks as before, but marked unverified, so it fills no
-        // training day, and it pays no daily mission bonus.
+        // training day, and it pays no Today's Bout bonus (data/dailyMission reads the row).
         const refused = weeksOn && !settle && guidedRunRefused(result);
         // A generated mission pays its minutes at its level's rate (the sets split it), the same figure the complete screen shows.
         const xp = addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed,
@@ -820,7 +837,6 @@ export default function App() {
         if (dayCounts(result.exercisesCompleted, result.totalExercises, result.completed)) completePlanDay(qmCfg?.mission);
         // As in SOLO, a v2 run that pays nothing (a quit) does not complete the Mission of the Day.
         if (!settle || settle.xp > 0) tryCompleteDailyMission('quickMission');
-        if (weeksOn) settleDailyMission({ cfg: qmCfg, valid: !!result.completed && xp > 0 && !refused });
         trackEvent('session_complete', { mode: 'quickMission', exercises: result.exercisesCompleted });
         setQmResult(settle ? { ...result, xpEarned: xp, settle } : result);
       }
@@ -947,7 +963,10 @@ export default function App() {
     goCombatCondComplete: (result) => {
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
-      addCombatConditioningSession(result.drillsCompleted, result.totalDrills, result.roundsCompleted, result.totalRounds, result.completed);
+      // Week streak switch: a session the integrity check refused (its screen reads VALIDATION FAILED)
+      // banks as before, but marked unverified: it fills no training day and pays no Today's Bout bonus.
+      const refusedCc = weeksOn && combatRunRefused(result, ccMission?.difficulty);
+      addCombatConditioningSession(result.drillsCompleted, result.totalDrills, result.roundsCompleted, result.totalRounds, result.completed, refusedCc ? { unverified: true } : undefined);
       if (result.cleanRoundXp && result.integrityResult?.awardXp !== false) addBonusXp(result.cleanRoundXp);
       tryCompleteDailyMission('combatConditioning');
       trackEvent('session_complete', { mode: 'combatConditioning', drills: result.drillsCompleted });
@@ -980,8 +999,10 @@ export default function App() {
     // settings it ran with. A program starts its next day instead.
     // opts.adjust (ADJUST): open the setup without starting — only Cardio
     // would otherwise start by itself.
+    // opts.last: the session to run instead of the stored last one (Today's
+    // Bout, week streak switch, holds the one it picked for the whole day).
     replayLastSession: (opts) => {
-      const last = loadLastSession();
+      const last = (opts?.last?.kind && opts.last.cfg ? opts.last : null) || loadLastSession();
       if (!last) return false;
       const c = last.cfg;
       switch (last.kind) {
@@ -1211,8 +1232,6 @@ export default function App() {
       // from the accelerometer (motion-verified thrown strikes) or is zero.
       if (!unverified) recordFightSession({ rounds: done, strikes: fs.motionUsed ? (fs.thrown || 0) : 0 });
       tryCompleteDailyMission('fightFocus');
-      // The daily mission (week streak switch): its one round, finished and verified.
-      if (weeksOn) settleDailyMission({ cfg: c, valid: !unverified && done >= total && xp > 0 });
       trackEvent('session_complete', { mode: justTrain ? 'justTrain' : 'fightFocus', rounds: done });
       // A win over the live ghost challenge settles it (the battle itself was
       // resolved by the timer at the final bell).
@@ -1330,22 +1349,6 @@ export default function App() {
     goPracticeLesson: (d) => {
       if (d) { try { saveProfile({ ...loadProfile(), discipline: d }); } catch { /* best-effort */ } setDisc(d); }
       setScreen('practice_starthere');
-    },
-    // The DAILY MISSION card (week streak switch): one tap straight into the
-    // session, its config tagged with the day so its end can pay the bonus.
-    startDailyMission: (shown) => {
-      // Rebuilt from today's mission if the card was dealt before midnight.
-      const mission = missionForStart(shown, { profile, stats: loadStats() });
-      const c = dailyMissionCfg(mission, { profile, qmConfig: quickMissionConfig });
-      if (!c) return;
-      trackEvent('daily_mission_start', { v: 2, side: mission.side });
-      if (mission.side === 'fight') {
-        const d = mission.discipline || disc;
-        setDisc(d);
-        rememberSession('timer', c, d); trackSessionStart('fightFocus', { daily: true }); freshStart('timer'); setCfg(c); setScreen('timer');
-      } else {
-        actions.goQuickMissionActive(c);
-      }
     },
     goStartDailyMission: (mission) => {
       safeSetItem('dailyMissionActive', 'true');
@@ -1549,10 +1552,10 @@ export default function App() {
         )}
         {pathTour && (
           <ScreenGuide
-            steps={SCREEN_GUIDES[pathTour]}
+            steps={tourSteps}
             onClose={(finished) => closePathTour(finished || pathTourLastRef.current)}
             onStep={(i, cfg) => {
-              pathTourLastRef.current = i === SCREEN_GUIDES[pathTour].length - 1;
+              pathTourLastRef.current = i === tourSteps.length - 1;
               if (!cfg?.screen) return;
               // Ladder steps need a saga loaded before the screen can
               // render — walk into the first playable one.

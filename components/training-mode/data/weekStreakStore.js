@@ -73,7 +73,7 @@ export function takeHomeNotice(week) {
 }
 
 // The end screen's strip: the week moment of the session that just banked,
-// and the daily mission bonus it paid, each shown once.
+// and the Today's Bout bonus it paid, each shown once.
 // Returns null or { moment, missionXp, today }.
 export function takeEndScreenStrip(now = Date.now(), { finisher = false } = {}) {
   const today = localIso(now);
