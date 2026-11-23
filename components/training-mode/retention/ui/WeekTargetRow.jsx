@@ -34,7 +34,7 @@ export default function WeekTargetRow({ value, current, onPick, freezes = 0, nex
         {pending ? `${value} days from Monday. This week stays at ${current}.` : `${value} days a week${value === 4 ? ' · recommended' : ''}.`}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-        <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9, letterSpacing: '0.12em', color: HOME.oneUp, whiteSpace: 'nowrap' }}>1UPS {freezes}/{MAX_FREEZES}</span>
+        <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9, letterSpacing: '0.12em', color: HOME.oneUp, whiteSpace: 'nowrap' }}>1UP {freezes} OF {MAX_FREEZES}</span>
         <span style={{ flex: 1, minWidth: 0, fontFamily: "'Rajdhani',sans-serif", fontWeight: 500, fontSize: 10.5, color: C.faint, lineHeight: 1.3 }}>
           {nextFreezeIn == null ? 'You hold the most there is.' : `Next one after ${plural(nextFreezeIn, 'more week')} on target.`}
         </span>

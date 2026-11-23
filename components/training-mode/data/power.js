@@ -139,8 +139,10 @@ export const REVIVE_LINE = 'REVIVED · POWER 100%';
 export function powerNoticeCopy(n) {
   if (!n) return null;
   if (n.kind === 'revive') return 'Revived: your fighter is back to 100% power.';
-  // A no-break space keeps "power (36%)" together on a narrow line.
-  return `Your fighter is losing power\u00A0(${n.pct}%). One session revives it.`;
+  // No number: the POWER line right above it already shows it. Each sentence
+  // keeps its words together, so a narrow line breaks between the two.
+  const keep = (t) => t.replace(/ /g, '\u00A0');
+  return `${keep('Your POWER is running low.')} ${keep('One session revives it.')}`;
 }
 
 export function rustyCopy(p) {
@@ -148,6 +150,6 @@ export function rustyCopy(p) {
   return {
     title: 'RUSTY',
     since: `${d} days since your last session.`,
-    kept: 'Your level, XP and badges are all still here.',
+    kept: 'Your level, XP, streak and badges are all still here.',
   };
 }

@@ -36,7 +36,7 @@ export default function WeekChip({ days = [], done = 0, target = 4, streak = 0, 
       </span>
       <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
         <span style={{ display: 'flex', gap: 3 }}>{days.map((s, i) => <Dot key={i} s={s} pop={pop === i && s === 'done'}/>)}</span>
-        {count && <span style={{ ...head(8, 700, { letterSpacing: '0.04em', lineHeight: 1 }), color: HOME.muted, whiteSpace: 'nowrap' }}>{done}/{target} DAYS</span>}
+        {count && <span style={{ ...head(10, 700, { letterSpacing: '0.02em', lineHeight: 1 }), color: HOME.soft, whiteSpace: 'nowrap' }}>{done}/{target} DAYS</span>}
       </span>
       <OneUpMark stacked count={freezes}/>
     </div>

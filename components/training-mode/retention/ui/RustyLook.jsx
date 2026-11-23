@@ -13,7 +13,9 @@ import SafeImage from '../../SafeImage';
 // FinalArt shows that file when it loads, and the stand-in when it is missing:
 // never a broken image.
 
-export const RUSTY_FILTER = 'grayscale(0.85) sepia(0.45) brightness(0.7) contrast(1.12)';
+// Greyed and rust-toned, but bright enough that a dark portrait's face and
+// fists still read (review: at brightness 0.7 the male stand-in was nearly black).
+export const RUSTY_FILTER = 'grayscale(0.8) sepia(0.4) brightness(0.9) contrast(1.08)';
 
 export const retentionArt = (kind, sex) => {
   const s = String(sex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
@@ -33,6 +35,13 @@ const SPECKS = noise(180, 180, 0.8, 2, 7, [0.86, 0.80, 0.70], 13, -9.0);
 const CLOUDS = noise(300, 500, 0.012, 3, 9, [0.80, 0.72, 0.60], 2.4, -1.1);
 const RUST = noise(300, 500, 0.018, 3, 21, [0.66, 0.32, 0.12], 3.2, -1.7);
 
+// Lighter over the face (a portrait's upper middle), full at the edges: the
+// fighter is still clearly covered, and the face still reads.
+const faceMask = (a) => {
+  const m = `radial-gradient(ellipse 45% 32% at 50% 38%, rgba(0,0,0,${a}) 0%, rgba(0,0,0,${a}) 40%, #000 100%)`;
+  return { WebkitMaskImage: m, maskImage: m };
+};
+
 // The dust and rust layer over a portrait. Its box must be position: relative.
 // Put any label that sits on the portrait after it, so it stays on top.
 // The specks tile; the clouds and the rust stretch over the whole portrait
@@ -42,8 +51,8 @@ export function RustyOverlay({ style }) {
   return (
     <span aria-hidden data-retention="rusty-look" style={{ ...layer, pointerEvents: 'none', overflow: 'hidden', ...style }}>
       <span style={{ ...layer, backgroundImage: SPECKS, backgroundSize: '180px 180px', opacity: 0.55 }}/>
-      <span style={{ ...layer, backgroundImage: CLOUDS, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', opacity: 0.3 }}/>
-      <span style={{ ...layer, backgroundImage: RUST, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', opacity: 0.85, mixBlendMode: 'color' }}/>
+      <span style={{ ...layer, backgroundImage: CLOUDS, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', opacity: 0.3, ...faceMask(0.45) }}/>
+      <span style={{ ...layer, backgroundImage: RUST, backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat', opacity: 0.7, mixBlendMode: 'color', ...faceMask(0.25) }}/>
       <span style={{ ...layer, background: 'linear-gradient(180deg, rgba(214,200,172,.12) 0%, rgba(60,40,24,.25) 100%)' }}/>
     </span>
   );

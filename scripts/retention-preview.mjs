@@ -415,7 +415,7 @@ const STATES = [
   },
   {
     name: 'f1-home-header-long',
-    note: 'Home header at its widest: a secret rank name, a 2-digit level and streak, and the compact 1UP mark (1UP over ×2), as narrow as the old ❄2.',
+    note: 'Home header at its widest: a secret rank name, a 2-digit level and streak, and the compact 1UP mark (1UP over ×2); the rank always on its own line under the level, so the header keeps one height.',
     seed: () => {
       const rows = history({ onTarget: 12, thisWeek: Math.min(3, todayIdx) }).map((r) => ({ ...r, xpEarned: 700 }));
       return { tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(rows, 33500) };
@@ -426,12 +426,12 @@ const STATES = [
   },
   {
     name: 'f1-profile-target',
-    note: 'Profile → edit → Game Plan: the weekly target 2 to 6, a change pending for Monday, the 1UPs (1UPS 2/2).',
+    note: 'Profile → edit → Game Plan: the weekly target 2 to 6, a change pending for Monday, the 1UPs (1UP 2 OF 2).',
     seed: () => ({
       tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 2, thisWeek: Math.min(2, todayIdx) }), 2000),
       tm_game_plan_v1: JSON.stringify({ setup: true, hurdle: 'time', daysPerWeek: 5, sessionMinutes: 20, preferredTime: 'varies', restDays: [], weekTargets: [{ from: '', days: 4 }, { from: iso(monday(-1)), days: 5 }] }),
     }),
-    open: profileEditor, check: ['[data-retention="week-target"]'], expect: /Keeps your streak[\s\S]*1UPS \d\/2/, absent: /FREEZE|❄/,
+    open: profileEditor, check: ['[data-retention="week-target"]'], expect: /Keeps your streak[\s\S]*1UP \d OF 2/, absent: /FREEZE|❄|1UPS/,
   },
   {
     name: 'f1-gallery',
@@ -460,21 +460,21 @@ const STATES = [
     note: 'Home, last trained 10 days ago: POWER is draining, one slim line under the header in line with the level (72%). No notice yet.',
     seed: () => POWER_SEED(10)(),
     open: home, check: [...HOME_CHECK, '[data-retention="power"]'], apart: [...HOME_APART, ...POWER_APART],
-    expect: /LV \d+[\s\S]*POWER\s*72%[\s\S]*TODAY'S BOUT/, absent: /RUSTY|losing power/,
+    expect: /LV \d+[\s\S]*POWER\s*72%[\s\S]*TODAY'S BOUT/, absent: /RUSTY|running\slow/,
   },
   {
     name: 'f4-home-power-low',
     note: 'Home, last trained 19 days ago: POWER is low (36%, amber), and its one quiet notice under it, once per drain.',
     seed: () => POWER_SEED(19)(),
     open: home, check: [...HOME_CHECK, '[data-retention="power"]'], apart: [...NOTICE_APART, ...POWER_APART],
-    expect: /POWER\s*36%[\s\S]*Your fighter is losing power\s\(36%\)\. One session revives it\.[\s\S]*TODAY'S BOUT/, absent: /RUSTY|1UP covered/,
+    expect: /POWER\s*36%[\s\S]*Your\sPOWER\sis\srunning\slow\.\sOne\ssession\srevives\sit\.[\s\S]*TODAY'S BOUT/, absent: /RUSTY|1UP covered|\(36%\)/,
   },
   {
     name: 'f4-rusty-popup-male',
     note: 'Opening the app 34 days after the last session (a male profile): the RUSTY pop-up, once per rusty spell. Stand-in art: his own tier portrait, greyed, with dust and rust. REVIVE runs TODAY\'S BOUT\'s START; LATER closes it.',
     seed: () => POWER_SEED(34)(),
     open: home, check: ['[data-retention="rusty-card"]'], inView: ['[data-retention="rusty-card"]'],
-    expect: /RUSTY\s+34 days since your last session\.\s+Your level, XP and badges are all still here\.\s+REVIVE\s+LATER/,
+    expect: /RUSTY\s+34 days since your last session\.\s+Your level, XP, streak and badges are all still here\.\s+REVIVE\s+LATER/,
   },
   {
     name: 'f4-rusty-popup-female',
@@ -482,6 +482,17 @@ const STATES = [
     seed: () => POWER_SEED(34, { sex: 'female' })(),
     open: home, check: ['[data-retention="rusty-card"]'], inView: ['[data-retention="rusty-card"]'],
     expect: /RUSTY\s+34 days since your last session\.[\s\S]*REVIVE[\s\S]*LATER/,
+  },
+  {
+    name: 'f4-rusty-paused',
+    note: 'Opening the app RUSTY with a session paused 10 minutes ago: no RUSTY pop-up over the paused session (it waits for a later open), and the open\'s one turn passes down the queue, so its next pop-up (here the concept drop) shows, as with the switch off.',
+    seed: () => ({ ...POWER_SEED(34)(), trainingModePausedSession: JSON.stringify([{ screen: 'timer', disc: 'Boxing', cfg: BOUT_LAST.cfg, reason: 'nav', timestamp: NOW_MS - 10 * 60 * 1000 }]) }),
+    open: async (page, w) => {
+      await page.goto(BASE, { waitUntil: 'networkidle' }); await wait(page, 1800);
+      await page.mouse.click(Math.round(w / 2), 120); await wait(page, 2200);
+    },
+    check: ['[role="dialog"][aria-label^="New concept drop"]'], inView: ['[role="dialog"][aria-label^="New concept drop"]'],
+    expect: /NEW CONCEPT DROP/, absent: /days since your last session/,
   },
   {
     name: 'f4-home-rusty',
@@ -538,7 +549,7 @@ const STATES = [
     note: 'The design gallery (/retention-looks), POWER: the real POWER line, notice, RUSTY card, rusty portrait and REVIVED line with sample data.',
     seed: () => ({}),
     open: async (page) => { await page.goto(`${BASE}retention-looks`, { waitUntil: 'networkidle' }); await wait(page, 3000); },
-    check: ['#f8'], shot: '#f8', expect: /POWER, RUSTY \+ REVIVE[\s\S]*72%[\s\S]*losing power[\s\S]*REVIVE[\s\S]*REVIVED · POWER 100%/,
+    check: ['#f8'], shot: '#f8', expect: /POWER, RUSTY \+ REVIVE[\s\S]*72%[\s\S]*running\slow[\s\S]*REVIVE[\s\S]*REVIVED · POWER 100%/,
   },
   {
     name: 'f2-home-next-up',

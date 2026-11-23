@@ -5,14 +5,18 @@ import { HelpButton } from './WorkoutHelpPanel';
 // streak), and the help button. Profile lives on the tab bar.
 // `compact` (the week streak's wider chip, retention feature 1): a tighter
 // gap (7: the secret ranks' names keep one line at 360 px), and the XP numbers give way (the bar still shows them; the Level page
-// has them), so the chip fits beside the bar at 360 px. The rank wraps under
-// the level rather than being cut.
+// has them), so the chip fits beside the bar at 360 px. The rank always sits
+// on its own line under the level: never cut, and the header keeps one
+// height whatever the rank, the level or the chip's width (it used to wrap
+// only when they did not fit, so Home moved by a line from one athlete or
+// week to the next).
 const MUTED = '#A9A3C4';
 
 export default function HomeHeader({ level, tierName, levelXp, levelNeeded, xpPercent, chip, compact = false, onHome, onHelp }) {
   const gap = compact ? 7 : 12;
   // The secret ranks' two-word names (FIGHT ASCENDANT) set a size smaller, so
-  // they keep one line beside the chip; they still wrap rather than be cut.
+  // they keep one line in the level column beside the chip; they still wrap
+  // rather than be cut.
   const longTier = String(tierName || '').length > 10;
   return (
     <header data-guide="home-level" style={{ display: 'flex', alignItems: 'center', gap }}>
@@ -21,9 +25,9 @@ export default function HomeHeader({ level, tierName, levelXp, levelNeeded, xpPe
       </button>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
         {compact ? (
-          <div aria-label={`Level ${level}, ${tierName || ''}, ${levelXp} of ${levelNeeded} XP`} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 7, rowGap: 1 }}>
+          <div aria-label={`Level ${level}, ${tierName || ''}, ${levelXp} of ${levelNeeded} XP`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', rowGap: 1 }}>
             <span style={{ font: "700 14px 'Chakra Petch',sans-serif", color: '#F2BE45', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>LV {level}</span>
-            <span style={{ minWidth: 0, font: `600 ${longTier ? 10 : 11}px 'Chakra Petch',sans-serif`, letterSpacing: longTier ? '0.06em' : '0.1em', textTransform: 'uppercase', color: MUTED }}>{tierName}</span>
+            <span style={{ minWidth: 0, font: `600 ${longTier ? 10 : 11}px/14px 'Chakra Petch',sans-serif`, letterSpacing: longTier ? '0.04em' : '0.1em', textTransform: 'uppercase', color: MUTED }}>{tierName}</span>
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>

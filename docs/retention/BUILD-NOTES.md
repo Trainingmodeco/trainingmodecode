@@ -740,10 +740,10 @@ switches off, Home, the end screens, Profile, storage writes and XP are as befor
 ### What was built
 
 - **1UP** (switch `weeks`): every word and glyph the athlete sees. The week chip's `❄2` is a compact mark, "1UP" over
-  "×2" (`retention/ui/OneUpMark.jsx`, 9 px and 8 px), measured as wide as the old mark (15.56 px against 15.53 px), so
-  the header at 360 lays out exactly as before with the longest rank names. The notices read "A 1UP covered last week:
+  "×2" (`retention/ui/OneUpMark.jsx`, both 10 px since the review fixes below; 17.3 px wide), so the chip still fits
+  Home's header at 360 with the longest rank names. The notices read "A 1UP covered last week:
   your 9-week streak is safe." and "1UP earned: 4 weeks on target. You hold 2 of 2." with a small 1UP badge for the
-  icon; the end-screen strip "1UP EARNED · YOU HOLD 2 OF 2"; Profile's Game Plan "1UPS 1/2"; Home's "?" header step
+  icon; the end-screen strip "1UP EARNED · YOU HOLD 2 OF 2"; Profile's Game Plan "1UP 1 OF 2"; Home's "?" header step
   ("1UP is a spare life that saves the streak in a short week (one more every 4 weeks on target, hold 2)"); the gallery
   (feature 1 is "TODAY'S BOUT + 1UP"). Its colour is the 1UP green (`HOME.oneUp`, #6BF59A), not the freeze's ice blue.
   Numbers, event names (`freeze_used`, `freeze_earned`) and storage keys are unchanged.
@@ -757,11 +757,11 @@ switches off, Home, the end screens, Profile, storage writes and XP are as befor
 - **`data/powerStore.js`**: reads the rows, keeps only the shown markers in **`tm_power_moments_v1`** (the one new key,
   in `cloudSync` SYNC_KEYS).
 - **Home** (switch `power`): the **POWER line** under the header (`retention/ui/PowerLine.jsx`) only while the fighter
-  is below full; the **low notice** "Your fighter is losing power (36%). One session revives it." under the header, once
-  per drain; the **revive notice** "Revived: your fighter is back to 100% power." once, for a revive whose session ended
+  is below full; the **low notice** "Your POWER is running low. One session revives it." under the header, once
+  per drain (no number: the line right above shows it); the **revive notice** "Revived: your fighter is back to 100% power." once, for a revive whose session ended
   on a screen with no YOUR PROGRESS card (Cardio, Practice, Coach's Tapes, the classic stage clear); the **RUSTY pop-up**.
 - **RUSTY pop-up** (`retention/ui/RustyPopup.jsx`): the RUSTY art for the profile's sex (the stand-in until the art
-  exists), RUSTY, "34 days since your last session.", "Your level, XP and badges are all still here.", a gold REVIVE and
+  exists), RUSTY, "34 days since your last session.", "Your level, XP, streak and badges are all still here.", a gold REVIVE and
   a quiet LATER. It takes the open's one turn in App's interstitial queue (`goAfterSplash`) and Home shows it.
 - **REVIVE moment**: the first valid finished session after 'low' or RUSTY shows one line in the end screen's YOUR
   PROGRESS card, "⚡ REVIVED · POWER 100%" (`retention/ui/ReviveLine.jsx`; the revive art small beside it when the file
@@ -796,7 +796,7 @@ switches off, Home, the end screens, Profile, storage writes and XP are as befor
   40% or less, and at RUSTY the cells are empty and the number reads RUSTY in the rust colour.
 - **One notice under the header a visit**: a 1UP notice first; POWER's (revive, else low) on a later visit. Both use
   the slot under the header, so the level, the chip and the "?" stay in view. At 'low' the line and the notice both
-  show (the notice once per drain, dismissible; it says the number the line shows).
+  show (the notice once per drain, dismissible; the number is on the line only).
 - **POWER moves by local day**, not by the hour: stable all day, the same rule as the week streak. The percentages are
   96, 92, … 44 (day 17), 40 (day 18, low), … 0 (day 28); day 29 is 0% and low; day 30 is RUSTY.
 - **The revive**: a training day whose previous training day was 18 or more days before it (the fighter was low or
@@ -806,8 +806,9 @@ switches off, Home, the end screens, Profile, storage writes and XP are as befor
 - **The RUSTY pop-up's turn**: in App's one-interstitial-per-open queue, after a friend's haunt link and before the
   ghost-challenge offer, the concept drop, the comeback cutscene and the weekly lesson: it is the moment the comeback is
   for, and the others come back on a later open. Not under an inbound arcade challenge. It is marked shown when it
-  shows, so a turn it cannot use (a paused session on Home, the guide open) is not spent; any App pop-up that opens
-  after it (a haunt link resolving late) hides it until that one closes, so two never stack. Paused sessions expire
+  shows, so a turn it cannot use (a paused session on Home, the guide open) does not mark it, and the turn passes down
+  the queue (the ghost offer, the drop, ...); any App pop-up that opens after it (a haunt link resolving late) hides it
+  until that one closes, so two never stack. Paused sessions expire
   after 90 minutes, so a rusty athlete has none in practice.
 - **REVIVE runs the top card's own START**: TODAY'S BOUT's (armed, so its bonus rules apply: +25 XP once a day for a
   session started from it that runs to its end) or, with the week streak off, the Continue card's.
@@ -849,10 +850,56 @@ switches off, Home, the end screens, Profile, storage writes and XP are as befor
   RUSTY on the line, and the pop-up at the next open.
 - POWER shows on Home only (Profile and the Level page show the rusty portrait, not the bar).
 
+### Review fixes (2026-11-23)
+
+The independent review of this build; a skeptic confirmed each. All are polish, all behind the switches (`weeks` for
+the header, the chip and Game Plan; `power` for the rest).
+
+- **Home's header changed height from athlete to athlete.** With the week chip, the rank wrapped under the level only
+  when it did not fit beside it (LV 14 over CHAMPION with a 9-week chip, LV 6 NOVICE on one line), so the POWER line
+  and the cards moved by a line. The rank now always sits on its own line under the level (`shared/HomeHeader.jsx`,
+  compact only), with a fixed 14 px line, so the header is 43 px for every rank, level and chip at 360, 390 and 430
+  (measured for ROOKIE with 0 weeks, FIGHT ASCENDANT with 18 and 26 weeks). A secret rank's long name sets its letters
+  a little closer (0.04 em), so FIGHT ASCENDANT (94 px) keeps one line in the 98 px the column has at 360 beside the
+  widest chip. Switch off: the header is as before.
+- **A RUSTY turn Home could not use skipped the rest of the open's queue.** App gave the open's one turn to the RUSTY
+  pop-up; Home declined it under a paused session or the guide, and nothing else showed that open (the ghost offer,
+  the concept drop, the comeback, the weekly lesson). Now Home answers the turn (`onRustyDone(shown)`), and when the
+  pop-up did not show and no App pop-up is up, App runs the rest of the queue (`openQueueRest`, the same steps in the
+  same order as before). A ref makes a second answer a no-op. Switch off: `goAfterSplash` runs the same steps as
+  before. Regression: `test:power` checks the order, the answer and the hand-on; the preview state `f4-rusty-paused`
+  opens the app RUSTY with a session paused 10 minutes ago and expects the concept drop, not the RUSTY card.
+- **The low notice repeated the number on the line above it** and said "losing power". It now reads "Your POWER is
+  running low. One session revives it." (no number; the line shows it). Each sentence keeps its words together, so at
+  360 it breaks between the two; at 390 and 430 it is one line.
+- **Game Plan's "1UPS 1/2"** read like a typo. It now reads "1UP 1 OF 2", like "You hold 2 of 2" elsewhere.
+- **The chip's small type was 8 px in grey** ("×2" under 1UP, "0/4 DAYS"). Both are 10 px now, in brighter tones
+  (`HOME.text` #E6E2F5 for a count above 0, `HOME.soft` #CBC6E0 for the days), and "1UP" is 10 px too. The days caption
+  stays inside the width of the dots (44 px of 60), and the 1UP mark is 17.3 px, so the chip grew by under 2 px.
+- **The stand-in RUSTY art was nearly black** for the male portraits. The filter is lighter (`grayscale(0.8) sepia(0.4)
+  brightness(0.9) contrast(1.08)`, was brightness 0.7), the rust layer is lighter (0.7, was 0.85), and the dust clouds
+  and the rust are fainter over the face (a soft mask on the portrait's upper middle), so the face and fists read
+  while the fighter still looks covered. The same look on Profile, the Level page and the end screen.
+- **The pop-up named level, XP and badges but not the streak.** It now reads "Your level, XP, streak and badges are all
+  still here."
+- Checked: `test:power` 83 (was 79), `test:streak` 185, `test:xp` 121, eslint on every changed file, `tsc`,
+  `check-guides` (25 guides, 257 steps). `retention-preview.mjs` at 360, 390 and 430: every f1 and f4 state (the new
+  `f4-rusty-paused` too) and `f2-home-next-up(-camp)`, 26 states, fit. Looked at each: the header at the same height
+  with LV over the rank for ROOKIE, NOVICE, WARRIOR, CHAMPION, MAX and FIGHT ASCENDANT (one line beside the 12-week
+  chip at 360); "3/4 DAYS" and "×2" readable on the chip and in the end-screen strip; "1UP 1 OF 2" with its line beside
+  it on one line at 360; the low notice under the 36% line; the pop-up for both sexes at each width (the male face and
+  fists now read, the new line on two balanced lines, nothing cut); the rusty portrait on Profile, the Level page and
+  the end screen; the concept drop on the paused RUSTY open.
+  Switch off (both): the capture above again (a RUSTY and a draining athlete: the open, Home, Profile, the Level page,
+  a 3-minute Fight Focus to its end screen, storage): the same DOM and storage as this build before the fixes, apart
+  from the run's timestamps and row ids and the share prompt's own timer.
+
 ### Needs the owner's answer
 
 1. **The numbers**: full for 3 days, empty at day 28, 'low' at 40% (day 18), RUSTY at day 30. Keep?
-2. **The low notice repeats the percentage the line shows.** Keep both, or drop the number from the notice?
-3. **The pop-up's place in the open queue**: before the concept drop (a drop waits for the next open). Keep?
-4. **The art**: four files, `docs/retention/ART-RUSTY-REVIVE.md` (sizes and prompts). Until then the stand-in shows.
-5. **1UP in green** on the chip, the strip and Profile (the freeze was ice blue). Keep?
+2. **The pop-up's place in the open queue**: before the concept drop (a drop waits for the next open). Keep?
+3. **The art**: four files, `docs/retention/ART-RUSTY-REVIVE.md` (sizes and prompts). Until then the stand-in shows.
+4. **1UP in green** on the chip, the strip and Profile (the freeze was ice blue). Keep?
+5. **The rank always under the level** on Home's header (the review's calm fix): every athlete's header is now two
+   short lines and the bar. Keep, or put the rank back beside the level where it fits (the header then moves by a line
+   between athletes)?

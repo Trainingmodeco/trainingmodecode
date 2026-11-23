@@ -240,6 +240,7 @@ export default function App() {
   // and Home shows it (its REVIVE is Home's top START).
   const [powerOn] = useState(() => retentionOn('power'));
   const [rustyTurn, setRustyTurn] = useState(false);
+  const rustyTurnRef = useRef(false); // the turn is out with Home (answered once)
   const [screen,   setScreen  ] = useState('start');
   const [disc,     setDisc    ] = useState('Boxing');
   const [cfg,      setCfg     ] = useState(null);
@@ -744,6 +745,20 @@ export default function App() {
     if (dest && dest !== screen) dropPausedFor(dest);
     setResumeData(null);
     activeSessionStateRef.current = null;
+  };
+
+  // The open's one-interstitial queue after the RUSTY pop-up's turn: a ghost
+  // challenge offer, a new concept drop, a comeback, the weekly lesson.
+  const openQueueRest = () => {
+    const offer = maybeOfferChallenge(loadProfile()?.discipline || 'Boxing');
+    if (offer) { setGhostView({ view: 'challenge', challenge: offer }); return; }
+    // A new concept drop, once per drop per phone.
+    const drop = dueConceptPopup();
+    if (drop) { markConceptPopupSeen(drop.concept.id); setConceptPopup(drop); trackEvent('concept_popup', { concept: drop.concept.id }); return; }
+    const cb = dueComeback();
+    if (cb) { markComebackShown(cb.view); setComeback(cb); return; }
+    // The weekly practice reminder, at most once a week, on opening the app.
+    if (shouldShowWeekly(loadProfile())) { markWeeklyShown(); setPracticeInvite('weekly'); }
   };
 
   const actions = {
@@ -1393,16 +1408,9 @@ export default function App() {
       if (haunt) { markChallengeSeen(); setGhostView({ view: 'challenge', challenge: haunt }); return; }
       // Back after a month away, the fighter is RUSTY: Home's pop-up, once
       // per rusty spell (it marks itself shown). Not under an inbound challenge.
-      if (powerOn && !pendingChallenge && !ghostView && dueRustyPopup()) { setRustyTurn(true); return; }
-      const offer = maybeOfferChallenge(loadProfile()?.discipline || 'Boxing');
-      if (offer) { setGhostView({ view: 'challenge', challenge: offer }); return; }
-      // A new concept drop, once per drop per phone.
-      const drop = dueConceptPopup();
-      if (drop) { markConceptPopupSeen(drop.concept.id); setConceptPopup(drop); trackEvent('concept_popup', { concept: drop.concept.id }); return; }
-      const cb = dueComeback();
-      if (cb) { markComebackShown(cb.view); setComeback(cb); return; }
-      // The weekly practice reminder, at most once a week, on opening the app.
-      if (shouldShowWeekly(loadProfile())) { markWeeklyShown(); setPracticeInvite('weekly'); }
+      // If Home cannot show it, the rest of the queue runs (onRustyDone).
+      if (powerOn && !pendingChallenge && !ghostView && dueRustyPopup()) { rustyTurnRef.current = true; setRustyTurn(true); return; }
+      openQueueRest();
     },
     completeOnboarding: ({ goal, experience, profile: onboardingProfile }) => {
       // A failed save (storage full or blocked) must not leave LET'S GO doing nothing: the athlete
@@ -1448,6 +1456,15 @@ export default function App() {
   // Any App-level pop-up up now: the RUSTY pop-up on Home never shows over one
   // (a friend's haunt link can resolve a moment after the open's turn).
   const appPopupOpen = !!(showParqGate || hauntIntro || ghostView || comeback || conceptPopup || practiceInvite || pathTour || pendingChallenge);
+  // Home answers the RUSTY turn once: shown, or not (a paused session or the
+  // guide in its way). Not shown, the turn passes down the queue, unless an
+  // App pop-up is already up. The ref makes a second answer a no-op.
+  const onRustyDone = (shown) => {
+    if (!rustyTurnRef.current) return;
+    rustyTurnRef.current = false;
+    setRustyTurn(false);
+    if (!shown && !appPopupOpen) openQueueRest();
+  };
 
   return (
     <>
@@ -1558,7 +1575,7 @@ export default function App() {
             profile={profile} updateProfile={updateProfile} levelUp={levelUp}
             pausedSession={pausedSession} onResume={resumeSession} onDiscardPaused={discardPausedSession}
             pausedAlt={pausedAlt} onResumeAlt={resumeAltSession} onDiscardAlt={discardAltSession}
-            rustyTurn={rustyTurn} onRustyDone={() => setRustyTurn(false)} appPopupOpen={appPopupOpen}
+            rustyTurn={rustyTurn} onRustyDone={onRustyDone} appPopupOpen={appPopupOpen}
             reportSessionState={reportSessionState} resumeData={resumeData}
             actions={actions}
           />

@@ -232,19 +232,16 @@ export default function HomeDashboard({
   }, [powerOn, power]); // eslint-disable-line react-hooks/exhaustive-deps
   // The RUSTY pop-up, on the open App gave it the turn for (App's one
   // interstitial per open, so it never stacks on another pop-up). Not over a
-  // paused session, the guide or an App pop-up: the turn passes and it waits
-  // for an open when it can show. Marked shown when it shows: once per rusty
-  // spell. An App pop-up that opens after it (a haunt link resolving late)
-  // hides it until that one closes.
+  // paused session, the guide or an App pop-up: it waits for an open when it
+  // can show, and App passes the turn down its queue (onRustyDone(false)).
+  // Marked shown when it shows: once per rusty spell. An App pop-up that
+  // opens after it (a haunt link resolving late) hides it until that one closes.
   const [rustyPop, setRustyPop] = useState(null);
   useEffect(() => {
     if (!rustyTurn) return;
-    onRustyDone?.();
-    if (!powerOn || pausedSession || helpOpen || appPopupOpen) return;
-    const due = dueRustyPopup();
-    if (!due) return;
-    markPowerMoments([due.id]);
-    setRustyPop(due);
+    const due = powerOn && !pausedSession && !helpOpen && !appPopupOpen ? dueRustyPopup() : null;
+    if (due) { markPowerMoments([due.id]); setRustyPop(due); }
+    onRustyDone?.(!!due);
   }, [rustyTurn]); // eslint-disable-line react-hooks/exhaustive-deps
   // TODAY'S BOUT: picked once a day and held (saved from the effect); re-read
   // after every stats write, so the card turns done when its bonus is paid.

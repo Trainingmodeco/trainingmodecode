@@ -128,9 +128,11 @@ const ago = (days) => W.addDaysIso(TODAY, -days);
   check('low: the notice, keyed by the drain', ln && ln.id === `low:${ago(19)}` && ln.pct === 36);
   check('…once per drain (the next day, still low, nothing)', P.lowNotice(P.powerAt([row(ago(19))], at(W.addDaysIso(TODAY, 1), 10).getTime()), { seen: [ln.id] }) === null);
   check('…not while draining or RUSTY', P.lowNotice(P.powerAt([row(ago(17))], NOW), {}) === null && P.lowNotice(rusty, {}) === null);
-  check('the low notice copy', P.powerNoticeCopy(ln) === 'Your fighter is losing power\u00A0(36%). One session revives it.', P.powerNoticeCopy(ln));
+  // Review F2: no number in the notice (the POWER line right above shows it).
+  check('the low notice copy, with no number', P.powerNoticeCopy(ln).replace(/\u00A0/g, ' ') === 'Your POWER is running low. One session revives it.' && !/\d/.test(P.powerNoticeCopy(ln)), P.powerNoticeCopy(ln));
+  check('…and a narrow line breaks only between its two sentences', P.powerNoticeCopy(ln).split(' ').length === 2);
   const c = P.rustyCopy(rusty);
-  check('the RUSTY copy', c.title === 'RUSTY' && c.since === '34 days since your last session.' && c.kept === 'Your level, XP and badges are all still here.');
+  check('the RUSTY copy', c.title === 'RUSTY' && c.since === '34 days since your last session.' && c.kept === 'Your level, XP, streak and badges are all still here.');
 }
 
 // ── the revive ─────────────────────────────────────────────────────────────
@@ -201,13 +203,25 @@ const ago = (days) => W.addDaysIso(TODAY, -days);
   const app = src('App.jsx');
   const open = app.slice(app.indexOf('goAfterSplash:'), app.indexOf('completeOnboarding:'));
   const at = (k) => open.indexOf(k);
-  check('App: RUSTY takes a turn in the open queue, after a friend\'s haunt and before the ghost offer and the concept drop',
-    at('unseenHaunt()') >= 0 && at('dueRustyPopup()') > at('unseenHaunt()') && at('dueRustyPopup()') < at('maybeOfferChallenge(') && at('dueRustyPopup()') < at('dueConceptPopup()'));
-  check('App: …only with the power switch, and returns (one interstitial per open)', /if \(powerOn && [^)]*dueRustyPopup\(\)\) \{ setRustyTurn\(true\); return; \}/.test(open));
+  const rest = app.slice(app.indexOf('const openQueueRest = () => {'), app.indexOf('const actions = {'));
+  const rat = (k) => rest.indexOf(k);
+  check('App: RUSTY takes a turn in the open queue, after a friend\'s haunt and before the rest of it',
+    at('unseenHaunt()') >= 0 && at('dueRustyPopup()') > at('unseenHaunt()') && at('openQueueRest()') > at('dueRustyPopup()'));
+  check('App: the rest of the queue, in order: the ghost offer, the concept drop, the comeback, the weekly lesson',
+    rat('maybeOfferChallenge(') >= 0 && rat('maybeOfferChallenge(') < rat('dueConceptPopup()') && rat('dueConceptPopup()') < rat('dueComeback()') && rat('dueComeback()') < rat('shouldShowWeekly('));
+  check('App: …only with the power switch, and returns (one interstitial per open)', /if \(powerOn && [^)]*dueRustyPopup\(\)\) \{ rustyTurnRef\.current = true; setRustyTurn\(true\); return; \}/.test(open));
+  // Regression (review F1): a turn Home could not use (a paused session, the
+  // guide) was spent: the ghost offer, the drop, the comeback and the lesson
+  // were all skipped for that open. Now App runs the rest of the queue.
+  const done = app.slice(app.indexOf('const onRustyDone = (shown) => {'));
+  check('App: a RUSTY turn Home did not use runs the rest of the queue (unless an App pop-up is up), once',
+    /if \(!rustyTurnRef\.current\) return;\s*rustyTurnRef\.current = false;\s*setRustyTurn\(false\);\s*if \(!shown && !appPopupOpen\) openQueueRest\(\);/.test(done.slice(0, 400))
+    && /onRustyDone=\{onRustyDone\}/.test(app));
   check('App: the pop-up waits behind any App pop-up', /appPopupOpen = !!\(showParqGate \|\| hauntIntro \|\| ghostView \|\| comeback \|\| conceptPopup \|\| practiceInvite \|\| pathTour \|\| pendingChallenge\)/.test(app));
   const home = src('HomeDashboard.jsx');
   check('Home: REVIVE runs the top card\'s START (Today\'s Bout\'s, armed, so its bonus rules apply)', /const startTop = \(\) => \{\s*if \(b\) \{ armBout\(\); runBout\(b\.run\); return; \}\s*card\.onGo\?\.\(\);/.test(home) && /onRevive=\{\(\) => \{ setRustyPop\(null\); startTop\(\); \}\}/.test(home));
-  check('Home: never over a paused session, the guide or an App pop-up', /if \(!powerOn \|\| pausedSession \|\| helpOpen \|\| appPopupOpen\) return;/.test(home) && /rustyPop && !appPopupOpen && !helpOpen &&/.test(home));
+  check('Home: never over a paused session, the guide or an App pop-up', /const due = powerOn && !pausedSession && !helpOpen && !appPopupOpen \? dueRustyPopup\(\) : null;/.test(home) && /rustyPop && !appPopupOpen && !helpOpen &&/.test(home));
+  check('Home: answers the turn with whether the pop-up showed', /if \(due\) \{ markPowerMoments\(\[due\.id\]\); setRustyPop\(due\); \}\s*onRustyDone\?\.\(!!due\);/.test(home));
   const pop = src('retention/ui/RustyPopup.jsx');
   check('the pop-up eats the click after REVIVE and LATER, and ignores its first moment', /swallowNextClick\(\); onRevive/.test(pop) && /swallowNextClick\(\); onLater/.test(pop) && /GUARD_MS/.test(pop));
   check('no spoken line: nothing in the POWER UI speaks', !/speak|voiceCoach|playClip|say\(/.test(['retention/ui/RustyPopup.jsx', 'retention/ui/PowerLine.jsx', 'retention/ui/ReviveLine.jsx', 'retention/ui/RustyLook.jsx', 'data/power.js', 'data/powerStore.js'].map(src).join('\n').replace(/\/\/.*$/gm, '')));

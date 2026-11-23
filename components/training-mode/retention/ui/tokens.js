@@ -7,6 +7,9 @@ export const HOME = {
   tile: '#0E0B18',
   track: '#1B1730',
   muted: '#A9A3C4',
+  // Small type on a dark chip (10 px): brighter than muted, so it reads.
+  soft: '#CBC6E0',
+  text: '#E6E2F5',
   green: '#8fe8ac',
   red: '#ff7a7a',
   ice: '#9ad8ff',
