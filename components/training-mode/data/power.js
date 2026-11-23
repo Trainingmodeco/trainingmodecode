@@ -151,5 +151,8 @@ export function rustyCopy(p) {
     title: 'RUSTY',
     since: `${d} days since your last session.`,
     kept: 'Your level, XP, streak and badges are all still here.',
+    // While REVIVE plays (the dust blown off, before the bout starts).
+    reviveTitle: 'REVIVE',
+    reviving: 'Shaking off the rust.',
   };
 }

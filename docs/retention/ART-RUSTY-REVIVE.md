@@ -1,5 +1,20 @@
 # RUSTY and REVIVE art: what to make and how to drop it in (2026-11-23)
 
+**Status: in.** The owner made all four on 2026-11-23 (971 x 1619, already 3:5). They are sized to 624 x 1040 WebP
+(quality 82: rusty 34-36 KB, revive 118-129 KB) in `public/static/retention/` and listed in `assets.lock.json`.
+Where they show now:
+
+- **RUSTY pop-up:** the rusty art, with dust drifting through it (`retention/ui/DustFX.jsx` `DustDrift`: motes
+  rising through the light, three soft clouds passing; still under reduced motion).
+- **REVIVE tap:** the revive art fades in over the rusty one (0.45 s), the dust lifts off the whole fighter and blows
+  away (`DustBurst`: soft clouds and grains of dust and rust, 1.1 s), the title turns to a violet REVIVE with
+  "Shaking off the rust.", and TODAY'S BOUT's START runs as it settles (1.35 s after the tap). Taps during it do
+  nothing. With reduced motion the bout starts at once.
+- **End screen REVIVED line:** a 26 px square of the revive art, zoomed on the face (`ReviveLine` `FACE`: where the
+  face sits in each picture, in % of its width and height; change it if the art is replaced).
+
+The rest of this note is how the files were specified, for a replacement.
+
 The POWER build (switch `power`, `docs/retention/BUILD-NOTES.md`) already looks for four pictures. Until they exist,
 the app uses a stand-in: the athlete's own tier portrait (`/static/tiers/<tier>-<sex>.png`, 312 x 520), greyed and
 rust-toned, with dust drawn over it. A missing file never shows a broken image; it shows the stand-in.

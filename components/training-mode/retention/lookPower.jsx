@@ -53,11 +53,13 @@ export default function LookPower() {
         <Header power={0} state="rusty"/>
       </Look>
 
-      <Look name="RUSTY pop-up (once per spell)" note="On opening the app, once per rusty spell, never over another pop-up. Stand-in art: the athlete's own tier portrait, greyed, with dust and rust. REVIVE runs TODAY'S BOUT's START; LATER closes it." height={560} animated>
-        <div style={{ padding: '20px 16px', display: 'flex', justifyContent: 'center' }}>
-          <RustyCard sex="male" tierId="warrior" daysSince={34}/>
-        </div>
-      </Look>
+      {['male', 'female'].map((sex) => (
+        <Look key={sex} name={`RUSTY pop-up (once per spell, ${sex})`} note="On opening the app, once per rusty spell, never over another pop-up: the owner's RUSTY art with dust drifting through it. Tap REVIVE: the revive art (the dust wiped off) fades in as the dust and rust blow off, then TODAY'S BOUT's START runs (here it plays and comes back). LATER closes it." height={560} animated>
+          <div style={{ padding: '20px 16px', display: 'flex', justifyContent: 'center' }}>
+            <RustyCard sex={sex} tierId="warrior" daysSince={34}/>
+          </div>
+        </Look>
+      ))}
 
       <Look name="Portrait while RUSTY" note="Profile, the Level page and the end screen show the athlete's portrait rusty; the name, level and XP stay as they are." height={170}>
         <div style={{ padding: 16, display: 'flex', gap: 14, alignItems: 'center' }}>

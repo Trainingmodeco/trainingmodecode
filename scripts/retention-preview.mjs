@@ -343,6 +343,15 @@ async function reviveFromPopup(page, w) {
   await page.clock.resume();
   await wait(page, 2500);
 }
+// REVIVE tapped and caught mid-play: the clock is held, so the bout does not
+// start; the picture is taken as the dust blows off (the animation runs on
+// real time).
+async function reviveMoment(page, w) {
+  await home(page, w);
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 500);
+  await page.locator('[data-retention="rusty-card"] button', { hasText: 'REVIVE' }).first().click({ timeout: 4000 });
+  await page.waitForTimeout(420);
+}
 const STATES = [
   {
     name: 'f1-home-mission-ready',
@@ -471,14 +480,14 @@ const STATES = [
   },
   {
     name: 'f4-rusty-popup-male',
-    note: 'Opening the app 34 days after the last session (a male profile): the RUSTY pop-up, once per rusty spell. Stand-in art: his own tier portrait, greyed, with dust and rust. REVIVE runs TODAY\'S BOUT\'s START; LATER closes it.',
+    note: 'Opening the app 34 days after the last session (a male profile): the RUSTY pop-up, once per rusty spell, with the owner\'s RUSTY art and dust drifting over it. REVIVE runs TODAY\'S BOUT\'s START; LATER closes it.',
     seed: () => POWER_SEED(34)(),
     open: home, check: ['[data-retention="rusty-card"]'], inView: ['[data-retention="rusty-card"]'],
     expect: /RUSTY\s+34 days since your last session\.\s+Your level, XP, streak and badges are all still here\.\s+REVIVE\s+LATER/,
   },
   {
     name: 'f4-rusty-popup-female',
-    note: 'The same for a female profile: her own tier portrait as the stand-in.',
+    note: 'The same for a female profile, with her RUSTY art.',
     seed: () => POWER_SEED(34, { sex: 'female' })(),
     open: home, check: ['[data-retention="rusty-card"]'], inView: ['[data-retention="rusty-card"]'],
     expect: /RUSTY\s+34 days since your last session\.[\s\S]*REVIVE[\s\S]*LATER/,
@@ -493,6 +502,20 @@ const STATES = [
     },
     check: ['[role="dialog"][aria-label^="New concept drop"]'], inView: ['[role="dialog"][aria-label^="New concept drop"]'],
     expect: /NEW CONCEPT DROP/, absent: /days since your last session/,
+  },
+  {
+    name: 'f4-rusty-revive-male',
+    note: 'REVIVE tapped (a male profile): the revive art (wiping the dust off) fades in over the rusty one, the dust and rust blow off in one burst, and the title turns violet. The bout starts as it settles, about 1.35 s after the tap.',
+    seed: () => POWER_SEED(34)(),
+    open: reviveMoment, check: ['[data-retention="rusty-card"]', '[data-retention="dust-burst"]'], inView: ['[data-retention="rusty-card"]'],
+    expect: /REVIVE\s+Shaking off the rust\.\s+Your level, XP, streak and badges are all still here\./, absent: /days since your last session/,
+  },
+  {
+    name: 'f4-rusty-revive-female',
+    note: 'The same for a female profile.',
+    seed: () => POWER_SEED(34, { sex: 'female' })(),
+    open: reviveMoment, check: ['[data-retention="rusty-card"]', '[data-retention="dust-burst"]'], inView: ['[data-retention="rusty-card"]'],
+    expect: /REVIVE\s+Shaking off the rust\./,
   },
   {
     name: 'f4-home-rusty',

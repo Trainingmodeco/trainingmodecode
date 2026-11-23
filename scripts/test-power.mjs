@@ -223,8 +223,12 @@ const ago = (days) => W.addDaysIso(TODAY, -days);
   check('Home: never over a paused session, the guide or an App pop-up', /const due = powerOn && !pausedSession && !helpOpen && !appPopupOpen \? dueRustyPopup\(\) : null;/.test(home) && /rustyPop && !appPopupOpen && !helpOpen &&/.test(home));
   check('Home: answers the turn with whether the pop-up showed', /if \(due\) \{ markPowerMoments\(\[due\.id\]\); setRustyPop\(due\); \}\s*onRustyDone\?\.\(!!due\);/.test(home));
   const pop = src('retention/ui/RustyPopup.jsx');
-  check('the pop-up eats the click after REVIVE and LATER, and ignores its first moment', /swallowNextClick\(\); onRevive/.test(pop) && /swallowNextClick\(\); onLater/.test(pop) && /GUARD_MS/.test(pop));
-  check('no spoken line: nothing in the POWER UI speaks', !/speak|voiceCoach|playClip|say\(/.test(['retention/ui/RustyPopup.jsx', 'retention/ui/PowerLine.jsx', 'retention/ui/ReviveLine.jsx', 'retention/ui/RustyLook.jsx', 'data/power.js', 'data/powerStore.js'].map(src).join('\n').replace(/\/\/.*$/gm, '')));
+  check('the pop-up eats the click after REVIVE and LATER, and ignores its first moment', /swallowNextClick\(\);\s*if \(reducedMotion\(\)\) \{ onRevive/.test(pop) && /swallowNextClick\(\);\s*onLater/.test(pop) && /GUARD_MS/.test(pop) && /guard=\{armed\}/.test(pop));
+  check('REVIVE plays once: taps on REVIVE, LATER or the backdrop do nothing while the comeback plays', (pop.match(/if \(reviving \|\| \(guard && !guard\(\)\)\) return;/g) || []).length === 2 && /!armed\(\) \|\| busy\.current\) return/.test(pop) && /onReviveStart=\{\(\) => \{ busy\.current = true; \}\}/.test(pop));
+  check('REVIVE starts the bout once the dust settles, at once with reduced motion', /setTimeout\(\(\) => \{\s*if \(onRevive\) onRevive\(\);/.test(pop) && /REVIVE_HOLD_MS = BURST_MS \+/.test(pop) && /prefers-reduced-motion: reduce/.test(pop));
+  const dust = src('retention/ui/DustFX.jsx');
+  check('dust: nothing clickable, still under reduced motion (the burst hidden)', /pointerEvents: 'none'/.test(dust) && /prefers-reduced-motion: reduce[\s\S]*\.dfx-drift, \.dfx-drift \* \{ animation: none !important; \}[\s\S]*\.dfx-burst \{ display: none !important; \}/.test(dust) && !/Math\.random/.test(dust));
+  check('no spoken line: nothing in the POWER UI speaks', !/speak|voiceCoach|playClip|say\(/.test(['retention/ui/RustyPopup.jsx', 'retention/ui/PowerLine.jsx', 'retention/ui/ReviveLine.jsx', 'retention/ui/RustyLook.jsx', 'retention/ui/DustFX.jsx', 'data/power.js', 'data/powerStore.js'].map(src).join('\n').replace(/\/\/.*$/gm, '')));
 }
 
 // ── the copy: plain, true, no guilt, app names only ────────────────────────
@@ -232,7 +236,7 @@ const ago = (days) => W.addDaysIso(TODAY, -days);
   const BANNED = /goku|vegeta|saiyan|dragon ball|saitama|batman|street fighter|mario|nintendo|ryu\b|ken\b/i;
   const GUILT = /lost|failed|broke|shame|lazy|miss(ed)? out|don't let|punish|penalt/i;
   const c = P.rustyCopy({ daysSince: 34 });
-  const all = [c.title, c.since, c.kept, P.REVIVE_LINE, P.powerNoticeCopy({ kind: 'low', pct: 36 }), P.powerNoticeCopy({ kind: 'revive' })];
+  const all = [c.title, c.since, c.kept, c.reviveTitle, c.reviving, P.REVIVE_LINE, P.powerNoticeCopy({ kind: 'low', pct: 36 }), P.powerNoticeCopy({ kind: 'revive' })];
   check('copy: no franchise names', !all.some((t) => BANNED.test(t)));
   check('copy: no guilt words', !all.some((t) => GUILT.test(t)), all.find((t) => GUILT.test(t)));
 }
