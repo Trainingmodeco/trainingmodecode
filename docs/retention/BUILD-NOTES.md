@@ -561,3 +561,11 @@ change sits behind its feature's switch; with the switches off the screens, stor
   of 7 and 9, the sheets say 2:40 and 8:05 off, the gallery's clear screen keeps its stats on one line at 360.
 - Switch off: every change is a branch on its switch (`weeksOn`, `pathOn`, `compact`), and the shared pieces render
   the same markup without it (`HomeHeader`'s gap 12, the ladder's toast at the top, the clear screen's stats row).
+
+## Owner preview (2026-11-23)
+
+Real screenshots of all three features at 360, 390 and 430 wide, with the open decisions as tap-to-answer choices:
+https://claude.ai/artifact/8rkLzhnBSc19h5L5pitdys. The owner's answers are in its database: collection `answers`
+(one doc per question id, `{ choice }`; a question with no doc keeps the default marked "in use") and `notes`
+(one doc per screen state, `{ text }`, plus `general`). Read them with ArtifactData before acting on any decision.
+Final check on 49b1e182: unit suites pass, build:web passes, smoke:web 147 of 147.
