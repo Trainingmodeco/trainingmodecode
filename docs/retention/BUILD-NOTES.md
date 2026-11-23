@@ -905,3 +905,19 @@ the header, the chip and Game Plan; `power` for the rest).
 5. **The rank always under the level** on Home's header (the review's calm fix): every athlete's header is now two
    short lines and the bar. Keep, or put the rank back beside the level where it fits (the header then moves by a line
    between athletes)?
+
+## The owner's answers: retry clock, nothing done, old UI, Remind me (2026-11-23)
+
+The owner's answers on the preview board to four of the open questions. One section each.
+
+### The classic RETRY's clock (`q-retrytime`): "Fix it for everyone"
+
+- **What changed**: a RETRY on a classic Arcade stage (`ArcadeSessionPlayer`) now starts the clock again for
+  everyone, not only with the `nearMiss` switch on. Before, a retried run was timed from the first attempt's start,
+  so its time (and the stars and best time saved from it) counted the failed run's minutes.
+- **Where**: the clock is three pure helpers in `data/arcadeOutcome.js` (`stageClockStart`, `STAGE_CLOCK_RETRY`,
+  `stageElapsedSeconds`); `ArcadeSessionPlayer` uses them in the briefing's end, `handleRetryStage` (no switch
+  around it now) and the clear. A resumed session keeps the start it was given, as before.
+- **Test**: `test:nearmiss` (85, was 76): a first go stopped 11 minutes in, RETRY, a 20:30 clear reads 20:30 and
+  ★★★ (the old clock: 32:30 and ★); a resumed clock keeps its start; no clock, no time; and the player's RETRY resets
+  the clock with no switch around it.

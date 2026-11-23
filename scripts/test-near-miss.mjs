@@ -50,6 +50,37 @@ check('an invalid result reads invalid', O.arcadeOverlayOutcome({ invalid: true,
 check('a player\'s flags win: partial / hardFail / missionFailed', O.arcadeOverlayOutcome({ partial: true }).screen === 'partial'
   && O.arcadeOverlayOutcome({ hardFail: true }).screen === 'failed' && O.arcadeOverlayOutcome({ missionFailed: true, partial: true }).screen === 'failed');
 
+section('the classic RETRY\'s clock (for everyone, owner 2026-11-23)');
+{
+  const OPc = A.getSeriesById('one-punch-protocol');
+  const stg = OPc.stages[1]; // 3★ < 22:00, 2★ < 28:00, 1★ < 36:00
+  const t0 = at(2026, 11, 23, 9);
+  const min = 60 * 1000;
+  // First go: the briefing ends at 9:00, the athlete stops 11 minutes in.
+  let clock = O.stageClockStart(null, t0);
+  check('the first briefing starts the clock', clock === t0);
+  // RETRY, a new briefing at 9:12, a clear 20:30 later.
+  clock = O.STAGE_CLOCK_RETRY;
+  check('RETRY leaves no clock running', clock == null);
+  const t1 = t0 + 12 * min;
+  clock = O.stageClockStart(clock, t1);
+  const end = t1 + 20.5 * min;
+  const sec = O.stageElapsedSeconds(clock, end);
+  check('the retried run is timed from its own briefing: 20:30, not 32:30', sec === 1230, String(sec));
+  check('… so it earns its own stars (★★★ under 22:00)', A.getStarsForTime(stg, sec) === 3, String(A.getStarsForTime(stg, sec)));
+  const oldSec = O.stageElapsedSeconds(t0, end);
+  check('the old clock (from the first go) would have read 32:30 and ★', oldSec === 1950 && A.getStarsForTime(stg, oldSec) === 1, `${oldSec} ${A.getStarsForTime(stg, oldSec)}`);
+  check('a resumed session keeps the start it was given', O.stageClockStart(t0, t1) === t0);
+  check('no clock: no time (and no stars from it)', O.stageElapsedSeconds(null, end) === null);
+  // The player resets it on every RETRY, with or without the near-miss switch.
+  const src = (await import('node:fs')).readFileSync(new URL('../components/training-mode/ArcadeSessionPlayer.jsx', import.meta.url), 'utf8');
+  const retryBody = (src.match(/const handleRetryStage = useCallback\(\(\) => \{([\s\S]*?)\n {2}\}, \[/) || [])[1] || '';
+  check('ArcadeSessionPlayer: RETRY resets the clock with no switch around it',
+    /sessionStartedAtRef\.current = STAGE_CLOCK_RETRY;/.test(retryBody) && !/nearMissOn|retentionOn/.test(retryBody), retryBody.slice(0, 160));
+  check('… the briefing starts it through stageClockStart, the clear reads stageElapsedSeconds',
+    /sessionStartedAtRef\.current = stageClockStart\(sessionStartedAtRef\.current, Date\.now\(\)\)/.test(src) && /stageElapsedSeconds\(sessionStartedAtRef\.current, Date\.now\(\)\)/.test(src));
+}
+
 section('the gap from the counts');
 let m = N.nearMiss({ unit: 'rounds', done: 4, total: 5, outcome: 'partial' });
 check('4 of 5 rounds, stopped: "1 round to go"', m?.line === '1 round to go' && m.gap === 1, m?.line);

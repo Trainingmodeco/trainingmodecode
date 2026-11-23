@@ -43,3 +43,20 @@ export function normalClearResult({ xp = 0, statRewards = null, taskCount = 1, .
     totalTasks: n,
   };
 }
+
+// The classic stage's clock (ArcadeSessionPlayer): best time and stars are
+// the wall time from the end of the briefing to the clear. A RETRY starts the
+// run again from its briefing, so it starts the clock again too: before, the
+// retried run kept the first attempt's start, and its time (and stars)
+// counted the failed run's minutes. For everyone (owner, 2026-11-23).
+//   stageClockStart(startedAt, now): the briefing is done; a clock already
+//     running (a resumed session) keeps its start.
+//   STAGE_CLOCK_RETRY: the clock a RETRY leaves (none: the next briefing starts it).
+//   stageElapsedSeconds(startedAt, now): whole seconds, or null with no clock.
+export const STAGE_CLOCK_RETRY = null;
+export function stageClockStart(startedAt, now = Date.now()) {
+  return startedAt == null ? now : startedAt;
+}
+export function stageElapsedSeconds(startedAt, now = Date.now()) {
+  return startedAt ? Math.round((now - startedAt) / 1000) : null;
+}
