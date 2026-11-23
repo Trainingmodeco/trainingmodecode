@@ -2,10 +2,10 @@ import { useEffect, useId, useRef } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import CornerHUD from './CornerHUD';
-import SafeImage from './SafeImage';
 import { levelStory } from './data/levelStory';
 import { getStreak } from './data/userStats';
 import { getCurrentTier, tierImage } from './data/tiers';
+import { RustyPortraitImage } from './retention/ui/RustyLook';
 
 // The Level page: opened from Profile by tapping the avatar. It only lays out
 // what data/levelStory.js works out, so the words and the maths live in one
@@ -128,7 +128,7 @@ function Fact({ label, value }) {
   );
 }
 
-export default function LevelView({ stats, name, sex, onBack, onHome, onChangeAvatar }) {
+export default function LevelView({ stats, name, sex, rusty = false, onBack, onHome, onChangeAvatar }) {
   const st = stats || { xp: 0, sessions: [] };
   const story = levelStory(st, { streak: getStreak(st), tier: getCurrentTier(st) });
   const t = story.tier;
@@ -157,8 +157,9 @@ export default function LevelView({ stats, name, sex, onBack, onHome, onChangeAv
             <section aria-label="Your level" style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', border: `1.5px solid ${t.color}99`, background: `radial-gradient(ellipse at 50% 22%, ${t.color}3d, #0a0014 74%)`, padding: '18px 16px 14px', textAlign: 'center', boxShadow: `0 0 30px -12px ${t.color}` }}>
               {/* The art is about 2:3 and the secret tiers carry a title along the
                   bottom edge, so the box follows the image instead of cropping it. */}
-              <div style={{ width: 120, minHeight: 176, margin: '0 auto', borderRadius: 14, overflow: 'hidden', border: `2px solid ${t.color}`, background: '#0a0014', boxShadow: `0 0 34px -2px ${t.color}b3, 0 0 70px -10px ${t.color}80` }}>
-                <SafeImage src={tierImage(t.id, avSex)} alt="" loading="eager" style={{ display: 'block', width: '100%', height: 'auto' }}/>
+              {/* `rusty` (POWER switch, from Profile): the RUSTY look on the portrait only. */}
+              <div style={{ position: rusty ? 'relative' : undefined, width: 120, minHeight: 176, margin: '0 auto', borderRadius: 14, overflow: 'hidden', border: `2px solid ${t.color}`, background: '#0a0014', boxShadow: `0 0 34px -2px ${t.color}b3, 0 0 70px -10px ${t.color}80` }}>
+                <RustyPortraitImage src={tierImage(t.id, avSex)} rusty={rusty} loading="eager" imgStyle={{ display: 'block', width: '100%', height: 'auto' }}/>
               </div>
               <div style={{ font: `900 14px ${ORB}`, color: '#fff', letterSpacing: '0.05em', marginTop: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName}</div>
               <h1 ref={headingRef} tabIndex={-1} style={{ margin: '2px 0 0', outline: 'none', font: `900 38px ${ORB}`, color: GOLD, letterSpacing: '0.02em', lineHeight: 1.1, textShadow: '0 0 24px rgba(253,224,71,0.55), 0 0 50px rgba(168,85,247,0.4)' }}>{story.headline}</h1>

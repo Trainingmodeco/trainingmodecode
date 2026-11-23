@@ -57,6 +57,7 @@ import { maybeOfferChallenge, declineChallenge, settleChallenge, getActiveChalle
 import { dueComeback, markComebackShown, remindComebackNextWeek } from './data/comeback';
 import { getLastBattle } from './data/ghostBattles';
 import { retentionOn } from './data/retentionFlags';
+import { dueRustyPopup } from './data/powerStore';
 import { settleTodaysBout, releaseBoutArm, holdBoutArm, resumeBoutArm } from './data/dailyMission';
 
 // 2.10 — v2 campaign stars: completion-quality is the gate (you only earn stars
@@ -234,6 +235,11 @@ function stashPausedSession(snap) {
 export default function App() {
   // Retention feature 1 (weekly streak + daily mission), behind its switch.
   const [weeksOn] = useState(() => retentionOn('weeks'));
+  // POWER, RUSTY and REVIVE (data/power), behind their own switch: the RUSTY
+  // pop-up takes a turn in the open's one-interstitial queue (goAfterSplash)
+  // and Home shows it (its REVIVE is Home's top START).
+  const [powerOn] = useState(() => retentionOn('power'));
+  const [rustyTurn, setRustyTurn] = useState(false);
   const [screen,   setScreen  ] = useState('start');
   const [disc,     setDisc    ] = useState('Boxing');
   const [cfg,      setCfg     ] = useState(null);
@@ -1385,6 +1391,9 @@ export default function App() {
       // friend's haunt, a ghost challenge, a comeback, the weekly lesson.
       const haunt = unseenHaunt();
       if (haunt) { markChallengeSeen(); setGhostView({ view: 'challenge', challenge: haunt }); return; }
+      // Back after a month away, the fighter is RUSTY: Home's pop-up, once
+      // per rusty spell (it marks itself shown). Not under an inbound challenge.
+      if (powerOn && !pendingChallenge && !ghostView && dueRustyPopup()) { setRustyTurn(true); return; }
       const offer = maybeOfferChallenge(loadProfile()?.discipline || 'Boxing');
       if (offer) { setGhostView({ view: 'challenge', challenge: offer }); return; }
       // A new concept drop, once per drop per phone.
@@ -1435,6 +1444,10 @@ export default function App() {
   for (const name of ['goSummary', 'goComboEnd', 'goFitComplete', 'goCombatCondComplete']) {
     actions[name] = bankOnce(bankedScreenRef, screen, actions[name]);
   }
+
+  // Any App-level pop-up up now: the RUSTY pop-up on Home never shows over one
+  // (a friend's haunt link can resolve a moment after the open's turn).
+  const appPopupOpen = !!(showParqGate || hauntIntro || ghostView || comeback || conceptPopup || practiceInvite || pathTour || pendingChallenge);
 
   return (
     <>
@@ -1545,6 +1558,7 @@ export default function App() {
             profile={profile} updateProfile={updateProfile} levelUp={levelUp}
             pausedSession={pausedSession} onResume={resumeSession} onDiscardPaused={discardPausedSession}
             pausedAlt={pausedAlt} onResumeAlt={resumeAltSession} onDiscardAlt={discardAltSession}
+            rustyTurn={rustyTurn} onRustyDone={() => setRustyTurn(false)} appPopupOpen={appPopupOpen}
             reportSessionState={reportSessionState} resumeData={resumeData}
             actions={actions}
           />

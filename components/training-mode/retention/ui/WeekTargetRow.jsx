@@ -1,9 +1,11 @@
 import { C } from '../../Styles';
+import { HOME } from './tokens';
 import { WEEK_TARGETS, MAX_FREEZES, WEEKS_PER_FREEZE } from '../../data/weekStreak';
 
 // The weekly target, in Profile's Game Plan card (retention feature 1): its
 // "Days per week" row, offering 2 to 6 training days, with what a change does
-// (it starts next Monday) and the freezes held. One setting: the same number
+// (it starts next Monday) and the 1UPs held (the spare lives once called
+// freezes). One setting: the same number
 // Today's Bout plans with.
 //   value:   the target chosen (it holds from next Monday)
 //   current: the target this week is judged by
@@ -32,7 +34,7 @@ export default function WeekTargetRow({ value, current, onPick, freezes = 0, nex
         {pending ? `${value} days from Monday. This week stays at ${current}.` : `${value} days a week${value === 4 ? ' · recommended' : ''}.`}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-        <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9, letterSpacing: '0.12em', color: '#9ad8ff', whiteSpace: 'nowrap' }}>❄ FREEZES {freezes}/{MAX_FREEZES}</span>
+        <span style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 9, letterSpacing: '0.12em', color: HOME.oneUp, whiteSpace: 'nowrap' }}>1UPS {freezes}/{MAX_FREEZES}</span>
         <span style={{ flex: 1, minWidth: 0, fontFamily: "'Rajdhani',sans-serif", fontWeight: 500, fontSize: 10.5, color: C.faint, lineHeight: 1.3 }}>
           {nextFreezeIn == null ? 'You hold the most there is.' : `Next one after ${plural(nextFreezeIn, 'more week')} on target.`}
         </span>
@@ -40,7 +42,7 @@ export default function WeekTargetRow({ value, current, onPick, freezes = 0, nex
       {nextFreezeIn != null && (
         <div aria-hidden style={{ display: 'flex', gap: 3, marginTop: 5 }}>
           {Array.from({ length: WEEKS_PER_FREEZE }, (_, i) => (
-            <span key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i < WEEKS_PER_FREEZE - nextFreezeIn ? '#9ad8ff' : 'rgba(255,255,255,0.08)' }}/>
+            <span key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i < WEEKS_PER_FREEZE - nextFreezeIn ? HOME.oneUp : 'rgba(255,255,255,0.08)' }}/>
           ))}
         </div>
       )}

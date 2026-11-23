@@ -277,15 +277,16 @@ export function momentCopy(m) {
       ? `${plural(left, 'more day')} this week ${one ? 'keeps' : 'keep'} your streak going.`
       : `${plural(left, 'more day')} this week ${one ? 'starts' : 'start'} a week streak.`;
   }
-  const freeze = m.freezeEarned ? `FREEZE EARNED · YOU HOLD ${m.freezeEarned.freezes} OF ${MAX_FREEZES}` : null;
+  // The freeze is called a 1UP on screen (the owner's name for it, 2026-11-23).
+  const freeze = m.freezeEarned ? `1UP EARNED · YOU HOLD ${m.freezeEarned.freezes} OF ${MAX_FREEZES}` : null;
   return { title, sub, freeze };
 }
 
 // Short enough for two lines in the nudge slot at 360 px (a third line would
-// reach past the header onto the card below); the chip shows the freezes left.
+// reach past the header onto the card below); the chip shows the 1UPs left.
 export function noticeCopy(n) {
   if (!n) return null;
-  if (n.kind === 'freeze_used') return `A freeze covered last week: your ${n.streak}-week streak is safe.`;
+  if (n.kind === 'freeze_used') return `A 1UP covered last week: your ${n.streak}-week streak is safe.`;
   // No-break spaces keep "2 of 2" together on a narrow line.
-  return `Freeze earned: ${WEEKS_PER_FREEZE} weeks on target. You hold ${n.freezes}\u00A0of\u00A0${MAX_FREEZES}.`;
+  return `1UP earned: ${WEEKS_PER_FREEZE} weeks on target. You hold ${n.freezes}\u00A0of\u00A0${MAX_FREEZES}.`;
 }

@@ -6,10 +6,11 @@ import TodaysBoutCard from './ui/TodaysBoutCard';
 import { SIDES } from './ui/tokens';
 import WeekMomentStrip from './ui/WeekMomentStrip';
 import WeekTargetRow from './ui/WeekTargetRow';
+import OneUpMark from './ui/OneUpMark';
 import { noticeCopy } from '../data/weekStreak';
 import { boutMeta } from '../data/dailyMission';
 
-// 1 · Weekly streak + Today's Bout + freezes. The streak counts weeks that
+// 1 · Weekly streak + Today's Bout + 1UPs (once called freezes). The streak counts weeks that
 // reach the weekly target of training days (default 4), so a rest day never
 // breaks it. Every card below renders the REAL components (retention/ui,
 // shared/HomeHeader, shared/NudgeToast) with sample data: what is drawn here
@@ -79,11 +80,11 @@ function YourProgress({ children }) {
 
 export default function LookStreak() {
   return (
-    <Feature id="f1" num="FEATURE 1" title="TODAY'S BOUT + STREAK FREEZE"
+    <Feature id="f1" num="FEATURE 1" title="TODAY'S BOUT + 1UP"
       reuse="the home header and its nudge slot, Home's top card and its pick, the existing Mission of the Day bonus (+25 XP), Profile's Game Plan “Days per week”, the end screen's YOUR PROGRESS card."
-      isNew="the streak counts weeks that hit the weekly target (rest days never break it), the week chip with day dots, freezes (❄), TODAY'S BOUT (Home's one card, held for the day, with the daily bonus and a done state), the end-screen strip, the target picker. Every card here is the real component.">
+      isNew="the streak counts weeks that hit the weekly target (rest days never break it), the week chip with day dots, 1UPs (a spare life that keeps the streak through a short week), TODAY'S BOUT (Home's one card, held for the day, with the daily bonus and a done state), the end-screen strip, the target picker. Every card here is the real component.">
 
-      <Look name="Home header: today vs new" note="Top: the chip as it is today (12-day combo, 1 guard). Bottom: the real header with the week chip: 9-week streak, this week's days (gold done, green rest, ring today), 3 of 4 days, 2 freezes. The XP numbers give way so it fits at 360 px." height={190}>
+      <Look name="Home header: today vs new" note="Top: the chip as it is today (12-day combo, 1 guard). Bottom: the real header with the week chip: 9-week streak, this week's days (gold done, green rest, ring today), 3 of 4 days, 2 1UPs (1UP ×2). The XP numbers give way so it fits at 360 px." height={190}>
         <div style={{ ...head(9, 600), color: HOME.muted, padding: '10px 14px 0' }}>TODAY</div>
         <LookHomeHeader right={<TodayChip/>}/>
         <div style={{ ...head(9, 600), color: HOME.muted, padding: '8px 14px 0' }}>NEW</div>
@@ -111,14 +112,14 @@ export default function LookStreak() {
         </YourProgress>
       </Look>
 
-      <Look name="Freeze used (next day)" note="A quiet notice under Home's header the week after a short one, once. No guilt: what happened; the chip above it shows the freezes left." height={160} animated>
+      <Look name="1UP used (next day)" note="A quiet notice under Home's header the week after a short one, once. No guilt: what happened; the chip above it shows the 1UPs left." height={160} animated>
         <NewHeader freezes={1} done={0} days={['today', 'future', 'future', 'future', 'future', 'future', 'future']}/>
         <div style={{ padding: '14px 16px 0' }}>
-          <NudgeToast solid icon="❄" text={noticeCopy({ kind: 'freeze_used', streak: 9, freezes: 1, target: 4 })} onClose={() => {}}/>
+          <NudgeToast solid icon={<OneUpMark/>} text={noticeCopy({ kind: 'freeze_used', streak: 9, freezes: 1, target: 4 })} onClose={() => {}}/>
         </div>
       </Look>
 
-      <Look name="Freeze earned" note="Earned by training only: one per 4 weeks on target, hold at most 2. Never bought, never an ad. On the end screen that earns it (or once on Home, if that screen has no strip)." height={250} animated>
+      <Look name="1UP earned" note="Earned by training only: one per 4 weeks on target, hold at most 2. Never bought, never an ad. On the end screen that earns it (or once on Home, if that screen has no strip)." height={250} animated>
         <YourProgress>
           <WeekMomentStrip moment={{ kind: 'complete', done: 4, target: 4, streak: 8, freezes: 2, popIndex: 4, days: ['done', 'done', 'rest', 'done', 'done', 'future', 'future'], freezeEarned: { id: 'earned:sample', freezes: 2 } }}/>
         </YourProgress>

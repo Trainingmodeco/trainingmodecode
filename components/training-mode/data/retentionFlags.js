@@ -5,8 +5,9 @@
 //   weeks    — weekly streak + daily mission + freezes
 //   path     — the path + stars
 //   nearMiss — near-miss retry
+//   power    — POWER, RUSTY and REVIVE (the fighter drains while away)
 import { isOwnerPreview } from './concepts';
 
-const FOR_EVERYONE = { weeks: false, path: false, nearMiss: false };
+const FOR_EVERYONE = { weeks: false, path: false, nearMiss: false, power: false };
 
 export const retentionOn = (key) => !!FOR_EVERYONE[key] || isOwnerPreview();

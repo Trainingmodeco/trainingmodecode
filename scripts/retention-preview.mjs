@@ -16,7 +16,8 @@
 //     scrollWidth > clientWidth on a box that clips, a clamped box that hides
 //     lines, or a text box outside the box that clips it.
 // Text cut elsewhere on the page is printed as a warning, not a failure.
-// Features 2 and 3 add their states to STATES (f1-, f2-, f3- names).
+// Features 2 and 3 add their states to STATES (f1-, f2-, f3- names); 1UP,
+// POWER, RUSTY and REVIVE add f4- (the f1 states show the 1UP: no "freeze" left).
 //
 // Every state runs on one fixed local day and time (Thursday 19 November 2026,
 // 10:00, on Playwright's clock), so every run gives the same pictures: the
@@ -300,6 +301,7 @@ const scrollTo = (sel) => async (page) => { await page.locator(sel).first().scro
 // ── the states ─────────────────────────────────────────────────────────────
 // { name, note, seed(), open(page, w), check: [selectors], apart?: [[selA, selB]], expect: RegExp,
 //   absent?: RegExp (must not be on screen), clear?: [[selA, selB]] (no element of A over any of B),
+//   inView?: [selectors] (whole inside the screen), oneLine?: [selectors] (text that never breaks in two),
 //   once?: true, clock?: true, after?(page), shot?: selector (photograph that element whole) }
 // `once`: open the screen once (at the first size) and resize for the others.
 // `clock`: a state that drives the clock itself (pauses it, runs it on); every
@@ -308,25 +310,53 @@ const HOME_CHECK = ['header[data-guide="home-level"]', '[data-guide="home-contin
 const HOME_APART = [['[role="status"]', '[data-guide="home-continue"]']];
 // The week streak's freeze notice sits under the header: clear of the header (its ? included) and of the card.
 const NOTICE_APART = [...HOME_APART, ['[role="status"]', 'header[data-guide="home-level"]'], ['[role="status"]', '[data-guide="help-icon"]']];
+// POWER's line under the header: clear of the header, the notice and the card.
+const POWER_APART = [['[data-retention="power"]', 'header[data-guide="home-level"]'], ['[data-retention="power"]', '[role="status"]'], ['[data-retention="power"]', '[data-guide="home-continue"]']];
 // Today's Bout's samples: a fighter's last session (one 3-minute Fight Focus
 // round, which the end-screen states really run), and the bout held as done.
 const BOUT_LAST = { kind: 'timer', cfg: { difficulty: 'Normal', mode: 'Technical', rounds: 1, roundMin: 3, restSec: 60, voiceOn: true, rushMode: false, rushPattern: 'endRound', rushMix: 'explosive', encouragement: 'normal', warmupMin: 0, ghostChallengeId: null }, disc: 'Boxing', at: NOW_MS - DAY };
 const BOUT_LAST3 = { ...BOUT_LAST, cfg: { ...BOUT_LAST.cfg, rounds: 3 } };
 const BOUT_SEED = (rows, xp, last = BOUT_LAST) => () => ({ tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(rows, xp), tm_last_session_v1: JSON.stringify(last) });
+// POWER: a fighter who trained twice a week for a month (never on the week
+// target, so no 1UP news takes the notice slot), the last time `daysAgo` days
+// before the fixed clock; the last session is Today's Bout's 3-minute round.
+const dayAgo = (d, h = 18) => { const x = new Date(NOW); x.setDate(x.getDate() - d); x.setHours(h, 0, 0, 0); return x; };
+const POWER_SEED = (daysAgo, profile = {}) => () => {
+  const rows = [24, 21, 17, 14, 10, 7, 3, 0].map((k) => row(dayAgo(daysAgo + k)));
+  return {
+    tm_user_profile: JSON.stringify({ ...FIGHTER, ...profile }), tm_user_stats: stats(rows, 2650),
+    tm_last_session_v1: JSON.stringify({ ...BOUT_LAST, at: dayAgo(daysAgo).getTime() }),
+  };
+};
+// LATER on the RUSTY pop-up (its click after is eaten for a moment).
+async function rustyLater(page) {
+  await page.locator('[data-retention="rusty-card"] button', { hasText: 'LATER' }).first().click({ timeout: 4000 });
+  await wait(page, 900);
+}
+// REVIVE on the RUSTY pop-up for real, on a fake clock: TODAY'S BOUT's START
+// runs the 3-minute round to its end screen.
+async function reviveFromPopup(page, w) {
+  await home(page, w);
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 500);
+  await page.locator('[data-retention="rusty-card"] button', { hasText: 'REVIVE' }).first().click({ timeout: 4000 });
+  await runClock(page, (t) => /YOUR PROGRESS/.test(t), { max: 400 });
+  await page.clock.resume();
+  await wait(page, 2500);
+}
 const STATES = [
   {
     name: 'f1-home-mission-ready',
-    note: 'Home: the week chip (9-week streak, 3 of 4 days, 2 freezes) and the one TODAY\'S BOUT card, ready: the last session again, its length, +25 XP beside START.',
+    note: 'Home: the week chip (9-week streak, 3 of 4 days, 1UP ×2) and the one TODAY\'S BOUT card, ready: the last session again, its length, +25 XP beside START.',
     seed: () => BOUT_SEED(history({ onTarget: 9, thisWeek: Math.min(3, todayIdx) }), 6750, BOUT_LAST3)(),
     open: home, check: HOME_CHECK, apart: HOME_APART,
-    expect: /TODAY'S BOUT[\s\S]*Fight Focus[\s\S]*Boxing · 3 rounds · Normal\s+11 MIN\s*·\s*SAME AS LAST TIME[\s\S]*START[\s\S]*\+25 XP[\s\S]*SURPRISE ME/, absent: /DAILY MISSION/,
+    expect: /1UP\s*×2[\s\S]*TODAY'S BOUT[\s\S]*Fight Focus[\s\S]*Boxing · 3 rounds · Normal\s+11 MIN\s*·\s*SAME AS LAST TIME[\s\S]*START[\s\S]*\+25 XP[\s\S]*SURPRISE ME/, absent: /DAILY MISSION|[Ff]reeze|❄|POWER/,
   },
   {
     name: 'f1-home-mission-fit-new',
-    note: 'Home: a new, fit-leaning athlete: no streak yet, the starting freeze; TODAY\'S BOUT is the setup\'s first pick, a 12-minute Quick Mission on their level.',
+    note: 'Home: a new, fit-leaning athlete: no streak yet, the starting 1UP (1UP ×1), no POWER line (nothing to drain yet); TODAY\'S BOUT is the setup\'s first pick, a 12-minute Quick Mission on their level.',
     seed: () => ({ tm_user_profile: JSON.stringify(FITTER), tm_user_stats: stats([], 0) }),
     open: home, check: HOME_CHECK, apart: HOME_APART,
-    expect: /TODAY'S BOUT[\s\S]*FIT MODE[\s\S]*Quick Mission — 12 Min Starter[\s\S]*FITS YOUR LEVEL[\s\S]*START[\s\S]*\+25 XP/, absent: /DAILY MISSION/,
+    expect: /1UP\s*×1[\s\S]*TODAY'S BOUT[\s\S]*FIT MODE[\s\S]*Quick Mission — 12 Min Starter[\s\S]*FITS YOUR LEVEL[\s\S]*START[\s\S]*\+25 XP/, absent: /DAILY MISSION|POWER|RUSTY/,
   },
   {
     name: 'f1-home-mission-done',
@@ -365,47 +395,50 @@ const STATES = [
     open: async (page, w) => {
       await home(page, w);
       await page.locator('[data-guide="help-icon"]').first().click({ timeout: 4000 }); await wait(page, 900);
-      for (let i = 0; i < 2; i++) { await page.getByRole('button', { name: /NEXT/ }).first().click({ timeout: 4000 }); await wait(page, 900); }
+      // Past the intro, the header and (POWER switch on) the POWER step.
+      for (let i = 0; i < 3; i++) { await page.getByRole('button', { name: /NEXT/ }).first().click({ timeout: 4000 }); await wait(page, 900); }
     },
     check: ['div:has(> button[aria-label="Close guide"])'],
     expect: /TODAY'S BOUT[\s\S]*\+25 XP, once a day[\s\S]*TRAIN AGAIN[\s\S]*ADJUST opens its settings/, absent: /DAILY MISSION|AT YOUR PACE/,
   },
   {
     name: 'f1-home-freeze-used',
-    note: 'Home, the week after a short one: the quiet freeze-used notice under the header (the level, the week chip and the ? stay in view).',
+    note: 'Home, the week after a short one: the quiet 1UP-used notice under the header (the level, the week chip and the ? stay in view). Trained once in 9 days: POWER is draining, so its slim line shows too (its own notice waits: one a visit).',
     seed: () => ({ tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 9, gapWeeks: [1], thisWeek: 0 }), 6100) }),
-    open: home, check: HOME_CHECK, apart: NOTICE_APART, expect: /LV \d+[\s\S]*A freeze covered last week/,
+    open: home, check: HOME_CHECK, apart: [...NOTICE_APART, ...POWER_APART], expect: /LV \d+[\s\S]*1UP\s*×1[\s\S]*POWER[\s\S]*A 1UP covered last week: your 9-week streak is safe\./, absent: /[Ff]reeze|❄/,
   },
   {
     name: 'f1-home-freeze-earned',
-    note: 'Home: a freeze earned last week on a screen with no strip (shown once here, under the header).',
+    note: 'Home: a 1UP earned last week on a screen with no strip (shown once here, under the header). Last trained 5 days ago: the POWER line shows.',
     seed: () => ({ tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 4, thisWeek: 0 }), 3000) }),
-    open: home, check: HOME_CHECK, apart: NOTICE_APART, expect: /LV \d+[\s\S]*Freeze earned/,
+    open: home, check: HOME_CHECK, apart: [...NOTICE_APART, ...POWER_APART], expect: /LV \d+[\s\S]*1UP\s*×2[\s\S]*1UP earned: 4 weeks on target\. You hold 2\s+of\s+2\./, absent: /[Ff]reeze|❄/,
   },
   {
     name: 'f1-home-header-long',
-    note: 'Home header at its widest: a secret rank name, a 2-digit level and streak.',
+    note: 'Home header at its widest: a secret rank name, a 2-digit level and streak, and the compact 1UP mark (1UP over ×2), as narrow as the old ❄2.',
     seed: () => {
       const rows = history({ onTarget: 12, thisWeek: Math.min(3, todayIdx) }).map((r) => ({ ...r, xpEarned: 700 }));
       return { tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(rows, 33500) };
     },
-    open: home, check: HOME_CHECK, apart: HOME_APART, expect: /LV \d\d/,
+    open: home, check: HOME_CHECK, apart: HOME_APART, expect: /LV \d\d[\s\S]*1UP\s*×2/, absent: /[Ff]reeze|❄/,
+    // The longest rank name never breaks in two (it may sit under the level, as at HEAD).
+    oneLine: ['header[data-guide="home-level"] [aria-label^="Level"] > span:last-child'],
   },
   {
     name: 'f1-profile-target',
-    note: 'Profile → edit → Game Plan: the weekly target 2 to 6, a change pending for Monday, the freezes.',
+    note: 'Profile → edit → Game Plan: the weekly target 2 to 6, a change pending for Monday, the 1UPs (1UPS 2/2).',
     seed: () => ({
       tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 2, thisWeek: Math.min(2, todayIdx) }), 2000),
       tm_game_plan_v1: JSON.stringify({ setup: true, hurdle: 'time', daysPerWeek: 5, sessionMinutes: 20, preferredTime: 'varies', restDays: [], weekTargets: [{ from: '', days: 4 }, { from: iso(monday(-1)), days: 5 }] }),
     }),
-    open: profileEditor, check: ['[data-retention="week-target"]'], expect: /Keeps your streak/,
+    open: profileEditor, check: ['[data-retention="week-target"]'], expect: /Keeps your streak[\s\S]*1UPS \d\/2/, absent: /FREEZE|❄/,
   },
   {
     name: 'f1-gallery',
     note: 'The design gallery (/retention-looks), feature 1: every card renders the real components with sample data.',
     seed: () => ({}),
     open: async (page) => { await page.goto(`${BASE}retention-looks`, { waitUntil: 'networkidle' }); await wait(page, 2500); },
-    check: ['#f1'], shot: '#f1', expect: /TODAY'S BOUT \+ STREAK FREEZE[\s\S]*TRAIN AGAIN/, absent: /DAILY MISSION/,
+    check: ['#f1'], shot: '#f1', expect: /TODAY'S BOUT \+ 1UP[\s\S]*TRAIN AGAIN[\s\S]*1UP used[\s\S]*1UP EARNED/, absent: /DAILY MISSION|FREEZE|Freeze used|❄/,
   },
   {
     name: 'f1-end-day-kept',
@@ -416,10 +449,96 @@ const STATES = [
   },
   {
     name: 'f1-end-week-complete',
-    note: 'Today\'s Bout lands the 4th day of the 4th week on target: WEEK COMPLETE, a freeze earned, TODAY\'S BOUT · +25 XP.',
+    note: 'Today\'s Bout lands the 4th day of the 4th week on target: WEEK COMPLETE, a 1UP earned, TODAY\'S BOUT · +25 XP.',
     clock: true, once: true, needsDays: 3,
     seed: () => BOUT_SEED(history({ onTarget: 3, thisWeek: 3 }), 3300)(),
-    open: runDailyMission, after: scrollTo('[data-retention="week-moment"]'), check: ['[data-retention="week-moment"]'], expect: /WEEK COMPLETE[\s\S]*FREEZE EARNED[\s\S]*TODAY'S BOUT · \+25 XP/, absent: /DAILY MISSION/,
+    open: runDailyMission, after: scrollTo('[data-retention="week-moment"]'), check: ['[data-retention="week-moment"]'], expect: /WEEK COMPLETE[\s\S]*1UP EARNED · YOU HOLD 2 OF 2[\s\S]*TODAY'S BOUT · \+25 XP/, absent: /DAILY MISSION|FREEZE|❄|REVIVED/,
+  },
+  // ── 1UP, POWER, RUSTY and REVIVE (switch `power`) ──
+  {
+    name: 'f4-home-power-draining',
+    note: 'Home, last trained 10 days ago: POWER is draining, one slim line under the header in line with the level (72%). No notice yet.',
+    seed: () => POWER_SEED(10)(),
+    open: home, check: [...HOME_CHECK, '[data-retention="power"]'], apart: [...HOME_APART, ...POWER_APART],
+    expect: /LV \d+[\s\S]*POWER\s*72%[\s\S]*TODAY'S BOUT/, absent: /RUSTY|losing power/,
+  },
+  {
+    name: 'f4-home-power-low',
+    note: 'Home, last trained 19 days ago: POWER is low (36%, amber), and its one quiet notice under it, once per drain.',
+    seed: () => POWER_SEED(19)(),
+    open: home, check: [...HOME_CHECK, '[data-retention="power"]'], apart: [...NOTICE_APART, ...POWER_APART],
+    expect: /POWER\s*36%[\s\S]*Your fighter is losing power\s\(36%\)\. One session revives it\.[\s\S]*TODAY'S BOUT/, absent: /RUSTY|1UP covered/,
+  },
+  {
+    name: 'f4-rusty-popup-male',
+    note: 'Opening the app 34 days after the last session (a male profile): the RUSTY pop-up, once per rusty spell. Stand-in art: his own tier portrait, greyed, with dust and rust. REVIVE runs TODAY\'S BOUT\'s START; LATER closes it.',
+    seed: () => POWER_SEED(34)(),
+    open: home, check: ['[data-retention="rusty-card"]'], inView: ['[data-retention="rusty-card"]'],
+    expect: /RUSTY\s+34 days since your last session\.\s+Your level, XP and badges are all still here\.\s+REVIVE\s+LATER/,
+  },
+  {
+    name: 'f4-rusty-popup-female',
+    note: 'The same for a female profile: her own tier portrait as the stand-in.',
+    seed: () => POWER_SEED(34, { sex: 'female' })(),
+    open: home, check: ['[data-retention="rusty-card"]'], inView: ['[data-retention="rusty-card"]'],
+    expect: /RUSTY\s+34 days since your last session\.[\s\S]*REVIVE[\s\S]*LATER/,
+  },
+  {
+    name: 'f4-home-rusty',
+    note: 'Home after LATER: the POWER line reads RUSTY; the pop-up does not come back this spell.',
+    seed: () => POWER_SEED(34)(),
+    open: async (page, w) => { await home(page, w); await rustyLater(page); },
+    check: [...HOME_CHECK, '[data-retention="power"]'], apart: [...HOME_APART, ...POWER_APART],
+    expect: /POWER\s*RUSTY[\s\S]*TODAY'S BOUT/, absent: /days since your last session/,
+  },
+  {
+    name: 'f4-end-revived',
+    note: 'REVIVE on the RUSTY pop-up for real (fake clock): TODAY\'S BOUT\'s START runs the 3-minute round, and its end screen says REVIVED · POWER 100% in YOUR PROGRESS (once), beside the week strip and the bout\'s +25 XP.',
+    clock: true, once: true,
+    seed: () => POWER_SEED(34)(),
+    open: reviveFromPopup, after: scrollTo('[data-retention="revive"]'),
+    check: ['[data-retention="revive"]', '[data-retention="week-moment"]'],
+    expect: /REVIVED · POWER 100%[\s\S]*TRAINING DAY 1 OF 4[\s\S]*TODAY'S BOUT · \+25 XP/,
+  },
+  {
+    name: 'f4-profile-rusty',
+    note: 'Profile while RUSTY: the portrait greyed with dust and rust; the name, LVL line and XP stay as they are.',
+    seed: () => POWER_SEED(34)(),
+    open: async (page, w) => {
+      await home(page, w); await rustyLater(page);
+      await page.getByRole('button', { name: /^PROFILE$/ }).first().click({ timeout: 4000 }); await wait(page, 1200);
+    },
+    check: ['[data-guide="pr-avatar"]', '[data-retention="rusty-look"]'], expect: /LVL \d+ · [\s\S]*XP to next/,
+  },
+  {
+    name: 'f4-level-rusty',
+    note: 'The Level page while RUSTY: the big portrait rusty, the level and the XP bar as they are.',
+    seed: () => POWER_SEED(34)(),
+    open: async (page, w) => {
+      await home(page, w); await rustyLater(page);
+      await page.getByRole('button', { name: /^PROFILE$/ }).first().click({ timeout: 4000 }); await wait(page, 1200);
+      await page.getByRole('button', { name: /View your level/ }).first().click({ timeout: 4000 }); await wait(page, 1200);
+    },
+    check: ['[aria-label="Your level"]', '[data-retention="rusty-look"]'], expect: /YOUR LEVEL[\s\S]*LEVEL \d+/i,
+  },
+  {
+    name: 'f4-home-guide-power',
+    note: 'Home\'s ? guide with the switches on: the header step names the 1UP, and the next step explains POWER, RUSTY and REVIVE in plain words.',
+    seed: () => POWER_SEED(10)(),
+    open: async (page, w) => {
+      await home(page, w);
+      await page.locator('[data-guide="help-icon"]').first().click({ timeout: 4000 }); await wait(page, 900);
+      for (let i = 0; i < 2; i++) { await page.getByRole('button', { name: /NEXT/ }).first().click({ timeout: 4000 }); await wait(page, 900); }
+    },
+    check: ['div:has(> button[aria-label="Close guide"])'],
+    expect: /POWER · RUSTY · REVIVE[\s\S]*full for 3 days[\s\S]*RUSTY[\s\S]*REVIVES it to 100%[\s\S]*Nothing you earned is ever taken away/, absent: /TODAY'S BOUT\s+Today's one pick/,
+  },
+  {
+    name: 'f4-gallery',
+    note: 'The design gallery (/retention-looks), POWER: the real POWER line, notice, RUSTY card, rusty portrait and REVIVED line with sample data.',
+    seed: () => ({}),
+    open: async (page) => { await page.goto(`${BASE}retention-looks`, { waitUntil: 'networkidle' }); await wait(page, 3000); },
+    check: ['#f8'], shot: '#f8', expect: /POWER, RUSTY \+ REVIVE[\s\S]*72%[\s\S]*losing power[\s\S]*REVIVE[\s\S]*REVIVED · POWER 100%/,
   },
   {
     name: 'f2-home-next-up',
@@ -568,8 +687,9 @@ const STATES = [
 
 // ── the checks ─────────────────────────────────────────────────────────────
 // Runs in the page. Returns { fails: [...], warns: [...] }.
-function measure({ checkSelectors, apart, clear }) {
+function measure({ checkSelectors, apart, clear, inView = [], oneLine = [] }) {
   const vw = window.innerWidth;
+  const vh = window.innerHeight;
   const fails = [], warns = [];
   const name = (el) => {
     const t = (el.innerText || el.getAttribute('aria-label') || '').trim().replace(/\s+/g, ' ').slice(0, 50);
@@ -636,6 +756,25 @@ function measure({ checkSelectors, apart, clear }) {
       if (ra.left < rb.right - 1 && rb.left < ra.right - 1 && ra.top < rb.bottom - 1 && rb.top < ra.bottom - 1) fails.push(`overlap: ${name(ea)} over ${name(eb)}`);
     }
   }
+  // Whole inside the screen (a pop-up card: nothing above, below or beside the viewport).
+  for (const sel of inView) {
+    const els = [...document.querySelectorAll(sel)].filter(shown);
+    if (!els.length) fails.push(`${sel} is not on screen`);
+    for (const el of els) {
+      const r = el.getBoundingClientRect();
+      if (r.top < -1 || r.left < -1 || r.bottom > vh + 1 || r.right > vw + 1) fails.push(`not all on screen: ${name(el)} (${Math.round(r.top)}..${Math.round(r.bottom)} of ${vh})`);
+    }
+  }
+  // A text kept on one line (a long rank name: it may sit under the level, but never breaks in two).
+  for (const sel of oneLine) {
+    const els = [...document.querySelectorAll(sel)].filter(shown);
+    if (!els.length) fails.push(`${sel} is not on screen`);
+    for (const el of els) {
+      const range = document.createRange(); range.selectNodeContents(el);
+      const tops = [...range.getClientRects()].map((r) => Math.round(r.top));
+      if (tops.length && Math.max(...tops) - Math.min(...tops) > 4) fails.push(`breaks onto a second line: ${name(el)}`);
+    }
+  }
   return { fails: [...new Set(fails)], warns: [...new Set(warns)] };
 }
 
@@ -656,7 +795,7 @@ for (const st of STATES) {
     if (st.after) await st.after(page);
     await wait(page, 600);
     const t = await page.evaluate(() => document.body.innerText);
-    const res = await page.evaluate(measure, { checkSelectors: st.check || [], apart: st.apart || [], clear: st.clear || [] });
+    const res = await page.evaluate(measure, { checkSelectors: st.check || [], apart: st.apart || [], clear: st.clear || [], inView: st.inView || [], oneLine: st.oneLine || [] });
     if (st.expect && !st.expect.test(t)) res.fails.unshift(`expected ${st.expect} on screen`);
     if (st.absent && st.absent.test(t)) res.fails.unshift(`not expected on screen: ${st.absent} (${t.match(st.absent)[0]})`);
     const file = path.join(OUT, `${st.name}-${w}.png`);

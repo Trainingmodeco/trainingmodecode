@@ -16,6 +16,9 @@ import { takeEndScreenStrip, markEndScreenStrip } from '../data/weekStreakStore'
 import WeekMomentStrip from '../retention/ui/WeekMomentStrip';
 import { settleNearMiss, noteAttempt } from '../data/nearMissStore';
 import NearMissPanel from '../retention/ui/NearMissPanel';
+import { takeReviveMoment, markPowerMoments, loadPower } from '../data/powerStore';
+import ReviveLine from '../retention/ui/ReviveLine';
+import { RustyPortraitImage } from '../retention/ui/RustyLook';
 
 // Design 24f — shared Mission Complete screen for every mode. A celebratory
 // medal hero with an animated XP count-up, a mode-tinted headline, a stat
@@ -146,6 +149,14 @@ export default function MissionComplete({
   const [weekStrip] = useState(() => (!unpaid && weeksOn ? takeEndScreenStrip(Date.now(), { finisher: !!cardioResult }) : null));
   useEffect(() => { markEndScreenStrip(weekStrip); }, [weekStrip]);
 
+  // POWER (switch on): the first valid finished session after the fighter
+  // was low or RUSTY shows one REVIVED line, once per revive. A session that
+  // earned nothing leaves a RUSTY fighter rusty, and the portrait says so.
+  const [powerOn] = useState(() => retentionOn('power'));
+  const [revive] = useState(() => (!unpaid && powerOn ? takeReviveMoment(Date.now(), { finisher: !!cardioResult }) : null));
+  useEffect(() => { if (revive) markPowerMoments([revive.id]); }, [revive]);
+  const [rusty] = useState(() => powerOn && loadPower().state === 'rusty');
+
   // Retention feature 3 (near-miss switch): on a partial or failed end, how
   // close it came and RETRY / COME BACK FRESH TOMORROW, under the stats. Worked
   // out once; the session counts as one try at its stage or session today.
@@ -263,14 +274,15 @@ export default function MissionComplete({
           <div style={{ background: 'rgba(8,2,18,0.88)', border: '1px solid rgba(176,106,255,0.3)', borderRadius: 11, padding: '9px 12px', marginBottom: 6 }}>
             <div style={{ font: "700 8px 'Orbitron',sans-serif", color: '#b06aff', letterSpacing: '0.16em', marginBottom: 7 }}>YOUR PROGRESS</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 7 }}>
-              <div style={{ width: 30, height: 30, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', flexShrink: 0 }}>
-                <SafeImage src={tierImage(tier.id, sex)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }}/>
+              <div style={{ position: rusty ? 'relative' : undefined, width: 30, height: 30, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', flexShrink: 0 }}>
+                <RustyPortraitImage src={tierImage(tier.id, sex)} rusty={rusty} imgStyle={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }}/>
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', font: "700 10px 'Orbitron',sans-serif", color: tier.secret ? tier.color : '#fde047', marginBottom: 3 }}><span>LEVEL {level} · {tier.label.toUpperCase()}</span><span style={{ color: '#c4a4d8', fontWeight: 600 }}>{lp.current}/{lp.needed} XP</span></div>
                 <div style={{ height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}><div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg,#b06aff,#fde047)' }}/></div>
               </div>
             </div>
+            {revive && <ReviveLine sex={sex}/>}
             {weekStrip && <WeekMomentStrip moment={weekStrip.moment} missionXp={weekStrip.missionXp}/>}
             <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#9a90b8' }}>This week: <span style={{ color: '#fff', fontWeight: 700 }}>{weekSess.length} session{weekSess.length === 1 ? '' : 's'}</span> · <span style={{ color: '#fde047', fontWeight: 700 }}>{weekXp.toLocaleString()} XP</span> · <span style={{ color: '#fff', fontWeight: 700 }}>{weekModes} mode{weekModes === 1 ? '' : 's'}</span></div>
           </div>

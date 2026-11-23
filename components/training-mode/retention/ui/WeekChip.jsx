@@ -1,9 +1,12 @@
 import { HOME, head, RETENTION_CSS } from './tokens';
+import OneUpMark from './OneUpMark';
+import { MAX_FREEZES } from '../../data/weekStreak';
 
 // The week chip (retention feature 1): the week streak, this week's days as
 // dots (gold done, green rest, a ring on today, a grey dot for a day still to
-// come), the days done against the target, and the freezes held. Sized for
-// Home's header at 360 px, beside the level bar and the help button.
+// come), the days done against the target, and the 1UPs held (the spare
+// lives once called freezes: `freezes` is their count). Sized for Home's
+// header at 360 px, beside the level bar and the help button.
 //   days:  7 × 'done' | 'rest' | 'today' | 'future'   (Monday first)
 //   pop:   the index of a dot that just filled (it pops in)
 //   count: false leaves out the "3/4 DAYS" caption under the dots (the end
@@ -19,7 +22,7 @@ function Dot({ s, pop }) {
 }
 
 export default function WeekChip({ days = [], done = 0, target = 4, streak = 0, freezes = 0, pop = null, count = true, style }) {
-  const label = `${streak} week streak. ${done} of ${target} training days this week. ${freezes} ${freezes === 1 ? 'freeze' : 'freezes'}.`;
+  const label = `${streak} week streak. ${done} of ${target} training days this week. 1UPs: ${freezes} of ${MAX_FREEZES}.`;
   return (
     <div role="img" aria-label={label} title={label} className="rt-anim" style={{
       display: 'flex', alignItems: 'center', gap: 5, height: 32, padding: '0 7px', borderRadius: 16,
@@ -35,7 +38,7 @@ export default function WeekChip({ days = [], done = 0, target = 4, streak = 0, 
         <span style={{ display: 'flex', gap: 3 }}>{days.map((s, i) => <Dot key={i} s={s} pop={pop === i && s === 'done'}/>)}</span>
         {count && <span style={{ ...head(8, 700, { letterSpacing: '0.04em', lineHeight: 1 }), color: HOME.muted, whiteSpace: 'nowrap' }}>{done}/{target} DAYS</span>}
       </span>
-      <span style={{ ...head(11, 700, { letterSpacing: 0 }), color: HOME.ice, whiteSpace: 'nowrap' }}>❄{freezes}</span>
+      <OneUpMark stacked count={freezes}/>
     </div>
   );
 }

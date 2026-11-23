@@ -10,6 +10,11 @@ export const HOME = {
   green: '#8fe8ac',
   red: '#ff7a7a',
   ice: '#9ad8ff',
+  // The 1UP (the week streak's spare life, once called a freeze).
+  oneUp: '#6BF59A',
+  // RUSTY (POWER at a month away) and the drain's low end.
+  rust: '#D08A4E',
+  low: '#FFB25C',
   fit: '#9D6CFF',
   fight: '#3D7BFF',
   font: "'Chakra Petch',sans-serif",

@@ -7,6 +7,7 @@ import LookLeague from './lookLeague';
 import LookSquad from './lookSquad';
 import LookSeason from './lookSeason';
 import LookCleared from './lookCleared';
+import LookPower from './lookPower';
 
 // RETENTION LOOKS — Phase 0 of PROMPT-RETENTION-1.md: every screen and state of
 // the six retention features, drawn with sample data in the app's own style,
@@ -15,12 +16,12 @@ import LookCleared from './lookCleared';
 // nothing saved. Sample names are neutral (Trainee, Squad Alpha).
 
 const NAV = [
-  ['f1', '1 STREAK'], ['f2', '2 PATH'], ['f3', '3 RETRY'], ['f4', '4 LEAGUES'], ['f5', '5 SQUADS'], ['f6', '6 SEASON'], ['f7', 'CLEARED'], ['qs', 'QUESTIONS'],
+  ['f1', '1 STREAK'], ['f2', '2 PATH'], ['f3', '3 RETRY'], ['f4', '4 LEAGUES'], ['f5', '5 SQUADS'], ['f6', '6 SEASON'], ['f7', 'CLEARED'], ['f8', 'POWER'], ['qs', 'QUESTIONS'],
 ];
 
 const QUESTIONS = [
   ['Weekly training-day target', 'Default 4, range 2 to 6. A change starts next week.'],
-  ['Freezes', 'One earned per 4 weeks on target, hold at most 2. New athletes start with 1, so the first bad week does not end a streak that has just begun.'],
+  ['1UPs', 'A spare life for a short week (once called a freeze). One earned per 4 weeks on target, hold at most 2. New athletes start with 1, so the first bad week does not end a streak that has just begun.'],
   ['League tier names, opt-in or on', 'GARAGE, GYM, CLUB, ARENA, MAIN EVENT, TITLE BOUT. Opt-in, with a one-tap JOIN card on home after the first full week, so nobody is listed by surprise.'],
   ['Squad size, beta or launch', '5 to 20. Open to the beta now, with preset cheers and squad names checked against the existing name filter, so the safety tools are tested before launch.'],
   ['Rewards for the drop track', 'SHOTO ends Nov 30, so the first track fits the next drop (Dec 1). The shape shown: a drop badge (4 days), a frame (8), a title (12), an animated frame (16), a gold emblem (20).'],
@@ -55,6 +56,7 @@ export default function RetentionLooks() {
         <LookSquad/>
         <LookSeason/>
         <LookCleared/>
+        <LookPower/>
         <section id="qs" style={{ scrollMarginTop: 70, paddingTop: 18 }}>
           <div style={{ borderLeft: `3px solid ${HOME.gold}`, paddingLeft: 12, marginBottom: 12 }}>
             <div style={{ ...orb(11), color: HOME.muted }}>FOR YOU TO DECIDE</div>

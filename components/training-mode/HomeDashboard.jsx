@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Play, Shuffle, SlidersHorizontal, ChevronRight, Zap, Timer, Activity, X } from 'lucide-react';
 import PhoneFrame from './PhoneFrame';
 import { sessionLabel } from './FloatingResumeButton';
 import HomeHeader from './shared/HomeHeader';
 import NudgeToast from './shared/NudgeToast';
 import ScreenGuide from './shared/ScreenGuide';
-import { SCREEN_GUIDES } from './shared/screenGuides';
+import { homeGuide } from './shared/screenGuides';
 import SafeImage from './SafeImage';
 import ReminderCard from './shared/ReminderCard';
 import { loadStats, getLevel, getLevelProgress } from './data/userStats';
@@ -26,11 +26,16 @@ import { loadWeekStreak, takeHomeNotice, markWeekMoments } from './data/weekStre
 import { noticeCopy, localIso } from './data/weekStreak';
 import { todaysBout, holdBout, rerollBout, pickTodaysBout, surpriseBout, boutMeta, armTodaysBout } from './data/dailyMission';
 import WeekChip from './retention/ui/WeekChip';
+import OneUpMark from './retention/ui/OneUpMark';
 import TodaysBoutCard from './retention/ui/TodaysBoutCard';
-import { SIDES } from './retention/ui/tokens';
+import { SIDES, HOME } from './retention/ui/tokens';
 import NextUpRow from './retention/ui/NextUpRow';
 import { loadNextUp } from './data/pathNextUp';
 import { nextUpCopy, nextUpLine } from './data/pathStars';
+import { loadPower, takePowerNotice, markPowerMoments, dueRustyPopup } from './data/powerStore';
+import { powerNoticeCopy } from './data/power';
+import PowerLine from './retention/ui/PowerLine';
+import RustyPopup from './retention/ui/RustyPopup';
 
 // Home — the Simplify revamp hub.
 //
@@ -43,6 +48,11 @@ import { nextUpCopy, nextUpLine } from './data/pathStars';
 // With the week streak switch on, that card (when nothing is paused) is
 // TODAY'S BOUT: the same pick, held for the day, with the daily bonus and a
 // done state (data/dailyMission, retention/ui/TodaysBoutCard).
+//
+// With the POWER switch on (data/power): a slim POWER line under the header
+// once the fighter is below full, a quiet notice when it runs low (once per
+// drain) and after a revive, and, on the open App gives it the turn for, the
+// RUSTY pop-up (once per rusty spell) whose REVIVE is the top card's START.
 //
 // What moved rather than vanished: the paused-session banner is now the
 // Continue card itself (it turns into RESUME); the come-back reminder and the
@@ -123,9 +133,12 @@ export default function HomeDashboard({
   onStartHere, onCombatConditioning, onTrainingArcade, onReplayLast, onOpenGhost,
   pausedSession, onResume, onDiscardPaused,
   pausedAlt, onResumeAlt, onDiscardAlt, onOpenConcept, onNextUp,
+  rustyTurn = false, onRustyDone, appPopupOpen = false,
 }) {
   // Retention feature 1 (weekly streak + daily mission), behind its switch.
   const [weeksOn] = useState(() => retentionOn('weeks'));
+  // POWER, RUSTY and REVIVE (data/power), behind their own switch.
+  const [powerOn] = useState(() => retentionOn('power'));
   const [stats, setStats] = useState(() => loadStats());
   const [helpOpen, setHelpOpen] = useState(false);
   const [surprise, setSurprise] = useState(null);
@@ -172,7 +185,7 @@ export default function HomeDashboard({
   // with the date.
   const [dayAt, setDayAt] = useState(() => Date.now());
   useEffect(() => {
-    if (!weeksOn || typeof window === 'undefined' || typeof document === 'undefined') return undefined;
+    if (!(weeksOn || powerOn) || typeof window === 'undefined' || typeof document === 'undefined') return undefined;
     const check = () => setDayAt((prev) => (localIso(prev) === localIso(Date.now()) ? prev : Date.now()));
     let timer = null;
     const arm = () => {
@@ -189,20 +202,50 @@ export default function HomeDashboard({
       window.removeEventListener('focus', check);
       document.removeEventListener('visibilitychange', onShow);
     };
-  }, [weeksOn]);
+  }, [weeksOn, powerOn]);
 
   // The week streak: recomputed from the rows (data/weekStreak), never stored.
   const week = useMemo(() => (weeksOn ? loadWeekStreak(dayAt, stats.sessions) : null), [weeksOn, stats, dayAt]);
   // A freeze that covered last week, or one earned and not yet seen: once,
   // through the nudge slot.
   const [weekNotice, setWeekNotice] = useState(null);
+  const weekNoticeShown = useRef(false);
   useEffect(() => {
     if (!weeksOn || !week) return;
     const n = takeHomeNotice(week);
     if (!n) return;
     markWeekMoments({ seen: [n.id] });
+    weekNoticeShown.current = true;
     setWeekNotice(n);
   }, [weeksOn, week]);
+  // POWER (switch on): recomputed from the rows, never stored. Its notice
+  // (a revive not yet shown, else the low notice once per drain) takes the
+  // same slot under the header, one notice a visit: never after a 1UP notice.
+  const power = useMemo(() => (powerOn ? loadPower(dayAt, stats.sessions) : null), [powerOn, stats, dayAt]);
+  const [powerNotice, setPowerNotice] = useState(null);
+  useEffect(() => {
+    if (!powerOn || !power || weekNoticeShown.current || powerNotice) return;
+    const n = takePowerNotice(dayAt, stats.sessions);
+    if (!n) return;
+    markPowerMoments([n.id]);
+    setPowerNotice(n);
+  }, [powerOn, power]); // eslint-disable-line react-hooks/exhaustive-deps
+  // The RUSTY pop-up, on the open App gave it the turn for (App's one
+  // interstitial per open, so it never stacks on another pop-up). Not over a
+  // paused session, the guide or an App pop-up: the turn passes and it waits
+  // for an open when it can show. Marked shown when it shows: once per rusty
+  // spell. An App pop-up that opens after it (a haunt link resolving late)
+  // hides it until that one closes.
+  const [rustyPop, setRustyPop] = useState(null);
+  useEffect(() => {
+    if (!rustyTurn) return;
+    onRustyDone?.();
+    if (!powerOn || pausedSession || helpOpen || appPopupOpen) return;
+    const due = dueRustyPopup();
+    if (!due) return;
+    markPowerMoments([due.id]);
+    setRustyPop(due);
+  }, [rustyTurn]); // eslint-disable-line react-hooks/exhaustive-deps
   // TODAY'S BOUT: picked once a day and held (saved from the effect); re-read
   // after every stats write, so the card turns done when its bonus is paid.
   const [today, setToday] = useState(() => (weeksOn ? readTodaysBout({ at: Date.now(), stats: loadStats(), profile, pathOn }) : null));
@@ -391,12 +434,22 @@ export default function HomeDashboard({
     }}>👻</button>
   ) : null;
 
+  // REVIVE on the RUSTY pop-up: the top card's own START (TODAY'S BOUT's,
+  // so its bonus rules apply; the Continue card's with the week streak off).
+  const startTop = () => {
+    if (b) { armBout(); runBout(b.run); return; }
+    card.onGo?.();
+  };
+  const sex = String(profile?.sex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
+  const showPower = !!power && (power.state === 'draining' || power.state === 'low' || power.state === 'rusty');
+
   // One nudge at a time, over the header — the combo flash first (it only
   // ever shows once), then the daily nudge, then the come-back reminder.
-  // The week streak's freeze notice (switch on) sits UNDER the header instead,
-  // so the level, the week chip it is about and the "?" stay in view; while
-  // it shows, the slot over the header stays empty.
-  const nudge = weekNotice
+  // The week streak's 1UP notice and POWER's notice (switches on) sit UNDER
+  // the header instead, so the level, the week chip it is about and the "?"
+  // stay in view; while one shows, the slot over the header stays empty.
+  const underNotice = weekNotice || powerNotice;
+  const nudge = underNotice
     ? null
     : comboFlash
     ? { icon: comboFlash.kind === 'milestone' ? '🏅' : comboFlash.kind === 'guarded' ? '🛡' : '🔁', text: comboFlash.text, onClose: () => setComboFlash(null) }
@@ -436,7 +489,17 @@ export default function HomeDashboard({
             </div>
           )}
         />
-        {weekNotice && <NudgeToast solid icon="❄" text={noticeCopy(weekNotice)} onClose={() => setWeekNotice(null)}/>}
+        {/* POWER below full (switch on): one slim line, part of the level block. */}
+        {showPower && <PowerLine pct={power.pct} state={power.state} style={{ marginTop: -6 }}/>}
+        {weekNotice && <NudgeToast solid icon={<OneUpMark/>} text={noticeCopy(weekNotice)} onClose={() => setWeekNotice(null)}/>}
+        {!weekNotice && powerNotice && (
+          <div data-retention="power-notice">
+            <NudgeToast
+              solid text={powerNoticeCopy(powerNotice)} onClose={() => setPowerNotice(null)}
+              icon={<Zap size={20} color={powerNotice.kind === 'low' ? HOME.low : '#fde047'} fill={powerNotice.kind === 'low' ? HOME.low : '#fde047'} strokeWidth={0}/>}
+            />
+          </div>
+        )}
 
         {/* The one thing to do. */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
@@ -613,7 +676,7 @@ export default function HomeDashboard({
       </div>
 
       {/* Nudges: one at a time, over the header, always dismissible. */}
-      {!weekNotice && <div style={{ position: 'absolute', zIndex: 20, left: 16, right: 16, top: 10 }}>
+      {!underNotice && <div style={{ position: 'absolute', zIndex: 20, left: 16, right: 16, top: 10 }}>
         {nudge ? (
           <NudgeToast icon={nudge.icon} text={nudge.text} onGo={nudge.onGo} onClose={nudge.onClose} solid={weeksOn}/>
         ) : (
@@ -630,7 +693,14 @@ export default function HomeDashboard({
         )}
       </div>}
 
-      {helpOpen && <ScreenGuide steps={weeksOn ? SCREEN_GUIDES.home_weeks : SCREEN_GUIDES.home} onClose={() => setHelpOpen(false)}/>}
+      {helpOpen && <ScreenGuide steps={homeGuide({ weeks: weeksOn, power: powerOn })} onClose={() => setHelpOpen(false)}/>}
+      {rustyPop && !appPopupOpen && !helpOpen && (
+        <RustyPopup
+          sex={sex} tierId={tier?.id} daysSince={rustyPop.daysSince}
+          onRevive={() => { setRustyPop(null); startTop(); }}
+          onLater={() => setRustyPop(null)}
+        />
+      )}
     </PhoneFrame>
   );
 }

@@ -726,3 +726,133 @@ The independent review of the merged card; a skeptic confirmed each. All behind 
 3. **A paused session takes the card's place** until it is finished. Keep, or show the bout with a small paused row
    above it?
 4. **The bonus is 25 XP** (the existing Mission of the Day amount; asked before, still open).
+
+## 1UP, POWER, RUSTY and REVIVE (2026-11-23)
+
+The owner's decisions on the idea in `RETENTION-PLAN.md` (last section): the freeze is called a **1UP**; a **POWER**
+bar drains while the athlete stays away and refills with a finished session; after a month away the fighter is
+**RUSTY**, and nothing earned is ever taken away (no XP, level, streak, badge or star change); **REVIVE** is the
+comeback session; an in-app pop-up for RUSTY. Phone alerts are not in this build (they come with the notifications
+release after the App Store launch). The 1UP rename sits under the existing `weeks` switch; POWER, RUSTY and REVIVE
+under a new switch, `power` (`data/retentionFlags.js`, off for everyone, on with the owner preview). With both
+switches off, Home, the end screens, Profile, storage writes and XP are as before (checked below).
+
+### What was built
+
+- **1UP** (switch `weeks`): every word and glyph the athlete sees. The week chip's `❄2` is a compact mark, "1UP" over
+  "×2" (`retention/ui/OneUpMark.jsx`, 9 px and 8 px), measured as wide as the old mark (15.56 px against 15.53 px), so
+  the header at 360 lays out exactly as before with the longest rank names. The notices read "A 1UP covered last week:
+  your 9-week streak is safe." and "1UP earned: 4 weeks on target. You hold 2 of 2." with a small 1UP badge for the
+  icon; the end-screen strip "1UP EARNED · YOU HOLD 2 OF 2"; Profile's Game Plan "1UPS 1/2"; Home's "?" header step
+  ("1UP is a spare life that saves the streak in a short week (one more every 4 weeks on target, hold 2)"); the gallery
+  (feature 1 is "TODAY'S BOUT + 1UP"). Its colour is the 1UP green (`HOME.oneUp`, #6BF59A), not the freeze's ice blue.
+  Numbers, event names (`freeze_used`, `freeze_earned`) and storage keys are unchanged.
+- **`data/power.js`** (pure): `powerAt(rows, now)` returns `{ pct, state: 'new'|'full'|'draining'|'low'|'rusty',
+  daysSince, lastDay }` from the week streak's training-day rule (`weekStreak.isTrainingRow`, local calendar days):
+  100% for days 0 to 3 after the last training day, then a straight line, 4% a day, to 0% at day 28; 'low' at 40% or
+  less (day 18); RUSTY from day 30. A brand-new athlete is 'new' (no drain, no RUSTY). Also the moments, each keyed so
+  it shows once: the low notice (`low:<last training day>`, once per drain), the RUSTY pop-up (`rusty:<last training
+  day>`, once per rusty spell), the revive (`revive:<the training day before it>`, once per revive), and their copy.
+  It writes nothing and imports no store.
+- **`data/powerStore.js`**: reads the rows, keeps only the shown markers in **`tm_power_moments_v1`** (the one new key,
+  in `cloudSync` SYNC_KEYS).
+- **Home** (switch `power`): the **POWER line** under the header (`retention/ui/PowerLine.jsx`) only while the fighter
+  is below full; the **low notice** "Your fighter is losing power (36%). One session revives it." under the header, once
+  per drain; the **revive notice** "Revived: your fighter is back to 100% power." once, for a revive whose session ended
+  on a screen with no YOUR PROGRESS card (Cardio, Practice, Coach's Tapes, the classic stage clear); the **RUSTY pop-up**.
+- **RUSTY pop-up** (`retention/ui/RustyPopup.jsx`): the RUSTY art for the profile's sex (the stand-in until the art
+  exists), RUSTY, "34 days since your last session.", "Your level, XP and badges are all still here.", a gold REVIVE and
+  a quiet LATER. It takes the open's one turn in App's interstitial queue (`goAfterSplash`) and Home shows it.
+- **REVIVE moment**: the first valid finished session after 'low' or RUSTY shows one line in the end screen's YOUR
+  PROGRESS card, "⚡ REVIVED · POWER 100%" (`retention/ui/ReviveLine.jsx`; the revive art small beside it when the file
+  exists), above the week strip. Once per revive.
+- **The RUSTY look** (`retention/ui/RustyLook.jsx`): while RUSTY, the tier portrait on Profile, the Level page and the
+  end screen's YOUR PROGRESS card is greyed and rust-toned (a filter) with dust and rust over it (noise drawn in SVG:
+  fine specks, soft clouds, rust patches; no image file). The name, level, LEVEL › label and XP are untouched.
+- **The owner's art**: read from `/static/retention/rusty-{male,female}.webp` and `/static/retention/revive-{male,female}.webp`
+  when the files exist; on a missing file the stand-in (the athlete's own tier portrait with the rusty look) shows, never
+  a broken image. What to make and how to drop it in: **`docs/retention/ART-RUSTY-REVIVE.md`** (with generator prompts).
+- **Guides**: with `power` on, Home's "?" has one more step after the header's, "⚡ POWER · RUSTY · REVIVE" (centred,
+  since the line only shows below full): full for 3 days after training, then slowly drains, RUSTY after a month away,
+  one finished session REVIVES it to 100%, nothing earned is ever taken away. `shared/screenGuides.js` `homeGuide({ weeks,
+  power })` picks Home's steps; with both off it is `SCREEN_GUIDES.home`, as before.
+- **Gallery**: a new section, "POWER, RUSTY + REVIVE" (`/retention-looks#f8`, `retention/lookPower.jsx`), the real
+  components with sample data.
+- **Tests**: `npm run test:power` (`scripts/test-power.mjs`, 79 checks, in `check:all`). `test:streak` now checks the
+  1UP words (185).
+- **Preview** (`scripts/retention-preview.mjs`): `f4-home-power-draining`, `f4-home-power-low`, `f4-rusty-popup-male`,
+  `f4-rusty-popup-female`, `f4-home-rusty` (after LATER), `f4-end-revived` (REVIVE on the pop-up for real, on the fake
+  clock, to the end screen), `f4-profile-rusty`, `f4-level-rusty`, `f4-home-guide-power`, `f4-gallery`. The f1 states
+  keep their names and now expect the 1UP words and no "freeze" or ❄. Two new checks: `inView` (a pop-up card whole on
+  screen) and `oneLine` (a rank name never breaks in two).
+
+### Decisions (each easy to change)
+
+- **POWER on Home: one slim line under the header, only below full.** Why this is the calmest: a trained athlete (the
+  usual case) sees nothing new; the header itself is untouched (at 360 its level column already has only about 108 px,
+  so a bar inside it would squeeze the rank, and a pill beside the chip does not fit); it is not a card, it lines up
+  under the level text (indented by the logo's width) so it reads as part of the level block, and it is 16 px tall.
+  The bar is ten cells, like a game's power meter, so it never reads as a second XP bar; gold while draining, amber at
+  40% or less, and at RUSTY the cells are empty and the number reads RUSTY in the rust colour.
+- **One notice under the header a visit**: a 1UP notice first; POWER's (revive, else low) on a later visit. Both use
+  the slot under the header, so the level, the chip and the "?" stay in view. At 'low' the line and the notice both
+  show (the notice once per drain, dismissible; it says the number the line shows).
+- **POWER moves by local day**, not by the hour: stable all day, the same rule as the week streak. The percentages are
+  96, 92, … 44 (day 17), 40 (day 18, low), … 0 (day 28); day 29 is 0% and low; day 30 is RUSTY.
+- **The revive**: a training day whose previous training day was 18 or more days before it (the fighter was low or
+  RUSTY that morning). The end screen shows its line only for the session that just banked as today's first training
+  row (the week strip's freshness rule, a cardio finisher's own row allowed); otherwise Home shows its notice once, for
+  a revive today or yesterday (older is news to nobody).
+- **The RUSTY pop-up's turn**: in App's one-interstitial-per-open queue, after a friend's haunt link and before the
+  ghost-challenge offer, the concept drop, the comeback cutscene and the weekly lesson: it is the moment the comeback is
+  for, and the others come back on a later open. Not under an inbound arcade challenge. It is marked shown when it
+  shows, so a turn it cannot use (a paused session on Home, the guide open) is not spent; any App pop-up that opens
+  after it (a haunt link resolving late) hides it until that one closes, so two never stack. Paused sessions expire
+  after 90 minutes, so a rusty athlete has none in practice.
+- **REVIVE runs the top card's own START**: TODAY'S BOUT's (armed, so its bonus rules apply: +25 XP once a day for a
+  session started from it that runs to its end) or, with the week streak off, the Continue card's.
+- **Double taps**: the pop-up ignores taps for its first 350 ms (the tap that opened the app), REVIVE and LATER eat the
+  click after them (`swallowNextClick`, as FinishWorkoutConfirm does), and a tap outside the card is LATER.
+- **The pop-up's art is top-aligned** (`object-position: 50% 0%`): a tier portrait's own logo at its top edge is never
+  cut, and the face sits in the upper half the card shows.
+- **Portraits that stay as they are**: the share card, the ghost result and the level-up reveal show a session just
+  finished, which revives the fighter anyway.
+- **No phone alerts and no spoken line** in this build (nothing here speaks; `test:power` checks the POWER UI calls no
+  speech).
+
+### Checked
+
+- `test:power` 79 (the thresholds day by day, the straight drain, local-day edges at 00:01 and 23:59, a daylight-saving
+  change, UTC+14 and UTC-11 for the same two instants, a brand-new athlete, award / refused / zero-work / empty Cardio
+  rows ignored, a cleared 0-XP tape counted, the rusty spell's key and a later spell's, the low notice once per drain,
+  the revive found once (rusty, low, not after a draining gap, not for a new athlete, not for a second session or a
+  stale one, with a cardio finisher, on Home today or yesterday but not two days later), that only
+  `tm_power_moments_v1` is written and the stats, XP, level and week streak are unchanged, the switch off for everyone,
+  the sync key, the queue order in App, REVIVE wired to the top START, the double-tap guards, no speech, no guilt words),
+  `test:streak` 185, `test:xp` 121, `test:missions` 217, `test:levels` 183, `test:nearmiss` 76, `test:path` 96, eslint on
+  every changed file, `tsc`, `check-guides` (25 guides, 257 steps), `check-public-assets`.
+- `retention-preview.mjs` at 360, 390 and 430 on the fixed clock: the whole preview, 44 states (every f1, f2, f3 and
+  f4 state), fits (nothing past the sides, no text cut, the pop-up card whole on screen, the POWER line clear of the
+  header, the notice and the card). `voice:coverage`: 0 missing (nothing new speaks). Looked at each photo: the 1UP mark reads at 360 beside FIGHT ASCENDANT; the POWER line at 72% and 36%;
+  the low notice on two balanced lines; RUSTY on the line after LATER; the pop-up for a male and a female profile (the
+  stand-in art greyed and dusty, nothing cut); REVIVED · POWER 100% above the week strip after REVIVE ran the 3-minute
+  round; the rusty portrait on Profile and the Level page with the name, level and XP readable; the guide's POWER step.
+- Switch off (both): a RUSTY (34 days) and a draining (19 days) athlete, captured on HEAD and on this build with no owner
+  preview on a fixed clock: the open (the concept drop pop-up, as before), Home, Profile, the Level page, a 3-minute
+  Fight Focus played to its end screen, and every storage key after it. Same DOM and the same storage, apart from the
+  run's timestamps and row ids and the share prompt (its own timer had shown it in one capture and not yet in the other).
+
+### Not covered
+
+- Phone alerts ("losing power") wait for the notifications release (opt-in, at most one a week, as the plan says).
+- The RUSTY pop-up comes on an open of the app (after the splash). An athlete who keeps Home open across day 30 sees
+  RUSTY on the line, and the pop-up at the next open.
+- POWER shows on Home only (Profile and the Level page show the rusty portrait, not the bar).
+
+### Needs the owner's answer
+
+1. **The numbers**: full for 3 days, empty at day 28, 'low' at 40% (day 18), RUSTY at day 30. Keep?
+2. **The low notice repeats the percentage the line shows.** Keep both, or drop the number from the notice?
+3. **The pop-up's place in the open queue**: before the concept drop (a drop waits for the next open). Keep?
+4. **The art**: four files, `docs/retention/ART-RUSTY-REVIVE.md` (sizes and prompts). Until then the stand-in shows.
+5. **1UP in green** on the chip, the strip and Profile (the freeze was ice blue). Keep?

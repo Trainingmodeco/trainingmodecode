@@ -227,7 +227,7 @@ const NOW = at('2026-11-26', 18); // Thursday of the week of Nov 23
   // Freeze earned on the strip.
   const run3 = [...week(M[4], [0, 1, 2, 3]), ...week(M[5], [0, 1, 2, 3]), ...week(M[6], [0, 1, 2, 3]), ...week(M[7], [0, 1, 2])];
   const runMoment = W.sessionMoment({ rows: [...run3, just], settings: T4, now: NOW.getTime() });
-  check('strip: the 4th week on target earns a freeze line', runMoment.kind === 'complete' && runMoment.freezeEarned && runMoment.freezeEarned.freezes === 2 && W.momentCopy(runMoment).freeze === 'FREEZE EARNED · YOU HOLD 2 OF 2');
+  check('strip: the 4th week on target earns a 1UP line', runMoment.kind === 'complete' && runMoment.freezeEarned && runMoment.freezeEarned.freezes === 2 && W.momentCopy(runMoment).freeze === '1UP EARNED · YOU HOLD 2 OF 2');
   check('strip: a freeze already seen is not shown again', W.sessionMoment({ rows: [...run3, just], settings: T4, now: NOW.getTime(), shown: { seen: [runMoment.freezeEarned.id] } }).freezeEarned === null);
   // A cardio finisher banks a Cardio row of its own after the session's, before the end screen.
   const ago = (min) => new Date(NOW.getTime() - min * 60000).toISOString();
@@ -249,13 +249,13 @@ const NOW = at('2026-11-26', 18); // Thursday of the week of Nov 23
   const wk = W.computeWeekStreak(rows, T4, at('2026-11-24', 9));
   const n1 = W.homeNotice(wk, {});
   check('Home: the week after a short one, the freeze-used notice', n1 && n1.kind === 'freeze_used' && n1.streak === 2 && n1.freezes === 0);
-  check('Home: notice copy is plain and short', W.noticeCopy(n1) === 'A freeze covered last week: your 2-week streak is safe.', W.noticeCopy(n1));
+  check('Home: notice copy is plain and short, the freeze called a 1UP', W.noticeCopy(n1) === 'A 1UP covered last week: your 2-week streak is safe.', W.noticeCopy(n1));
   check('Home: shown once', W.homeNotice(wk, { seen: [n1.id] }) === null);
   const later = W.computeWeekStreak(rows, T4, at('2026-12-08', 9));
   check('Home: an old freeze is news to nobody', W.homeNotice(later, {})?.kind !== 'freeze_used');
   const earnedWk = W.computeWeekStreak([...week(M[3], [0, 1, 2, 3]), ...week(M[4], [0, 1, 2, 3]), ...week(M[5], [0, 1, 2, 3]), ...week(M[6], [0, 1, 2, 3])], T4, at('2026-11-23', 9));
   const n2 = W.homeNotice(earnedWk, {});
-  check('Home: a freeze earned last week and not yet seen', n2 && n2.kind === 'freeze_earned' && W.noticeCopy(n2) === 'Freeze earned: 4 weeks on target. You hold 2\u00A0of\u00A02.');
+  check('Home: a 1UP earned last week and not yet seen', n2 && n2.kind === 'freeze_earned' && W.noticeCopy(n2) === '1UP earned: 4 weeks on target. You hold 2\u00A0of\u00A02.');
 }
 // No franchise names, no guilt words in the copy.
 {
@@ -268,6 +268,7 @@ const NOW = at('2026-11-26', 18); // Thursday of the week of Nov 23
   ].flatMap((c) => [c.title, c.sub, c.freeze]).filter(Boolean)
     .concat([W.noticeCopy({ kind: 'freeze_used', streak: 3, freezes: 1, target: 4 }), W.noticeCopy({ kind: 'freeze_earned', freezes: 2 })]);
   check('copy: no franchise names', !all.some((t) => BANNED.test(t)));
+  check('copy: the freeze is called a 1UP on screen (no "freeze", no ❄)', !all.some((t) => /freeze|❄/i.test(t)) && all.filter((t) => /1UP/.test(t)).length === 3, all.join(' | '));
   check('copy: no guilt words', !all.some((t) => GUILT.test(t)), all.find((t) => GUILT.test(t)));
 }
 

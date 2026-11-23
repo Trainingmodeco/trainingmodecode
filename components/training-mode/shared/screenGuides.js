@@ -318,7 +318,7 @@ SCREEN_GUIDES.fit_hub_v2 = SCREEN_GUIDES.fit_hub.map(s => (s.target === 'fit-qui
 const WEEKS_HOME = {
   'home-level': {
     title: 'LEVEL · RANK · WEEK STREAK',
-    body: 'Every finished workout adds XP and fills the bar; fill it to level up and climb the ranks. Beside it, your week streak: 🔥 counts the weeks in a row you hit your target (set it in PROFILE), the dots are this week\'s days, and ❄ is a freeze that saves the streak in a short week. Rest days never break it.',
+    body: 'Every finished workout adds XP and fills the bar; fill it to level up and climb the ranks. Beside it, your week streak: 🔥 counts the weeks in a row you hit your target (set it in PROFILE), the dots are this week\'s days, and 1UP is a spare life that saves the streak in a short week (one more every 4 weeks on target, hold 2). Rest days never break it.',
   },
   'home-continue': {
     title: 'TODAY\'S BOUT',
@@ -326,6 +326,27 @@ const WEEKS_HOME = {
   },
 };
 SCREEN_GUIDES.home_weeks = SCREEN_GUIDES.home.map((s) => (WEEKS_HOME[s.target] ? { ...s, ...WEEKS_HOME[s.target] } : s));
+
+// POWER, RUSTY and REVIVE (data/retentionFlags `power`): one centred step
+// after the header's, in plain short words. Centred (no target), because the
+// POWER line only shows once the fighter is below full.
+const POWER_STEP = {
+  target: null,
+  title: '⚡ POWER · RUSTY · REVIVE',
+  body: 'Your fighter\'s POWER stays full for 3 days after you train, then slowly drains; a line under the header shows it once it drops. After a month away your fighter turns RUSTY. One finished session REVIVES it to 100%. Nothing you earned is ever taken away: your level, XP, streak and badges stay.',
+};
+const withPower = (steps) => {
+  const i = steps.findIndex((s) => s.target === 'home-level');
+  return [...steps.slice(0, i + 1), POWER_STEP, ...steps.slice(i + 1)];
+};
+SCREEN_GUIDES.home_power = withPower(SCREEN_GUIDES.home);
+SCREEN_GUIDES.home_weeks_power = withPower(SCREEN_GUIDES.home_weeks);
+
+// Home's "?" for the switches that are on (each switch off: as before).
+export const homeGuide = ({ weeks = false, power = false } = {}) => (
+  weeks ? (power ? SCREEN_GUIDES.home_weeks_power : SCREEN_GUIDES.home_weeks)
+    : (power ? SCREEN_GUIDES.home_power : SCREEN_GUIDES.home)
+);
 SCREEN_GUIDES.full_intro_weeks = SCREEN_GUIDES.full_intro.map((s) => {
   if (s.screen === 'home' && s.target === 'home-continue') {
     return { ...s, title: '▶ TODAY\'S BOUT', body: 'This card holds today\'s bout: a workout picked for you, and once you have trained, the last session you ran, ready to go again. Finish it from START and you earn +25 XP, once a day; then the card says so until tomorrow\'s bout. If you only ever press one thing, make it START (once this tour is closed).' };

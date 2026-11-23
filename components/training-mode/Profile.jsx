@@ -10,7 +10,6 @@ import { ChevronLeft, MessageSquare, Bell, Volume2, Globe } from 'lucide-react';
 import { C } from './Styles';
 import { ENCOURAGEMENT_FREQUENCIES, encouragementFrequency, describeEncouragement } from './data/coachEncouragement';
 import { CALL_STYLES, callStyleOf, formatCall } from './data/strikeNumbering';
-import SafeImage from './SafeImage';
 import AccountCard from './AccountCard';
 import { hasProEntitlement } from './data/entitlements';
 import { loadStats, getLevel, getStreak, getLevelProgress } from './data/userStats';
@@ -28,6 +27,8 @@ import VoiceCheck from './shared/VoiceCheck';
 import { retentionOn } from './data/retentionFlags';
 import { setWeekTarget, chosenWeekTarget, loadWeekStreak, saveGamePlanKeepingTarget } from './data/weekStreakStore';
 import WeekTargetRow from './retention/ui/WeekTargetRow';
+import { loadPower } from './data/powerStore';
+import { RustyPortraitImage } from './retention/ui/RustyLook';
 
 
 function SectionLabel({ text }) {
@@ -335,6 +336,9 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
     setGamePlanState(weeksOn ? saveGamePlanKeepingTarget({ [key]: val }) : saveGamePlan({ [key]: val }));
   };
   const [weekTarget, setWeekTargetState] = useState(() => (weeksOn ? { chosen: chosenWeekTarget(), week: loadWeekStreak() } : null));
+  // POWER (switch on): a RUSTY athlete's portrait shows the rusty look; the
+  // name, level and XP beside it stay as they are.
+  const [rusty] = useState(() => retentionOn('power') && loadPower().state === 'rusty');
   const pickWeekTarget = (n) => {
     setGamePlanState(setWeekTarget(n));
     setWeekTargetState({ chosen: chosenWeekTarget(), week: loadWeekStreak() });
@@ -424,7 +428,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
               <div style={{ display: 'flex', gap: 12, padding: 10, alignItems: 'center' }}>
                 {/* The portrait opens the Level page; a small LEVEL › tag on it says so. */}
                 <button type="button" ref={portraitRef} onClick={() => setProfileView('level')} aria-label="View your level" style={{ position: 'relative', display: 'block', padding: 0, width: 72, height: 90, flexShrink: 0, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', boxShadow: '0 0 20px -6px rgba(253,224,71,.4)', background: 'none', cursor: 'pointer' }}>
-                  <SafeImage src={tierImage(tier.id, avSex)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%' }}/>
+                  <RustyPortraitImage src={tierImage(tier.id, avSex)} rusty={rusty} imgStyle={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%' }}/>
                   <span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '9px 0 3px', textAlign: 'center', font: "800 9px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.06em', background: 'linear-gradient(to top, rgba(8,1,15,0.92), transparent)' }}>LEVEL ›</span>
                 </button>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -544,6 +548,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
         stats={loadStats()}
         name={name}
         sex={sex}
+        rusty={rusty}
         onBack={() => { focusPortrait.current = true; setProfileView('overview'); }}
         onHome={onHome}
         onChangeAvatar={() => openEditor('level')}
