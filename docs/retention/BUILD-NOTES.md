@@ -471,3 +471,93 @@ switch; with it off the rows, storage and XP are as before.
   finisher strip, a long finisher, the week it completes with its freeze, a second session with a finisher, the store
   path), `test:path` 88, `test:nearmiss` 73, `test:xp` 121, `test:missions` 217, `test:concepts` 180, `test:maxout` 103,
   `test:qm` 83, `test:ayp` 54, eslint on every changed file, `tsc`. The browser checks are run separately.
+
+## Visual review fixes (2026-11-23)
+
+The independent visual review of the phone photos (360, 390 and 430 wide) and the orchestrator's own look. Every
+change sits behind its feature's switch; with the switches off the screens, storage and XP are as before.
+
+### Fixed
+
+- **The week chip reads at a glance** (F1-2, A5, the near-miss review's A2): the day dots are 6 px, 3 px apart (were 5
+  in 2); a day still to come is a grey dot that shows on the chip (was #2A2545, nearly the chip's own colour), today a
+  1.5 px gold ring, a rest day a brighter green; WK and n/4 DAYS are 8 px (were 7.5), the caption 4 px under the dots.
+  It still fits Home's header at 360 with the longest rank names (FIGHT ASCENDANT, PEAK PHYSIQUE) on one line: the
+  chip's padding is 7 and its gaps 5, and the header's gap with the chip is 7 (was 8), so the rank has 103 px for a
+  97 px name. Nothing was dropped.
+- **YOUR PROGRESS is calmer** (F1-3): the strip's title says the day and the target ("TRAINING DAY 3 OF 4 · STREAK
+  KEPT", "WEEK COMPLETE · 4 OF 4 · …"), so the chip beside it no longer repeats "n/4 DAYS" (WeekChip `count={false}`;
+  Home keeps it). 10 px between the strip and the "This week" line (was 7), and the sentence beside the chip wraps
+  balanced, so a second line is never one word.
+- **Continue and NEXT UP: one card for one place** (A1, A2). The choice: with the path switch on, **NEXT UP folds into
+  the Continue card** when the last session is the saga or the camp NEXT UP names. The card reads NEXT UP · One Hundred
+  · "Stage 6 · The Standard Hundred" (camp: "Boxing · Level 5 · Volume"; a saga's boss "Boss · name") with CONTINUE,
+  and CONTINUE opens the saga or the camp on that node (the stage pop-up, or the level card), as NEXT UP did. Why
+  fold rather than hide: hiding NEXT UP whenever Continue is the same saga would hide it almost always (NEXT UP only
+  exists for an arcade or camp last session), and the node is the useful part. Why it changes no start rule: Continue
+  already opened that same saga (with the settings it last ran with) or that camp, and the pop-up and level card are
+  the screens' own (ENTER STAGE, the Pro gate, the path and difficulty step; START → readiness → gear). ADJUST still
+  opens the saga or the camp as before (no pop-up). The separate NEXT UP row is left only for a concept stage's last run
+  (Continue replays that stage's timer, so it is a different place), and is not shown under a paused session or a
+  surprise pick (the card above is the one thing to do). `pathStars.nextUpLine` (pure, in `test:path`).
+- **The locked hint no longer covers the path** (A4): on the path, "🔒 CLEAR STAGE 7 TO UNLOCK" hangs under the node
+  that was tapped, in the room before the node below (over the node when that room is short), so it never sits on
+  another node and says which node it is about. The ladder (switch off) keeps its toast at the top. The preview checks
+  that the hint overlaps no node.
+- **The star gap agrees with the tiles** (A3): YOUR BEST 17:40 · ★★★ under 15:00 now reads "2:40 off the third star"
+  (was 2:41), 30:05 against under 22:00 "8:05 off" (was 8:06). The gap is the difference of the two times as shown, at
+  least 1 s (a best exactly on the line of a strict tier is still 1 s off). Times show whole seconds cut down, as the
+  stage-clear screen shows them (17:59.7 reads 17:59; the old rounding could print "17:60"). The near-miss panel's
+  "s off ★★★" and its YOUR TIME label follow the same rule. `test:path` and `test:nearmiss` sweep every time in tenths
+  over 10 to 12 minutes past the line and check the line against what the tiles show.
+- **Camp pips** (A6): 9 px (were 8), the check a size up, a locked level's pips on a light border (they read on the busy
+  art), and every label 8 px under its node (was 10).
+- **Replay sheet tiles** (A7): the stars before NEEDS are 12 px (were the 9 px label's glyphs, about 6 px on screen), the
+  tile labels 10 px. **Path chips** (A8): an empty star on the picked chip is half white (it vanished on the gold tint),
+  the other labels are full brightness, and the line is shorter: "One star per path cleared. Next: FIGHT or BOTH." (one
+  line at 360).
+- **Stage-clear stats at 360** (the near-miss review's A4): with the stars landing, YOUR TIME, XP EARNED, STARS and the
+  NEW BEST pill keep one line each, the three labels share one top line, and the strip's gaps are 12 (were 16).
+
+### The preview (`scripts/retention-preview.mjs`)
+
+- **One fixed clock for every state**: Thursday 19 November 2026, 10:00 local, on Playwright's clock (the seeds use the
+  same time). The shots had been taken on a Monday, so the week chip read 0/4 and the week-complete end screen was
+  skipped. Now Home shows Monday to Wednesday trained (3/4 DAYS) where a state trains this week, and
+  `f1-end-week-complete` always runs.
+- **The ROUND RECAP at 360** (F1-5) is the app's own rule, not a capture fault: `MissionComplete` hides its recap and
+  chips (`extra`) and the beta link on phones shorter than 812 px (`.mc-extra` in `mcCSS`), so 360x780 never shows it
+  and 390x844 and 430x932 do. The same with the switches off. Both end states are taken the same way (one run at 360,
+  then resized; the strip centred).
+- **The gallery is legible** (F1-6): besides the whole-feature overview, each card is saved as its own crop at the
+  phone's scale 2 (`f1-gallery-360-card05.png`, about 656 px wide at 360).
+- **The PAR-Q state** (the near-miss review's A1): `f3-camp-retry-parq` now photographs the health-check sheet itself
+  (RETRY on the map, the sheet first, no level card behind it), and `f3-camp-retry-parq-done` the level card after it.
+- New checks: `absent` (text that must not be on screen: the old NEXT UP row, the card behind the PAR-Q sheet) and
+  `clear` (no element of A over any of B: the locked hint over the nodes). A clamped box counts as hiding a line only
+  when at least half a line is cut (the font's glyph box stands 2 px past a tight line height on a one-line title).
+
+### For the owner (old, not changed)
+
+- **The scroll chevron and the BETA pill over cards** (the near-miss review's A6): the round chevron is the app's scroll
+  cue (`ScrollDownIndicator`, fixed above the tab bar while more lies below, gone at the bottom), and the BETA pill is
+  fixed at the bottom left; whatever scrolls under them is covered for a moment (on the end screens, now often SHARE
+  YOUR WIN). The same with the switches off. Hiding the chevron once the page's last card is in view, or a little
+  clearance above the BETA pill, would change every screen.
+- **The stage pop-up's star goals** (A7): "★ < 27:00" and the like, 8 px stars over 7 px times, on the ladder's pop-up,
+  which the path opens as it is.
+- **The pop-up's "Best" time** (`ArcadeSeriesDetail` `fmtTime`) rounds the seconds, so a best of 17:59.6 would read
+  "17:60" there; the clear screen and the path's sheet cut down to whole seconds.
+- **The recap on short phones**: the end screens drop the round recap and the beta link under 812 px tall (above).
+
+### Checked
+
+- `test:streak` 140, `test:path` 96 (the gap against the tiles, the folded NEXT UP line), `test:nearmiss` 76 (the gap
+  and YOUR TIME as shown), `test:xp` 121, `test:missions` 217, `test:concepts` 180, eslint on every changed file, `tsc`.
+- `retention-preview.mjs` at 360, 390 and 430 on the fixed clock: every state of the three features (the fake-clock
+  end screens included, `f1-end-week-complete` and the two PAR-Q states with them) and the three galleries fit. Looked
+  at each photo and the gallery crops: the chip's dots and caption read on Home and the end screens, FIGHT ASCENDANT
+  keeps one line at 360, Home shows one card for the saga and one for the camp, the locked hint sits under node 8 clear
+  of 7 and 9, the sheets say 2:40 and 8:05 off, the gallery's clear screen keeps its stats on one line at 360.
+- Switch off: every change is a branch on its switch (`weeksOn`, `pathOn`, `compact`), and the shared pieces render
+  the same markup without it (`HomeHeader`'s gap 12, the ladder's toast at the top, the clear screen's stats row).

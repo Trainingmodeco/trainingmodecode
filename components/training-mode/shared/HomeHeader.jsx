@@ -4,13 +4,13 @@ import { HelpButton } from './WorkoutHelpPanel';
 // Home's header: the logo, the level with its rank and bar, a chip (the
 // streak), and the help button. Profile lives on the tab bar.
 // `compact` (the week streak's wider chip, retention feature 1): a tighter
-// gap, and the XP numbers give way (the bar still shows them; the Level page
+// gap (7: the secret ranks' names keep one line at 360 px), and the XP numbers give way (the bar still shows them; the Level page
 // has them), so the chip fits beside the bar at 360 px. The rank wraps under
 // the level rather than being cut.
 const MUTED = '#A9A3C4';
 
 export default function HomeHeader({ level, tierName, levelXp, levelNeeded, xpPercent, chip, compact = false, onHome, onHelp }) {
-  const gap = compact ? 8 : 12;
+  const gap = compact ? 7 : 12;
   // The secret ranks' two-word names (FIGHT ASCENDANT) set a size smaller, so
   // they keep one line beside the chip; they still wrap rather than be cut.
   const longTier = String(tierName || '').length > 10;

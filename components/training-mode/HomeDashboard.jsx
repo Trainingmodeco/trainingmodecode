@@ -29,7 +29,7 @@ import WeekChip from './retention/ui/WeekChip';
 import DailyMissionCard from './retention/ui/DailyMissionCard';
 import NextUpRow from './retention/ui/NextUpRow';
 import { loadNextUp } from './data/pathNextUp';
-import { nextUpCopy } from './data/pathStars';
+import { nextUpCopy, nextUpLine } from './data/pathStars';
 
 // Home — the Simplify revamp hub.
 //
@@ -281,6 +281,7 @@ export default function HomeDashboard({
 
   // What the card shows, in priority order.
   const lastInfo = describeSession(last);
+  const foldNext = !!(pathOn && nextUp && (last?.kind === 'arcade' || last?.kind === 'camp'));
   let card;
   if (pausedSession) {
     card = {
@@ -294,6 +295,18 @@ export default function HomeDashboard({
       title: 'Surprise Mission', parts: [surprise.focus, levelWord(surprise.difficulty).charAt(0) + levelWord(surprise.difficulty).slice(1).toLowerCase(), `${surprise.duration} min`],
       cta: 'START', onGo: () => primeThen(() => onStartQuickMission?.(surprise)), onAdjust: onQuickMission,
       atPace: startsAtYourPace(surprise, savedMode),
+    };
+  } else if (lastInfo && foldNext) {
+    // The path (switch on): the last session is the saga or the camp NEXT UP
+    // names, and both open it, so NEXT UP folds in here (one card, one place):
+    // the line says the node, and the tap opens the saga or camp on it (the
+    // same pop-up / level card and start flow). ADJUST still opens the saga
+    // or the camp as before.
+    const line = nextUpLine(nextUp);
+    card = {
+      kind: 'last', next: true, eyebrow: 'Next up', side: lastInfo.mode === 'fit' ? FIT : FIGHT,
+      title: lastInfo.title, parts: line.parts, label: line.label,
+      cta: lastInfo.cta || 'CONTINUE', onGo: () => primeThen(() => onNextUp?.(nextUp)), onAdjust: adjustLast,
     };
   } else if (lastInfo) {
     card = {
@@ -380,7 +393,7 @@ export default function HomeDashboard({
               <button type="button" onClick={onDiscardAlt} aria-label="Discard this paused session" style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: 4, display: 'flex' }}><X size={14}/></button>
             </div>
           )}
-          <section data-guide="home-continue" style={{
+          <section data-guide="home-continue" data-retention={card.next ? 'next-up' : undefined} style={{
             position: 'relative', minHeight: 176, borderRadius: 16, overflow: 'hidden', display: 'flex', flexDirection: 'column',
             border: '1px solid rgba(255,255,255,0.08)', background: '#0D0A18',
           }}>
@@ -416,13 +429,13 @@ export default function HomeDashboard({
               </div>
               {/* With the week streak on, the DAILY MISSION card above draws
                   the eye down here: the line takes two lines before it is cut. */}
-              <div style={weeksOn
+              <div style={weeksOn || card.next
                 ? { fontSize: 14, lineHeight: 1.3, color: MUTED, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }
                 : { fontSize: 14, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{card.parts.join(' · ')}</div>
               {/* START follows the saved choice: AT YOUR PACE is the moves and a timer. */}
               {card.atPace && <div style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', color: '#F2BE45' }}>AT YOUR PACE</div>}
               <div style={{ flexGrow: 1 }}/>
-              <button type="button" className="hm-go" onClick={card.onGo} style={{
+              <button type="button" className="hm-go" onClick={card.onGo} aria-label={card.label} style={{
                 height: 52, borderRadius: 12, border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                 background: 'linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%)', color: '#1A1204',
@@ -449,8 +462,12 @@ export default function HomeDashboard({
           )}
         </div>
 
-        {/* NEXT UP on the path (switch on): straight onto the current node. */}
-        {pathOn && nextUp && (
+        {/* NEXT UP on the path (switch on): straight onto the current node.
+            Folded into the Continue card when that card is the same saga or
+            camp; left out under a paused session or a surprise pick (the
+            card above is the one thing to do). What is left: a concept
+            stage's last run (Continue replays that stage's timer). */}
+        {pathOn && nextUp && card.kind === 'last' && !card.next && (
           <NextUpRow {...nextUpCopy(nextUp)} number={nextUp.number} boss={nextUp.boss} onGo={() => onNextUp?.(nextUp)}/>
         )}
 

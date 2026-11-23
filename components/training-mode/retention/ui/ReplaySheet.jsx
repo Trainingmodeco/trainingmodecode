@@ -10,7 +10,8 @@ import { HOME, head, ARC, GOLD_BUTTON, RETENTION_CSS } from './tokens';
 // tab bar) and rises from its bottom. `children` sits above the buttons (a
 // multi-path saga's path picker). `bottomPad` keeps the buttons clear of
 // what floats over the box's bottom edge (the beta chip over the camp's).
-//   tiles: [{ label, value, gold? }]  at most two
+//   tiles: [{ label, value, gold?, stars? }]  at most two; `stars` puts that
+//          many stars before the label, a size up so they read ("★★★ NEEDS")
 export default function ReplaySheet({ eyebrow, title, stars, max = 3, check = false, tiles = [], line, onReplay, onClose, replayLabel = 'REPLAY', bottomPad = 16, children }) {
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose?.(); };
@@ -41,12 +42,15 @@ export default function ReplaySheet({ eyebrow, title, stars, max = 3, check = fa
         {tiles.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${tiles.length}, minmax(0, 1fr))`, gap: 8, marginTop: 14 }}>
             {tiles.map((t) => (
-              <div key={t.label} style={{
+              <div key={`${t.stars || ''}${t.label}`} style={{
                 borderRadius: 10, padding: 10, minWidth: 0,
                 background: t.gold ? 'rgba(253,224,71,.08)' : 'rgba(255,255,255,0.04)',
                 border: `1px solid ${t.gold ? 'rgba(253,224,71,.35)' : 'rgba(255,255,255,0.08)'}`,
               }}>
-                <div style={{ ...head(9, 600), color: HOME.muted }}>{t.label}</div>
+                <div style={{ ...head(10, 600), color: HOME.muted, display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+                  {t.stars > 0 && <span role="img" aria-label={`${t.stars} ${t.stars === 1 ? 'star' : 'stars'}`} style={{ fontSize: 12, lineHeight: 1, letterSpacing: 1, color: ARC.star }}>{'★'.repeat(t.stars)}</span>}
+                  <span>{t.label}</span>
+                </div>
                 <div style={{ ...head(17, 700, { letterSpacing: '0.02em' }), color: t.gold ? '#fff' : HOME.gold, marginTop: 2, overflowWrap: 'anywhere' }}>{t.value}</div>
               </div>
             ))}
@@ -86,8 +90,9 @@ export function PathChoice({ paths = [], cleared = [], value, onChange, label = 
               height: 44, borderRadius: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               background: on ? `${ac}22` : 'rgba(255,255,255,0.04)', border: `1.5px solid ${on ? ac : 'rgba(255,255,255,0.14)'}`,
             }}>
-              <span aria-hidden style={{ fontSize: 13, color: done ? ARC.star : ARC.starOff }}>★</span>
-              <span style={{ font: `900 11px ${ARC.head}`, letterSpacing: '0.08em', color: on ? ac : 'rgba(230,215,255,0.85)' }}>{p === 'both' ? 'BOTH' : String(p).toUpperCase()}</span>
+              {/* An empty star on the picked chip's tint is half white, so it still reads. */}
+              <span aria-hidden style={{ fontSize: 14, lineHeight: 1, color: done ? ARC.star : on ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.3)' }}>★</span>
+              <span style={{ font: `900 11px ${ARC.head}`, letterSpacing: '0.08em', color: on ? ac : '#e6d7ff' }}>{p === 'both' ? 'BOTH' : String(p).toUpperCase()}</span>
             </button>
           );
         })}

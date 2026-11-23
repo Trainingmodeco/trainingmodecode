@@ -7,7 +7,7 @@
 //     → { kind: 'count', gap: 1, line: '1 round to go', value: 4, max: 5, left: '4 OF 5 ROUNDS', right: null }
 //   nearMiss({ unit: 'drills', done: 6, total: 8, outcome: 'fail' }) → line '2 drills short'
 //   nearMiss({ unit: 'time', timeSec: 402, tiers, stars: 2 })
-//     → { kind: 'time', gapSec: 13, line: '13 s off ★★★', value: 390, max: 402,
+//     → { kind: 'time', gapSec: 12, line: '12 s off ★★★', value: 390, max: 402,
 //         left: 'YOUR TIME 6:42', right: '★★★ UNDER 6:30', nextStars: 3 }
 //
 // Counts: the gap is the work left of the session (total − done). A session
@@ -25,8 +25,10 @@ const UNIT_WORDS = {
   sets: ['set', 'sets'],
 };
 
-const whole = (n) => (Number.isFinite(Number(n)) ? Math.floor(Number(n)) : NaN);
-const mmss = (sec) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
+const whole = (n) => (Number.isFinite(Number(n)) ? Math.floor(Number(n) + 1e-6) : NaN);
+// Whole seconds, cut down as the stage-clear screen shows its time (16:10.6
+// reads 16:10), so "YOUR TIME" and the gap agree with the screen above them.
+const mmss = (sec) => { const s = whole(sec); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 const fmtGap = (sec) => { const s = Math.max(1, Math.round(sec)); return s < 60 ? `${s} s` : mmss(s); };
 export const starMarks = (n) => '★'.repeat(Math.max(0, Math.min(5, Math.round(n || 0))));
 
@@ -58,13 +60,16 @@ function timeMiss({ timeSec, tiers, stars, maxStars = 3 }) {
   if (held >= maxStars) return null;
   const tier = tiers.find((x) => x && x.stars === held + 1 && Number(x.maxMinutes) > 0);
   if (!tier) return null;
-  const needSec = Math.round(tier.maxMinutes * 60);
+  const needSec = whole(tier.maxMinutes * 60);
   if (time < needSec) return null; // the run already made that star
-  const gapSec = Math.round(time) - needSec + 1;
+  // From the times as shown: YOUR TIME 22:12 · UNDER 22:00 → 12 s off (on
+  // the line, 1 s: the tier is strict).
+  const shown = whole(time);
+  const gapSec = Math.max(1, shown - needSec);
   return {
     kind: 'time', gapSec, nextStars: tier.stars,
     line: `${fmtGap(gapSec)} off ${starMarks(tier.stars)}`,
-    value: needSec, max: Math.round(time),
+    value: needSec, max: shown,
     left: `YOUR TIME ${mmss(time)}`,
     right: `${starMarks(tier.stars)} UNDER ${mmss(needSec)}`,
   };

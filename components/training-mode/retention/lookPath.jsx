@@ -65,7 +65,7 @@ function ReplayLook({ series, progress, index }) {
   const [mode, setMode] = useState(info.missing[0] || 'fit');
   const tiles = [
     ...(info.bestSec != null ? [{ label: 'YOUR BEST', value: fmtTime(info.bestSec) }] : []),
-    ...(info.kind === 'time' && info.next ? [{ label: `${'★'.repeat(info.next.stars)} NEEDS`, value: info.next.needs, gold: true }] : []),
+    ...(info.kind === 'time' && info.next ? [{ label: 'NEEDS', stars: info.next.stars, value: info.next.needs, gold: true }] : []),
   ];
   const multi = (series.modeOptions || []).length > 1;
   return (
@@ -135,7 +135,7 @@ export default function LookPath() {
         </Screen>
       </Look>
 
-      <Look name="Home: NEXT UP" note="One row under the Continue card: the last saga's current node (or the camp's level). A tap opens the saga on that node's pop-up." height={170}>
+      <Look name="Home: NEXT UP" note="The last saga's current node (or the camp's level); a tap opens the saga on that node's pop-up. When the Continue card is that saga or camp, NEXT UP folds into it (NEXT UP · One Hundred · Stage 6 · The Standard Hundred): one card for one place. This row is left for a concept stage's last run, whose Continue replays that stage." height={170}>
         <div style={{ padding: '14px 16px 0' }}>
           <HomeHeader level={14} tierName="Champion" levelXp={250} levelNeeded={500} xpPercent={50} compact chip={<WeekChip/>}/>
         </div>

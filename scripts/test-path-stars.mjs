@@ -56,10 +56,32 @@ check('not cleared: 0 stars', P.stageStars(OP, op2, undefined).stars === 0 && !P
 check('cleared with no stars saved reads 1 (the ladder\'s `stars || 1`)', P.stageStars(OP, op2, { completed: true }).stars === 1);
 let info = P.stageStars(OP, op2, { completed: true, stars: 2, bestTimeSeconds: 22 * 60 + 11 });
 check('2★, best 22:11: next star is the third, under 22:00', info.stars === 2 && info.next.stars === 3 && info.next.needs === 'under 22:00');
-check('… 12 s off (the tier is strict: under, not at)', info.next.gapSec === 12, JSON.stringify(info.next));
-check('… line', P.nextStarLine(info) === '12 s off the third star. Replays keep your best result.', P.nextStarLine(info));
+check('… 11 s off (the two times as the tiles show them)', info.next.gapSec === 11, JSON.stringify(info.next));
+check('… line', P.nextStarLine(info) === '11 s off the third star. Replays keep your best result.', P.nextStarLine(info));
 info = P.stageStars(OP, op2, { completed: true, stars: 1, bestTimeSeconds: 30 * 60 + 5 });
-check('1★, best 30:05: the second star needs under 28:00, 2:06 off', info.next.stars === 2 && info.next.needs === 'under 28:00' && P.fmtGap(info.next.gapSec) === '2:06');
+check('1★, best 30:05: the second star needs under 28:00, 2:05 off', info.next.stars === 2 && info.next.needs === 'under 28:00' && P.fmtGap(info.next.gapSec) === '2:05');
+// The replay sheet's line agrees with its tiles (YOUR BEST · ★★★ NEEDS under m:ss).
+const op3 = OP.stages[2];
+info = P.stageStars(OP, op3, { completed: true, stars: 2, bestTimeSeconds: 17 * 60 + 40 });
+check('YOUR BEST 17:40 · under 15:00 → "2:40 off the third star" (was 2:41)', P.fmtTime(info.bestSec) === '17:40' && info.next.needs === 'under 15:00'
+  && P.nextStarLine(info).startsWith('2:40 off the third star.'), `${P.fmtTime(info.bestSec)} ${info.next.needs} ${P.nextStarLine(info)}`);
+info = P.stageStars(OP, op2, { completed: true, stars: 2, bestTimeSeconds: 22 * 60 });
+check('a best exactly on the line (22:00, under 22:00): 1 s off, never 0', info.next.gapSec === 1 && P.nextStarLine(info).startsWith('1 s off'), JSON.stringify(info.next));
+check('times show whole seconds cut down: 17:40.6 → 17:40, 17:59.7 → 17:59 (never 17:60)', P.fmtTime(1060.6) === '17:40' && P.fmtTime(1079.7) === '17:59' && P.fmtTime(1080) === '18:00');
+{
+  // Every best time from the line to 12 minutes over, in tenths: the gap in
+  // the line is the difference of the two tiles as shown.
+  const sec = (t) => { const [m, x] = t.split(':').map(Number); return m * 60 + x; };
+  let bad = null;
+  for (let t = 22 * 60; t <= 34 * 60 && !bad; t += 0.1) {
+    const i2 = P.stageStars(OP, op2, { completed: true, stars: 2, bestTimeSeconds: t });
+    const shown = sec(P.fmtTime(i2.bestSec)), need = sec(i2.next.needs.replace('under ', ''));
+    const gapText = P.nextStarLine(i2).split(' off ')[0];
+    const gap = gapText.endsWith(' s') ? Number(gapText.slice(0, -2)) : sec(gapText);
+    if (gap !== Math.max(1, shown - need)) bad = `${t.toFixed(1)}: ${P.fmtTime(i2.bestSec)} vs ${i2.next.needs} → ${gapText}`;
+  }
+  check('the line always agrees with the tiles (22:00 to 34:00 in tenths)', !bad, bad || '');
+}
 info = P.stageStars(OP, op2, { completed: true, stars: 1 });
 check('no best time stored: says the time to beat', P.nextStarLine(info) === 'Finish under 28:00 for the second star. Replays keep your best result.', P.nextStarLine(info));
 info = P.stageStars(OP, op2, { completed: true, stars: 3, bestTimeSeconds: 1200 });
@@ -70,15 +92,15 @@ check('no tiers: a check mark, no stars', info.check && info.stars === null && i
 check('no tiers, not cleared: no stars either', P.stageStars(DEMON, DEMON.stages[0], undefined).stars === null);
 info = P.stageStars(GRAP, GRAP.stages[0], { completed: true, stars: 1, paths: ['fit'] });
 check('Grappler, FIT cleared: 1 of 3, FIGHT and BOTH left', info.stars === 1 && info.max === 3 && eq(info.missing, ['fight', 'both']));
-check('… line names the paths', P.nextStarLine(info) === 'One star for each path cleared. Clear FIGHT or BOTH for the next one.', P.nextStarLine(info));
+check('… line names the paths', P.nextStarLine(info) === 'One star per path cleared. Next: FIGHT or BOTH.', P.nextStarLine(info));
 info = P.stageStars(MM, MM.stages[0], { completed: true, stars: 3, paths: ['fit', 'fight'] });
 check('Martial Monster: an old 3 reads 2 of 2 (its max), nothing left', info.stars === 2 && info.max === 2 && info.next === null);
 info = P.stageStars(GRAP, GRAP.stages[0], { completed: true, stars: 2 });
-check('an old clear with no paths saved: stars kept, paths unknown', info.stars === 2 && eq(info.missing, []) && P.nextStarLine(info) === 'One star for each path cleared. Replays keep your best result.', P.nextStarLine(info));
+check('an old clear with no paths saved: stars kept, paths unknown', info.stars === 2 && eq(info.missing, []) && P.nextStarLine(info) === 'One star per path cleared. Replays keep your best result.', P.nextStarLine(info));
 info = P.stageStars(GRAV, GRAV.stages[0], { completed: true, stars: 3, paths: ['fit'] });
 check('Gravity Chamber: 1 of 1 whatever was stored', info.stars === 1 && info.max === 1 && /One star for a clear/.test(P.nextStarLine(info)));
 info = P.stageStars(CONCEPT, CONCEPT.stages[0], { completed: true, stars: 2, paths: ['fit', 'both'] });
-check('concept: 2 arcs of 3, FIGHT left', info.stars === 2 && eq(info.missing, ['fight']) && /each arc cleared\. Clear FIGHT/.test(P.nextStarLine(info)));
+check('concept: 2 arcs of 3, FIGHT left', info.stars === 2 && eq(info.missing, ['fight']) && P.nextStarLine(info) === 'One star per arc cleared. Next: FIGHT.');
 
 section('the saga path against the ladder\'s gate');
 const prog = (map) => ({ completedStages: Object.fromEntries(Object.entries(map).map(([id, v]) => [id, { completed: true, ...v }])) });
@@ -190,6 +212,13 @@ check('arcade: the saga\'s current node (stage 3)', nu?.kind === 'arcade' && nu.
 check('… copy: the name alone (the badge has the number), the label says both', eq(P.nextUpCopy(nu), { eyebrow: `NEXT UP · ${OP.title.toUpperCase()}`, title: 'Pull Balance Foundation', label: `Next up in ${OP.title}: Stage 3, Pull Balance Foundation. Start` }), JSON.stringify(P.nextUpCopy(nu)));
 const dashed = P.nextUpCopy({ kind: 'arcade', saga: 'The Climb', number: 4, title: 'Loop-de-Loop — Land, Stabilize & Build the Base' });
 check('… a title with a tagline: the name alone on the row, the whole title in the label', dashed.title === 'Loop-de-Loop' && dashed.label === 'Next up in The Climb: Stage 4, Loop-de-Loop — Land, Stabilize & Build the Base. Start', JSON.stringify(dashed));
+// Folded into Home's Continue card (the last session is that saga or camp).
+check('folded into Continue: "Stage 3 · Pull Balance Foundation", the label says the whole', eq(P.nextUpLine(nu), { parts: ['Stage 3', 'Pull Balance Foundation'], label: `Next up in ${OP.title}: Stage 3, Pull Balance Foundation. Continue` }), JSON.stringify(P.nextUpLine(nu)));
+check('… a saga\'s boss reads "Boss · name"; a node with no name just "Stage n"', eq(P.nextUpLine({ kind: 'arcade', saga: 'X', number: 10, title: 'The Hundred', boss: true }).parts, ['Boss', 'The Hundred'])
+  && eq(P.nextUpLine({ kind: 'arcade', saga: 'X', number: 4, title: '' }).parts, ['Stage 4']));
+check('… the camp: discipline, level, name ("Boxing · Level 5 · Volume"); the title fight', eq(P.nextUpLine({ kind: 'camp', saga: 'Training Camp', disc: 'Boxing', number: 5, title: 'Volume' }).parts, ['Boxing', 'Level 5', 'Volume'])
+  && eq(P.nextUpLine({ kind: 'camp', saga: 'Training Camp', disc: 'Boxing', number: 12, title: 'Title Fight', boss: true }).parts, ['Boxing', 'Level 12', 'Title Fight']));
+check('… nothing next: nothing', P.nextUpLine(null) === null);
 check('arcade, all cleared: hidden', P.nextUpFrom({ kind: 'arcade', cfg: { seriesId: 'one-punch-protocol' } }, find({ progress: () => prog(Object.fromEntries(OP.stages.map((s) => [s.id, {}]))) })) === null);
 check('a saga that cannot be played: hidden', P.nextUpFrom({ kind: 'arcade', cfg: { seriesId: 'demon-back-protocol' } }, find()) === null);
 check('an unknown saga: hidden', P.nextUpFrom({ kind: 'arcade', cfg: { seriesId: 'nope' } }, find({ series: () => null })) === null);

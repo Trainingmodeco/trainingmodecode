@@ -111,6 +111,10 @@ function StageClearedScreen({
   const nmReplay = !!nmFor?.gate?.allowed && typeof onRetry === 'function';
   const nm = nmFor && (nmReplay || (nextStage && onNextStage)) ? nmFor : null;
   const nmGate = nm ? { ...nm.gate, line: null } : null;
+  // With the stars landing (the path switch), the stats keep one line each on
+  // a narrow phone (the stars cell is a little wider than the old one), and
+  // the three labels share one top line under a NEW BEST pill.
+  const oneLine = pathOn ? { whiteSpace: 'nowrap' } : null;
 
   useEffect(() => {
     const timers = [
@@ -197,20 +201,20 @@ function StageClearedScreen({
       {phase >= 2 && (
         <div style={{
           animation: 'ov-slide-up 0.3s ease-out forwards',
-          display: 'flex', alignItems: 'center', gap: 16,
-          padding: '12px 20px', borderRadius: 12,
+          display: 'flex', alignItems: pathOn ? 'flex-start' : 'center', gap: pathOn ? 12 : 16,
+          padding: pathOn ? '12px 16px' : '12px 20px', borderRadius: 12,
           background: 'rgba(34,197,94,0.04)',
           border: '1px solid rgba(34,197,94,0.2)',
           marginBottom: 16,
         }}>
           {/* Time */}
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: '0.1em', marginBottom: 2 }}>YOUR TIME</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: '0.1em', marginBottom: 2, ...oneLine }}>YOUR TIME</div>
             <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 16, fontWeight: 900, color: '#fff' }}>
               {formatTime(result?.elapsedSeconds)}
             </div>
             {result?.newBest && (
-              <div style={{ marginTop: 3, display: 'inline-block', padding: '1px 7px', borderRadius: 99, background: 'rgba(253,224,71,0.12)', border: '1px solid rgba(253,224,71,0.45)', fontFamily: "'Orbitron',sans-serif", fontSize: 6.5, fontWeight: 800, color: '#fde047', letterSpacing: '0.14em' }}>
+              <div style={{ marginTop: 3, display: 'inline-block', padding: '1px 7px', borderRadius: 99, background: 'rgba(253,224,71,0.12)', border: '1px solid rgba(253,224,71,0.45)', fontFamily: "'Orbitron',sans-serif", fontSize: 6.5, fontWeight: 800, color: '#fde047', letterSpacing: '0.14em', ...oneLine }}>
                 ★ NEW BEST
               </div>
             )}
@@ -220,7 +224,7 @@ function StageClearedScreen({
 
           {/* XP */}
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: '0.1em', marginBottom: 2 }}>XP EARNED</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: '0.1em', marginBottom: 2, ...oneLine }}>XP EARNED</div>
             <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 16, fontWeight: 900, color: '#22c55e' }}>
               +{displayXp}
             </div>
@@ -231,7 +235,7 @@ function StageClearedScreen({
           {/* Stars — benchmark shows its rank; timed stages show the 3-star
               tier rating earned this run */}
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: '0.1em', marginBottom: 2 }}>{rank ? 'RANK' : 'STARS'}</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: '0.1em', marginBottom: 2, ...oneLine }}>{rank ? 'RANK' : 'STARS'}</div>
             {pathOn ? (
               rank
                 ? <StarsRow n={getRankStars(rank)} of={5} size={12} gap={2} land delay={0.35} step={0.3} onLand={(i) => playTone(880 + i * 110, 0.18, 0.05)} label={`Rank ${rank}`} color="#22c55e" glow="rgba(34,197,94,0.6)"/>

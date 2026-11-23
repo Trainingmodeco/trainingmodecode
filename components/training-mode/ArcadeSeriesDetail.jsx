@@ -161,6 +161,9 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   const boxRef = useRef(null);
   const shakeTimer = useRef(null);
   const toastTimer = useRef(null);
+  // The path shows the locked hint under the node that was tapped (never over
+  // another node); the ladder keeps its toast at the top.
+  const hintIdx = useRef(null);
 
   useEffect(() => {
     const measure = () => { if (boxRef.current) setBoxH(boxRef.current.clientHeight); };
@@ -236,6 +239,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
 
   // Locked: brief shake + unlock hint toast instead of the modal.
   function lockedHint(idx) {
+    hintIdx.current = idx;
     setShakeIdx(idx);
     const byWorkouts = Number.isFinite(series.maxUnlocked) && idx >= series.maxUnlocked && (idx === 0 || completedSet.has(nodes[idx - 1]?.id));
     setToast(idx === mythicIdx ? 'CLEAR ALL STAGES TO UNLOCK' : byWorkouts && series.gateNote ? series.gateNote.toUpperCase() : `CLEAR STAGE ${(nodes[idx].stageNumber || idx + 1) - 1} TO UNLOCK`);
@@ -485,7 +489,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
         {/* Ladder box — compact, no scroll */}
         <div ref={boxRef} data-guide="arc-ladder" style={{ flex: 1, minHeight: 0, position: 'relative' }}>
           {/* The path (switch on) in place of the ladder. */}
-          {pathOn && <PathMap nodes={pathNodes} onPick={pathPick} unit="STAGE" bossLabel="BOSS" nodeClass="ladder-node" dim={!!openInfo && !openInfo.replay}/>}
+          {pathOn && <PathMap nodes={pathNodes} onPick={pathPick} unit="STAGE" bossLabel="BOSS" nodeClass="ladder-node" dim={!!openInfo && !openInfo.replay} hint={toast ? { index: hintIdx.current, text: toast } : null}/>}
           {/* Everything dimmable lives in this layer */}
           {!pathOn && (
           <div className={`ladder-layer${openInfo ? ' ladder-dim' : ''}`} style={{ position: 'absolute', inset: 0 }}>
@@ -805,7 +809,7 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
             const info = stageStars(series, selected, compData);
             const tiles = [
               ...(info.bestSec != null ? [{ label: 'YOUR BEST', value: fmtPathTime(info.bestSec) }] : []),
-              ...(info.kind === 'time' && info.next ? [{ label: `${'★'.repeat(info.next.stars)} NEEDS`, value: info.next.needs, gold: true }] : []),
+              ...(info.kind === 'time' && info.next ? [{ label: 'NEEDS', stars: info.next.stars, value: info.next.needs, gold: true }] : []),
             ];
             return (
               <ReplaySheet
@@ -822,8 +826,8 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
             );
           })()}
 
-          {/* Locked-stage toast */}
-          {toast && (
+          {/* Locked-stage toast (the ladder; the path hangs it under the node) */}
+          {toast && !pathOn && (
             <div style={{
               position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 30,
               padding: '7px 14px', borderRadius: 9, background: 'rgba(20,4,10,0.92)',

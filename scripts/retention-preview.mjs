@@ -17,6 +17,13 @@
 //     lines, or a text box outside the box that clips it.
 // Text cut elsewhere on the page is printed as a warning, not a failure.
 // Features 2 and 3 add their states to STATES (f1-, f2-, f3- names).
+//
+// Every state runs on one fixed local day and time (Thursday 19 November 2026,
+// 10:00, on Playwright's clock), so every run gives the same pictures: the
+// sample weeks have Monday to Wednesday trained where a state trains this week
+// (3 of 4 days), and the week-complete end screen always runs. The gallery
+// states also save each card as its own crop at the phone's scale (2), so
+// their text can be read: <state>-<width>-cardNN.png.
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
@@ -34,7 +41,8 @@ const SIZES = [[360, 780], [390, 844], [430, 932]];
 // ── sample data ────────────────────────────────────────────────────────────
 const pad = (n) => String(n).padStart(2, '0');
 const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-const NOW = new Date();
+const NOW = new Date(2026, 10, 19, 10, 0, 0, 0); // a Thursday, local time
+const NOW_MS = NOW.getTime();
 const todayIdx = (NOW.getDay() + 6) % 7; // 0 = Monday
 const monday = (weeksBack) => { const d = new Date(NOW); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - todayIdx - 7 * weeksBack); return d; };
 let rowN = 0;
@@ -64,8 +72,8 @@ const BASE_KEYS = {
   trainingModeTourComplete: 'true',
   tm_owner_preview: '1',
   tm_arcade_intro_seen: '{}',
-  tm_camp_parq: JSON.stringify({ done: true, anyYes: false, ts: Date.now() }),
-  tm_practice_invite_v1: JSON.stringify({ introShownAt: new Date().toISOString() }),
+  tm_camp_parq: JSON.stringify({ done: true, anyYes: false, ts: NOW_MS }),
+  tm_practice_invite_v1: JSON.stringify({ introShownAt: NOW.toISOString() }),
 };
 
 // ── screens ────────────────────────────────────────────────────────────────
@@ -105,12 +113,12 @@ async function runDailyMission(page, w) {
 const OP_STARS = [3, 3, 2, 1, 3];
 const OP_BEST = [14 * 60 + 20, 21 * 60 + 5, 17 * 60 + 40, 30 * 60 + 5, 15 * 60 + 51];
 const DAY = 86400000;
-const stageEntry = (i, extra) => ({ fit: true, fight: true, completed: true, completedAt: Date.now() - (8 - i) * DAY, ...extra });
+const stageEntry = (i, extra) => ({ fit: true, fight: true, completed: true, completedAt: NOW_MS - (8 - i) * DAY, ...extra });
 const sagaProgress = (id, entries) => ({ [id]: { completedStages: entries, unlockedStages: [1], currentStage: Object.keys(entries).length + 1, xpEarned: 0, badges: [], statXp: {}, attempts: [] } });
 const OP_SEED = () => ({
   tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 3, thisWeek: Math.min(2, todayIdx) }), 5200),
   tm_arcade_progress: JSON.stringify(sagaProgress('one-punch-protocol', Object.fromEntries(OP_STARS.map((st, i) => [`op-stage-${i + 1}`, stageEntry(i, { stars: st, bestTimeSeconds: OP_BEST[i], lastTimeSeconds: OP_BEST[i] })])))),
-  tm_last_session_v1: JSON.stringify({ kind: 'arcade', cfg: { seriesId: 'one-punch-protocol', title: 'One Hundred', stageNumber: 5, mode: 'fit', settings: null }, disc: null, at: Date.now() - DAY }),
+  tm_last_session_v1: JSON.stringify({ kind: 'arcade', cfg: { seriesId: 'one-punch-protocol', title: 'One Hundred', stageNumber: 5, mode: 'fit', settings: null }, disc: null, at: NOW_MS - DAY }),
 });
 // A multi-path v2 saga (The Grappler): FIT, FIT + FIGHT, all three cleared on stages 1-3; stage 4 is current.
 const GRAP_SEED = () => ({
@@ -121,23 +129,26 @@ const GRAP_SEED = () => ({
     ARC_GRAPPLER_STG02: stageEntry(1, { paths: ['fit', 'fight'], stars: 2 }),
     ARC_GRAPPLER_STG03: stageEntry(2, { paths: ['fight', 'fit', 'both'], stars: 3 }),
   })),
-  tm_last_session_v1: JSON.stringify({ kind: 'arcade', cfg: { seriesId: 'grappler-protocol', title: 'The Grappler', stageNumber: 3, mode: 'both', settings: { difficulty: 'normal', voiceCoach: true, sound: 'on' } }, disc: null, at: Date.now() - DAY }),
+  tm_last_session_v1: JSON.stringify({ kind: 'arcade', cfg: { seriesId: 'grappler-protocol', title: 'The Grappler', stageNumber: 3, mode: 'both', settings: { difficulty: 'normal', voiceCoach: true, sound: 'on' } }, disc: null, at: NOW_MS - DAY }),
 });
 // Training Camp: levels 1-4 cleared, level 5 current with S1 done.
 const CAMP_SEED = () => ({
   tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 2, thisWeek: Math.min(1, todayIdx) }), 3000),
   tm_camp_progress: '5', tm_camp_sessions: JSON.stringify({ 4: { s1: true, s2: true }, 5: { s1: true } }),
-  tm_last_session_v1: JSON.stringify({ kind: 'camp', cfg: { level: 5, difficulty: 'normal', format: 'single', archetypeName: 'Pressure Fighter' }, disc: 'Boxing', at: Date.now() - DAY }),
+  tm_last_session_v1: JSON.stringify({ kind: 'camp', cfg: { level: 5, difficulty: 'normal', format: 'single', archetypeName: 'Pressure Fighter' }, disc: 'Boxing', at: NOW_MS - DAY }),
 });
-// Home's Continue card (the last session) opens the saga or the camp.
+// The saga or the camp of the last session, on its path: Home's ADJUST (with
+// NEXT UP folded into the Continue card, CONTINUE opens the current node).
 async function continueLast(page, w) {
   await home(page, w);
-  await page.locator('[data-guide="home-continue"] button.hm-go').first().click({ timeout: 4000 });
+  await page.getByRole('button', { name: /^ADJUST$/ }).first().click({ timeout: 4000 });
   await wait(page, 2200);
 }
+// NEXT UP: the Continue card it folded into (or its own row), opening the
+// saga or the camp on its current node.
 async function nextUp(page, w) {
   await home(page, w);
-  await page.locator('[data-retention="next-up"]').first().click({ timeout: 4000 });
+  await page.locator('[data-retention="next-up"] button.hm-go, button[data-retention="next-up"]').first().click({ timeout: 4000 });
   await wait(page, 2400);
 }
 const tapNode = (sel) => async (page, w) => {
@@ -172,8 +183,8 @@ async function replayV2Stage(page, w) {
 // A 3-round Fight Focus (1-minute rounds) as the last session: Home's Continue
 // runs it, the fake clock plays round 1 and the rest after it, END stops it in
 // round 2: the end screen reads 1 of 3, its panel "2 ROUNDS TO GO".
-const FF_LAST = { kind: 'timer', cfg: { difficulty: 'Normal', mode: 'Technical', rounds: 3, roundMin: 1, restSec: 20, voiceOn: false, rushMode: false, encouragement: 'normal', warmupMin: 0 }, disc: 'Boxing', at: Date.now() - DAY };
-const todayAt = (h) => { const d = new Date(NOW); d.setHours(h, 0, 0, 0); return d.getTime() < Date.now() ? d : new Date(Date.now() - 3600000); };
+const FF_LAST = { kind: 'timer', cfg: { difficulty: 'Normal', mode: 'Technical', rounds: 3, roundMin: 1, restSec: 20, voiceOn: false, rushMode: false, encouragement: 'normal', warmupMin: 0 }, disc: 'Boxing', at: NOW_MS - DAY };
+const todayAt = (h) => { const d = new Date(NOW); d.setHours(h, 0, 0, 0); return d.getTime() < NOW_MS ? d : new Date(NOW_MS - 3600000); };
 const FF_SEED = (todayRows = 0) => () => ({
   tm_user_profile: JSON.stringify(FIGHTER),
   tm_user_stats: stats([...history({ onTarget: 3, thisWeek: Math.min(2, todayIdx) }), ...Array.from({ length: todayRows }, (_, i) => row(todayAt(i)))]),
@@ -256,9 +267,10 @@ async function stopCampAndRetry(page, w) {
   await wait(page, 2000);
 }
 // The same, with the one-time health check (PAR-Q) still to take when RETRY
-// lands on the map: the sheet comes first, and once it is done level 5's card
-// opens all the same (the retry is kept, not dropped).
-async function stopCampAndRetryParq(page, w) {
+// lands on the map: the sheet comes first (stopCampAndRetryParqSheet stops
+// there), and once it is done level 5's card opens all the same (the retry is
+// kept, not dropped).
+async function stopCampAndRetryParqSheet(page, w) {
   await nextUp(page, w);
   await page.getByRole('button', { name: /START SESSION 1/ }).first().click({ timeout: 4000 }); await wait(page, 800);
   await page.getByRole('button', { name: /^NO$/ }).first().click({ timeout: 4000 });
@@ -274,6 +286,9 @@ async function stopCampAndRetryParq(page, w) {
   await page.locator('[data-retention="near-miss"] button', { hasText: 'RETRY' }).first().click({ timeout: 4000 });
   await wait(page, 1500);
   if (!/HEALTH CHECK/.test(await page.evaluate(() => document.body.innerText))) throw new Error('the PAR-Q sheet did not come up');
+}
+async function stopCampAndRetryParq(page, w) {
+  await stopCampAndRetryParqSheet(page, w);
   for (const b of await page.getByRole('button', { name: /^Q\d+ NO$/ }).all()) await b.click({ timeout: 2000 });
   await page.getByRole('button', { name: /✓ CONTINUE/ }).first().click({ timeout: 4000 });
   await wait(page, 2000);
@@ -283,8 +298,11 @@ const scrollTo = (sel) => async (page) => { await page.locator(sel).first().scro
 
 // ── the states ─────────────────────────────────────────────────────────────
 // { name, note, seed(), open(page, w), check: [selectors], apart?: [[selA, selB]], expect: RegExp,
+//   absent?: RegExp (must not be on screen), clear?: [[selA, selB]] (no element of A over any of B),
 //   once?: true, clock?: true, after?(page), shot?: selector (photograph that element whole) }
 // `once`: open the screen once (at the first size) and resize for the others.
+// `clock`: a state that drives the clock itself (pauses it, runs it on); every
+// state starts on the fixed clock.
 const HOME_CHECK = ['header[data-guide="home-level"]', '[data-guide="home-daily-mission"]', '[role="status"]'];
 const HOME_APART = [['[role="status"]', '[data-guide="home-daily-mission"]']];
 const STATES = [
@@ -304,12 +322,12 @@ const STATES = [
     name: 'f1-home-mission-done',
     note: 'Home: the mission done today; the card says so until tomorrow, today\'s dot is filled.',
     seed: () => {
-      const rows = [...history({ onTarget: 3, thisWeek: Math.min(2, todayIdx) }), row(new Date(Date.now() - 3600000))];
+      const rows = [...history({ onTarget: 3, thisWeek: Math.min(2, todayIdx) }), row(new Date(NOW_MS - 3600000))];
       const date = iso(NOW);
       const mission = { date, side: 'fight', minutes: 3, bonusXp: 25, tier: 'NORMAL', lighter: false, id: `${date}:fight`, discipline: 'Boxing', difficulty: 'Normal', title: 'One Round: Boxing', line: 'Fight Focus · Normal · fits your level' };
       return {
         tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(rows, 4200),
-        tm_daily_mission_v2: JSON.stringify({ date, mission, done: true, doneAt: new Date(Date.now() - 3600000).toISOString(), xp: 25 }),
+        tm_daily_mission_v2: JSON.stringify({ date, mission, done: true, doneAt: new Date(NOW_MS - 3600000).toISOString(), xp: 25 }),
         tm_week_moments_v1: JSON.stringify({ day: date, seen: [] }),
       };
     },
@@ -368,15 +386,15 @@ const STATES = [
   },
   {
     name: 'f2-home-next-up',
-    note: 'Home: NEXT UP under the Continue card, the last saga\'s current node (One Punch, stage 6).',
+    note: 'Home: NEXT UP folded into the Continue card (the last session is that saga): One Hundred, stage 6, one card.',
     seed: OP_SEED, open: home, after: scrollTo('[data-retention="next-up"]'),
-    check: ['[data-retention="next-up"]'], expect: /NEXT UP · ONE HUNDRED\s+The Standard Hundred/,
+    check: ['[data-retention="next-up"]'], expect: /NEXT UP[\s\S]*One Hundred\s+Stage 6 · The Standard Hundred[\s\S]*CONTINUE/, absent: /NEXT UP · ONE HUNDRED|Arcade · Stage 5/,
   },
   {
     name: 'f2-home-next-up-camp',
-    note: 'Home: NEXT UP for Training Camp, the current level (5).',
+    note: 'Home: NEXT UP for Training Camp folded into the Continue card: the current level (5), one card.',
     seed: CAMP_SEED, open: home, after: scrollTo('[data-retention="next-up"]'),
-    check: ['[data-retention="next-up"]'], expect: /NEXT UP · TRAINING CAMP\s+Volume/,
+    check: ['[data-retention="next-up"]'], expect: /NEXT UP[\s\S]*Training Camp\s+Boxing · Level 5 · Volume[\s\S]*CONTINUE/, absent: /NEXT UP · TRAINING CAMP|Level 5 · Normal/,
   },
   {
     name: 'f2-saga-path',
@@ -412,13 +430,14 @@ const STATES = [
     name: 'f2-saga-replay-paths',
     note: 'The Grappler\'s replay sheet: one star per path, says so; the path to replay (a missing one picked).',
     seed: GRAP_SEED, open: tapNode('[aria-label^="Stage 1,"]'),
-    check: ['[data-retention="replay-sheet"]'], expect: /One star for each path cleared[\s\S]*PATH TO REPLAY/,
+    check: ['[data-retention="replay-sheet"]'], expect: /One star per path cleared[\s\S]*PATH TO REPLAY/,
   },
   {
     name: 'f2-saga-locked',
-    note: 'A locked node: the ladder\'s own hint toast.',
+    note: 'A locked node: the ladder\'s own hint, hung under the node that was tapped (never over another node).',
     seed: OP_SEED, open: tapNode('[aria-label^="Stage 8,"]'),
     check: ['[data-retention="path-map"]'], expect: /CLEAR STAGE 7 TO UNLOCK/,
+    clear: [['[data-retention="path-hint"]', '[data-retention="path-map"] button']],
   },
   {
     name: 'f2-camp-path',
@@ -482,17 +501,24 @@ const STATES = [
   },
   {
     name: 'f3-camp-retry-parq',
-    note: 'The same camp stop with the health check (PAR-Q) still to take: RETRY lands on the map, the sheet comes first, and once it is done level 5\'s card opens.',
+    note: 'The same camp stop with the health check (PAR-Q) still to take: RETRY lands on the map and the sheet comes first.',
+    clock: true, once: true,
+    seed: CAMP_FRESH_SEED, open: stopCampAndRetryParqSheet,
+    check: ['div[style*="z-index: 60"]'], expect: /HEALTH CHECK/, absent: /START SESSION 1/,
+  },
+  {
+    name: 'f3-camp-retry-parq-done',
+    note: 'The health check answered: level 5\'s card opens all the same (the retry was kept), START → readiness → gear.',
     clock: true, once: true,
     seed: CAMP_FRESH_SEED, open: stopCampAndRetryParq,
-    check: ['[data-retention="path-map"]'], expect: /VOLUME[\s\S]*START SESSION 1/,
+    check: ['[data-retention="path-map"]'], expect: /VOLUME[\s\S]*START SESSION 1/, absent: /HEALTH CHECK/,
   },
   {
     name: 'f3-gallery',
     note: 'The design gallery (/retention-looks), feature 3: the real panel and the real classic stage screens (third star, no replay today: the gap over the next stage with no come-back line, partial) with sample data.',
     seed: () => ({}),
     open: async (page) => { await page.goto(`${BASE}retention-looks`, { waitUntil: 'networkidle' }); await wait(page, 4000); },
-    check: ['#f3'], shot: '#f3', expect: /NEAR-MISS RETRY[\s\S]*GO FOR THE THIRD STAR[\s\S]*no replay today[\s\S]*12 s OFF[^]*?UNDER \d+:\d\d\s*START STAGE 6/i,
+    check: ['#f3'], shot: '#f3', expect: /NEAR-MISS RETRY[\s\S]*GO FOR THE THIRD STAR[\s\S]*no replay today[\s\S]*11 s OFF[^]*?UNDER \d+:\d\d\s*START STAGE 6/i,
   },
   {
     name: 'f2-gallery',
@@ -505,7 +531,7 @@ const STATES = [
 
 // ── the checks ─────────────────────────────────────────────────────────────
 // Runs in the page. Returns { fails: [...], warns: [...] }.
-function measure({ checkSelectors, apart }) {
+function measure({ checkSelectors, apart, clear }) {
   const vw = window.innerWidth;
   const fails = [], warns = [];
   const name = (el) => {
@@ -537,7 +563,10 @@ function measure({ checkSelectors, apart }) {
     const out = inScope(el) ? fails : warns;
     const cs = getComputedStyle(el);
     if (clips(cs) && el.scrollWidth > el.clientWidth + 1) out.push(`text cut sideways: ${name(el)} (${el.scrollWidth} > ${el.clientWidth})`);
-    if (cs.webkitLineClamp && cs.webkitLineClamp !== 'none' && el.scrollHeight > el.clientHeight + 1) out.push(`lines hidden: ${name(el)}`);
+    // A clamp hides a line when what is cut is at least half a line (the
+    // font's glyph box can stand a pixel or two past a tight line height).
+    const lineH = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.2;
+    if (cs.webkitLineClamp && cs.webkitLineClamp !== 'none' && el.scrollHeight > el.clientHeight + Math.max(1, lineH / 2)) out.push(`lines hidden: ${name(el)}`);
     // Sideways, every box that clips counts; up and down, only those inside
     // the nearest scroller (beyond it, the text is just scrolled out of view).
     const r = el.getBoundingClientRect();
@@ -560,6 +589,16 @@ function measure({ checkSelectors, apart }) {
     const overlap = ra.left < rb.right - 1 && rb.left < ra.right - 1 && ra.top < rb.bottom - 1 && rb.top < ra.bottom - 1;
     if (overlap) fails.push(`overlap: ${name(ea)} over ${name(eb)}`);
   }
+  // Every element of A clear of every element of B (a hint over the path's nodes).
+  for (const [a, b] of clear) {
+    const as = [...document.querySelectorAll(a)].filter(shown), bs = [...document.querySelectorAll(b)].filter(shown);
+    if (!as.length) fails.push(`${a} is not on screen`);
+    for (const ea of as) for (const eb of bs) {
+      if (ea.contains(eb) || eb.contains(ea)) continue;
+      const ra = ea.getBoundingClientRect(), rb = eb.getBoundingClientRect();
+      if (ra.left < rb.right - 1 && rb.left < ra.right - 1 && ra.top < rb.bottom - 1 && rb.top < ra.bottom - 1) fails.push(`overlap: ${name(ea)} over ${name(eb)}`);
+    }
+  }
   return { fails: [...new Set(fails)], warns: [...new Set(warns)] };
 }
 
@@ -580,8 +619,9 @@ for (const st of STATES) {
     if (st.after) await st.after(page);
     await wait(page, 600);
     const t = await page.evaluate(() => document.body.innerText);
-    const res = await page.evaluate(measure, { checkSelectors: st.check || [], apart: st.apart || [] });
+    const res = await page.evaluate(measure, { checkSelectors: st.check || [], apart: st.apart || [], clear: st.clear || [] });
     if (st.expect && !st.expect.test(t)) res.fails.unshift(`expected ${st.expect} on screen`);
+    if (st.absent && st.absent.test(t)) res.fails.unshift(`not expected on screen: ${st.absent} (${t.match(st.absent)[0]})`);
     const file = path.join(OUT, `${st.name}-${w}.png`);
     if (st.shot) {
       // A whole element taller than the screen: the app scrolls inside its own
@@ -590,6 +630,14 @@ for (const st of STATES) {
       const tall = await page.locator(st.shot).first().evaluate((el) => Math.ceil(el.getBoundingClientRect().height));
       await page.setViewportSize({ width: w, height: Math.min(16000, Math.max(h, tall + 200)) }); await wait(page, 800);
       await page.locator(st.shot).first().screenshot({ path: file, scale: 'css' });
+      // Each card (a Look's section, not one nested in another) as its own
+      // crop at the phone's scale, so its text can be read.
+      const cards = await page.locator(st.shot).first().evaluate((root) => [...root.querySelectorAll('section')]
+        .map((el, i) => { const outer = el.parentElement?.closest('section'); return outer && root.contains(outer) ? -1 : i; }).filter((i) => i >= 0));
+      for (let k = 0; k < cards.length; k++) {
+        const crop = path.join(OUT, `${st.name}-${w}-card${String(k + 1).padStart(2, '0')}.png`);
+        await page.locator(`${st.shot} section`).nth(cards[k]).screenshot({ path: crop, scale: 'device' });
+      }
       await page.setViewportSize({ width: w, height: h });
     } else await page.screenshot({ path: file });
     const ok = !res.fails.length;
@@ -608,14 +656,15 @@ for (const st of STATES) {
       localStorage.clear();
       // The come-back reminder shares the slot over the header: dismissed for
       // today, so the header itself is seen (a state can seed its own toast).
-      localStorage.setItem('tm_reminder_card_dismissed', new Date().toDateString());
-      for (const [k, v] of Object.entries(s)) localStorage.setItem(k, v);
+      localStorage.setItem('tm_reminder_card_dismissed', s.today);
+      for (const [k, v] of Object.entries(s.seed)) localStorage.setItem(k, v);
       localStorage.setItem('__rp', '1');
-    }, seed);
+    }, { seed, today: NOW.toDateString() });
     const page = await ctx.newPage();
     const errors = [];
     page.on('pageerror', (e) => errors.push(String(e.message).slice(0, 200)));
-    if (st.clock) await page.clock.install({ time: Date.now() });
+    // Every state on the same fixed day and time (see the header).
+    await page.clock.install({ time: NOW_MS });
     return { ctx, page, errors };
   };
   try {

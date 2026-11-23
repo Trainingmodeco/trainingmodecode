@@ -27,18 +27,21 @@ const FADE = 'linear-gradient(to bottom, transparent 0, #000 22px, #000 calc(100
 const LABEL_BG = '#0d0418';
 // Its size before it is measured: what the stars or the pips take, rounded up.
 const labelGuess = (node, stars) => ({
-  w: Math.max(node.pips ? 76 : 0, stars ? node.max * 13 + (node.max - 1) * 2 + 12 : 0),
-  h: (node.pips ? 18 : 0) + (stars ? 19 : 0) + (node.pips && stars ? 3 : 0),
+  w: Math.max(node.pips ? 86 : 0, stars ? node.max * 13 + (node.max - 1) * 2 + 12 : 0),
+  h: (node.pips ? 21 : 0) + (stars ? 19 : 0) + (node.pips && stars ? 3 : 0),
 });
 
+// The camp's S1/S2 pips: 9 px, the check a size up, and a locked level's pips
+// on a light border so they read on the busy art.
 function Pips({ pips, state }) {
   const pip = (label, done, next) => (
     <span style={{
-      font: `800 8px ${ARC.head}`, letterSpacing: '0.02em', borderRadius: 5, padding: '2px 5px', whiteSpace: 'nowrap',
-      color: done ? '#22c55e' : next ? ARC.gold : '#b7abd6',
+      display: 'inline-flex', alignItems: 'center', gap: 3,
+      font: `800 9px ${ARC.head}`, letterSpacing: '0.02em', lineHeight: 1, borderRadius: 5, padding: '3px 6px', whiteSpace: 'nowrap',
+      color: done ? '#4ade80' : next ? ARC.gold : '#d6cbef',
       background: done ? '#0b2416' : next ? '#2a2208' : LABEL_BG,
-      border: `1px solid ${done ? 'rgba(34,197,94,0.55)' : next ? 'rgba(253,224,71,0.55)' : 'rgba(168,85,247,0.35)'}`,
-    }}>{label}{done ? ' ✓' : ''}</span>
+      border: `1px solid ${done ? 'rgba(74,222,128,0.6)' : next ? 'rgba(253,224,71,0.6)' : 'rgba(214,203,239,0.5)'}`,
+    }}>{label}{done && <span aria-hidden style={{ fontSize: 10, lineHeight: 1 }}>✓</span>}</span>
   );
   const cur = state === 'current';
   return (
@@ -81,7 +84,22 @@ function NodeFace({ node, unit, bossLabel }) {
   return <span style={{ font: `900 17px ${ARC.head}` }}>{number}</span>;
 }
 
-export default function PathMap({ nodes = [], onPick, unit = 'STAGE', bossLabel = 'BOSS', focus, dim = false, nodeClass, style }) {
+// The hint for a locked node (`hint: { index, text }`, the screen's own words):
+// it hangs under the node that was tapped, in the room before the node below,
+// or over it when that room is short, so it never covers another node.
+const HINT_GAP = 5;
+function hintTop(pts, i, size, sizeOf, h, height) {
+  const p = pts[i];
+  const below = pts[i - 1] ? pts[i - 1].y - sizeOf(i - 1) / 2 : height;
+  const above = pts[i + 1] ? pts[i + 1].y + sizeOf(i + 1) / 2 : 0;
+  const under = p.y + size / 2 + HINT_GAP;
+  const over = p.y - size / 2 - HINT_GAP - h;
+  if (under + h <= below - 2) return under;
+  if (over >= above + 2) return over;
+  return under;
+}
+
+export default function PathMap({ nodes = [], onPick, unit = 'STAGE', bossLabel = 'BOSS', focus, dim = false, nodeClass, hint = null, style }) {
   const boxRef = useRef(null);
   const [width, setWidth] = useState(0);
   const scrolled = useRef(false);
@@ -99,6 +117,14 @@ export default function PathMap({ nodes = [], onPick, unit = 'STAGE', bossLabel 
       return same ? prev : next;
     });
   }, [nodes, width, fontsReady]);
+  // The locked hint's real size, for where it hangs.
+  const hintEl = useRef(null);
+  const [hintSize, setHintSize] = useState(null);
+  useLayoutEffect(() => {
+    const el = hintEl.current;
+    const next = el ? { w: el.offsetWidth, h: el.offsetHeight } : null;
+    setHintSize((prev) => (prev && next && prev.w === next.w && prev.h === next.h) || (!prev && !next) ? prev : next);
+  }, [hint?.index, hint?.text, width, fontsReady]);
   useEffect(() => {
     let alive = true;
     document.fonts?.ready?.then(() => { if (alive) setFontsReady((n) => n + 1); });
@@ -138,6 +164,8 @@ export default function PathMap({ nodes = [], onPick, unit = 'STAGE', bossLabel 
   // The road: dashed ahead, gold up to the current node (or the last cleared).
   const reach = cur >= 0 ? cur : lastCleared;
   const line = (list) => list.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const sizeOf = (i) => (nodes[i]?.boss ? SIZE.boss : nodes[i]?.state === 'current' ? SIZE.current : SIZE.node);
+  const hintAt = hint && Number.isInteger(hint.index) && pts[hint.index] ? hint.index : -1;
 
   return (
     <div ref={boxRef} data-retention="path-map" className="no-scrollbar rt-anim" style={{
@@ -217,6 +245,26 @@ export default function PathMap({ nodes = [], onPick, unit = 'STAGE', bossLabel 
               </div>
             );
           })}
+          {hintAt >= 0 && (() => {
+            const p = pts[hintAt];
+            const hs = hintSize || { w: Math.min(width - 16, 220), h: 26 };
+            const left = Math.max(8, Math.min(width - 8 - hs.w, p.x - hs.w / 2));
+            return (
+              <div
+                key={`hint-${hintAt}-${hint.text}`}
+                ref={hintEl}
+                role="status"
+                data-retention="path-hint"
+                style={{
+                  position: 'absolute', top: hintTop(pts, hintAt, sizeOf(hintAt), sizeOf, hs.h, height), left,
+                  width: 'max-content', maxWidth: width - 16, boxSizing: 'border-box', zIndex: 4, pointerEvents: 'none',
+                  padding: '6px 11px', borderRadius: 9, background: 'rgba(20,4,10,0.95)', border: '1px solid rgba(239,68,68,0.6)',
+                  boxShadow: '0 6px 18px rgba(0,0,0,0.55)', textAlign: 'center',
+                  font: `800 8.5px ${ARC.head}`, letterSpacing: '0.1em', lineHeight: 1.35, color: '#fca5a5', animation: 'rt-rise .2s both',
+                }}
+              >🔒 {hint.text}</div>
+            );
+          })()}
         </div>
       )}
     </div>

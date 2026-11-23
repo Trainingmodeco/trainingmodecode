@@ -68,10 +68,27 @@ const OP = A.getSeriesById('one-punch-protocol');
 const op2 = OP.stages[1]; // 3★ < 22:00, 2★ < 28:00, 1★ < 36:00
 const tiers = P.stageStarRule(OP, op2).tiers;
 m = N.nearMiss({ unit: 'time', timeSec: 22 * 60 + 12, tiers, stars: 2 });
-check('22:12 with 2★ held: "13 s off ★★★" (strict: under 22:00)', m?.line === '13 s off ★★★' && m.gapSec === 13, m?.line);
+check('22:12 with 2★ held: "12 s off ★★★" (the two times as shown)', m?.line === '12 s off ★★★' && m.gapSec === 12, m?.line);
 check('… labels: YOUR TIME 22:12 · ★★★ UNDER 22:00, bar 1320 of 1332', m.left === 'YOUR TIME 22:12' && m.right === '★★★ UNDER 22:00' && m.value === 1320 && m.max === 1332 && m.nextStars === 3);
 check('exactly 22:00 is still 1 s off', N.nearMiss({ unit: 'time', timeSec: 1320, tiers, stars: 2 })?.line === '1 s off ★★★');
-check('a gap over a minute reads m:ss: 29:10 with 1★ → "1:11 off ★★"', N.nearMiss({ unit: 'time', timeSec: 29 * 60 + 10, tiers, stars: 1 })?.line === '1:11 off ★★');
+check('a gap over a minute reads m:ss: 29:10 with 1★ → "1:10 off ★★"', N.nearMiss({ unit: 'time', timeSec: 29 * 60 + 10, tiers, stars: 1 })?.line === '1:10 off ★★');
+m = N.nearMiss({ unit: 'time', timeSec: 22 * 60 + 12.7, tiers, stars: 2 });
+check('a fraction of a second is cut as the clear screen shows it: 22:12.7 → YOUR TIME 22:12, 12 s off', m?.left === 'YOUR TIME 22:12' && m.line === '12 s off ★★★' && m.max === 1332, `${m?.left} ${m?.line}`);
+check('22:59.6 reads 22:59, never 22:60', N.nearMiss({ unit: 'time', timeSec: 22 * 60 + 59.6, tiers, stars: 2 })?.left === 'YOUR TIME 22:59');
+{
+  // Every time from the line to 10 minutes over, in tenths: the gap is the
+  // difference of the two times the panel shows (at least 1 s).
+  const sec = (t) => { const [mm, x] = t.split(':').map(Number); return mm * 60 + x; };
+  let bad = null;
+  for (let t = 22 * 60; t <= 32 * 60 && !bad; t += 0.1) {
+    const x = N.nearMiss({ unit: 'time', timeSec: t, tiers, stars: 2 });
+    const shown = sec(x.left.replace('YOUR TIME ', '')), need = sec(x.right.replace('★★★ UNDER ', ''));
+    const g = x.line.split(' off ')[0];
+    const gap = g.endsWith(' s') ? Number(g.slice(0, -2)) : sec(g);
+    if (gap !== Math.max(1, shown - need) || gap !== x.gapSec) bad = `${t.toFixed(1)}: ${x.left} · ${x.right} → ${x.line}`;
+  }
+  check('the gap always agrees with YOUR TIME and the tier as shown (22:00 to 32:00 in tenths)', !bad, bad || '');
+}
 check('3★ held: nothing left', N.nearMiss({ unit: 'time', timeSec: 2000, tiers, stars: 3 }) === null);
 check('a time already under the next star: no gap', N.nearMiss({ unit: 'time', timeSec: 1200, tiers, stars: 2 }) === null);
 check('no time, no tiers: no line', N.nearMiss({ unit: 'time', timeSec: null, tiers, stars: 1 }) === null && N.nearMiss({ unit: 'time', timeSec: 900, tiers: null, stars: 1 }) === null);

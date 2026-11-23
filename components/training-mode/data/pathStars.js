@@ -35,10 +35,15 @@ export function stageStarRule(series, stage) {
   return { kind: 'time', max: 3, tiers: [...tiers].sort((a, b) => b.stars - a.stars) };
 }
 
-const mmss = (sec) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
+// Times show in whole seconds, cut down as the stage-clear screen shows them
+// (17:40.6 reads 17:40, never 17:60), and every gap is worked out from the
+// times as shown, so a sheet's line always agrees with its tiles.
+export const wholeSec = (sec) => Math.floor(Number(sec) + 1e-6);
+const mmss = (sec) => { const s = wholeSec(sec); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 export const fmtTime = mmss;
 
-// A gap in plain words: "12 s", "1:10".
+// A gap in plain words: "12 s", "1:10". Never under 1 s: a time on the line
+// of a strict tier ("under 15:00") is still 1 s off it.
 export function fmtGap(sec) {
   const s = Math.max(1, Math.round(sec));
   return s < 60 ? `${s} s` : mmss(s);
@@ -67,8 +72,10 @@ export function stageStars(series, stage, entry) {
   if (rule.kind === 'time') {
     const tier = stars < 3 ? rule.tiers.find((t) => t.stars === stars + 1) : null;
     if (tier) {
-      const needSec = tier.maxMinutes * 60;
-      out.next = { stars: tier.stars, needs: `under ${mmss(needSec)}`, ...(bestSec != null && bestSec >= needSec ? { gapSec: bestSec - needSec + 1 } : {}) };
+      const needSec = wholeSec(tier.maxMinutes * 60);
+      // The gap is the best time to the tier's line, as the tiles show both
+      // (YOUR BEST 17:40 · under 15:00 → 2:40 off); on the line it reads 1 s.
+      out.next = { stars: tier.stars, needs: `under ${mmss(needSec)}`, ...(bestSec != null && bestSec >= needSec ? { gapSec: Math.max(1, wholeSec(bestSec) - needSec) } : {}) };
     }
     return out;
   }
@@ -95,13 +102,13 @@ export function nextStarLine(info) {
     if (info.next.gapSec != null) return `${fmtGap(info.next.gapSec)} off the ${which} star. ${keep}`;
     return `Finish ${info.next.needs} for the ${which} star. ${keep}`;
   }
-  // paths / arcs
-  const each = info.kind === 'arcs' ? 'One star for each arc cleared' : 'One star for each path cleared';
+  // paths / arcs: short enough for one line at 360 px when two paths are left.
+  const each = info.kind === 'arcs' ? 'One star per arc cleared' : 'One star per path cleared';
   if (!info.next) return `${each}: all ${info.max} done. ${keep}`;
   if (!info.next.paths.length) return `${each}. ${keep}`;
   const names = info.next.paths.map((p) => PATH_LABEL[p] || String(p).toUpperCase());
   const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} or ${names.at(-1)}` : names[0];
-  return `${each}. Clear ${list} for the next one.`;
+  return `${each}. Next: ${list}.`;
 }
 
 // The ladder's own gate (ArcadeSeriesDetail StageLadder): a stage is open when
@@ -221,6 +228,23 @@ export function nextUpCopy(n) {
   };
 }
 
+// Home's Continue card with NEXT UP folded into it: when the last session is
+// the saga or the camp NEXT UP names, the card says the node it opens on, so
+// Home never shows two cards for one place. `parts` is the line under the
+// saga's name ("Stage 6 · The Standard Hundred", "Boxing · Level 5 · Volume"),
+// `label` what a screen reader hears on its button.
+export function nextUpLine(n) {
+  if (!n) return null;
+  const { title } = nextUpCopy(n);
+  const what = n.kind === 'camp' ? 'Level' : 'Stage';
+  const at = `${what} ${n.number}`;
+  const where = n.boss && n.kind !== 'camp' ? 'Boss' : at;
+  const named = title && title !== at ? [title] : [];
+  const parts = [...(n.kind === 'camp' && n.disc ? [n.disc] : []), where, ...named];
+  const full = String(n.title || '').trim();
+  return { parts, label: `Next up in ${n.saga}: ${at}${full ? `, ${full}` : ''}. Continue` };
+}
+
 // The end screen's stars line (an arcade v2 or concept stage just cleared).
 export function endStarsLine(info) {
   if (!info?.cleared) return '';
@@ -261,7 +285,7 @@ export function pathLayout(count, width) {
 //   pts: pathLayout's points · i: the node · top: the label's top, px below the
 //   node's centre · w, h: the label's size · width: the box's width
 // → the label's left, px from the box's left.
-export const PATH_LABEL_GAP = 10;  // the node's edge to the label's top
+export const PATH_LABEL_GAP = 8;   // the node's edge to the label's top
 export const PATH_ROAD_HALF = 3;   // half the road's widest stroke, rounded up
 export const PATH_LABEL_CLEAR = 5; // the road's stroke to the label's edge
 export const PATH_LABEL_EDGE = 8;  // the box's sides to the label
