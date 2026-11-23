@@ -38,3 +38,14 @@ all features free.
 Everything fits its frame on a phone: no wording, design or frame cut off, nothing squeezed or crowded. Check every
 new or changed screen at phone sizes (360, 390 and 430 px wide) by measuring overflow and clipped text, show the
 owner a preview, and fix anything before it ships. When in doubt, take something out rather than squeeze it in.
+
+## Owner's idea, 2026-11-23: 1UP and a POWER bar (not built; answers on the preview board)
+
+- Keep the freeze numbers (start with 1, +1 per 4 weeks on target, hold 2). The owner likes a game name: 1UP
+  (recommended), REVIVE or RECOVER. Board question `q-1up`; rename once answered.
+- A POWER bar that drains while the athlete stays away and refills with a finished session; a phone alert when it is
+  low ("losing power"); the owner suggested dropping a level after a month. Recommended instead: never take XP or
+  levels away; after a month the fighter shows RUSTY (greyed portrait) until one session REVIVES it; alerts only with
+  the notifications release after the App Store launch, opt-in, at most one a week, positive words, stop after three
+  are ignored. Board questions `q-power`, `q-month`, `q-drain`, `q-alerts`
+  (https://claude.ai/artifact/8rkLzhnBSc19h5L5pitdys).
