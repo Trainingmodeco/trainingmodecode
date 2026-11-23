@@ -40,7 +40,10 @@ import FitBuilderSetup from './FitBuilderSetup';
 import { maxOutHandoff } from './data/loadoutMissions';
 import FitBuilderWorkout from './FitBuilderWorkout';
 import FitWorkoutComplete from './FitWorkoutComplete';
-import QuickMissionSetup from './QuickMissionSetup';
+import QuickMissionScreen from './fit-challenge/QuickMissionScreen';
+import FitCheckOffSolo from './fit-challenge/FitCheckOffSolo';
+import FitCardResults from './fit-challenge/FitCardResults';
+import { snapshotMission } from './data/fitCard';
 import QuickMissionActive from './QuickMissionActive';
 import QuickMissionSolo from './QuickMissionSolo';
 import QuickMissionComplete from './QuickMissionComplete';
@@ -675,7 +678,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
   if (screen === 'qm_setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <QuickMissionSetup entry={qmEntry} onBack={goFitHub} onFightMode={goFightHub} onStart={goQuickMissionActive} onCardioOnly={goCardioMode} onPaywall={goPaywall}/>
+        <QuickMissionScreen entry={qmEntry} onBack={goFitHub} onFightMode={goFightHub} onStart={goQuickMissionActive} onCardioOnly={goCardioMode} onPaywall={goPaywall}/>
       </WithNav>
     );
   }
@@ -684,10 +687,24 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     // unchanged. Routed on the cfg and the stash, never on the v2 flag: a SOLO
     // stash must come back into SOLO even if preview was turned off since
     // (QuickMissionActive would hang on a SOLO stash's phase).
-    const Runner = qmCfg.mode === 'solo' || resumeData?.kind === 'solo' ? QuickMissionSolo : QuickMissionActive;
+    // The workout card's CHECK-OFF (switch fitCard) is AT YOUR PACE with tick
+    // boxes: a cfg or a stash that says so. No other start ever carries it.
+    const checkOff = (qmCfg.mode === 'solo' && qmCfg.checkOff === true) || (resumeData?.kind === 'solo' && resumeData.checkOff === true);
+    const Runner = checkOff ? FitCheckOffSolo : qmCfg.mode === 'solo' || resumeData?.kind === 'solo' ? QuickMissionSolo : QuickMissionActive;
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
         <Runner missionCfg={qmCfg} profile={profile} onEnd={goQuickMissionComplete} onSwitchRun={goQuickMissionAtPace} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
+      </WithNav>
+    );
+  }
+  if (screen === 'qm_complete' && qmResult?.card) {
+    // A workout card run (switch fitCard): its own results. REPEAT runs the
+    // card that ran (after an in-run SHUFFLE, the new one); NEW CHALLENGE opens
+    // the page on a new deal.
+    const again = () => goQuickMissionActive({ ...qmCfg, mission: snapshotMission(qmResult.card), card: { ...qmResult.card, startedAt: Date.now() }, mode: qmResult.mode === 'solo' ? 'solo' : 'guided', ...(qmResult.checkOff ? { checkOff: true } : {}) });
+    return (
+      <WithNav activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
+        <FitCardResults result={qmResult} onRepeat={again} onNew={() => goQuickMissionSetup({ newDeal: true })} onBack={goFitHub}/>
       </WithNav>
     );
   }
@@ -726,7 +743,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
   if (screen === 'progress') {
     return (
       <WithNav activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
-        <ProgressScreen onHome={goHome} profile={profile}/>
+        <ProgressScreen onHome={goHome} profile={profile} onOpenCardRun={(id) => goQuickMissionSetup({ cardRunId: id })}/>
       </WithNav>
     );
   }

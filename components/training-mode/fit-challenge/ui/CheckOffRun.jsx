@@ -1,5 +1,5 @@
 import { ChevronLeft, Shuffle } from 'lucide-react';
-import { GhostButton, HEAD, MUTED, GOLD, VIOLET_TEXT } from '../../shared/FitSetupKit';
+import { GhostButton, GoldButton, HEAD, MUTED, GOLD, VIOLET_TEXT } from '../../shared/FitSetupKit';
 import CheckOffTracker from './CheckOffTracker';
 import { mmss } from '../../data/challengeTotals';
 
@@ -7,11 +7,14 @@ import { mmss } from '../../data/challengeTotals';
 // the tracker in place of the ROUND tap, then SHUFFLE / ROUNDS (both ask first
 // when they would throw ticks away) and PAUSE / STOP as today.
 // Render inside PhoneFrame, as QuickMissionSolo does.
+// Wired (fit-challenge/FitCheckOffSolo): `readyLeft` shows GET READY's count
+// in place of the clock, and `onFinish` puts FINISH under the tracker once
+// every round is ticked.
 const RED_BORDER = 'rgba(239,68,68,0.5)';
 
 export default function CheckOffRun({
   title, strip, elapsedSec, thisRoundSec, moves, ticks, roundTimes, rounds,
-  onTick, onBack, onShuffle, onRounds, onPause, onStop, paused = false,
+  onTick, onBack, onShuffle, onRounds, onPause, onStop, paused = false, readyLeft = null, onFinish,
 }) {
   const current = ticks.findIndex((r) => !r.every(Boolean));
   return (
@@ -30,13 +33,25 @@ export default function CheckOffRun({
 
       {/* The clock */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-        <div role="timer" style={{ font: `700 56px ${HEAD}`, lineHeight: 1, color: '#fff', fontVariantNumeric: 'tabular-nums', opacity: paused ? 0.6 : 1 }}>{mmss(elapsedSec)}</div>
-        <div style={{ font: `600 12px ${HEAD}`, letterSpacing: '0.12em', color: MUTED, textAlign: 'center' }}>
-          {current >= 0 ? `ROUND ${current + 1} OF ${ticks.length} · THIS ROUND ${mmss(thisRoundSec)}` : `ALL ${ticks.length} ROUNDS DONE`}
-        </div>
+        {readyLeft != null ? (
+          <>
+            <div style={{ font: `600 13px ${HEAD}`, letterSpacing: '0.16em', color: GOLD }}>GET READY</div>
+            <div style={{ font: `700 56px ${HEAD}`, lineHeight: 1, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{readyLeft}</div>
+          </>
+        ) : (
+          <>
+            <div role="timer" style={{ font: `700 56px ${HEAD}`, lineHeight: 1, color: '#fff', fontVariantNumeric: 'tabular-nums', opacity: paused ? 0.6 : 1 }}>{mmss(elapsedSec)}</div>
+            <div style={{ font: `600 12px ${HEAD}`, letterSpacing: '0.12em', color: MUTED, textAlign: 'center' }}>
+              {current >= 0 ? `ROUND ${current + 1} OF ${ticks.length} · THIS ROUND ${mmss(thisRoundSec)}` : `ALL ${ticks.length} ROUNDS DONE`}
+            </div>
+            {paused && <div style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.16em', color: GOLD }}>PAUSED</div>}
+          </>
+        )}
       </div>
 
-      <CheckOffTracker moves={moves} ticks={ticks} roundTimes={roundTimes} onTick={onTick}/>
+      <CheckOffTracker moves={moves} ticks={ticks} roundTimes={roundTimes} onTick={readyLeft != null ? undefined : onTick}/>
+
+      {onFinish && current < 0 && <GoldButton label="FINISH" height={56} onClick={onFinish}/>}
 
       {/* Change the workout mid-run: each asks first when it would drop ticks. */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
