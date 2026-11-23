@@ -64,13 +64,13 @@ function OptIn() {
 }
 
 export const STATES = [
-  { s: 'board-top10', group: 'A · Full screen after FINISH', title: 'New best, top 10', note: 'Fight Focus, a beta board: 4 real players among CPU rows, a new best lands 6th. CONTINUE goes to the end screen.', render: () => board(FIGHT_TOP10) },
+  { s: 'board-top10', group: 'A · Full screen after FINISH', title: 'New best, top 10', note: 'Fight Focus, a beta board at 3 × 3 min, 60 s rest: 4 real players among CPU rows. A new best lands 6th on the list, 3rd of the 4 players. CONTINUE goes to the end screen.', render: () => board(FIGHT_TOP10) },
   { s: 'board-early', group: 'A · Full screen after FINISH', title: 'Brand-new board', note: 'Max Out, BOSS RUSH: you are the first real player; 9 CPU rows hold the other places.', render: () => board(BOSS_EARLY) },
   { s: 'board-fade', group: 'A · Full screen after FINISH', title: 'CPU fading out', note: 'A 5 km run with 6 real players: the CPU rows now sit only under the slowest player.', render: () => board(RUN_FADE) },
   { s: 'board-busy', group: 'A · Full screen after FINISH', title: 'Outside the top 10', note: 'Quick Mission ROOM 12 with 2,310 players: no CPU left, and your row pinned under the list with your world rank and what the next place needs.', render: () => board(ROOM_BUSY) },
-  { s: 'board-time', group: 'A · Full screen after FINISH', title: 'Timed board', note: 'An arcade stage: less time ranks higher. A new best lands 4th.', render: () => board(STAGE_TIME) },
+  { s: 'board-time', group: 'A · Full screen after FINISH', title: 'Timed board', note: 'An arcade stage, fit side: less time ranks higher. A new best lands 4th on the list, 2nd of the 3 players.', render: () => board(STAGE_TIME) },
   { s: 'endcard', group: 'B · On the end screen', title: 'HIGH SCORES card', note: 'The real end screen with a HIGH SCORES card: your place, the top 3, VIEW BOARD.', render: () => <EndCard/> },
-  { s: 'optin', group: 'First time', title: 'Join the world board', note: 'Asked once, before the first board: display name only, country off unless turned on, JOIN or NOT NOW.', render: () => <OptIn/> },
+  { s: 'optin', group: 'First time', title: 'Join the world board', note: 'Asked once, before the first board: others see the display name and level, the country only if turned on. JOIN or NOT NOW.', render: () => <OptIn/> },
 ];
 
 // The app's tab shell (ScreenRouter's WithNav): one 100dvh column that

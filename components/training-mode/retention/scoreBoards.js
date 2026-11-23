@@ -4,12 +4,14 @@
 // wired into a session, nothing is sent anywhere, no switch turns it on. The
 // server design is docs/retention/SCOREBOARD-DESIGN.md.
 //
-// A board is one mode at one setting ("Fight Focus · Boxing · 3 rounds × 3 min
-// · Normal"), so every score on it was made under the same conditions. Ten
+// A board is one mode at one setting ("Fight Focus · Boxing · 3 × 3 min, 60 s
+// rest · Normal"), so every score on it was made under the same conditions. Ten
 // places. While a board has fewer than 5 real players, CPU house scores fill
 // the empty places and real players rank among them; from 5 real players on,
 // a house score stays only below the lowest real score, so they fade out as
 // people join. A house row is always tagged CPU and never stored as a player.
+
+import { ORD } from './ui/ScoreBoard';
 
 export const BOARD_SIZE = 10;
 export const FADE_AT = 5;
@@ -41,9 +43,16 @@ export function houseRows(kind, ladder) {
 // `players` is how many real players the board has in all (a busy board passes
 // only its top few). `lower`: a timed board, where less is better. A CPU row
 // ranks under a real player on the same score.
+//
+// Two numbers, kept apart: `place` is the row's place on the list, CPU rows
+// included (arcade style, the owner's "real players rank among them": beat a
+// house score and you move up a place); `rank` is a real player's rank among
+// the players only, so a house score is never counted as a player. From
+// FADE_AT players on, house rows sit only under the lowest real score, so the
+// two are the same for everyone.
 export function composeBoard({ real = [], house = [], lower = false, players = real.length, size = BOARD_SIZE, fadeAt = FADE_AT }) {
   const better = (a, b) => (lower ? a.value - b.value : b.value - a.value);
-  const ranked = [...real].sort((a, b) => better(a, b) || (a.at || 0) - (b.at || 0));
+  const ranked = [...real].sort((a, b) => better(a, b) || (a.at || 0) - (b.at || 0)).map((r, i) => ({ ...r, rank: i + 1 }));
   let cpu = house.map((h) => ({ ...h, cpu: true }));
   if (players >= fadeAt && ranked.length) {
     const lowest = ranked[ranked.length - 1].value;
@@ -53,43 +62,62 @@ export function composeBoard({ real = [], house = [], lower = false, players = r
   return all.slice(0, size).map((r, i) => ({ ...r, place: i + 1 }));
 }
 
+// The YOUR SCORE line under the hero: the place on the list, and, while CPU
+// rows sit above you, your rank among the players too ("6TH PLACE · 3RD OF 4
+// PLAYERS"), so the place is never read as a world rank that counts a CPU.
+export function placeLine(rows, players) {
+  const me = rows.find((r) => r.you);
+  if (!me) return null;
+  const place = `${ORD(me.place)} PLACE`;
+  if (players <= 1) return `${place} · FIRST PLAYER ON THIS BOARD`;
+  const cpuAhead = rows.some((r) => r.cpu && r.place < me.place);
+  const of = `${players.toLocaleString('en-US')} PLAYERS`;
+  return cpuAhead ? `${place} · ${ORD(me.rank)} OF ${of}` : `${place} · ${of}`;
+}
+
 const t = (m, s = 0) => m * 60 + s;
 const rr = (rounds, reps) => rounds * 1000 + reps;
 
 // ── the sample boards (names are sample handles, no real people) ───────────
 
 // Fight Focus, a beta board: 4 real players among the house rows, and a new
-// best that lands 6th. STRIKES = strikes the phone counted (motion on).
+// best that lands 6th on the list, 3rd of the 4 players. STRIKES = strikes
+// the phone counted (motion on). A fight board is one of a few fixed settings,
+// rest included (SCOREBOARD-DESIGN.md: 3 x 3 min or 5 x 3 min, 60 s rest).
 const FIGHT_LADDER = [1008, 936, 864, 792, 720, 648, 576, 504, 432, 360, 300, 240];
+const FIGHT_ROWS = composeBoard({
+  real: [
+    { name: 'Rafa_K', level: 22, value: 951, cc: 'BR', at: 1 },
+    { name: 'Mina', level: 17, value: 868, at: 2 },
+    { name: 'Trainee', level: 14, value: 812, you: true, newBest: true, at: 9 },
+    { name: 'Dre', level: 7, value: 640, cc: 'US', at: 3 },
+  ],
+  house: houseRows('fight', FIGHT_LADDER),
+});
 export const FIGHT_TOP10 = {
   id: 'fight-top10',
-  mode: 'FIGHT FOCUS · BOXING', setting: '3 ROUNDS × 3 MIN · NORMAL',
+  mode: 'FIGHT FOCUS · BOXING', setting: '3 × 3 MIN · 60 S REST · NORMAL', beta: true,
   kind: 'count', unit: 'STRIKES', unitLong: 'STRIKES ✓',
-  rows: composeBoard({
-    real: [
-      { name: 'Rafa_K', level: 22, value: 951, cc: 'BR', at: 1 },
-      { name: 'Mina', level: 17, value: 868, at: 2 },
-      { name: 'Trainee', level: 14, value: 812, you: true, newBest: true, at: 9 },
-      { name: 'Dre', level: 7, value: 640, cc: 'US', at: 3 },
-    ],
-    house: houseRows('fight', FIGHT_LADDER),
-  }),
+  rows: FIGHT_ROWS,
   you: null,
-  hero: { value: 812, newBest: true, was: 744, line: '6TH PLACE · 4 PLAYERS SO FAR' },
+  hero: { value: 812, newBest: true, was: 744, line: placeLine(FIGHT_ROWS, 4) },
 };
 
-// Max Out, a brand-new board: you are its first real player.
+// Max Out, a brand-new board: you are its first real player, 4th on the list.
+// BETA: a Max Out score is typed, so its board opens marked until the caps
+// are checked against real sessions (the fight boards too, for the counter).
 const BOSS_LADDER = [262, 244, 226, 210, 195, 180, 165, 150, 135, 120, 105, 90];
+const BOSS_ROWS = composeBoard({
+  real: [{ name: 'Trainee', level: 14, value: 214, you: true, newBest: true, at: 1 }],
+  house: houseRows('fit', BOSS_LADDER),
+});
 export const BOSS_EARLY = {
   id: 'boss-early',
-  mode: 'MAX OUT · BOSS RUSH', setting: 'STANDARD · 3 ROUNDS',
+  mode: 'MAX OUT · BOSS RUSH', setting: 'STANDARD · 3 ROUNDS', beta: true,
   kind: 'count', unit: 'REPS', unitLong: 'TOTAL REPS',
-  rows: composeBoard({
-    real: [{ name: 'Trainee', level: 14, value: 214, you: true, newBest: true, at: 1 }],
-    house: houseRows('fit', BOSS_LADDER),
-  }),
+  rows: BOSS_ROWS,
   you: null,
-  hero: { value: 214, newBest: true, first: true, line: 'FIRST PLAYER ON THIS BOARD · 4TH PLACE' },
+  hero: { value: 214, newBest: true, first: true, line: placeLine(BOSS_ROWS, 1) },
 };
 
 // Quick Mission SOLO, a busy board: 2,310 players, the house rows long gone,
@@ -119,43 +147,47 @@ export const ROOM_BUSY = {
   hero: { value: rr(10, 18), best: rr(10, 25), line: '7 REPS SHORT OF YOUR BEST' },
 };
 
-// An arcade stage, timed: less is better. 3 real players among the house.
+// An arcade stage, timed: less is better. 3 real players among the house; a
+// new best lands 4th on the list, 2nd of the 3 players. An arcade board is
+// one stage on one side (fit, fight or both), and its time counts pauses.
 const STAGE_LADDER = [t(11, 40), t(12, 30), t(13, 20), t(14, 10), t(15), t(16), t(17, 10), t(18, 20), t(19, 40), t(21), t(22, 30), t(24)];
+const STAGE_ROWS = composeBoard({
+  lower: true,
+  real: [
+    { name: 'Noor', level: 26, value: t(12, 12), at: 1 },
+    { name: 'Trainee', level: 14, value: t(13, 5), you: true, newBest: true, at: 5 },
+    { name: 'Kenji.T', level: 31, value: t(16, 30), cc: 'JP', at: 2 },
+  ],
+  house: houseRows('fit', STAGE_LADDER),
+});
 export const STAGE_TIME = {
   id: 'stage-time',
   mode: 'ARCADE · ONE HUNDRED', setting: 'STAGE 3 · FIT',
   kind: 'time', unit: 'TIME', unitLong: 'STAGE TIME',
-  rows: composeBoard({
-    lower: true,
-    real: [
-      { name: 'Noor', level: 26, value: t(12, 12), at: 1 },
-      { name: 'Trainee', level: 14, value: t(13, 5), you: true, newBest: true, at: 5 },
-      { name: 'Kenji.T', level: 31, value: t(16, 30), cc: 'JP', at: 2 },
-    ],
-    house: houseRows('fit', STAGE_LADDER),
-  }),
+  rows: STAGE_ROWS,
   you: null,
-  hero: { value: t(13, 5), newBest: true, was: t(13, 48), line: '4TH PLACE · LESS TIME RANKS HIGHER' },
+  hero: { value: t(13, 5), newBest: true, was: t(13, 48), line: placeLine(STAGE_ROWS, 3) },
 };
 
 // A run, 6 real players: the house rows now sit only under the slowest one.
 const RUN_LADDER = [t(17, 30), t(19), t(20, 30), t(22), t(23, 30), t(25), t(26, 30), t(28), t(30), t(32, 30), t(35), t(38)];
+const RUN_ROWS = composeBoard({
+  lower: true,
+  real: [
+    { name: 'Ola', level: 24, value: t(18, 42), cc: 'NG', at: 1 },
+    { name: 'Tess', level: 21, value: t(21, 15), at: 2 },
+    { name: 'Trainee', level: 14, value: t(22, 48), you: true, at: 3 },
+    { name: 'Sam W', level: 19, value: t(24, 5), cc: 'GB', at: 4 },
+    { name: 'Big Lu', level: 16, value: t(25, 52), cc: 'PH', at: 5 },
+    { name: 'Dre', level: 9, value: t(26, 40), cc: 'US', at: 6 },
+  ],
+  house: houseRows('run', RUN_LADDER),
+});
 export const RUN_FADE = {
   id: 'run-fade',
   mode: 'CARDIO · RUN', setting: '5 KM · GPS',
   kind: 'time', unit: 'TIME', unitLong: 'RUN TIME',
-  rows: composeBoard({
-    lower: true,
-    real: [
-      { name: 'Ola', level: 24, value: t(18, 42), cc: 'NG', at: 1 },
-      { name: 'Tess', level: 21, value: t(21, 15), at: 2 },
-      { name: 'Trainee', level: 14, value: t(22, 48), you: true, at: 3 },
-      { name: 'Sam W', level: 19, value: t(24, 5), cc: 'GB', at: 4 },
-      { name: 'Big Lu', level: 16, value: t(25, 52), cc: 'PH', at: 5 },
-      { name: 'Dre', level: 9, value: t(26, 40), cc: 'US', at: 6 },
-    ],
-    house: houseRows('run', RUN_LADDER),
-  }),
+  rows: RUN_ROWS,
   you: null,
-  hero: { value: t(22, 48), line: '3RD PLACE · 6 PLAYERS' },
+  hero: { value: t(22, 48), line: placeLine(RUN_ROWS, 6) },
 };

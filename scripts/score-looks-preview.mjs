@@ -52,38 +52,39 @@ const SEED = {
 const STATES = [
   {
     s: 'board-top10',
-    expect: /GAME OVER[\s\S]*HIGH SCORES[\s\S]*FIGHT FOCUS · BOXING[\s\S]*3 ROUNDS × 3 MIN · NORMAL[\s\S]*YOUR SCORE[\s\S]*812[\s\S]*STRIKES ✓[\s\S]*6TH PLACE · 4 PLAYERS SO FAR[\s\S]*NEW\s*BEST[\s\S]*WAS 744[\s\S]*RANK[\s\S]*LEVEL[\s\S]*STRIKES[\s\S]*1ST[\s\S]*HEAVY BAG[\s\S]*CPU[\s\S]*1,008[\s\S]*2ND[\s\S]*Rafa_K[\s\S]*BR[\s\S]*6TH[\s\S]*YOU[\s\S]*NEW BEST[\s\S]*10TH[\s\S]*A house score, not a player[\s\S]*CONTINUE/,
+    expect: /GAME OVER[\s\S]*HIGH SCORES[\s\S]*FIGHT FOCUS · BOXING\s*BETA[\s\S]*3 × 3 MIN · 60 S REST · NORMAL[\s\S]*YOUR SCORE[\s\S]*812[\s\S]*STRIKES ✓[\s\S]*6TH PLACE · 3RD OF 4 PLAYERS[\s\S]*NEW\s*BEST[\s\S]*WAS 744[\s\S]*PLACE[\s\S]*LEVEL[\s\S]*STRIKES[\s\S]*1ST[\s\S]*HEAVY BAG[\s\S]*CPU[\s\S]*1,008[\s\S]*2ND[\s\S]*Rafa_K[\s\S]*BR[\s\S]*6TH[\s\S]*YOU[\s\S]*NEW BEST[\s\S]*10TH[\s\S]*A house score, not a player[\s\S]*CONTINUE/,
     rows: { cpu: 6, you: 1, player: 3 },
   },
   {
     s: 'board-early',
-    expect: /MAX OUT · BOSS RUSH[\s\S]*STANDARD · 3 ROUNDS[\s\S]*214[\s\S]*TOTAL REPS[\s\S]*FIRST PLAYER ON THIS BOARD[\s\S]*1ST[\s\S]*KETTLEBELL[\s\S]*CPU[\s\S]*4TH[\s\S]*YOU[\s\S]*10TH[\s\S]*A house score, not a player[\s\S]*CONTINUE/,
+    expect: /MAX OUT · BOSS RUSH\s*BETA[\s\S]*STANDARD · 3 ROUNDS[\s\S]*214[\s\S]*TOTAL REPS[\s\S]*4TH PLACE · FIRST PLAYER ON THIS BOARD[\s\S]*1ST[\s\S]*KETTLEBELL[\s\S]*CPU[\s\S]*4TH[\s\S]*YOU[\s\S]*10TH[\s\S]*A house score, not a player[\s\S]*CONTINUE/,
     rows: { cpu: 9, you: 1, player: 0 },
   },
   {
     s: 'board-fade',
-    expect: /CARDIO · RUN[\s\S]*5 KM · GPS[\s\S]*22:48[\s\S]*RUN TIME[\s\S]*1ST[\s\S]*Ola[\s\S]*3RD[\s\S]*YOU[\s\S]*6TH[\s\S]*Dre[\s\S]*26:40[\s\S]*7TH[\s\S]*STEP BOX[\s\S]*CPU[\s\S]*28:00[\s\S]*10TH[\s\S]*LANE LINE[\s\S]*35:00[\s\S]*CONTINUE/,
+    expect: /CARDIO · RUN[\s\S]*5 KM · GPS[\s\S]*22:48[\s\S]*RUN TIME[\s\S]*3RD PLACE · 6 PLAYERS[\s\S]*1ST[\s\S]*Ola[\s\S]*3RD[\s\S]*YOU[\s\S]*6TH[\s\S]*Dre[\s\S]*26:40[\s\S]*7TH[\s\S]*STEP BOX[\s\S]*CPU[\s\S]*28:00[\s\S]*10TH[\s\S]*LANE LINE[\s\S]*35:00[\s\S]*CONTINUE/,
     rows: { cpu: 4, you: 1, player: 5 }, fade: true,
   },
   {
     s: 'board-busy',
     expect: /QUICK MISSION · ROOM 12[\s\S]*10 \+ 18[\s\S]*ROUNDS \+ REPS[\s\S]*7 REPS SHORT OF YOUR BEST[\s\S]*YOUR BEST[\s\S]*10 \+ 25[\s\S]*SCORE[\s\S]*1ST[\s\S]*Kenji\.T[\s\S]*14 \+ 6[\s\S]*10TH[\s\S]*#143[\s\S]*YOU[\s\S]*10 \+ 25[\s\S]*of 2,310 players[\s\S]*Next place: 3 more reps[\s\S]*CONTINUE/,
-    absent: /CPU|NEW BEST/,
+    absent: /CPU|NEW BEST|BETA/,
     rows: { cpu: 0, you: 1, player: 10 },
   },
   {
     s: 'board-time',
-    expect: /ARCADE · ONE HUNDRED[\s\S]*STAGE 3 · FIT[\s\S]*13:05[\s\S]*STAGE TIME[\s\S]*LESS TIME RANKS HIGHER[\s\S]*NEW\s*BEST[\s\S]*WAS 13:48[\s\S]*TIME[\s\S]*1ST[\s\S]*11:40[\s\S]*Noor[\s\S]*12:12[\s\S]*4TH[\s\S]*YOU[\s\S]*13:05[\s\S]*Kenji\.T[\s\S]*16:30[\s\S]*CONTINUE/,
+    expect: /ARCADE · ONE HUNDRED[\s\S]*STAGE 3 · FIT[\s\S]*13:05[\s\S]*STAGE TIME[\s\S]*4TH PLACE · 2ND OF 3 PLAYERS[\s\S]*NEW\s*BEST[\s\S]*WAS 13:48[\s\S]*TIME[\s\S]*1ST[\s\S]*11:40[\s\S]*Noor[\s\S]*12:12[\s\S]*4TH[\s\S]*YOU[\s\S]*13:05[\s\S]*Kenji\.T[\s\S]*16:30[\s\S]*CONTINUE/,
     rows: { cpu: 7, you: 1, player: 2 },
   },
   {
     s: 'endcard',
-    expect: /SESSION COMPLETE[\s\S]*GOOD WORK[\s\S]*3\/3[\s\S]*812[\s\S]*STRIKES ✓[\s\S]*HIGH SCORES[\s\S]*3 ROUNDS × 3 MIN · NORMAL[\s\S]*RANK[\s\S]*STRIKES[\s\S]*1ST[\s\S]*HEAVY BAG[\s\S]*2ND[\s\S]*Rafa_K[\s\S]*3RD[\s\S]*SPEED BAG[\s\S]*6TH[\s\S]*YOU[\s\S]*NEW BEST[\s\S]*VIEW BOARD[\s\S]*YOUR PROGRESS[\s\S]*LEVEL 14[\s\S]*TRAIN AGAIN[\s\S]*BACK TO START/,
+    expect: /SESSION COMPLETE[\s\S]*GOOD WORK[\s\S]*3\/3[\s\S]*812[\s\S]*STRIKES ✓[\s\S]*HIGH SCORES[\s\S]*3 × 3 MIN · 60 S REST · NORMAL[\s\S]*PLACE[\s\S]*STRIKES[\s\S]*1ST[\s\S]*HEAVY BAG[\s\S]*2ND[\s\S]*Rafa_K[\s\S]*3RD[\s\S]*SPEED BAG[\s\S]*6TH[\s\S]*YOU[\s\S]*NEW BEST[\s\S]*VIEW BOARD[\s\S]*YOUR PROGRESS[\s\S]*LEVEL 14[\s\S]*TRAIN AGAIN[\s\S]*BACK TO START/,
     rows: { cpu: 2, you: 1, player: 1 },
   },
   {
     s: 'optin',
-    expect: /NEW[\s\S]*HIGH SCORES[\s\S]*WORLD BOARD[\s\S]*Put your best scores on the world board\?[\s\S]*display name and level[\s\S]*Never your email, photo or location[\s\S]*DISPLAY NAME[\s\S]*Everyone sees it[\s\S]*Show my country \(US\)[\s\S]*NOT NOW[\s\S]*JOIN[\s\S]*Leave any time in Profile/,
+    expect: /NEW[\s\S]*HIGH SCORES[\s\S]*WORLD BOARD[\s\S]*Put your best scores on the world board\?[\s\S]*display name and level\. Never your email or photo\. Your country only if you turn it on below\.[\s\S]*DISPLAY NAME[\s\S]*Everyone sees it[\s\S]*Show my country \(US\) next to my name[\s\S]*NOT NOW[\s\S]*JOIN[\s\S]*Leave any time in Profile/,
+    absent: /location/i,
     input: 'Trainee',
   },
   { s: 'gallery', url: 'score-looks', expect: /THE SCORE BOARD[\s\S]*NEW BEST, TOP 10 · board-top10[\s\S]*OUTSIDE THE TOP 10 · board-busy[\s\S]*HIGH SCORES CARD · endcard[\s\S]*JOIN THE WORLD BOARD · optin/ },

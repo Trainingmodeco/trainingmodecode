@@ -9,7 +9,9 @@ import { ARC, RETENTION_CSS } from './tokens';
 // (retention/scoreBoards.js composeBoard for the looks; the server later).
 //
 //   rows:  [{ place, name, level, value, cpu?, you?, newBest?, cc? }] in order,
-//          at most 10. `place` 1..10 counts every row on the board, CPU too.
+//          at most 10. `place` 1..10 counts every row on the board, CPU too
+//          (the PLACE column, arcade style); a player's rank among players
+//          only is said on YOUR SCORE (scoreBoards.js placeLine), never here.
 //   kind:  'count' (1,284) · 'time' (14:52, lower is better) · 'roundsReps'
 //          (7 + 12: value = rounds × 1000 + reps)
 //   unit:  the column's name (STRIKES, TIME, TOTAL REPS). Said once, at the
@@ -60,6 +62,7 @@ const SB_CSS = `
   .sb-row { gap: 5px !important; padding: 0 6px !important; }
   .sb-head { gap: 5px !important; padding: 0 6px 6px !important; }
   .sb-rank { width: 33px !important; min-width: 33px !important; }
+  .sb-head .sb-rank { letter-spacing: 0 !important; }
   .sb-lv { width: 24px !important; }
   .sb-score { width: 58px !important; }
   .sb-wide { display: none !important; }
@@ -134,7 +137,7 @@ export default function ScoreBoard({ rows = [], kind = 'count', unit = 'SCORE', 
     }}>
       <style dangerouslySetInnerHTML={{ __html: RETENTION_CSS + SB_CSS }}/>
       <div role="row" className="sb-head" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 8px 6px' }}>
-        <span className="sb-rank" style={{ ...head, width: 36, flexShrink: 0 }}>RANK</span>
+        <span className="sb-rank" style={{ ...head, width: 36, flexShrink: 0, letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>PLACE</span>
         <span style={{ ...head, flex: 1 }}>NAME</span>
         <span className="sb-lv" style={{ ...head, width: 42, flexShrink: 0 }}><span className="sb-wide">LEVEL</span><span className="sb-narrow">LV</span></span>
         <span className="sb-score" style={{ ...head, width: 66, flexShrink: 0, textAlign: 'right', color: ARC.gold, whiteSpace: 'nowrap' }}>{unit}</span>

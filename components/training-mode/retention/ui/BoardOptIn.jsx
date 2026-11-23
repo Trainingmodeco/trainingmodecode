@@ -8,9 +8,10 @@ import { ARC } from './tokens';
 //   country:  the two-letter code the phone reports (shown only if switched on)
 //   onJoin({ name, showCountry }) / onLater: JOIN / NOT NOW
 //
-// Display name only: up to 12 letters, numbers, spaces, dots, dashes or
-// underscores, checked by the server's name filter. The country is off until
-// the athlete turns it on.
+// Others see the display name (up to 12 letters, numbers, spaces, dots,
+// dashes or underscores, checked by the server's name filter) and the level.
+// The country is the one place shown, two letters, and only once the athlete
+// turns it on: the body says so, so the switch never contradicts it.
 export default function BoardOptIn({ name: name0 = '', country = 'US', onJoin, onLater }) {
   const [name, setName] = useState(name0);
   const [showCountry, setShowCountry] = useState(false);
@@ -24,7 +25,7 @@ export default function BoardOptIn({ name: name0 = '', country = 'US', onJoin, o
       <div>
         <div style={label}>WORLD BOARD</div>
         <h2 style={{ margin: '4px 0 6px', font: `900 17px ${ARC.head}`, color: ARC.gold, letterSpacing: '0.04em', lineHeight: 1.25 }}>Put your best scores on the world board?</h2>
-        <p style={text}>Each mode keeps your best score on a world list, so you can see where you rank. Others see your display name and level. Never your email, photo or location.</p>
+        <p style={text}>Each mode keeps your best score on a world list, so you can see where you rank. Others see your display name and level. Never your email or photo. Your country only if you turn it on below.</p>
       </div>
       <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <span style={label}>DISPLAY NAME</span>
@@ -42,7 +43,7 @@ export default function BoardOptIn({ name: name0 = '', country = 'US', onJoin, o
         display: 'flex', alignItems: 'center', gap: 12, minHeight: 44, padding: '0 12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
         background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: '#e9e3f7',
       }}>
-        <span style={{ flex: 1, font: `700 14px ${ARC.body}` }}>Show my country ({country})</span>
+        <span style={{ flex: 1, font: `700 14px ${ARC.body}`, lineHeight: 1.25, textWrap: 'balance' }}>Show my country ({country}) next to my name</span>
         <span aria-hidden style={{ width: 42, height: 24, borderRadius: 12, flexShrink: 0, position: 'relative', background: showCountry ? ARC.gold : 'rgba(255,255,255,0.15)', transition: 'background .15s' }}>
           <span style={{ position: 'absolute', top: 3, left: showCountry ? 21 : 3, width: 18, height: 18, borderRadius: 9, background: showCountry ? '#140a00' : '#cbc6e0', transition: 'left .15s' }}/>
         </span>

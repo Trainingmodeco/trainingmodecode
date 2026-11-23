@@ -19,9 +19,9 @@ export default function LookScores() {
   return (
     <Feature id="f4" num="FEATURE 4" title="GAME-OVER SCORE BOARD"
       reuse="the end screen (MissionComplete), the arcade gold titles, the app's level and tier colours, each mode's own finished-session numbers (strikes the phone counted, a mission's score, a stage time, a run time), the account sign-in."
-      isNew="one board per mode and setting, ten places, your row in gold with NEW BEST; CPU house scores (equipment names, tagged CPU) fill a new board and step aside once 5 real players are on it; your world rank pinned under the list when you are outside the top 10; a HIGH SCORES card for the end screen; a one-time opt-in (display name only). Full phone screens: /score-looks.">
+      isNew="one board per mode and setting, ten places, your row in gold with NEW BEST; CPU house scores (equipment names, tagged CPU) fill a new board and step aside once 5 real players are on it; your world rank pinned under the list when you are outside the top 10; a HIGH SCORES card for the end screen; a one-time opt-in (display name and level; the country only if turned on). Full phone screens: /score-looks.">
 
-      <Look name="A · New best, in the top 10" note="Straight after FINISH. Fight Focus, a beta board: 4 real players among CPU rows; the new best lands 6th. CONTINUE goes to the end screen." bg={BG} animated>
+      <Look name="A · New best, in the top 10" note="Straight after FINISH. Fight Focus, a beta board: 4 real players among CPU rows; the new best lands 6th on the list, 3rd of the 4 players. CONTINUE goes to the end screen." bg={BG} animated>
         <GameOverBoard board={FIGHT_TOP10} onContinue={noop}/>
         <div style={{ height: 16 }}/>
       </Look>
@@ -41,7 +41,7 @@ export default function LookScores() {
         <div style={{ height: 16 }}/>
       </Look>
 
-      <Look name="A · Timed board" note="An arcade stage: less time ranks higher." bg={BG}>
+      <Look name="A · Timed board" note="An arcade stage, fit side: less time ranks higher." bg={BG}>
         <GameOverBoard board={STAGE_TIME} onContinue={noop}/>
         <div style={{ height: 16 }}/>
       </Look>
@@ -50,7 +50,7 @@ export default function LookScores() {
         <HighScoresCard board={FIGHT_TOP10} onView={noop}/>
       </Look>
 
-      <Look name="First time: join the world board" note="Asked once, before the first board. Display name only; the country stays off unless turned on. NOT NOW goes on to the end screen." bg={BG} pad={16}>
+      <Look name="First time: join the world board" note="Asked once, before the first board. Others see the display name and level; the country stays off unless turned on. NOT NOW goes on to the end screen." bg={BG} pad={16}>
         <BoardOptIn name="Trainee" country="US" onJoin={noop} onLater={noop}/>
       </Look>
     </Feature>

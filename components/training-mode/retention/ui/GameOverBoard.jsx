@@ -4,9 +4,11 @@ import { ARC, RETENTION_CSS } from './tokens';
 // The game-over score board, full screen (option A: straight after FINISH,
 // CONTINUE to the end screen). Props only, sample data in the looks:
 //
-//   board: { mode, setting, kind, unit, unitLong, rows, you, hero }
+//   board: { mode, setting, beta?, kind, unit, unitLong, rows, you, hero }
 //     mode / setting: the board's key, said in two short lines
-//       ("FIGHT FOCUS · BOXING", "3 ROUNDS × 3 MIN · NORMAL")
+//       ("FIGHT FOCUS · BOXING", "3 × 3 MIN · 60 S REST · NORMAL")
+//     beta: a BETA mark after the mode, while a board's scores are not yet
+//       proven fair (phone-counted strikes, typed SOLO and Max Out scores)
 //     hero: { value, newBest?, was?, best?, line? } this session's score;
 //       `was` the old best under a NEW BEST, `best` the best that stands
 //       when this session did not beat it
@@ -17,12 +19,20 @@ const goldText = {
   WebkitTextFillColor: 'transparent', color: 'transparent',
 };
 
-export function BoardHeader({ mode, setting, eyebrow = '◈ GAME OVER ◈' }) {
+export function BoardHeader({ mode, setting, beta = false, eyebrow = '◈ GAME OVER ◈' }) {
   return (
     <header style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
       <div style={{ font: "700 8px 'Press Start 2P',monospace", color: '#c9a6ff', letterSpacing: '0.16em', lineHeight: 1.4 }}>{eyebrow}</div>
       <h1 className="rt-anim" style={{ margin: '2px 0 2px', font: `900 26px ${ARC.head}`, letterSpacing: '0.08em', lineHeight: 1.1, ...goldText, animation: 'rt-slam .6s both' }}>HIGH SCORES</h1>
-      {mode && <div style={{ font: `800 10px ${ARC.head}`, letterSpacing: '0.12em', color: '#f5e9ff', lineHeight: 1.3 }}>{mode}</div>}
+      {mode && (
+        <div style={{ font: `800 10px ${ARC.head}`, letterSpacing: '0.12em', color: '#f5e9ff', lineHeight: 1.3 }}>
+          {mode}
+          {beta && <>{' '}<span data-sb-beta style={{
+            display: 'inline-block', marginLeft: 2, verticalAlign: '1px', padding: '2px 6px 1px', borderRadius: 99,
+            border: '1px solid rgba(253,224,71,0.5)', color: ARC.gold, font: `800 7.5px ${ARC.head}`, letterSpacing: '0.1em', lineHeight: 1.2,
+          }}>BETA</span></>}
+        </div>
+      )}
       {setting && <div style={{ font: `700 9px ${ARC.head}`, letterSpacing: '0.12em', color: '#a9a3c4', lineHeight: 1.3 }}>{setting}</div>}
     </header>
   );
@@ -66,7 +76,7 @@ export default function GameOverBoard({ board, onContinue, continueLabel = 'CONT
   return (
     <div data-retention="game-over" style={{ position: 'relative', zIndex: 10, padding: '22px 14px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
       <style dangerouslySetInnerHTML={{ __html: RETENTION_CSS }}/>
-      <BoardHeader mode={board.mode} setting={board.setting}/>
+      <BoardHeader mode={board.mode} setting={board.setting} beta={!!board.beta}/>
       <YourScore hero={board.hero} kind={board.kind} unitLong={board.unitLong || board.unit}/>
       <ScoreBoard rows={board.rows} kind={board.kind} unit={board.unit} you={board.you}/>
       <button type="button" className="rt-go" onClick={onContinue} style={{

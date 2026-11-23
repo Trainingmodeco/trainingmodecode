@@ -30,13 +30,57 @@ set the score first.
 
 | Mode | One board per | Score | Better | Posts only when |
 | --- | --- | --- | --- | --- |
-| Fight Focus | discipline, rounds x round length, difficulty | strikes the phone counted (STRIKES ✓) | more | strike counting on, every round done, the integrity check passed |
-| Just Train | same as Fight Focus, its own boards | strikes counted | more | same |
-| Combo Coach | discipline, rounds x round length, speed, difficulty | strikes counted | more | same (without counting, the called count is the coach's pace: the same for everyone, so it does not post) |
-| Quick Mission SOLO | mission, level | the mission's own score: time (for time), rounds + reps (AMRAP), sets held (EMOM), reps (intervals) | less time; more of the rest | finished, not scaled, no swap to an easier move, SOLO's own clock checks passed. A for-time run stopped by the cap ranks under every finisher, by its reps at the cap |
-| Max Out | mission, level (the level sets the rounds) | total reps, every set added | more | every set credited. Reps are typed by the athlete, so the caps are tight (each move's rep cap at that level is already in the mission data) |
-| Arcade stages | saga, stage, side (fit, fight or both) | stage time | less | cleared and valid |
-| Cardio run | distance and unit (5 km, 1 mi, ...) | run time | less | finished with GPS on (the rule personal bests already use) |
+| Fight Focus | discipline, board setting (below: rounds x length and rest), difficulty | strikes the phone counted (STRIKES ✓) | more | strike counting on, a board setting, no Rush Mode or ghost, every round done, the integrity check passed |
+| Just Train | discipline, one of its four built-in presets | strikes counted | more | same |
+| Combo Coach | discipline, board setting, MODE, difficulty (which sets the cadence) | strikes counted | more | same, at the difficulty's own cadence (without counting, the called count is the coach's pace: the same for everyone, so it does not post) |
+| Quick Mission SOLO | mission, level | the mission's own score, **entered by the athlete** (below): time (for time), rounds + reps (AMRAP), sets held (EMOM), reps (intervals) | less time; more of the rest | finished, not scaled, no swap to an easier move, inside the caps below. A for-time run stopped by the cap ranks under every finisher, by its reps at the cap. Opens marked BETA |
+| Max Out | mission, level (the level sets the rounds) | total reps, every set added | more | every set credited. Reps are typed by the athlete, so the caps are tight (each move's rep cap at that level is already in the mission data). Opens marked BETA |
+| Arcade stages | saga, stage, side (fit, fight or both: each takes a different time) | stage time, pauses counted | less | cleared and valid, not resumed from a saved run |
+| Cardio run | distance and unit (5 km, 1 mi, ...) | run time, pauses counted | less | finished with GPS on (the rule personal bests already use) |
+
+**Fight boards are a few fixed settings.** The setups let rounds go from 1 to 12, a round from 0:30 to 8:00 in half
+minutes and the rest from 0 to 120 s, and Combo Coach's CADENCE from 2 to 8 s. A board for every mix would leave
+nearly all of them empty (mostly CPU rows), and the rest changes how many strikes a work round can hold. So a fight
+session posts only at a board setting, rest included; any other mix trains as today and the end screen says why in
+one line (Fight Focus: "Board settings only: 3 × 3 or 5 × 3 min, 60 s rest.").
+
+- Fight Focus and Combo Coach: **3 × 3 min, 60 s rest** (the setups' default) and **5 × 3 min, 60 s rest**.
+- Just Train: its four built-in presets, each with its own rest (Bag 6×3, Pads 8×2, Spar 5×3, Tabata 8×0:20). A saved
+  custom preset does not post.
+- Combo Coach: the cadence is the difficulty's own (Easy 4.0 s, Normal 3.5 s, Hard 3.0 s, Advanced 2.5 s, the setup's
+  `CADENCE_BY_DIFF`), so the difficulty in the key says the cadence; a run with the CADENCE stepper moved off it does
+  not post. There is no separate speed word in the key. MODE (Technical or Combo) is in the key: it changes what is
+  called.
+- Rush Mode and a ghost challenge add surges, so those sessions do not post.
+
+**SOLO and Max Out scores are typed, so they are capped.** SOLO is honor-system (`missionSolo.js`: "SOLO is
+honor-system: the floor is the check"). The athlete enters the score at the end, prefilled from the round taps, and a
+for-time time is only as honest as the moment FINISH was pressed. The clock checks keep the XP fair; they do not prove
+the score. So a SOLO board takes the Max Out kind of caps on the score itself, in the app and again on the server:
+
+- every rep at least half the move's elite time (`repsCeiling`, the ceiling Max Out uses), so an AMRAP, an interval
+  or a capped for-time run can never hold more reps than its clock could; a loaded move also keeps its set cap
+  (`repCapFor` in `missionMoves.js`); a minutes-held EMOM never more than its minutes;
+- a for-time time never under SOLO's own floor (half the elite time, `soloFloorSec`), the line the app already
+  refuses today;
+- the board's `cap` is the most the clock can hold at that ceiling, and a score near it is flagged (below).
+
+Both open marked BETA, like the fight boards, until the caps have been checked against real sessions (a BETA mark
+after the mode, as on the `board-top10` and `board-early` looks).
+
+**A board time counts pauses.** Every time board ranks the time from START to FINISH with pauses in it, so pausing
+can only make a time slower. A time without pauses could be gamed by resting on PAUSE. The arcade's stage time is
+already wall time from the end of the briefing, so it takes in the pause button and the auto-pause when the app is
+hidden. SOLO's
+clock and a run's clock stop on PAUSE, so their board time adds the paused seconds back (SOLO keeps `pausedSec`; a
+live run keeps its pause total, and the saved run must keep it too).
+
+**The arcade needs a time per side.** A stage cleared on the fit side, the fight side or both takes very different
+times, so its boards stay per side. Today the app cannot feed them: `completeStage` (`arcadeProgress.js`) marks fit
+and fight both done on any clear and keeps one `bestTimeSeconds` per stage, so a best on one side overwrites the
+other's, and a run has no id of its own. The build records the side of the run and a best time per side, and the
+ticket's id is the run's session id. A run resumed from a saved session restarts its clock at the resume (the time
+before the save is lost), so it does not post.
 
 No board at first, and why:
 
@@ -49,12 +93,12 @@ No board at first, and why:
 How a board is keyed (`board` text, one per mode and setting):
 
 ```
-ff:boxing:3x3:normal           Fight Focus
-jt:boxing:3x3                  Just Train
-cc:boxing:3x3:medium:normal    Combo Coach
+ff:boxing:3x3r60:normal        Fight Focus, 3 × 3 min, 60 s rest, Normal
+jt:boxing:bag6x3               Just Train, the Bag 6×3 preset (its rest is part of it)
+cc:boxing:3x3r60:combo:normal  Combo Coach, MODE Combo, Normal (so a 3.5 s cadence)
 qm:room_12:standard            Quick Mission SOLO
 max:boss_rush:standard         Max Out
-arc:<saga id>:3:fit            Arcade stage
+arc:<saga id>:3:fit            Arcade stage 3, fit side
 run:5km                        Cardio run (GPS)
 ```
 
@@ -113,7 +157,7 @@ player's own best). Service role only.
 | Function | Who | What it does |
 | --- | --- | --- |
 | `get_board(board)` | anyone, signed in or not | the ten rows: display name, country, level, score, CPU or not. Never a user id or email |
-| `get_my_place(board)` | signed in | my best, my place, how many players, what the next place needs |
+| `get_my_place(board)` | signed in | my best; my place on the list (house rows included, as `get_board` shows it); my rank among players only; how many players; what the next place needs |
 | `join_boards(name, country)` | signed in | creates my player row after the name check |
 | `set_board_profile(name, country)` | signed in | changes my name (once a week) or country |
 | `leave_boards()` | signed in | deletes my player row and every score of mine, at once |
@@ -134,8 +178,8 @@ player's own best). Service role only.
 2. At FINISH, the app sends the ticket, the score, its session id and its level. `submit_score` refuses it unless:
    - the ticket is mine, for this board, unused and under 24 hours old;
    - at least `min_seconds` passed between the ticket and now (a 3 x 3 min fight cannot finish in 4 minutes);
-   - the score is inside the board's cap (no 0:40 5 km, no 2,000 strikes in 9 minutes), and a time is not shorter
-     than the time since the ticket;
+   - the score is inside the board's cap (no 0:40 5 km, no 2,000 strikes in 9 minutes), and a time is not longer
+     than the time since the ticket (it counts pauses, so an honest one always fits inside it);
    - this session id has not posted before;
    - I am under the rate limits: 40 tickets and 30 scores a day, 6 scores a board a day.
 3. Only a better score replaces my old best on that board (one best per athlete per board). A worse one is noted as
@@ -144,18 +188,20 @@ player's own best). Service role only.
    `board_flags` for a look. Nothing is shown to the athlete.
 
 The app itself only sends what its own checks already passed: the integrity check (`missionIntegrity`), SOLO's
-clock checks (`missionSolo`), the arcade clear verdict, a GPS run. The server checks above are the second lock, for
-anyone who skips the app.
+floor and the score caps above (`missionSolo`), the arcade clear verdict, a GPS run. The server checks above are the
+second lock, for anyone who skips the app.
 
-One honest limit: strikes counted by the phone are already "win only" in the app (`rushVerdict.js`) until a gym
-test proves the counter is fair. The fight boards should wait for that test, or open marked BETA.
+Two honest limits: strikes counted by the phone are already "win only" in the app (`rushVerdict.js`) until a gym
+test proves the counter is fair, so the fight boards should wait for that test, or open marked BETA. And a SOLO or
+Max Out score is typed by the athlete: the caps stop the impossible, not a small fib, so those boards open marked BETA
+too.
 
 ## Display name, opt-in and the name filter
 
 - Asked once, the first time a finished session could post: JOIN or NOT NOW (the `optin` look). NOT NOW goes on to
   the end screen; joining later is one switch in Profile, next to the name, the country and LEAVE BOARDS.
-- The display name is the only thing shown: never the email, photo, Google name or location. The country is off
-  until the athlete turns it on.
+- Others see the display name and the level. Never the email, photo or Google name. The country (two letters) is the
+  only place ever shown, and only once the athlete turns it on; the opt-in says so in those words, above the switch.
 - Signed out, the board is read-only and the athlete's own score shows only to them, with "Sign in and join to post".
 - **There is no name filter in the app today** (the squads note in the gallery assumes one). This design adds one,
   on the server, in `join_boards` and `set_board_profile`: the name is lower-cased, common look-alikes are mapped
@@ -192,7 +238,13 @@ test proves the counter is fair. The fight boards should wait for that test, or 
 - **The fade rule**, worked out on every read: fewer than 5 real players, all twelve house scores are merged in and
   the best ten rows show; 5 or more real players, only house scores worse than the lowest real score are merged in;
   10 or more real players, the ten are all real. House scores are never stored as players and never counted in
-  "of 2,310 players" or in anyone's world rank.
+  a player count ("of 2,310 players").
+- **Place and rank are two numbers.** A row's place on the list (the PLACE column) counts every row above it, CPU
+  included, arcade style: the owner's "real players rank among them", so beating a house score moves you up a place.
+  A player's rank
+  counts players only. While CPU rows sit above you, YOUR SCORE says both ("6TH PLACE · 3RD OF 4 PLAYERS"); from 5
+  players on, house rows sit only under the lowest real score, so the two are the same for every player, and a world
+  rank such as "#143 of 2,310" is both.
 
 ## What the app shows offline or on a server problem
 
@@ -211,7 +263,7 @@ About two weeks of work, after the owner says yes to this design:
 | Part | Days |
 | --- | --- |
 | Migration: tables, functions, RLS and grants, the rules rows generated from the app's data, SQL tests | 2 to 3 |
-| App: the board key and score for each mode from its session results, tickets, the submit queue, the local copy | 3 |
+| App: the board key and score for each mode from its session results (fight board settings, SOLO caps, pauses added back, the arcade's side and time per side), tickets, the submit queue, the local copy | 3 to 4 |
 | Screens: wire the looks' components, the opt-in, Profile (name, country, LEAVE BOARDS), offline and signed-out lines | 2 |
 | Name filter, reserved names, caps checked against real sessions, a short moderation guide | 1 to 2 |
 | Tests, phone previews at 360, 390 and 430, owner review | 1 to 2 |
