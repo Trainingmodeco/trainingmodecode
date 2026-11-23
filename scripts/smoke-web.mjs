@@ -2462,6 +2462,63 @@ await check('combat conditioning: a finished circuit stashed in its hand-off is 
   const rows = (stats.sessions || []).filter((x) => /combat/i.test(JSON.stringify(x)));
   if (rows.length !== 1) throw new Error('expected one Combat Conditioning row banked, found ' + rows.length);
 }, /RETURN HOME/);
+// The owner's "small things that were there before", fixed for everyone (2026-11-23). On a page that scrolls the
+// BETA pill and the scroll chevron sit on the shelf over the tab bar (inside its solid part); elsewhere nothing
+// that shows (a text's glyphs, a button) is under the pill. The end-screen banner is the stats row's width, and
+// the end screen's recap/chips card shows on a short phone.
+const bottomRow = () => page.evaluate(() => {
+  const r = (el) => el && el.getBoundingClientRect();
+  const pill = r(document.querySelector('button[aria-label="Report beta feedback"]'));
+  const chev = r(document.querySelector('[data-ui="scroll-chevron"]'));
+  const shelfEl = document.querySelector('[data-ui="nav-shelf"]');
+  const shelf = r(shelfEl), fade = Number(shelfEl?.dataset.fade) || 0;
+  const onShelf = (x) => !!shelf && x.top >= shelf.top + fade - 1 && x.bottom <= shelf.bottom + 1;
+  const hit = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+  const clipped = (el, x) => { for (let e = el.parentElement; e && e !== document.body; e = e.parentElement) { const cs = getComputedStyle(e); if (cs.overflowX !== 'visible' || cs.overflowY !== 'visible') { const c = e.getBoundingClientRect(); x = { left: Math.max(x.left, c.left), top: Math.max(x.top, c.top), right: Math.min(x.right, c.right), bottom: Math.min(x.bottom, c.bottom) }; } } return x; };
+  const under = [];
+  if (pill && !onShelf(pill)) {
+    for (const el of document.querySelectorAll('body *')) {
+      if (el.closest('[aria-label="Report beta feedback"]') || el.closest('[data-guide="nav-tabs"]')) continue;
+      const own = [...el.childNodes].filter((n) => n.nodeType === 3 && n.textContent.trim());
+      const boxes = el.tagName === 'BUTTON' ? [el.getBoundingClientRect()] : own.flatMap((n) => { const g = document.createRange(); g.selectNodeContents(n); return [...g.getClientRects()]; });
+      if (boxes.some((x) => { const v = clipped(el, x); return v.right > v.left && v.bottom > v.top && hit(v, pill); }) && getComputedStyle(el).visibility !== 'hidden') under.push((el.innerText || el.textContent || '').trim().slice(0, 30));
+    }
+  }
+  return { under, pillOnShelf: pill ? onShelf(pill) : null, chevOk: !chev || onShelf(chev), hasShelf: !!shelf };
+});
+const rowClear = async (at) => {
+  const g = await bottomRow();
+  if (g.under.length) throw new Error(`${at}: the BETA pill sits on ${JSON.stringify(g.under.slice(0, 3))}`);
+  if (!g.chevOk) throw new Error(`${at}: the scroll chevron is not on the shelf`);
+  return g;
+};
+await check('owner fixes: the BETA pill and the chevron cover nothing; the end-screen banner spans the cards; the chips show on a short phone', async () => {
+  try {
+    // Combat Conditioning's summary (an end screen that scrolls) at 430 wide: the banner lines up with the stats.
+    await resizeTo(430, 932);
+    await startCircuit(); await endCircuit(); await S(1500);
+    const g = await rowClear('cc summary 430x932');
+    if (!g.hasShelf || !g.pillOnShelf) throw new Error('the CC summary has no shelf under the BETA pill');
+    const al = await page.evaluate(() => { const a = document.querySelector('[data-ui="integrity-banner"]')?.getBoundingClientRect(); const b = document.querySelector('[data-ui="mc-stats"]')?.getBoundingClientRect(); return a && b ? [a.left - b.left, a.right - b.right] : null; });
+    if (!al || Math.abs(al[0]) > 1 || Math.abs(al[1]) > 1) throw new Error(`the banner is not the stats row's width (${JSON.stringify(al)})`);
+    // Build Workout ended early on a short phone: its SESSION SUMMARY chips show (they were dropped under 812 px).
+    await resizeTo(360, 640);
+    const { done, total } = await builderAt(2);
+    await btn(/^FINISH WORKOUT$/).click({ timeout: 4000 }); await S(400);
+    await finishDialog().getByRole('button', { name: /^FINISH$/ }).click({ timeout: 4000 }); await S(3000);
+    if (!(await text()).includes(`${done}/${total}`)) throw new Error('not the Build Workout summary');
+    if (!(await page.locator('.mc-extra').first().isVisible())) throw new Error('the SESSION SUMMARY chips are hidden at 360x640');
+    await rowClear('build workout summary 360x640');
+    await page.evaluate(() => { const sc = document.querySelector('.no-scrollbar'); sc.scrollTop = sc.scrollHeight; }); await S(800);
+    await rowClear('build workout summary scrolled to its end');
+    // One-screen pages that scroll inside: Quick Mission's page at 360x780 and Build Workout's at 360x640.
+    await resizeTo(360, 780); await fit(); await page.locator('[data-guide="fit-quick"]').click(); await S(1500);
+    await rowClear('quick mission 360x780');
+    await resizeTo(360, 640); await fit(); await page.locator('[data-guide="fit-builder"]').click(); await S(1500);
+    await rowClear('build workout 360x640');
+    await fight(); await S(500); await rowClear('fight hub 360x640');
+  } finally { await resizeTo(390, 844); }
+}, /FIGHT/);
 // A page of the app in a fresh browser context (own storage, own user agent), for the storage notices.
 const inContext = async (name, ctxOpts, initScript, run) => {
   const c = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, ...ctxOpts });
