@@ -393,8 +393,11 @@ export default function HomeDashboard({
 
   // One nudge at a time, over the header — the combo flash first (it only
   // ever shows once), then the daily nudge, then the come-back reminder.
+  // The week streak's freeze notice (switch on) sits UNDER the header instead,
+  // so the level, the week chip it is about and the "?" stay in view; while
+  // it shows, the slot over the header stays empty.
   const nudge = weekNotice
-    ? { icon: '❄', text: noticeCopy(weekNotice), onClose: () => setWeekNotice(null) }
+    ? null
     : comboFlash
     ? { icon: comboFlash.kind === 'milestone' ? '🏅' : comboFlash.kind === 'guarded' ? '🛡' : '🔁', text: comboFlash.text, onClose: () => setComboFlash(null) }
     : ghostNudge
@@ -433,6 +436,7 @@ export default function HomeDashboard({
             </div>
           )}
         />
+        {weekNotice && <NudgeToast solid icon="❄" text={noticeCopy(weekNotice)} onClose={() => setWeekNotice(null)}/>}
 
         {/* The one thing to do. */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
@@ -609,7 +613,7 @@ export default function HomeDashboard({
       </div>
 
       {/* Nudges: one at a time, over the header, always dismissible. */}
-      <div style={{ position: 'absolute', zIndex: 20, left: 16, right: 16, top: 10 }}>
+      {!weekNotice && <div style={{ position: 'absolute', zIndex: 20, left: 16, right: 16, top: 10 }}>
         {nudge ? (
           <NudgeToast icon={nudge.icon} text={nudge.text} onGo={nudge.onGo} onClose={nudge.onClose} solid={weeksOn}/>
         ) : (
@@ -624,7 +628,7 @@ export default function HomeDashboard({
             }}
           />
         )}
-      </div>
+      </div>}
 
       {helpOpen && <ScreenGuide steps={weeksOn ? SCREEN_GUIDES.home_weeks : SCREEN_GUIDES.home} onClose={() => setHelpOpen(false)}/>}
     </PhoneFrame>

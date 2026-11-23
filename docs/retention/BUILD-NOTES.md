@@ -682,6 +682,41 @@ Tapes, the classic stage clear) pay but show no strip; Home's card shows done af
   "?" has its CONTINUE step, SURPRISE ME the old in-memory Surprise card, and neither `tm_daily_mission_v2` nor
   `tm_bout_arm_v1` is written.
 
+### Review fixes (2026-11-23)
+
+The independent review of the merged card; a skeptic confirmed each. All behind the `weeks` switch.
+
+- **A session that was not the card's could pay the bonus.** START, pause the card's session, then start and finish
+  another one (from a hub, the "Also paused" slot, a Practice drill): the arm was still set, so that session paid. Now
+  App holds the arm when a session is paused (`holdBoutArm`, the paused snapshot's time; only the first pause after
+  START is the card's). While it is held, a session banked pays nothing. RESUME of that same paused session
+  (`resumeBoutArm`) lets it settle again, counting from the resume, so rows banked while it waited are never read as
+  its row. On Home the arm stays only while that paused session does. If it is gone (discarded, expired, replaced by
+  another of its kind), the arm goes.
+- **A cloud restore could pay the bonus.** The restore replaces the local rows and fires the stats event before its
+  reload, so a newer row from another phone could settle today's START. The restore's event now says so
+  (`detail.restored`), and the settle then drops the arm and pays nothing (`settleTodaysBout({ restored })`). The other
+  listeners do not read the detail.
+- **The freeze notices covered the header** (level, rank, XP bar, week chip and "?", so the updated guide was out of
+  reach). The freeze-used and freeze-earned notices now sit **under** the header, above the card, so the chip they talk
+  about stays in view. While one shows, the slot over the header stays empty (still one notice at a time). The other
+  nudges and the come-back reminder keep the slot over the header, as before. The notice's line wraps balanced (no
+  one-word second line at 390). The gallery's freeze card matches.
+- **The "?" step for TODAY'S BOUT is 4 lines at 360** (it was 9): "Today's one pick, kept all day. Finish it from START
+  for +25 XP, once a day; then the card turns green and TRAIN AGAIN runs it again. SURPRISE ME swaps the pick; ADJUST
+  opens its settings." The AT YOUR PACE clause is gone (Home's switch-off CONTINUE step still explains it). The week chip
+  is explained in the header step.
+- Checked: `test:streak` 184 (was 170). New cases: START, pause, an unrelated full session, then a Practice drill, both
+  pay nothing; resuming another slot changes nothing; RESUME of the card's session then finishing it pays once; the
+  same with the card's session stopped short pays nothing (the unrelated full row is not read); the card's paused
+  session replaced, then Home drops the arm; a restore with a newer row pays nothing and drops the START; the App and
+  cloudSync wiring. Also `test:xp` 121, `test:missions` 217, eslint on every changed file, `tsc`, `check-guides`.
+  `retention-preview.mjs` at 360, 390 and 430: every f1 state and `f2-home-next-up(-camp)` fit. The freeze states now
+  check that the notice is clear of the header, the "?" and the card. The guide state expects ADJUST and no AT YOUR PACE.
+  Looked at the freeze notices (header, chip and "?" in view, balanced lines), the 4-line guide step and the gallery's
+  freeze card at each width. Switch off: Home, Profile's editor and a 1-round Fight Focus end screen captured on HEAD
+  and with this fix are the same DOM and storage, apart from the random reminder line and row ids.
+
 ### Needs the owner's answer
 
 1. **A returning athlete's daily bout is their last session again** (or the next stage of their saga or camp). Keep,

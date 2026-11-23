@@ -240,7 +240,9 @@ export async function syncNow({ reason = 'manual', keepalive = false } = {}) {
         if (!already && reason !== 'unload') {
           sessionStorage.setItem(RESTORE_FLAG, '1');
           window.dispatchEvent(new Event('storage'));
-          window.dispatchEvent(new Event('training-mode-stats-updated'));
+          // Marked as a restore: the rows are another device's, not a session
+          // just banked here (App's Today's Bout settle reads it).
+          window.dispatchEvent(new CustomEvent('training-mode-stats-updated', { detail: { restored: true } }));
           setTimeout(() => { try { window.location.reload(); } catch { /* noop */ } }, 400);
         }
         return state;

@@ -57,7 +57,7 @@ import { maybeOfferChallenge, declineChallenge, settleChallenge, getActiveChalle
 import { dueComeback, markComebackShown, remindComebackNextWeek } from './data/comeback';
 import { getLastBattle } from './data/ghostBattles';
 import { retentionOn } from './data/retentionFlags';
-import { settleTodaysBout, releaseBoutArm } from './data/dailyMission';
+import { settleTodaysBout, releaseBoutArm, holdBoutArm, resumeBoutArm } from './data/dailyMission';
 
 // 2.10 — v2 campaign stars: completion-quality is the gate (you only earn stars
 // by fully + validly clearing), difficulty sets the count. FULL ARC gets +1 for
@@ -443,9 +443,10 @@ export default function App() {
   // whatever route the card opened. Every session banks its row through
   // data/userStats, which announces each write; the first session row after
   // the card's START is the card's session (data/dailyMission settleTodaysBout).
+  // A cloud restore says so on its event: its rows are another device's.
   useEffect(() => {
     if (!weeksOn || typeof window === 'undefined') return undefined;
-    const onBank = () => { settleTodaysBout(); };
+    const onBank = (e) => { settleTodaysBout({ restored: !!e?.detail?.restored }); };
     window.addEventListener('training-mode-stats-updated', onBank);
     return () => window.removeEventListener('training-mode-stats-updated', onBank);
   }, [weeksOn]);
@@ -465,13 +466,17 @@ export default function App() {
     stopVoiceSession();
     setPausedSlots(list => { const next = mergePaused(paused, list); savePausedSessions(next); return next; });
     activeSessionStateRef.current = null;
+    // Today's Bout: the card's session waits paused; until it is resumed, a
+    // session banked is another one's (data/dailyMission holdBoutArm).
+    if (weeksOn) holdBoutArm(paused.timestamp);
     return paused;
-  }, [buildSessionSnapshot]);
+  }, [buildSessionSnapshot, weeksOn]);
 
   // Resume one slot. It is promoted to the front first, so isResuming (which
   // reads slot 0) and the clear-on-arrival effect both see it.
   const resumeSlot = useCallback((ps) => {
     if (!ps) return;
+    if (weeksOn) resumeBoutArm(ps.timestamp);
     setPausedSlots(list => { const next = [ps, ...list.filter(x => x !== ps)]; savePausedSessions(next); return next; });
     setDisc(ps.disc);
     setCfg(ps.cfg);
@@ -491,7 +496,7 @@ export default function App() {
     if (ps.session) setSession(ps.session);
     setResumeData(ps.internalState || null);
     setScreen(ps.screen);
-  }, []);
+  }, [weeksOn]);
   const resumeSession = useCallback(() => resumeSlot(pausedSession), [resumeSlot, pausedSession]);
   const resumeAltSession = useCallback(() => resumeSlot(pausedAlt), [resumeSlot, pausedAlt]);
 

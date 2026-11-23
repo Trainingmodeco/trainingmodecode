@@ -22,6 +22,10 @@
 //     not an award, not refused, not zero-work) that ran to its end, banked
 //     today. Back on Home with nothing started from the card (nothing paused
 //     since), the arm is dropped (releaseBoutArm).
+//   - While the card's session waits paused (holdBoutArm, App on a pause),
+//     a session banked is another session's and pays nothing; RESUME of that
+//     same paused session (resumeBoutArm) lets it settle again. A cloud
+//     restore (rows from another device) drops the arm.
 //   - Never twice: the day's done flag is written first (nothing is paid if it
 //     cannot be), and the bonus row carries the day (`bout`), so a done flag
 //     or a bonus row synced from another device both read as paid.
@@ -212,26 +216,55 @@ export function boutArm(now = Date.now()) {
 
 // Back on Home: a START that started nothing no longer counts. A session
 // paused since the START (`pausedAt`: the paused sessions' times) is the
-// card's, still to be finished, so the arm stays.
+// card's, still to be finished, so the arm stays; once the card's session is
+// held (below), only that paused session keeps it.
 export function releaseBoutArm({ pausedAt = [] } = {}) {
   const arm = readArm();
   if (!arm) return false;
-  if (pausedAt.some((t) => Number(t) >= arm.at)) return false;
+  const times = pausedAt.map(Number);
+  if (arm.held != null ? times.includes(arm.held) : times.some((t) => t >= arm.at)) return false;
   dropArm();
   return true;
+}
+
+// The card's session paused (App, when a session is paused): `pausedTs` is
+// that paused session's time. Until that same session is resumed, a session
+// banked is not the card's (another one started from a hub, a Practice
+// drill). Only the first pause after START is the card's; a later one is
+// another session's.
+export function holdBoutArm(pausedTs) {
+  const arm = readArm();
+  const ts = Number(pausedTs);
+  if (!arm || arm.held != null || !Number.isFinite(ts)) return false;
+  return safeSetItem(BOUT_ARM_KEY, JSON.stringify({ ...arm, held: ts }));
+}
+
+// RESUME (App): the card's own paused session goes on, so its row can
+// settle again. Rows banked while it waited are left behind: the arm counts
+// from now. Resuming any other paused session changes nothing.
+export function resumeBoutArm(pausedTs, now = Date.now()) {
+  const arm = readArm();
+  if (!arm || arm.held == null || Number(pausedTs) !== arm.held) return false;
+  return safeSetItem(BOUT_ARM_KEY, JSON.stringify({ date: arm.date, at: now }));
 }
 
 // After any stats write (App): the first session row banked since the card's
 // START settles it. Pays the bonus once a day when that row counts
 // (boutRowCounts) and today's bonus is not paid yet. Returns the XP paid
 // (0 when nothing was). Never throws.
-export function settleTodaysBout({ now = Date.now(), stats } = {}) {
+//   restored  the write was a cloud restore (data/cloudSync): its rows come
+//             from another device, not from the card's session, so the
+//             START no longer counts.
+export function settleTodaysBout({ now = Date.now(), stats, restored = false } = {}) {
   try {
     const arm = readArm();
     if (!arm) return 0;
+    if (restored) { dropArm(); return 0; }
     const today = localIso(now);
     // Started from yesterday's card: the day it belonged to is over.
     if (arm.date !== today) { dropArm(); return 0; }
+    // The card's session waits paused: whatever was banked is another session's.
+    if (arm.held != null) return 0;
     const st = stats || loadStats();
     const rows = (Array.isArray(st?.sessions) ? st.sessions : [])
       .filter((s) => s && sessionMode(s) !== 'bonus' && Date.parse(s.completedAt) >= arm.at);

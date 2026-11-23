@@ -306,6 +306,8 @@ const scrollTo = (sel) => async (page) => { await page.locator(sel).first().scro
 // state starts on the fixed clock.
 const HOME_CHECK = ['header[data-guide="home-level"]', '[data-guide="home-continue"]', '[role="status"]'];
 const HOME_APART = [['[role="status"]', '[data-guide="home-continue"]']];
+// The week streak's freeze notice sits under the header: clear of the header (its ? included) and of the card.
+const NOTICE_APART = [...HOME_APART, ['[role="status"]', 'header[data-guide="home-level"]'], ['[role="status"]', '[data-guide="help-icon"]']];
 // Today's Bout's samples: a fighter's last session (one 3-minute Fight Focus
 // round, which the end-screen states really run), and the bout held as done.
 const BOUT_LAST = { kind: 'timer', cfg: { difficulty: 'Normal', mode: 'Technical', rounds: 1, roundMin: 3, restSec: 60, voiceOn: true, rushMode: false, rushPattern: 'endRound', rushMix: 'explosive', encouragement: 'normal', warmupMin: 0, ghostChallengeId: null }, disc: 'Boxing', at: NOW_MS - DAY };
@@ -366,19 +368,19 @@ const STATES = [
       for (let i = 0; i < 2; i++) { await page.getByRole('button', { name: /NEXT/ }).first().click({ timeout: 4000 }); await wait(page, 900); }
     },
     check: ['div:has(> button[aria-label="Close guide"])'],
-    expect: /TODAY'S BOUT[\s\S]*\+25 XP, once a day[\s\S]*TRAIN AGAIN/, absent: /DAILY MISSION/,
+    expect: /TODAY'S BOUT[\s\S]*\+25 XP, once a day[\s\S]*TRAIN AGAIN[\s\S]*ADJUST opens its settings/, absent: /DAILY MISSION|AT YOUR PACE/,
   },
   {
     name: 'f1-home-freeze-used',
-    note: 'Home, the week after a short one: the quiet freeze-used notice in the nudge slot.',
+    note: 'Home, the week after a short one: the quiet freeze-used notice under the header (the level, the week chip and the ? stay in view).',
     seed: () => ({ tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 9, gapWeeks: [1], thisWeek: 0 }), 6100) }),
-    open: home, check: HOME_CHECK, apart: HOME_APART, expect: /A freeze covered last week/,
+    open: home, check: HOME_CHECK, apart: NOTICE_APART, expect: /LV \d+[\s\S]*A freeze covered last week/,
   },
   {
     name: 'f1-home-freeze-earned',
-    note: 'Home: a freeze earned last week on a screen with no strip (shown once here).',
+    note: 'Home: a freeze earned last week on a screen with no strip (shown once here, under the header).',
     seed: () => ({ tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 4, thisWeek: 0 }), 3000) }),
-    open: home, check: HOME_CHECK, apart: HOME_APART, expect: /Freeze earned/,
+    open: home, check: HOME_CHECK, apart: NOTICE_APART, expect: /LV \d+[\s\S]*Freeze earned/,
   },
   {
     name: 'f1-home-header-long',

@@ -322,7 +322,7 @@ const WEEKS_HOME = {
   },
   'home-continue': {
     title: 'TODAY\'S BOUT',
-    body: 'The one thing to do today, picked when your day starts and kept all day: the session you trained last, ready to run again, or a workout picked for you if you are new. Finish it from START and you earn +25 XP, once a day. Then the card turns green with +25 XP earned until tomorrow\'s bout, and TRAIN AGAIN runs it once more. SURPRISE ME swaps it for a random quick mission; AT YOUR PACE means the moves and a timer, no coach voice.',
+    body: 'Today\'s one pick, kept all day. Finish it from START for +25 XP, once a day; then the card turns green and TRAIN AGAIN runs it again. SURPRISE ME swaps the pick; ADJUST opens its settings.',
   },
 };
 SCREEN_GUIDES.home_weeks = SCREEN_GUIDES.home.map((s) => (WEEKS_HOME[s.target] ? { ...s, ...WEEKS_HOME[s.target] } : s));

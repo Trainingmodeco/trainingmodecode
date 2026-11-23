@@ -432,6 +432,55 @@ const NOW = at('2026-11-26', 18); // Thursday of the week of Nov 23
   check('back on Home with nothing started (an older pause only): the arm is dropped', D.releaseBoutArm({ pausedAt: [now - 120000] }) && D.boutArm() === null);
   U.addFightFocusSession(3, 3);
   check('…so the next session pays nothing', D.settleTodaysBout() === 0);
+  // START, then the card's session paused, then an unrelated session (review fix): not the card's.
+  reset();
+  D.holdBout({ ...bout, date: iso });
+  await arm();
+  const pausedTs = Date.now();
+  check('pausing the card\'s session holds the arm', D.holdBoutArm(pausedTs) && D.boutArm()?.held === pausedTs);
+  check('…a later pause (another session\'s) does not take its place', !D.holdBoutArm(pausedTs + 5) && D.boutArm()?.held === pausedTs);
+  await sleep(3); U.addQuickMissionSoloSession({ xpEarned: 120, completed: true, completedCount: 6, totalCount: 6 });
+  check('START, pause, an unrelated session run to its end: no bonus, the card not done, the arm kept', D.settleTodaysBout() === 0 && !D.todaysBout({ stats: U.loadStats() }).done && D.boutArm() !== null);
+  U.addPracticeSession('Jab', 2, 2, 30);
+  check('…nor a Practice drill meanwhile', D.settleTodaysBout() === 0 && D.boutArm() !== null);
+  check('resuming another paused session changes nothing', !D.resumeBoutArm(pausedTs - 1) && D.boutArm()?.held === pausedTs);
+  check('on Home, the card\'s paused session keeps the arm', !D.releaseBoutArm({ pausedAt: [pausedTs + 5, pausedTs] }) && D.boutArm() !== null);
+  await sleep(3);
+  check('RESUME of the card\'s session: the arm counts from now', D.resumeBoutArm(pausedTs) && D.boutArm() !== null && D.boutArm().held === undefined);
+  await sleep(3); U.addFightFocusSession(3, 3);
+  check('…and its own finished row pays, once', D.settleTodaysBout() === 25 && U.loadStats().sessions.filter((s) => s.type === 'Mission of the Day').length === 1);
+  // The same, the card's session stopped short: the unrelated full rows banked while it waited are not read.
+  reset();
+  D.holdBout({ ...bout, date: iso });
+  await arm();
+  const pausedTs2 = Date.now();
+  D.holdBoutArm(pausedTs2);
+  await sleep(3); U.addFightFocusSession(3, 3);
+  D.settleTodaysBout();
+  await sleep(3); D.resumeBoutArm(pausedTs2);
+  await sleep(3); U.addComboCoachSession(1, 3);
+  check('START, pause, unrelated session, RESUME, stopped short: nothing (the unrelated row is not the card\'s)', D.settleTodaysBout() === 0 && !D.todaysBout({ stats: U.loadStats() }).done && D.boutArm() === null);
+  // The card's paused session gone (replaced by another of its kind, or discarded): back on Home the arm goes.
+  reset();
+  await arm();
+  const pausedTs3 = Date.now();
+  D.holdBoutArm(pausedTs3);
+  check('the card\'s paused session replaced by another: on Home the arm is dropped', D.releaseBoutArm({ pausedAt: [pausedTs3 + 50] }) && D.boutArm() === null);
+  // A cloud restore brings rows from another device, newer than the START (review fix).
+  reset();
+  D.holdBout({ ...bout, date: iso });
+  await arm();
+  U.addFightFocusSession(3, 3); // stands in for a restored row from another phone
+  check('a cloud restore with a newer row: no bonus, the START dropped', D.settleTodaysBout({ restored: true }) === 0 && D.boutArm() === null && !D.todaysBout({ stats: U.loadStats() }).done);
+  U.addFightFocusSession(3, 3);
+  check('…so the next session pays nothing either', D.settleTodaysBout() === 0);
+  {
+    const fs = await import('node:fs');
+    const src = (f) => fs.readFileSync(new URL(`../components/training-mode/${f}`, import.meta.url), 'utf8');
+    const app = src('App.jsx'), cloud = src('data/cloudSync.js');
+    check('wiring: the cloud restore marks its event, App passes it on', /CustomEvent\('training-mode-stats-updated', \{ detail: \{ restored: true \} \}\)/.test(cloud) && /settleTodaysBout\(\{ restored: !!e\?\.detail\?\.restored \}\)/.test(app));
+    check('wiring: App holds the arm on a pause and releases it on that session\'s RESUME', /if \(weeksOn\) holdBoutArm\(paused\.timestamp\)/.test(app) && /if \(weeksOn\) resumeBoutArm\(ps\.timestamp\)/.test(app));
+  }
   // A START from yesterday's card (a session run past midnight) pays nothing today.
   store.set(D.BOUT_ARM_KEY, JSON.stringify({ date: '2026-01-01', at: now - 1000 }));
   U.addFightFocusSession(3, 3);
