@@ -920,6 +920,9 @@ export default function App() {
       setScreen('arcade_session');
     },
     goArcadeComplete: () => { endSessionFor(screen); setResumeData(null); activeSessionStateRef.current = null; setScreen('arcade_series'); },
+    // Retention feature 3 (near-miss): the classic clear screen's COME BACK FRESH
+    // TOMORROW / DONE FOR TODAY. The stage is over, so it ends like goArcadeComplete.
+    goArcadeDoneToday: () => { endSessionFor(screen); setResumeData(null); activeSessionStateRef.current = null; setScreen('home'); },
     goCombatCondActive: (config) => {
       rememberSession('cc', config);
       trackSessionStart('combatConditioning');
@@ -927,6 +930,14 @@ export default function App() {
       const mission = generateCombatConditioningMission(config);
       if (config?.cardioAddon?.enabled) mission.cardioAddon = config.cardioAddon;
       setCcMission(mission);
+      setScreen('cc_active');
+    },
+    // Retention feature 3 (near-miss): RETRY on the end screen runs the same
+    // mission again (the drills it dealt, not a new deal from the setup).
+    retryCombatCond: () => {
+      if (!ccMission) return;
+      trackSessionStart('combatConditioning');
+      freshStart('cc_active');
       setScreen('cc_active');
     },
     goCombatCondComplete: (result) => {

@@ -291,3 +291,126 @@ than the readiness check advises:
 1. **The camp star rule** above: yes, change it, or keep the check marks?
 2. **Gravity Chamber**: one star for a clear, or difficulty stars for single-path sagas?
 3. **The path's direction**: climbing up (built) or top to bottom (the look)?
+
+## 3. Near-miss retry (switch `nearMiss`), 2026-11-23
+
+All of it is behind `retentionOn('nearMiss')`: off for everyone, on with the owner preview. The one change with the
+switch off is the bug the spec asked to fix first (a cleared classic stage read as MISSION FAILED, below).
+
+### What was built
+
+- **The bug, fixed for everyone** (`data/arcadeOutcome.js`): the classic `ArcadeSessionPlayer` handed its normal clear
+  to the overlay with no counts, so `resolveOutcome` read 0 of 1 and One Hundred's stages 2 to 10 showed MISSION FAILED
+  · NO XP AWARDED over a clear already saved with its XP and stars. `normalClearResult` now puts every task of every
+  block the stage ran on the clear (`completedTasks` = `totalTasks`), as `ArcadeBenchmarkPlayer` does, and the overlay's
+  choice of screen is the pure `arcadeOverlayOutcome` (the same logic, moved). `test:nearmiss` proves it: the old
+  result reads `failed`, the new one `cleared`.
+- **`data/nearMiss.js`** (pure): `nearMiss()` from the counts an end screen has: rounds, exercises, drills, tasks, sets
+  ("1 round to go", "2 drills short"), or the classic saga's time against its star tiers ("12 s off ★★★"), with the
+  bar's value and max and its labels ("1 OF 3 ROUNDS"; "YOUR TIME 16:11" · "★★★ UNDER 16:00"). No count, no line.
+- **`data/retrySafety.js`** (pure): `canRetryNow({ boss, maxEffort, attemptsToday, sessionsToday })`, today's finished
+  sessions from the rows (`sessionsOn`, the week streak's training rows), today's tries per stage or session
+  (`triesOn` / `withTry`), and the keys that say what "the same session" is.
+- **`data/nearMissStore.js`**: settles an end screen once (`settleNearMiss`: the gap, the rule, the counts), logs the
+  try (`noteAttempt`, once per result), the classic saga's version (`classicNearMiss`), what a stage was (a v2 boss or
+  a saga's last stage, a classic boss, a concept boss from its cfg), and the camp's "open this level" request.
+  New key `tm_retry_log_v1` (`{ day, tries: { key: n } }`, yesterday dropped on the next write), in SYNC_KEYS.
+- **UI** `retention/ui/NearMissPanel.jsx`: HOW CLOSE, the gap, the bar, and RETRY with COME BACK FRESH TOMORROW as two
+  buttons of one size (one grid row height, so a label that wraps on a narrow phone makes both taller). When a retry is
+  not safe: the line that says when to come back and DONE FOR TODAY. `rt-fill` keyframe in `tokens.js`.
+- **Where it shows** (a partial or failed end with work done): `MissionComplete` takes a `nearMiss` prop and puts the
+  panel under the stats, the part of the screen that is never hidden. With the panel up, the screen's own retry (the
+  old RETRY to the setup screen) and its home button step aside, and its main button goes quiet (secondary). Wired in
+  Fight Focus, Just Train, Combo and concept stages (`SessionSummary`), Quick Mission, Combat Conditioning, the Workout
+  Builder, arcade v2 and Training Camp (`ScreenRouter` camp_complete); and the classic overlay's partial and failed
+  screens (the panel in place of their encouragement / time row and buttons) and its clear screen when the stage holds
+  fewer than 3 stars (NEXT STAR: the gap, GO FOR THE THIRD STAR next to START STAGE n, the same size; Back to Arcade
+  stays). With the panel, the classic screens scroll when they must and their art is a size smaller.
+- **Retry routes** (the existing XP rules): Fight Focus / Just Train / concept: `goTimer` with the session's cfg; Combo:
+  `goComboActive(comboCfg)`; Quick Mission: `goQuickMissionActive` with the same mission it dealt; Combat Conditioning:
+  the same mission again (`App.retryCombatCond`, not a new deal); Workout Builder: `goFitWorkout(fitCfg)` (a program day
+  only moves on once, so a retry cannot skip a day); arcade v2: `goArcadeSession` with the same saga, stage, path and
+  difficulty; camp: the camp map opens on that level's card (`requestCampRetry` → `TrainingCampMap`), so START →
+  readiness → gear run as ever; classic saga: its own RETRY. COME BACK FRESH TOMORROW and DONE FOR TODAY go home (the
+  classic screens through `App.goArcadeDoneToday`, which ends the stage like `goArcadeComplete`, so Home shows no
+  paused session).
+- **Gallery** (`retention/lookNearMiss.jsx`): every card renders the real `NearMissPanel` (safe retry, a boss, the
+  second go today) and the real classic clear and partial screens, with sample data.
+- **Tests**: `npm run test:nearmiss` (`scripts/test-near-miss.mjs`, 66 checks, in `check:all`).
+- **Preview**: `scripts/retention-preview.mjs` feature 3 states, all real flows on a fake clock except the gallery: a
+  Fight Focus stopped in round 2 (2 ROUNDS TO GO); the same as the third session today (no retry); a v2 stage (The
+  Grappler stage 1 on FIGHT) stopped after round 1; the same stage retried from its panel and stopped again (the second
+  go: no retry); a camp session stopped and its RETRY opening level 5's card; the gallery.
+
+### Decisions (each easy to change)
+
+- **The gap** is the work left of the session (total − done): "to go" on a stopped session, "short" on a failed one.
+  **Nothing done is not a near miss**: no panel (the quiet SESSION ENDED card stays as it is). A pass shows none; a
+  refused session (validation_failed) shows none.
+- **Never a made-up number**: AT YOUR PACE and until-down Quick Missions have no done-of-total count on screen, so no
+  panel; a v2 boss is counted in rounds (the look's "8 REPS SHORT" has no source). A clocked GUIDED run uses its rounds,
+  MAX OUT its sets, other Quick Missions their exercises.
+- **The retry rule** (no recovery data is saved, so this holds until the owner approves another): no RETRY after a
+  boss (a v2 boss, a classic boss circuit, a concept boss stage), a saga's final stage, the title fight (camp level 12)
+  or MAX OUT; none after 2 tries at the same stage or session today; none after 3 finished sessions today. A try is
+  counted when an end screen opens, whatever its outcome (passes too), once per result. "The same session": the same
+  saga stage, camp level and session, Quick Mission, Combat Conditioning mission, workout (or program day), or timer
+  settings (discipline, mode, rounds, round length, difficulty). The lines are plain and say when: "That was a boss
+  fight. Come back fresh tomorrow." · "Two goes at this one today. …" · "Three sessions done today. …" Nothing is
+  locked: only the button is not offered.
+- **REMIND ME TOMORROW is left out**: the reminders (`reminderEngine`) only fire on the plan's days while the app is
+  open; there is no one-off reminder to hook it into.
+- **The third star** (classic saga): offered when the stage holds fewer than 3 stars and has time tiers; the gap is this
+  run's time to the star above what the stage holds now. A benchmark that ranked shows its rank, so nothing. After the
+  boss: the gap and the come-back line, no buttons (Back to Arcade stays).
+- **The classic RETRY's clock**: before, a retry was timed from the first attempt's start, so a retried run's time (and
+  stars) counted the failed run's minutes. With the switch on, a retry restarts the clock (the third star is a time).
+  With the switch off it is as before (see below).
+
+### Checked
+
+- `test:nearmiss` (66: the classic clear before and after the fix, every unit, singular and plural, no count no line,
+  the star gap and its strict tier, when the panel shows, every retry rule and its line, today's sessions in local time,
+  the tries log across midnight, the keys, the store settling and logging once, what a stage was on the real sagas and a
+  concept, the switch), `test:xp` 121, `test:missions` 217, `test:concepts` 180, `test:ayp` 54, `test:maxout` 103,
+  `test:path` 88, `test:streak` 125, `test:storage` 33, `test:levels` 183, `test:athlete` 50, `test:entitlements` 7,
+  `test:qm` 83 (one run in 22 failed one check and did not come back; the generator is random and this feature does not
+  touch it), eslint on every changed file, `tsc`, `check-guides`, `voice:coverage` (0 missing: the panel says nothing
+  aloud), `test:spoken` 155, `build:web`, `smoke:web` (147 checks).
+- `retention-preview.mjs` at 360, 390 and 430: every feature 3 state fits. Looked at each photo: the first gallery run
+  had COME BACK FRESH TOMORROW wrapping to two lines on the gallery's narrower phone, its button taller than RETRY
+  (now one row height for both, tighter letter spacing; on the real screens it is one line at 360); the big line read
+  "12 S OFF" (the seconds keep their "s" now).
+- In a browser, the routes: Fight Focus RETRY runs ROUND 1/3 of the same timer; COME BACK FRESH TOMORROW lands on
+  Home with no paused session; a v2 RETRY opens the same stage's warm-up; the stage stopped again offers no retry; the
+  camp's RETRY opens level 5's card (START SESSION 1); `tm_retry_log_v1` holds the try.
+- Switch off, base commit against this build, on a fixed fake clock and a seeded `Math.random`: Home, a Fight Focus
+  stopped in round 2 (its end screen), the storage after it, and where its RETRY goes (the setup screen, as before): the
+  same DOM and the same storage. The other end screens by reading the code: every new branch needs the settled near
+  miss, which needs the switch; the actions' new `role` is read only when the panel is up; the classic player's clock
+  reset is behind the switch.
+
+### Not covered
+
+- The classic overlay's screens with the panel are checked in the gallery (real components, sample data), not in a
+  real run: a classic stage on a fake clock is long, and its partial and failed screens are reached only by a benchmark
+  ended early. The boss panel is checked the same way.
+- A classic stage run on BOTH paths banks two rows, so it counts as two sessions toward the three a day.
+- The tries log is per device until it syncs; a stopped arcade or camp stage still takes its XP stake loss on each try
+  (the existing rule).
+
+### For the owner (old, not changed)
+
+- **The classic RETRY timing**: with the switch off, a retried classic stage is still timed from the first attempt's
+  start (`ArcadeSessionPlayer` keeps `sessionStartedAtRef`), so its time and stars are worse than the run. Resetting it
+  on RETRY (one line, done here behind the switch) would fix it for everyone.
+
+### Needs the owner's answer
+
+1. **The retry rule** above (2 tries per stage or session a day, 3 sessions a day, none after a boss, the final stage,
+   the title fight or MAX OUT): keep it until there is a recovery model? Should the camp's readiness check be saved and
+   used for it?
+2. **REMIND ME TOMORROW**: worth a one-off local reminder (the notifications pass), or leave it out?
+3. **The clear fix is live for everyone** (the spec asked for it first): a cleared One Hundred stage now says STAGE
+   CLEARED instead of MISSION FAILED. Ship it as a fix, or hold it for the switch?
+4. **A session ended with nothing done** shows no panel. Keep, or show "3 rounds to go" there too?

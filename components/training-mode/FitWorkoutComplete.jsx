@@ -1,9 +1,12 @@
 import MissionComplete from './shared/MissionComplete';
+import { fitRetryKey } from './data/retrySafety';
 
 // Fit Mode / Workout Builder complete — rendered by the shared design-24f screen.
 const GOLD = '#fde047';
 
-export default function FitWorkoutComplete({ cfg, completedCount, totalCount, cardioResult, onHome }) {
+// retry (retention feature 3): { token, onRetry, onLeave } — this same workout
+// again and the way home, for the near-miss panel (MissionComplete).
+export default function FitWorkoutComplete({ cfg, completedCount, totalCount, cardioResult, onHome, retry = null }) {
   const allDone = totalCount > 0 && completedCount >= totalCount;
   const xp = completedCount * 15 + (allDone ? 30 : 0);
   const exerciseLabel = totalCount > 0 ? `${completedCount}/${totalCount}` : `${completedCount}`;
@@ -37,8 +40,12 @@ export default function FitWorkoutComplete({ cfg, completedCount, totalCount, ca
       extra={chips}
       cardioResult={cardioResult}
       shareData={{ mode: 'Fit Mode', completedCount, totalCount }}
+      nearMiss={retry ? {
+        key: fitRetryKey(cfg), token: retry.token, outcome: allDone ? 'pass' : 'partial',
+        unit: 'exercises', done: completedCount, total: totalCount, onRetry: retry.onRetry, onLeave: retry.onLeave,
+      } : null}
       actions={[
-        { label: 'RETURN HOME', onClick: onHome, kind: 'primary' },
+        { label: 'RETURN HOME', onClick: onHome, kind: 'primary', role: 'home' },
       ]}
     />
   );

@@ -6,12 +6,16 @@ import { retentionOn } from './data/retentionFlags';
 import { conceptSessionStars } from './data/pathNextUp';
 import { playStarTone } from './data/audioEngine';
 import StageStarsCard from './retention/ui/StageStarsCard';
+import { timerRetryKey } from './data/retrySafety';
+import { conceptStageBoss } from './data/nearMissStore';
 
 // Fight Focus / Combo Coach session complete — rendered by the shared
 // design-24f screen, with a round-by-round recap as the extra card.
 const GOLD = '#fde047';
 
-export default function SessionSummary({ discipline, rounds, cfg, completedRounds, integrityResult, fightStats, onAgain, onBack, onHome, extraActions = [] }) {
+// retry (retention feature 3): { token, onRetry, onLeave } — the same session
+// again and the way home, for the near-miss panel (MissionComplete).
+export default function SessionSummary({ discipline, rounds, cfg, completedRounds, integrityResult, fightStats, onAgain, onBack, onHome, extraActions = [], retry = null }) {
   const completed = typeof completedRounds === 'number' ? completedRounds : rounds.length;
   const totalPlanned = cfg.rounds || rounds.length;
   // Item 9 — the engine decides how this ended, not a round count. A session
@@ -145,11 +149,16 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
         : note}
       failReason={verdict.response}
       shareData={{ mode: modeName, completedCount: completed, totalCount: totalPlanned, difficulty: cfg.difficulty }}
+      nearMiss={retry ? {
+        key: timerRetryKey(cfg, discipline), token: retry.token,
+        unit: 'rounds', done: completed, total: totalPlanned, outcome: verdict.outcome,
+        boss: conceptStageBoss(cfg), onRetry: retry.onRetry, onLeave: retry.onLeave,
+      } : null}
       actions={[
-        { label: stoppedEarly ? 'RETRY' : 'TRAIN AGAIN', onClick: onAgain, kind: 'primary' },
+        { label: stoppedEarly ? 'RETRY' : 'TRAIN AGAIN', onClick: onAgain, kind: 'primary', role: 'retry' },
         ...extraActions,
         { label: 'CHANGE DISCIPLINE', onClick: onBack, kind: 'secondary' },
-        { label: 'BACK TO START', onClick: onHome, kind: 'ghost' },
+        { label: 'BACK TO START', onClick: onHome, kind: 'ghost', role: 'home' },
       ]}
     />
   );

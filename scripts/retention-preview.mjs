@@ -16,7 +16,7 @@
 //     scrollWidth > clientWidth on a box that clips, a clamped box that hides
 //     lines, or a text box outside the box that clips it.
 // Text cut elsewhere on the page is printed as a warning, not a failure.
-// Features 2 and 3 add their states to STATES.
+// Features 2 and 3 add their states to STATES (f1-, f2-, f3- names).
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright-core';
@@ -166,6 +166,94 @@ async function replayV2Stage(page, w) {
   await page.clock.resume();
   await wait(page, 3000);
   if (!/YOUR PROGRESS/.test(await page.evaluate(() => document.body.innerText))) throw new Error('the stage did not reach its end screen');
+}
+
+// ── feature 3: near-miss retry ────────────────────────────────────────────────
+// A 3-round Fight Focus (1-minute rounds) as the last session: Home's Continue
+// runs it, the fake clock plays round 1 and the rest after it, END stops it in
+// round 2: the end screen reads 1 of 3, its panel "2 ROUNDS TO GO".
+const FF_LAST = { kind: 'timer', cfg: { difficulty: 'Normal', mode: 'Technical', rounds: 3, roundMin: 1, restSec: 20, voiceOn: false, rushMode: false, encouragement: 'normal', warmupMin: 0 }, disc: 'Boxing', at: Date.now() - DAY };
+const todayAt = (h) => { const d = new Date(NOW); d.setHours(h, 0, 0, 0); return d.getTime() < Date.now() ? d : new Date(Date.now() - 3600000); };
+const FF_SEED = (todayRows = 0) => () => ({
+  tm_user_profile: JSON.stringify(FIGHTER),
+  tm_user_stats: stats([...history({ onTarget: 3, thisWeek: Math.min(2, todayIdx) }), ...Array.from({ length: todayRows }, (_, i) => row(todayAt(i)))]),
+  tm_last_session_v1: JSON.stringify(FF_LAST),
+});
+// Runs the clock until `done(text)`; taps CONTINUE past a level-up.
+async function runClock(page, done, { stepMs = 1000, max = 900 } = {}) {
+  for (let i = 0; i < max; i++) {
+    await page.clock.runFor(stepMs);
+    const t = await page.evaluate(() => document.body.innerText);
+    if (done(t)) return t;
+    const cont = page.getByRole('button', { name: /^CONTINUE$/ });
+    if (/LEVEL UP/i.test(t) && await cont.count()) await cont.first().click({ timeout: 2000 }).catch(() => {});
+  }
+  throw new Error('the clock ran out before the screen came');
+}
+// END → END SESSION on the round timer (Fight Focus, a camp or v2 stage), then on to the end screen.
+async function endTimer(page, afterSec) {
+  await page.clock.runFor(afterSec * 1000);
+  // dispatchEvent: on a camp or v2 stage the round's caption can sit over the buttons.
+  await page.getByRole('button', { name: /^END$/ }).first().dispatchEvent('click', {}, { timeout: 4000 });
+  await wait(page, 300);
+  await page.getByRole('button', { name: /^END SESSION$/ }).first().dispatchEvent('click', {}, { timeout: 4000 });
+  await runClock(page, (t) => /YOUR PROGRESS/.test(t), { max: 60 });
+  await page.clock.resume();
+  await wait(page, 2500);
+}
+async function stopFightFocus(page, w) {
+  await home(page, w);
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 500);
+  await page.locator('[data-guide="home-continue"] button.hm-go').first().click({ timeout: 4000 });
+  // The count-in, round 1 (60 s), its rest (20 s), and 10 s into round 2.
+  await endTimer(page, 3 + 60 + 20 + 10);
+}
+// The Grappler's stage 1 replayed on FIGHT from the path, stopped in the rest
+// after its first round: 1 of 6 rounds, "5 ROUNDS TO GO".
+async function stopV2Stage(page, w) {
+  await continueLast(page, w);
+  await page.locator('[aria-label^="Stage 1,"]').first().click({ timeout: 4000 }); await wait(page, 800);
+  await page.locator('[data-retention="replay-sheet"] [role="radio"]', { hasText: 'FIGHT' }).first().click({ timeout: 4000 });
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 500);
+  await page.locator('[data-retention="replay-sheet"] button', { hasText: 'REPLAY' }).first().click({ timeout: 4000 });
+  // Past the warm-up (SKIP) and the count-in into round 1, then to its rest.
+  await runClock(page, (t) => /SKIP → START/.test(t), { max: 20 });
+  await page.getByRole('button', { name: /SKIP → START/ }).first().dispatchEvent('click', {}, { timeout: 4000 });
+  await runClock(page, (t) => /\bEND\b/.test(t), { max: 60 });
+  await runClock(page, (t) => /NEXT: ROUND 2/.test(t), { stepMs: 2000, max: 400 });
+  await endTimer(page, 2);
+}
+
+// The v2 stop, then RETRY on its panel (the same stage again), stopped the
+// same way: the second go today, so no RETRY this time.
+async function stopV2StageTwice(page, w) {
+  await stopV2Stage(page, w);
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 500);
+  await page.locator('[data-retention="near-miss"] button', { hasText: 'RETRY' }).first().click({ timeout: 4000 });
+  await runClock(page, (t) => /SKIP → START/.test(t), { max: 20 });
+  await page.getByRole('button', { name: /SKIP → START/ }).first().dispatchEvent('click', {}, { timeout: 4000 });
+  await runClock(page, (t) => /\bEND\b/.test(t), { max: 60 });
+  await runClock(page, (t) => /NEXT: ROUND 2/.test(t), { stepMs: 2000, max: 400 });
+  await endTimer(page, 2);
+}
+// Training Camp level 5, fresh: START SESSION 1 → readiness → gear → the round
+// timer, stopped in the rest after round 1. Its panel's RETRY opens the camp
+// map on level 5's card (START → readiness → gear again).
+const CAMP_FRESH_SEED = () => ({ ...CAMP_SEED(), tm_camp_sessions: JSON.stringify({ 4: { s1: true, s2: true } }) });
+async function stopCampAndRetry(page, w) {
+  await nextUp(page, w);
+  await page.getByRole('button', { name: /START SESSION 1/ }).first().click({ timeout: 4000 }); await wait(page, 800);
+  await page.getByRole('button', { name: /^NO$/ }).first().click({ timeout: 4000 });
+  await page.getByRole('button', { name: /CHECK IN/ }).first().click({ timeout: 4000 }); await wait(page, 800);
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 500);
+  await page.getByRole('button', { name: /CONTINUE/ }).first().click({ timeout: 4000 });
+  await runClock(page, (t) => /SKIP → START/.test(t), { max: 20 });
+  await page.getByRole('button', { name: /SKIP → START/ }).first().dispatchEvent('click', {}, { timeout: 4000 });
+  await runClock(page, (t) => /\bEND\b/.test(t), { max: 60 });
+  await runClock(page, (t) => /NEXT: ROUND 2/.test(t), { stepMs: 2000, max: 400 });
+  await endTimer(page, 2);
+  await page.locator('[data-retention="near-miss"] button', { hasText: 'RETRY' }).first().click({ timeout: 4000 });
+  await wait(page, 2000);
 }
 
 const scrollTo = (sel) => async (page) => { await page.locator(sel).first().scrollIntoViewIfNeeded({ timeout: 4000 }); await page.evaluate((s) => document.querySelector(s)?.scrollIntoView({ block: 'center' }), sel); await wait(page, 400); };
@@ -333,6 +421,48 @@ const STATES = [
     clock: true, once: true,
     seed: GRAP_SEED, open: replayV2Stage, after: scrollTo('[data-retention="stage-stars"]'),
     check: ['[data-retention="stage-stars"]'], expect: /STAGE STARS · 2 OF 3/,
+  },
+  {
+    name: 'f3-ff-partial',
+    note: 'A real Fight Focus stopped in round 2 (fake clock): the panel under the stats, 2 ROUNDS TO GO, RETRY and COME BACK FRESH TOMORROW the same size.',
+    clock: true, once: true,
+    seed: FF_SEED(0), open: stopFightFocus, after: scrollTo('[data-retention="near-miss"]'),
+    check: ['[data-retention="near-miss"]'], expect: /2 ROUNDS TO GO[\s\S]*1 OF 3 ROUNDS[\s\S]*RETRY[\s\S]*COME BACK FRESH TOMORROW/i,
+  },
+  {
+    name: 'f3-ff-load',
+    note: 'The same stop as the third finished session today: no RETRY, the line says when to come back, DONE FOR TODAY.',
+    clock: true, once: true,
+    seed: FF_SEED(2), open: stopFightFocus, after: scrollTo('[data-retention="near-miss"]'),
+    check: ['[data-retention="near-miss"]'], expect: /Three sessions done today\. Come back fresh tomorrow\.[\s\S]*DONE FOR TODAY/i,
+  },
+  {
+    name: 'f3-v2-partial',
+    note: 'A real v2 stage (The Grappler stage 1 on FIGHT, from the path) stopped after its first round: the arcade end screen\'s panel.',
+    clock: true, once: true,
+    seed: GRAP_SEED, open: stopV2Stage, after: scrollTo('[data-retention="near-miss"]'),
+    check: ['[data-retention="near-miss"]'], expect: /TO GO[\s\S]*RETRY[\s\S]*COME BACK FRESH TOMORROW/i,
+  },
+  {
+    name: 'f3-v2-second-go',
+    note: 'The same v2 stage retried from its panel and stopped again: the second go today, no RETRY; "Two goes at this one today", DONE FOR TODAY.',
+    clock: true, once: true,
+    seed: GRAP_SEED, open: stopV2StageTwice, after: scrollTo('[data-retention="near-miss"]'),
+    check: ['[data-retention="near-miss"]'], expect: /Two goes at this one today\. Come back fresh tomorrow\.[\s\S]*DONE FOR TODAY/i,
+  },
+  {
+    name: 'f3-camp-retry',
+    note: 'A real camp session (level 5, S1) stopped after round 1; its RETRY opens the camp map on level 5\'s card, so readiness and gear run again.',
+    clock: true, once: true,
+    seed: CAMP_FRESH_SEED, open: stopCampAndRetry,
+    check: ['[data-retention="path-map"]'], expect: /VOLUME[\s\S]*START SESSION 1/,
+  },
+  {
+    name: 'f3-gallery',
+    note: 'The design gallery (/retention-looks), feature 3: the real panel and the real classic stage screens (third star, partial) with sample data.',
+    seed: () => ({}),
+    open: async (page) => { await page.goto(`${BASE}retention-looks`, { waitUntil: 'networkidle' }); await wait(page, 4000); },
+    check: ['#f3'], shot: '#f3', expect: /NEAR-MISS RETRY[\s\S]*GO FOR THE THIRD STAR/,
   },
   {
     name: 'f2-gallery',

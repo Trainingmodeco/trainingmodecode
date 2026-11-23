@@ -1,11 +1,14 @@
 import MissionComplete from './shared/MissionComplete';
 import { calculatePartialXp } from './utils/missionIntegrity';
 import { resolveOutcome, xpForOutcome } from './shared/sessionOutcome';
+import { combatRetryKey } from './data/retrySafety';
 
 // Combat Conditioning complete — rendered by the shared design-24f screen.
 const GOLD = '#fde047';
 
-export default function CombatConditioningComplete({ mission, result, cardioResult, onNewMission, onFightHub, onHome }) {
+// retry (retention feature 3): { token, onRetry, onLeave } — this same mission
+// again and the way home, for the near-miss panel (MissionComplete).
+export default function CombatConditioningComplete({ mission, result, cardioResult, onNewMission, onFightHub, onHome, retry = null }) {
   const { roundsCompleted, totalRounds, drillsCompleted, totalDrills, completed, integrityResult, cleanRounds = 0, cleanRoundXp = 0 } = result;
   // Item 9 — the engine decides the outcome, so this mode can end on
   // fail / validation_failed and not only success / partial.
@@ -32,6 +35,10 @@ export default function CombatConditioningComplete({ mission, result, cardioResu
       heroImage="/static/trophies/mission-complete-combat.webp"
       integrityResult={integrityResult}
       failReason={verdict.response}
+      nearMiss={retry ? {
+        key: combatRetryKey(mission), token: retry.token, outcome: verdict.outcome,
+        unit: 'drills', done: drillsCompleted, total: totalDrills, onRetry: retry.onRetry, onLeave: retry.onLeave,
+      } : null}
       stats={[
         { value: `${roundsCompleted}/${totalRounds}`, label: 'ROUNDS', color: GOLD },
         { value: String(drillsCompleted), label: 'DRILLS', color: '#fff' },
@@ -43,7 +50,7 @@ export default function CombatConditioningComplete({ mission, result, cardioResu
         { label: 'NEW COMBAT MISSION', onClick: onNewMission, kind: 'primary' },
         // A fight feature returns to Home or the Fight hub: this screen used to send the back arrow and
         // its second button to Fit Mode, and RETURN HOME was the quietest button.
-        { label: 'RETURN HOME', onClick: onHome, kind: 'secondary' },
+        { label: 'RETURN HOME', onClick: onHome, kind: 'secondary', role: 'home' },
         { label: 'BACK TO FIGHT MODE', onClick: onFightHub, kind: 'ghost' },
       ]}
     />

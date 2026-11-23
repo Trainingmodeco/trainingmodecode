@@ -14,6 +14,8 @@ import AchievementToast from './AchievementToast';
 import { retentionOn } from '../data/retentionFlags';
 import { takeEndScreenStrip, markEndScreenStrip } from '../data/weekStreakStore';
 import WeekMomentStrip from '../retention/ui/WeekMomentStrip';
+import { settleNearMiss, noteAttempt } from '../data/nearMissStore';
+import NearMissPanel from '../retention/ui/NearMissPanel';
 
 // Design 24f — shared Mission Complete screen for every mode. A celebratory
 // medal hero with an animated XP count-up, a mode-tinted headline, a stat
@@ -107,7 +109,11 @@ export default function MissionComplete({
                             // screen gets a header-level way out
   failReason,               // engine's guidance line, shown on fail / validation_failed
   achievements = [],        // item 10b — newly unlocked, shown as a toast on top
-  actions = [],             // [{ label, onClick, kind: 'primary'|'secondary'|'ghost' }]
+  actions = [],             // [{ label, onClick, kind: 'primary'|'secondary'|'ghost', role?: 'retry'|'home' }]
+  nearMiss = null,          // retention feature 3 (switch `nearMiss`): this session's facts
+                            // { key, token, unit, done, total, outcome, boss?, maxEffort?,
+                            //   onRetry, onLeave, retryLabel? } (data/nearMissStore), or a
+                            // settled { miss, gate, show } (the gallery)
 }) {
   const v = VARIANT[variant] || VARIANT.success;
   const failed = variant === 'fail' || variant === 'validation_failed';
@@ -136,6 +142,19 @@ export default function MissionComplete({
   const [weeksOn] = useState(() => retentionOn('weeks'));
   const [weekStrip] = useState(() => (!unpaid && weeksOn ? takeEndScreenStrip() : null));
   useEffect(() => { markEndScreenStrip(weekStrip); }, [weekStrip]);
+
+  // Retention feature 3 (near-miss switch): on a partial or failed end, how
+  // close it came and RETRY / COME BACK FRESH TOMORROW, under the stats. Worked
+  // out once; the session counts as one try at its stage or session today.
+  // With the panel up, it is the screen's retry and its way home: the screen's
+  // own retry and home buttons step aside and its main button goes quiet.
+  const [nearMissOn] = useState(() => retentionOn('nearMiss'));
+  const [nm] = useState(() => (!nearMiss ? null : nearMiss.gate ? nearMiss : nearMissOn ? settleNearMiss(nearMiss) : null));
+  useEffect(() => { if (nm && nm !== nearMiss) noteAttempt(nm); }, [nm]); // eslint-disable-line react-hooks/exhaustive-deps
+  const showNearMiss = !!nm?.show;
+  const shownActions = showNearMiss
+    ? actions.filter((a) => a.role !== 'retry' && a.role !== 'home').map((a) => (a.kind === 'primary' ? { ...a, kind: 'secondary' } : a))
+    : actions;
 
   const [stats0] = useState(() => loadStats());
   const streak = getStreak(stats0);
@@ -227,6 +246,11 @@ export default function MissionComplete({
             {stats.map((s, i) => <Stat key={i} {...s}/>)}
           </div>
 
+          {showNearMiss && (
+            <div style={{ marginBottom: 6 }}>
+              <NearMissPanel miss={nm.miss} gate={nm.gate} onRetry={nearMiss?.onRetry} retryLabel={nearMiss?.retryLabel} onLeave={nearMiss?.onLeave}/>
+            </div>
+          )}
           {summary && <div style={{ marginBottom: 6 }}>{summary}</div>}
           {extra && <div className="mc-extra" style={{ marginBottom: 6 }}>{extra}</div>}
 
@@ -261,7 +285,7 @@ export default function MissionComplete({
 
           {/* CTAs */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {actions.map((a, i) => {
+            {shownActions.map((a, i) => {
               if (a.kind === 'ghost') {
                 return <button key={i} onClick={a.onClick} style={{ width: '100%', height: 38, border: '1px solid rgba(255,255,255,0.12)', borderRadius: 11, background: 'transparent', color: '#9a90b8', font: "700 11px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer' }}>{a.label}</button>;
               }

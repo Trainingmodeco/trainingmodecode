@@ -41,8 +41,9 @@ export const SYNC_KEYS = [
   'tm_prog_bro', 'tm_prog_ppl', 'tm_prog_ul',
   // plan + preferences
   'tm_game_plan_v1', 'tm_equipment', 'tm_combo_v1', 'tm_ghosts_v1',
-  // retention: the daily mission of the day and the week streak's shown-moment markers
-  'tm_daily_mission_v2', 'tm_week_moments_v1',
+  // retention: the daily mission of the day and the week streak's shown-moment markers;
+  // the near-miss retry's tries per stage or session today
+  'tm_daily_mission_v2', 'tm_week_moments_v1', 'tm_retry_log_v1',
   'tm_audio_settings', 'tm_reminder_settings', 'tm_notification_prefs',
   // first-run milestones (so a restored device doesn't re-onboard)
   'tm_starthere_completed', 'trainingModeOnboardingComplete', 'trainingModeTourComplete',

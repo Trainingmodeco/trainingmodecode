@@ -22,6 +22,9 @@ import { retentionOn } from './data/retentionFlags';
 import { openNextUp, arcadeEndStars } from './data/pathNextUp';
 import StageStarsCard from './retention/ui/StageStarsCard';
 import { playStarTone } from './data/audioEngine';
+import { arcadeRetryKey, campRetryKey } from './data/retrySafety';
+import { arcadeStageBoss, requestCampRetry } from './data/nearMissStore';
+import { getSeriesById } from './data/trainingArcadeData';
 import CampTransitionCard from './shared/CampTransitionCard';
 import CampFitRunner from './CampFitRunner';
 import CampFitSetRunner from './CampFitSetRunner';
@@ -371,6 +374,17 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
       const aVerdict = resolveOutcome({
         completed: r.rounds, total: r.total, difficulty: r.difficulty, integrityResult: r.integrityResult,
       });
+      // Retention feature 3: the near-miss panel's facts and the same stage again
+      // (same saga, stage, path and difficulty) through the arcade's own start.
+      const a = campCtx?.arcade || null;
+      const aSeries = a ? (getSeriesById(a.seriesId) || (arcadeSeries?.id === a.seriesId ? arcadeSeries : null)) : null;
+      const aStage = aSeries?.stages?.find((st) => st.id === a.stageId) || null;
+      const aNearMiss = a ? {
+        key: arcadeRetryKey(a.seriesId, a.stageId), token: r, outcome: r.cleared ? 'pass' : aVerdict.outcome,
+        unit: 'rounds', done: r.rounds, total: r.total, boss: arcadeStageBoss(r.campaignId, a.stageId, aSeries),
+        onRetry: aSeries && aStage ? () => goArcadeSession(aSeries, aStage, a.path || 'fight', null, { difficulty: r.difficulty || 'normal', voiceCoach: true, sound: 'on' }) : null,
+        onLeave: goHome,
+      } : null;
       return (
         <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
           <MissionComplete
@@ -388,9 +402,10 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
             stats={[{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }]}
             summary={arcadeStars ? <StageStarsCard stars={arcadeStars.stars} max={arcadeStars.max} line={arcadeStars.line} onLand={playStarTone}/> : null}
             shareData={{ title: aTitle, subtitle: aSub, mode: 'Training Arcade' }}
+            nearMiss={aNearMiss}
             actions={[
               { label: 'BACK TO ARCADE', onClick: goArcadeComplete, kind: 'primary' },
-              { label: 'HOME', onClick: goHome, kind: 'ghost' },
+              { label: 'HOME', onClick: goHome, kind: 'ghost', role: 'home' },
             ]}
           />
           <StagePlate plate={r.plate} />
@@ -416,6 +431,13 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     const cVerdict = resolveOutcome({
       completed: r.rounds, total: r.total, difficulty: r.difficulty, integrityResult: r.integrityResult,
     });
+    // Retention feature 3: RETRY goes back to the camp map on this level's card,
+    // so the readiness and gear checks run as on any start.
+    const cNearMiss = {
+      key: campRetryKey(r.discipline, r.level, r.slot), token: r, outcome: r.cleared || missionDone ? 'pass' : cVerdict.outcome,
+      unit: 'rounds', done: r.rounds, total: r.total, boss: r.level === 12 ? 'title' : false,
+      onRetry: () => { requestCampRetry(r.level); goCampMap(); }, onLeave: goHome,
+    };
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
         <MissionComplete
@@ -433,6 +455,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
             ? [{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }, { value: '12', label: 'LEVELS', highlight: true }]
             : [{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }]}
           shareData={titleFightWon ? { mode: 'Training Camp', eyebrow: 'TITLE FIGHT WON', workoutName: 'CAMP COMPLETE', difficulty: r.difficulty } : undefined}
+          nearMiss={cNearMiss}
           actions={titleFightWon
             ? [
                 { label: 'BACK TO CAMP', onClick: goCampMap, kind: 'primary' },
@@ -442,7 +465,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
                 r.unlockedTo
                   ? { label: `CONTINUE → L${r.unlockedTo}`, onClick: goCampMap, kind: 'primary' }
                   : { label: 'BACK TO CAMP', onClick: goCampMap, kind: 'primary' },
-                { label: 'HOME', onClick: goHome, kind: 'ghost' },
+                { label: 'HOME', onClick: goHome, kind: 'ghost', role: 'home' },
               ]}
         />
         <StagePlate plate={r.plate} />
@@ -560,6 +583,10 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
           onAgain={handleRetry}
           onBack={goFightHub}
           onHome={goHome}
+          retry={{
+            token: session, onLeave: goHome,
+            onRetry: isCombo ? (comboCfg ? () => goComboActive(comboCfg) : null) : () => goTimer({ ...session.cfg }),
+          }}
         />
       </WithNav>
     );
@@ -640,7 +667,8 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     // or COMPLETE WORKOUT opened the summary with its top cut off.
     return (
       <WithNav key="fit_complete" activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
-        <FitWorkoutComplete cfg={fitCfg} completedCount={session?.exerciseCount || 0} totalCount={session?.totalCount || 0} cardioResult={cardioResult} onHome={goHome}/>
+        <FitWorkoutComplete cfg={fitCfg} completedCount={session?.exerciseCount || 0} totalCount={session?.totalCount || 0} cardioResult={cardioResult} onHome={goHome}
+          retry={{ token: session, onRetry: () => goFitWorkout(fitCfg), onLeave: goHome }}/>
       </WithNav>
     );
   }
@@ -666,7 +694,8 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
   if (screen === 'qm_complete' && qmResult) {
     return (
       <WithNav activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
-        <QuickMissionComplete result={qmResult} cardioResult={cardioResult} onRetry={goQuickMissionSetup} onFitHub={goFitHub} onHome={goHome}/>
+        <QuickMissionComplete result={qmResult} cardioResult={cardioResult} onRetry={goQuickMissionSetup} onFitHub={goFitHub} onHome={goHome}
+          retry={{ token: qmResult, onRetry: qmCfg ? () => goQuickMissionActive(qmCfg.mission ? qmCfg : { ...qmCfg, mission: qmResult.mission }) : null, onLeave: goHome }}/>
       </WithNav>
     );
   }
@@ -689,7 +718,8 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
   if (screen === 'cc_complete' && ccMission && ccResult) {
     return (
       <WithNav activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
-        <CombatConditioningComplete mission={ccMission} result={ccResult} cardioResult={cardioResult} onNewMission={goCombatCondSetup} onFightHub={goFightHub} onHome={goHome}/>
+        <CombatConditioningComplete mission={ccMission} result={ccResult} cardioResult={cardioResult} onNewMission={goCombatCondSetup} onFightHub={goFightHub} onHome={goHome}
+          retry={{ token: ccResult, onRetry: actions.retryCombatCond, onLeave: goHome }}/>
       </WithNav>
     );
   }
@@ -779,7 +809,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
   if (screen === 'arcade_session' && arcadeSeries && arcadeStage) {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <ArcadeSessionPlayer series={arcadeSeries} stage={arcadeStage} selectedMode={arcadeMode} modeOrder={arcadeOrder} arcadeSettings={arcadeSettings} onHome={goHome} onComplete={goArcadeComplete} onExit={goArcadeComplete} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
+        <ArcadeSessionPlayer series={arcadeSeries} stage={arcadeStage} selectedMode={arcadeMode} modeOrder={arcadeOrder} arcadeSettings={arcadeSettings} onHome={goHome} onComplete={goArcadeComplete} onExit={goArcadeComplete} onDoneForToday={actions.goArcadeDoneToday} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
       </WithNav>
     );
   }

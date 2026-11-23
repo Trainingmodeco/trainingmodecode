@@ -42,6 +42,7 @@ export const RETENTION_CSS = `
 @keyframes rt-pulse { 0%,100% { box-shadow: 0 0 10px rgba(168,85,247,.55), 0 0 22px rgba(253,224,71,.25) } 50% { box-shadow: 0 0 20px rgba(168,85,247,.9), 0 0 40px rgba(253,224,71,.5) } }
 @keyframes rt-ring { 0% { transform: scale(1); opacity: .7 } 100% { transform: scale(1.7); opacity: 0 } }
 @keyframes rt-sheet { from { transform: translateY(24px); opacity: 0 } to { transform: none; opacity: 1 } }
+@keyframes rt-fill { from { transform: scaleX(0) } to { transform: scaleX(1) } }
 .rt-go { transition: filter .18s ease, transform .1s ease; }
 .rt-go:hover, .rt-go:focus-visible { filter: brightness(1.08); }
 .rt-go:active { transform: scale(0.985); }

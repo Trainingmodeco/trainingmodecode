@@ -20,6 +20,7 @@ import { SCREEN_GUIDES } from './shared/screenGuides';
 import { retentionOn } from './data/retentionFlags';
 import { campPath } from './data/pathStars';
 import { takePathFocus } from './data/pathNextUp';
+import { takeCampRetry } from './data/nearMissStore';
 import PathMap from './retention/ui/PathMap';
 import ReplaySheet from './retention/ui/ReplaySheet';
 
@@ -153,6 +154,16 @@ export default function TrainingCampMap({ discipline = 'Boxing', onBack, onStart
   useEffect(() => {
     if (!pathOn || !takePathFocus('camp') || campDone || showParq) return undefined;
     const t = setTimeout(() => setOpenLevel(current), 320);
+    return () => clearTimeout(t);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Retention feature 3 (switch `nearMiss`): the end screen's RETRY opens the
+  // level it ran on its card (once), so START → readiness → gear runs as ever.
+  const [nearMissOn] = useState(() => retentionOn('nearMiss'));
+  useEffect(() => {
+    if (!nearMissOn) return undefined;
+    const level = takeCampRetry();
+    if (!level || level > current || showParq) return undefined;
+    const t = setTimeout(() => setOpenLevel(level), 320);
     return () => clearTimeout(t);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

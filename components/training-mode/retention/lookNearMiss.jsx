@@ -1,63 +1,94 @@
-import { C } from '../Styles';
-import { HOME, head, orb, goldText, Look, Feature, Bar, Btn, Stars } from './looksKit';
+import { Look, Feature } from './looksKit';
+import NearMissPanel from './ui/NearMissPanel';
+import ArcadeStageClearOverlay from '../ArcadeStageClearOverlay';
+import { nearMiss } from '../data/nearMiss';
+import { canRetryNow } from '../data/retrySafety';
+import { stageStarRule } from '../data/pathStars';
+import { getSeriesById } from '../data/trainingArcadeData';
 
-// 3 · Near-miss retry. "How close" in plain words from the session's real
-// numbers, a RETRY only when a retry is safe, and an equally easy way out.
+// 3 · Near-miss retry. How close a partial or failed session came, in plain
+// words from its real counts, a RETRY only when a retry is safe, and a way
+// out that is just as easy to press. Every card renders the REAL components
+// (retention/ui/NearMissPanel, data/nearMiss, data/retrySafety, the real
+// classic stage screens) with sample data: what is drawn here is what ships
+// behind the `nearMiss` switch.
 
-function Screen({ tone, label, title, big, sub, bar, children }) {
-  const ring = tone === 'red' ? 'rgba(239,68,68,' : tone === 'green' ? 'rgba(34,197,94,' : 'rgba(253,224,71,';
+const OP = getSeriesById('one-punch-protocol');
+const noop = () => {};
+// A settled near miss as the end screens build it (data/nearMissStore), from sample counts.
+const settled = (facts, gate = {}) => ({ miss: nearMiss(facts), gate: canRetryNow(gate), show: true });
+
+// The top of the shared end screen (MissionComplete) down to the panel.
+function EndTop({ eyebrow, title, sub, xp, stat, tone = '#a855f7', eyebrowColor = '#c9a6ff', children }) {
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: 22, gap: 12, textAlign: 'center',
-      background: `radial-gradient(ellipse at 50% 30%, ${ring}0.16) 0%, rgba(8,0,18,1) 62%)` }}>
-      <div style={{ ...orb(11), color: HOME.muted, marginTop: 18, animation: 'rl-rise .4s both' }}>{label}</div>
-      <div style={{ ...orb(22), color: C.text, animation: 'rl-rise .4s .1s both' }}>{title}</div>
-      <div style={{ ...orb(40), ...goldText, animation: 'rl-slam .6s .35s both', lineHeight: 1.05 }}>{big}</div>
-      {bar && (
-        <div style={{ animation: 'rl-rise .4s .7s both' }}>
-          <Bar value={bar[0]} max={bar[1]} color={tone === 'green' ? '#22c55e' : HOME.gold} height={10}/>
-          <div style={{ display: 'flex', justifyContent: 'space-between', ...head(11, 600), color: HOME.muted, marginTop: 4 }}><span>{bar[2]}</span><span>{bar[3]}</span></div>
+    <div style={{ padding: '22px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ font: "700 7px 'Press Start 2P',monospace", color: eyebrowColor, letterSpacing: '0.16em', textAlign: 'center' }}>◈ {eyebrow} ◈</div>
+      <div style={{ font: "900 18px 'Orbitron',sans-serif", color: '#fff', textAlign: 'center', lineHeight: 1.08 }}>{title}</div>
+      <div style={{ font: "600 9.5px 'Rajdhani',sans-serif", color: '#c4a4d8', textAlign: 'center', marginBottom: 6 }}>{sub}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}>
+        <div style={{ borderRadius: 10, border: `1px solid ${tone}73`, background: `linear-gradient(135deg, ${tone}24, rgba(8,2,18,0.6))`, padding: '8px 10px', textAlign: 'center' }}>
+          <div style={{ font: "900 17px 'Orbitron',sans-serif", color: tone }}>{xp}</div>
+          <div style={{ font: "600 7.5px 'Orbitron',sans-serif", color: eyebrowColor, letterSpacing: '0.08em' }}>{xp === '0' ? 'NO XP AWARDED' : 'XP EARNED'}</div>
         </div>
-      )}
-      <div style={{ fontSize: 15, color: C.text, lineHeight: 1.4, animation: 'rl-rise .4s .9s both' }}>{sub}</div>
-      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8, animation: 'rl-rise .4s 1.1s both' }}>{children}</div>
+        <div style={{ borderRadius: 10, border: '1px solid rgba(168,85,247,0.25)', background: 'rgba(8,2,18,0.88)', padding: '8px 10px', textAlign: 'center' }}>
+          <div style={{ font: "900 17px 'Orbitron',sans-serif", color: '#fde047' }}>{stat[0]}</div>
+          <div style={{ font: "600 7.5px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.08em' }}>{stat[1]}</div>
+        </div>
+      </div>
+      {children}
     </div>
   );
 }
 
 export default function LookNearMiss() {
+  const ff = settled({ unit: 'rounds', done: 2, total: 3, outcome: 'partial' });
+  const boss = settled({ unit: 'rounds', done: 9, total: 12, outcome: 'partial' }, { boss: 'boss' });
+  const again = settled({ unit: 'exercises', done: 10, total: 12, outcome: 'partial' }, { attemptsToday: 2 });
+  const stage = OP.stages[4];
+  const tiers = stageStarRule(OP, stage).tiers || [];
+  const third = tiers.find((t) => t.stars === 3);
+  const clearTime = third ? third.maxMinutes * 60 + 11 : 0;
+  const star = { ...settled({ unit: 'time', timeSec: clearTime, tiers, stars: 2 }), retryLabel: 'GO FOR THE THIRD STAR' };
+  const bench = settled({ unit: 'exercises', done: 2, total: 3, outcome: 'partial' });
   return (
     <Feature id="f3" num="FEATURE 3" title="NEAR-MISS RETRY"
-      reuse="the outcome screens of ArcadeStageClearOverlay (partial, failed, cleared) and their verdicts from sessionOutcome; the readiness and recovery data for when a retry is safe."
-      isNew="how close it was in plain words with a progress bar, RETRY and COME BACK TOMORROW as two equal buttons, and a no-retry state after a max-effort boss.">
+      reuse="the shared end screen (MissionComplete) and the classic Arcade's stage screens, their verdicts from sessionOutcome, each mode's own start (the same session again: Fight Focus, Combo, Quick Mission, Combat Conditioning, Fit, arcade v2; the camp map's readiness and gear checks; the classic stage's own RETRY)."
+      isNew="how close it was in plain words from the session's real counts, with a bar; RETRY and COME BACK FRESH TOMORROW as two buttons of the same size; no RETRY after a boss, the title fight, MAX OUT, a second go at the same session or three sessions in a day: the screen says when to come back and offers DONE FOR TODAY; the classic clear with fewer than three stars offers the third star next to the next stage. There is no reminder to hook a REMIND ME TOMORROW into, so it is left out.">
 
-      <Look name="Boss not beaten, retry is safe" note="Real numbers: 92 of 100 reps. RETRY and the way out are the same size." height={560} animated>
-        <Screen tone="red" label="BOSS · STAGE 12" title="SO CLOSE" big="8 REPS SHORT" bar={[92, 100, '92 REPS', 'GOAL 100']} sub="You were on pace until the last minute. Your legs had it: the push-ups slowed down.">
-          <Btn>↻ RETRY NOW</Btn>
-          <Btn tone="ghost">COME BACK FRESH TOMORROW</Btn>
-        </Screen>
+      <Look name="Stopped short, retry is safe" note="Fight Focus, 2 of 3 rounds. The panel sits under the stats; RETRY runs the same session, and the way home is the same size." height={420}>
+        <EndTop eyebrow="SESSION STOPPED" title="GOOD EFFORT" sub="Boxing · Normal · Fight Focus" xp="+40" stat={['2/3', 'ROUNDS']}>
+          <NearMissPanel miss={ff.miss} gate={ff.gate} onRetry={noop} onLeave={noop}/>
+        </EndTop>
       </Look>
 
-      <Look name="Boss not beaten, after a max effort" note="No RETRY after a max-effort boss or past a sensible daily load: the screen says when to come back instead." height={560} animated>
-        <Screen tone="red" label="BOSS · STAGE 12" title="ALL OUT" big="8 REPS SHORT" bar={[92, 100, '92 REPS', 'GOAL 100']} sub="That was a max effort. The boss opens again tomorrow, once you've recovered. You'll start fresh, and you're 8 reps away.">
-          <div style={{ background: HOME.tile, borderRadius: 12, padding: 12, ...head(13), color: HOME.gold }}>⏳ BOSS OPENS AGAIN TOMORROW · 6:00</div>
-          <Btn tone="violet">🔔 REMIND ME TOMORROW</Btn>
-          <Btn tone="ghost">DONE FOR TODAY</Btn>
-        </Screen>
+      <Look name="A boss, no retry today" note="An arcade boss stopped at 9 of 12 rounds: no RETRY after a boss. The line says when to come back; one button, DONE FOR TODAY." height={400}>
+        <EndTop eyebrow="STAGE STOPPED" title="GOOD EFFORT" sub="TRAINING ARCADE · The Grappler · normal" xp="+52" stat={['9/12', 'ROUNDS']}>
+          <NearMissPanel miss={boss.miss} gate={boss.gate} onRetry={noop} onLeave={noop}/>
+        </EndTop>
       </Look>
 
-      <Look name="Stage partly done" note="A partial stage: the rounds that are left, said plainly." height={560} animated>
-        <Screen tone="gold" label="STAGE 7 · PARTIAL" title="NEARLY THERE" big="ONE ROUND TO GO" bar={[4, 5, '4 OF 5 ROUNDS', '']} sub="Four rounds banked (+60 XP). Finish the fifth to clear the stage.">
-          <Btn>↻ RETRY THE STAGE</Btn>
-          <Btn tone="ghost">COME BACK FRESH TOMORROW</Btn>
-        </Screen>
+      <Look name="The second go today" note="Two tries at the same session today: no third, come back fresh tomorrow. Three finished sessions in a day read the same way." height={400}>
+        <EndTop eyebrow="SESSION STOPPED" title="IRON HOUR" sub="Circuit · Medium · Quick Mission" xp="+96" stat={['3/4', 'ROUNDS']}>
+          <NearMissPanel miss={again.miss} gate={again.gate} onRetry={noop} onLeave={noop}/>
+        </EndTop>
       </Look>
 
-      <Look name="Cleared, fewer than 3 stars" note="A clear is a clear. The third star is offered as a replay, never pushed." height={560} animated>
-        <Screen tone="green" label="STAGE 5 · CLEARED" title="CLEARED WITH 2 STARS" big="12 s OFF" sub="the third star. Your time: 6:42; the third star is under 6:30. Replays keep your best result.">
-          <div style={{ display: 'flex', justifyContent: 'center' }}><Stars n={2} size={34} land delay={0.4}/></div>
-          <Btn>↻ GO FOR THE THIRD STAR</Btn>
-          <Btn tone="ghost">NEXT STAGE ▶</Btn>
-        </Screen>
+      <Look name="Cleared, fewer than 3 stars" note="The real classic clear screen: how far off the third star this run was, GO FOR THE THIRD STAR next to the next stage, the same size. A clear is a clear: never pushed." height={700} animated>
+        <ArcadeStageClearOverlay
+          series={OP} stage={stage}
+          result={{ invalid: false, rank: null, points: 300, xpEarned: 300, elapsedSeconds: clearTime, stars: 2, newBest: false, completedTasks: 3, totalTasks: 3 }}
+          xpEarned={300} completedStageIds={OP.stages.slice(0, 5).map((s) => s.id)}
+          onContinue={noop} onReturnToArcade={noop} onNextStage={noop} onRetry={noop} nearMiss={star}
+        />
+      </Look>
+
+      <Look name="A stage partly done" note="The real classic partial screen (the benchmark, 2 of 3 exercises tested): what is left, RETRY THE STAGE and the way home." height={700} animated>
+        <ArcadeStageClearOverlay
+          series={OP} stage={OP.stages[0]}
+          result={{ invalid: false, completedTasks: 2, totalTasks: 3, elapsedSeconds: 640 }}
+          xpEarned={60} completedStageIds={[]}
+          onContinue={noop} onReturnToArcade={noop} onRetry={noop} onDoneForToday={noop} nearMiss={bench}
+        />
       </Look>
     </Feature>
   );
