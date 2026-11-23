@@ -911,8 +911,9 @@ the header, the chip and Game Plan; `power` for the rest).
 From the preview board: `q-campstars` = **build**, and the notes on `f2-camp-replay`, `f3-camp-retry-parq` and
 `f2-camp-path`. Photos: `retention-preview.mjs` states `f2-camp-path`, `f2-camp-replay`, `f2-camp-replay-older`,
 `f2-camp-replay-start`, `f2-camp-end-stars`, `f2-camp-end-s1`, `f3-camp-parq-break`, `f3-camp-parq-recent`,
-`f3-camp-parq-flagged` (and the old `f3-camp-retry-parq` for the first time). Tests: `npm run test:camp`
-(`scripts/test-camp-stars.mjs`, 76 checks, in `check:all`).
+`f3-camp-parq-flagged` (and the old `f3-camp-retry-parq` for the first time), and after the review
+`f2-camp-replay-s2` and `f2-camp-replay-lapsed`. Tests: `npm run test:camp` (`scripts/test-camp-stars.mjs`, 90 checks,
+in `check:all`).
 
 ### 1. Camp stars (switch `path`)
 
@@ -1019,6 +1020,29 @@ again). Until the file is added it is silent.
   every changed file, `tsc`.
 - `retention-preview.mjs` at 360, 390 and 430 on port 8083: the states above fit (no overflow, no cut text), and each
   photo was looked at.
+
+### Review fixes (2026-11-23)
+
+- **A replayed Session 1 waits eight hours, no longer** (B1). Before, a replayed Session 1 with no Session 2 after it
+  stayed "waiting" for good: every later REPLAY of that level opened Session 2, even weeks later, when Session 2 could
+  only earn two stars, and a fresh run could not start until a Session 2 was done. Now `campStars.pendingSession1`
+  lets it lapse once more than eight hours (`S2_GAP_MAX_MS`) have passed since it ended (8:00 still counts), so a
+  replay opens Session 1 again. The same rule (`now`, default the clock) feeds `campReplaySlot` (the card's START),
+  `campLevelStars().pending` (the replay sheet's "Session 1 replayed: …" line, which falls back to the third star's
+  need) and the end screen's line (`pathNextUp.campSessionEndStars`). The stars themselves are unchanged (best run).
+- **The level card says what a replay runs** (B5). On a replay with the path on, the card read "unlocks L5", both
+  sessions ✓ COMPLETE, "level clears at ✓✓" and START SESSION 1. Now (`TrainingCampMap`, `campStars.campReplayCard`):
+  the subtitle ends "· replay" (any cleared level, single and title too); a split level's tiles show the replay's own
+  run (Session 1 ▶ UP NEXT and Session 2 PENDING, or Session 1 ✓ REPLAYED and Session 2 ▶ UP NEXT); and the line under
+  them reads "Replay: Session 1, then Session 2 four to eight hours later, for the stars." or "Replay: Session 2 four
+  to eight hours after Session 1, for the stars." (with FULL CAMP picked, in the rare case a cleared level has no
+  session ticks: "Replay: both blocks back-to-back, two stars at most."). Switch off, and the current level's card:
+  as before. The card now carries `data-retention="camp-card"` so the preview checks its text for cuts.
+- Photos: `f2-camp-replay-start` (Session 1 next), `f2-camp-replay-s2` (Session 1 replayed two hours ago),
+  `f2-camp-replay-lapsed` (Session 1 replayed on Monday: the sheet asks for the third star again, START SESSION 1), at
+  360, 390 and 430; `f2-camp-replay`, `-older`, `-path`, `-end-stars`, `-end-s1`, `-next-up` re-shot. Tests: `test:camp`
+  90 (the 8 h edge, weeks later, the sheet's and end screen's lines after a lapse, a new run after a lapse, the card's
+  tiles and lines). No spoken line changed.
 
 ### Needs the owner's answer
 

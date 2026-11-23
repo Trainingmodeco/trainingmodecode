@@ -85,21 +85,29 @@ export function campRuns(kind, levelRows) {
 }
 
 // A Session 1 done and waiting for its Session 2 (a split level's run under
-// way): { endedAt (ms), clean } or null.
-export function pendingSession1(levelRows) {
+// way): { endedAt (ms), clean } or null. It waits as long as a Session 2 can
+// still come on time: once more than eight hours have passed since it ended,
+// the run has lapsed (a Session 2 now could earn two stars at most), so a
+// replay starts again at Session 1 and no line counts on it.
+export function pendingSession1(levelRows, now = Date.now()) {
   let s1 = null;
   for (const r of levelRows) {
     if (!sessionDone(r)) continue;
     if (r.camp.slot === 's1') s1 = r;
     else if (r.camp.slot === 's2' && s1) s1 = null;
   }
-  return s1 ? { endedAt: ms(s1.completedAt), clean: sessionClean(s1) } : null;
+  if (!s1) return null;
+  const endedAt = ms(s1.completedAt);
+  const t = Number(now);
+  if (Number.isFinite(t) && t - endedAt > S2_GAP_MAX_MS) return null;
+  return { endedAt, clean: sessionClean(s1) };
 }
 
 // One level's stars.
 // → { level, kind, cleared, stars (0 when not cleared), max: 3, best (run | null),
-//     older (cleared, no run on record), next ({ stars } | null), pending (split only) }
-export function campLevelStars({ level, kind = 'single', cleared = false, rows = [] }) {
+//     older (cleared, no run on record), next ({ stars } | null),
+//     pending (split only: a replayed Session 1 still inside its eight hours at `now`) }
+export function campLevelStars({ level, kind = 'single', cleared = false, rows = [], now = Date.now() }) {
   const own = campRowsOf(rows, level);
   let best = null;
   for (const run of campRuns(kind, own)) if (!best || run.stars > best.stars) best = run;
@@ -108,7 +116,7 @@ export function campLevelStars({ level, kind = 'single', cleared = false, rows =
     level, kind, cleared, stars, max: CAMP_STAR_MAX, best,
     older: cleared && !best,
     next: cleared && stars < CAMP_STAR_MAX ? { stars: stars + 1 } : null,
-    pending: kind === 'split' ? pendingSession1(own) : null,
+    pending: kind === 'split' ? pendingSession1(own, now) : null,
   };
 }
 
@@ -125,9 +133,28 @@ export function campStarsMap({ levels = [], current = 1, campDone = false, rows 
 }
 
 // Which session a replay of a cleared split level runs next: Session 2 when a
-// replayed Session 1 waits for it, else Session 1 (a run is S1 then S2).
-export function campReplaySlot(level, rows) {
-  return pendingSession1(campRowsOf(rows, level)) ? 's2' : 's1';
+// replayed Session 1 waits for it (ended eight hours ago or less), else
+// Session 1 (a run is S1 then S2).
+export function campReplaySlot(level, rows, now = Date.now()) {
+  return pendingSession1(campRowsOf(rows, level), now) ? 's2' : 's1';
+}
+
+// The level card on a replay of a cleared split level (switch `path`): the
+// replay's own run in the session tiles (Session 1 up next, or done and
+// Session 2 up next) and one line on how the replay runs for the stars, in
+// place of the first run's "level clears at ✓✓".
+//   slot: campReplaySlot's answer · full: FULL CAMP picked (both blocks in
+//   one sitting, which tops out at two stars)
+export function campReplayCard(slot, { full = false } = {}) {
+  if (full) return { s1: 'next', s2: 'later', line: 'Replay: both blocks back-to-back, two stars at most.' };
+  const s2 = slot === 's2';
+  return {
+    s1: s2 ? 'done' : 'next',
+    s2: s2 ? 'next' : 'later',
+    line: s2
+      ? 'Replay: Session 2 four to eight hours after Session 1, for the stars.'
+      : 'Replay: Session 1, then Session 2 four to eight hours later, for the stars.',
+  };
 }
 
 // What the next star needs, in plain words.

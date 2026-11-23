@@ -2,8 +2,9 @@
 // 2026-11-23): the star rule from the session rows (★ the clear, ★★ every
 // round done and verified, ★★★ the camp's way: no round cut short, and on a
 // split level Session 2 four to eight hours after Session 1), older clears at
-// one star, the best run kept, a replay's Session 1 waiting for its Session 2,
-// the lines that say what the next star needs, the path's nodes with stars,
+// one star, the best run kept, a replay's Session 1 waiting for its Session 2
+// (eight hours at most, then a replay starts again at Session 1), the replay
+// card's tiles and line, the lines that say what the next star needs, the path's nodes with stars,
 // the end screen's row, the row a camp session banks, the timers' cut-round
 // carry, and the health check asked the first time and after a 30-day break
 // (never re-asked for an athlete who flagged a yes).
@@ -91,13 +92,42 @@ check('the latest S1 before the S2 is its pair', stars(8, 'split', [camp(8, 's1'
 check('a stopped S1 does not pair', stars(8, 'split', [camp(8, 's1', 1, { done: 2 }), camp(8, 's2', 6, { startH: 5.5 })]) === 1);
 
 section('a run under way, and which session a replay runs');
-check('no rows: a replay starts at Session 1', S.campReplaySlot(9, []) === 's1');
-check('S1 replayed: Session 2 next', S.campReplaySlot(9, [camp(9, 's1', 1)]) === 's2');
-check('S1 then S2: Session 1 again', S.campReplaySlot(9, [camp(9, 's1', 1), camp(9, 's2', 6, { startH: 5.5 })]) === 's1');
-check('a stopped S1 is no S1: Session 1 again', S.campReplaySlot(9, [camp(9, 's1', 1, { done: 3 })]) === 's1');
-check('an older S2 row (no `camp`) does not end the run', S.campReplaySlot(9, [camp(9, 's1', 1), old(9, 3)]) === 's2');
-const pend = S.campLevelStars({ level: 9, kind: 'split', cleared: true, rows: [camp(9, 's1', 1)] }).pending;
+// `now` for a Session 1 that ended at T0 + 1 h: `h` hours after it ended.
+const after = (h) => T0 + H + h * H;
+check('no rows: a replay starts at Session 1', S.campReplaySlot(9, [], after(1)) === 's1');
+check('S1 replayed an hour ago: Session 2 next', S.campReplaySlot(9, [camp(9, 's1', 1)], after(1)) === 's2');
+check('S1 then S2: Session 1 again', S.campReplaySlot(9, [camp(9, 's1', 1), camp(9, 's2', 6, { startH: 5.5 })], after(6)) === 's1');
+check('a stopped S1 is no S1: Session 1 again', S.campReplaySlot(9, [camp(9, 's1', 1, { done: 3 })], after(1)) === 's1');
+check('an older S2 row (no `camp`) does not end the run', S.campReplaySlot(9, [camp(9, 's1', 1), old(9, 3)], after(3)) === 's2');
+const pend = S.campLevelStars({ level: 9, kind: 'split', cleared: true, rows: [camp(9, 's1', 1)], now: after(2) }).pending;
 check('the waiting Session 1: when it ended, and clean', pend && pend.endedAt === T0 + H && pend.clean === true);
+
+section('a replayed Session 1 waits eight hours, no longer');
+const lone = [camp(9, 's1', 1)];
+check('exactly 8 h after it ended: still Session 2 (8:00 counts)', S.campReplaySlot(9, lone, after(8)) === 's2');
+check('8 h 1 min after: the run has lapsed, Session 1 again', S.campReplaySlot(9, lone, after(8 + 1 / 60)) === 's1');
+check('weeks later: Session 1 again', S.campReplaySlot(9, lone, after(24 * 21)) === 's1');
+check('no clock given: today\'s (a Session 1 from 2026-11-16 has lapsed by now)', S.campReplaySlot(9, lone) === 's1');
+check('pendingSession1 on its own: the same rule', S.pendingSession1(S.campRowsOf(lone, 9), after(8)) !== null
+  && S.pendingSession1(S.campRowsOf(lone, 9), after(9)) === null);
+const lapsed = S.campLevelStars({ level: 6, kind: 'split', cleared: true, rows: [...split(24), camp(6, 's1', 60)], now: T0 + 60 * H + 9 * H });
+check('campLevelStars: a lapsed Session 1 is not pending; the stars stay the best run\'s', lapsed.pending === null && lapsed.stars === 2);
+check('the replay sheet\'s line after it lapsed: the third star\'s need again, not "Session 1 replayed"',
+  S.campNextStarLine(lapsed) === 'Third star: Session 2 four to eight hours after Session 1, no round cut short.');
+check('the end screen\'s line uses the same rule', S.campEndStars(lapsed, { justS1: true })?.line === 'Next star: Session 2 four to eight hours after Session 1, no round cut short.');
+const fresh = [...split(24), camp(6, 's1', 60), camp(6, 's1', 200), camp(6, 's2', 205.5, { startH: 205 })];
+check('a lapsed S1, then a new S1 and S2 on time: three', S.campLevelStars({ level: 6, kind: 'split', cleared: true, rows: fresh, now: T0 + 206 * H }).stars === 3);
+
+section('the level card on a replay (switch `path`)');
+const c1 = S.campReplayCard('s1');
+check('Session 1 next: S1 up next, S2 after it, the line says how a replay runs',
+  c1.s1 === 'next' && c1.s2 === 'later' && c1.line === 'Replay: Session 1, then Session 2 four to eight hours later, for the stars.');
+const c2 = S.campReplayCard('s2');
+check('Session 2 next: S1 replayed, S2 up next', c2.s1 === 'done' && c2.s2 === 'next' && c2.line === 'Replay: Session 2 four to eight hours after Session 1, for the stars.');
+const cf = S.campReplayCard('s1', { full: true });
+check('FULL CAMP picked: both blocks at once, two stars at most', cf.s1 === 'next' && /two stars at most/.test(cf.line));
+check('no card line says "unlocks" or "level clears"', [c1, c2, cf].every((c) => !/unlocks|level clears/i.test(c.line)));
+check('each card line short enough for two lines at 360 px', [c1, c2, cf].every((c) => c.line.length <= 80), [c1, c2, cf].map((c) => c.line.length).join());
 
 section('the path\'s nodes');
 const rows = [camp(1, 'one', 1), camp(2, 'one', 30, { cut: 1 }), old(3, 40), camp(4, 's1', 50), camp(4, 's2', 56, { startH: 55 })];
@@ -119,11 +149,12 @@ check('older clear: says so, and the second star', S.campNextStarLine(info(3, 's
 check('split, two: the gap and no cut', S.campNextStarLine(info(6, 'split', split(24))) === 'Third star: Session 2 four to eight hours after Session 1, no round cut short.');
 check('single, two: to the bell', S.campNextStarLine(info(1, 'single', [camp(1, 'one', 1, { cut: 1 })])) === 'Third star: every round to the bell, none cut short.');
 check('three: all three', S.campNextStarLine(info(1, 'single', [camp(1, 'one', 1)])) === 'All three stars. Replays keep your best.');
-check('a clean Session 1 replayed: when Session 2 counts', /^Session 1 replayed: Session 2 four to eight hours after it/.test(S.campNextStarLine(info(6, 'split', [...split(24), camp(6, 's1', 60)]))));
+const infoAt = (level, kind, rws, now) => S.campLevelStars({ level, kind, cleared: true, rows: rws, now });
+check('a clean Session 1 replayed: when Session 2 counts', /^Session 1 replayed: Session 2 four to eight hours after it/.test(S.campNextStarLine(infoAt(6, 'split', [...split(24), camp(6, 's1', 60)], T0 + 61 * H))));
 check('not cleared: no line', S.campNextStarLine(info(6, 'split', [], false)) === '');
 check('the end screen: all three', S.campEndStars(info(1, 'single', [camp(1, 'one', 1)]))?.line === 'All three stars.');
 check('the end screen: the next star', S.campEndStars(info(6, 'split', split(24)))?.line === 'Next star: Session 2 four to eight hours after Session 1, no round cut short.');
-check('the end screen after a clean Session 1 replay: from now', /^Session 2 four to eight hours from now/.test(S.campEndStars(info(6, 'split', [...split(24), camp(6, 's1', 60)]), { justS1: true })?.line || ''));
+check('the end screen after a clean Session 1 replay: from now', /^Session 2 four to eight hours from now/.test(S.campEndStars(infoAt(6, 'split', [...split(24), camp(6, 's1', 60)], T0 + 60 * H), { justS1: true })?.line || ''));
 check('the end screen on a level not cleared: nothing', S.campEndStars(info(6, 'split', [], false)) === null);
 const lines = [S.campNextStarLine(info(3, 'single', [old(3, 1)])), S.campNextStarLine(info(6, 'split', split(24)))];
 check('each line short enough for two lines at 360 px', lines.every((l) => l.length <= 100), lines.map((l) => l.length).join());
@@ -141,7 +172,7 @@ store.clear();
 store.set('tm_camp_progress', '7');
 const endRows = [camp(6, 's1', 1), camp(6, 's2', 6.5, { startH: 6 })];
 check('a valid session on a cleared level: its stars and line', N.campSessionEndStars({ level: 6, sessionValid: true, slot: 's2' }, endRows)?.stars === 3);
-check('a replayed Session 1: the line says when Session 2 counts', /from now/.test(N.campSessionEndStars({ level: 6, sessionValid: true, replayS1: true }, [...endRows.slice(0, 1), { ...endRows[1], camp: { ...endRows[1].camp, cut: 2 } }, camp(6, 's1', 40)])?.line || ''));
+check('a replayed Session 1: the line says when Session 2 counts', /from now/.test(N.campSessionEndStars({ level: 6, sessionValid: true, replayS1: true }, [...endRows.slice(0, 1), { ...endRows[1], camp: { ...endRows[1].camp, cut: 2 } }, camp(6, 's1', 40)], T0 + 40 * H)?.line || ''));
 check('the current level (not cleared): no row', N.campSessionEndStars({ level: 7, sessionValid: true }, endRows) === null);
 check('a stopped session: no row', N.campSessionEndStars({ level: 6, sessionValid: false }, endRows) === null);
 check('an arcade stage: no row', N.campSessionEndStars({ arcade: true, level: 6, sessionValid: true }, endRows) === null);

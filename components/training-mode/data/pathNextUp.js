@@ -90,7 +90,8 @@ function endStars(series, stage, entry) {
 // stars from the session rows, banked just before this screen, for a valid
 // session on a cleared level (a first clear, or a replay). A replayed
 // Session 1 (`replayS1`) says when its Session 2 counts. null otherwise.
-export function campSessionEndStars(r, rows = loadStats().sessions) {
+// `now` dates the waiting Session 1 (campStars.pendingSession1's rule).
+export function campSessionEndStars(r, rows = loadStats().sessions, now = Date.now()) {
   try {
     if (!r || r.arcade || !r.sessionValid) return null;
     const lv = campLevels.find((l) => l.level === r.level);
@@ -99,7 +100,7 @@ export function campSessionEndStars(r, rows = loadStats().sessions) {
     const campDone = isCampComplete();
     const cleared = lv.level < current || (campDone && lv.level >= current);
     if (!cleared) return null;
-    const info = campLevelStars({ level: lv.level, kind: campKind(lv), cleared, rows });
+    const info = campLevelStars({ level: lv.level, kind: campKind(lv), cleared, rows, now });
     return campEndStars(info, { justS1: !!r.replayS1 });
   } catch { return null; }
 }

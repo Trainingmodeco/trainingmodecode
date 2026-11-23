@@ -150,6 +150,12 @@ const CAMP_STAR_ROWS = () => [
   campRowAt(6, 0, 9, 4, 's1'),
   campRowAt(6, 0, 12, 4, 's2', { lenMin: 30 }),
 ];
+// The camp seed with level 4's Session 1 replayed (every round to the bell)
+// on weekday `dayIdx` of this week at `hour` (the fixed clock is Thursday 10:00).
+const CAMP_S1_SEED = (dayIdx, hour) => () => ({
+  ...CAMP_SEED(),
+  tm_user_stats: stats([...CAMP_STAR_ROWS(), campRowAt(0, dayIdx, hour, 4, 's1'), ...history({ onTarget: 2, thisWeek: Math.min(1, todayIdx) })], 3000),
+});
 const CAMP_SEED = () => ({
   tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats([...CAMP_STAR_ROWS(), ...history({ onTarget: 2, thisWeek: Math.min(1, todayIdx) })], 3000),
   tm_camp_progress: '5', tm_camp_sessions: JSON.stringify({ 4: { s1: true, s2: true }, 5: { s1: true } }),
@@ -169,6 +175,12 @@ async function nextUp(page, w) {
   await page.locator('[data-retention="next-up"] button.hm-go, button[data-retention="next-up"]').first().click({ timeout: 4000 });
   await wait(page, 2400);
 }
+// A cleared camp level's replay sheet → REPLAY → the level's own card.
+const openCampReplayCard = (level) => async (page, w) => {
+  await tapNode(`[aria-label^="Level ${level},"]`)(page, w);
+  await page.locator('[data-retention="replay-sheet"] button', { hasText: 'REPLAY' }).first().click({ timeout: 4000 });
+  await wait(page, 900);
+};
 const tapNode = (sel) => async (page, w) => {
   await continueLast(page, w);
   await page.locator(sel).first().click({ timeout: 4000 });
@@ -704,9 +716,29 @@ const STATES = [
   },
   {
     name: 'f2-camp-replay-start',
-    note: 'REPLAY on level 4 opens its own card; a replay runs as a run does, Session 1 first (the third star asks for Session 2 four to eight hours after it).',
-    seed: CAMP_SEED, open: async (page, w) => { await tapNode('[aria-label^="Level 4,"]')(page, w); await page.locator('[data-retention="replay-sheet"] button', { hasText: 'REPLAY' }).first().click({ timeout: 4000 }); await wait(page, 900); },
-    check: ['[data-retention="path-map"]'], expect: /BASE[\s\S]*START SESSION 1/,
+    note: 'REPLAY on level 4 opens its own card; a replay runs as a run does, Session 1 first, and the card says so: "replay" (not "unlocks L5"), Session 1 UP NEXT, Session 2 PENDING, and "Replay: Session 1, then Session 2 four to eight hours later, for the stars." in place of "level clears at ✓✓".',
+    seed: CAMP_SEED, open: openCampReplayCard(4),
+    check: ['[data-retention="camp-card"]'], expect: /BASE[\s\S]*· replay[\s\S]*SESSION 1\s*▶ UP NEXT[\s\S]*SESSION 2\s*PENDING[\s\S]*Replay: Session 1, then Session 2 four to eight hours later, for the stars\.[\s\S]*START SESSION 1/,
+    absent: /unlocks L5|level clears|COMPLETE/,
+  },
+  {
+    name: 'f2-camp-replay-s2',
+    note: 'Level 4\'s Session 1 replayed two hours ago: REPLAY opens the card on Session 2 (Session 1 ✓ REPLAYED, Session 2 UP NEXT), and the line says Session 2 counts four to eight hours after Session 1.',
+    seed: CAMP_S1_SEED(todayIdx, 8), open: openCampReplayCard(4),
+    check: ['[data-retention="camp-card"]'], expect: /BASE[\s\S]*· replay[\s\S]*SESSION 1\s*✓ REPLAYED[\s\S]*SESSION 2\s*▶ UP NEXT[\s\S]*Replay: Session 2 four to eight hours after Session 1, for the stars\.[\s\S]*START SESSION 2/,
+    absent: /unlocks L5|level clears|COMPLETE/,
+  },
+  {
+    name: 'f2-camp-replay-lapsed',
+    note: 'Level 4\'s Session 1 replayed on Monday with no Session 2 since: more than eight hours have passed, so the run has lapsed. The sheet asks for the third star again (not "Session 1 replayed") and REPLAY opens Session 1, not a Session 2 that could earn two stars at most.',
+    seed: CAMP_S1_SEED(0, 9), open: async (page, w) => {
+      await tapNode('[aria-label^="Level 4,"]')(page, w);
+      const t = await page.locator('[data-retention="replay-sheet"]').first().innerText();
+      if (!/Third star: Session 2 four to eight hours after Session 1/.test(t) || /Session 1 replayed/.test(t)) throw new Error(`the sheet still counts on the lapsed Session 1: ${t}`);
+      await page.locator('[data-retention="replay-sheet"] button', { hasText: 'REPLAY' }).first().click({ timeout: 4000 }); await wait(page, 900);
+    },
+    check: ['[data-retention="camp-card"]'], expect: /BASE[\s\S]*SESSION 1\s*▶ UP NEXT[\s\S]*Replay: Session 1, then Session 2 four to eight hours later, for the stars\.[\s\S]*START SESSION 1/,
+    absent: /REPLAYED|START SESSION 2|unlocks L5|level clears/,
   },
   {
     name: 'f2-camp-end-stars',
