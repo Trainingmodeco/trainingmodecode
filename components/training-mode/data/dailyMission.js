@@ -6,6 +6,18 @@
 //     card always had): the last session started (folded with the path's NEXT
 //     UP for a saga or the camp), else the Game Plan's bout, else the setup's
 //     first pick. SURPRISE ME re-rolls it into a Surprise Mission.
+//   - Days take turns (the owner, 2026-11-23: "deal something fresh on some
+//     days"): after a day whose bout was a repeat (the last session again, or
+//     the next stage of a saga or the camp) comes a FRESH day, a 3-minute
+//     session dealt the way the old Daily Mission dealt it (freshBout: one
+//     Fight Focus round of the athlete's discipline, or a 3-minute Quick
+//     Mission, on their level, one step easier the day after a session); after
+//     a fresh day comes a repeat day. Each held day carries its turn
+//     (bout.turn), so the next day reads it from the box. A brand-new athlete
+//     (no last session) keeps the setup's pick. A fresh session is never
+//     stored as the last session (its config carries `freshBout`; see
+//     data/lastSession rememberSession), so the repeat day brings back the
+//     athlete's own session, or their saga's next stage.
 //   - The pick is held for the LOCAL day in tm_daily_mission_v2, so a reload,
 //     another session or another device (the key is synced) shows the same
 //     bout until midnight, when Home picks again.
@@ -32,13 +44,15 @@
 //   - After it is paid the card shows its done state until tomorrow; START
 //     still runs the bout again, with no second bonus.
 //
-// The pick (pickTodaysBout, surpriseBout, boutMeta, ranToEnd, boutRowCounts)
+// The pick (pickTodaysBout, freshBout, turnOf, surpriseBout, boutMeta, ranToEnd, boutRowCounts)
 // is pure; the rest reads and writes storage.
 import { addDailyMissionBonus, XP_DAILY_MISSION_BONUS, loadStats } from './userStats';
 import { safeSetItem, safeStorage } from './storageHealth';
 import { trackEvent } from './analytics';
-import { isTrainingRow, localIso } from './weekStreak';
+import { isTrainingRow, localIso, addDaysIso } from './weekStreak';
 import { sessionMode } from './tiers';
+import { FIT_GOALS } from './profileOptions';
+import { xpBySide, athleteTier, TIERS, QUICK_MISSION_WORD } from './athleteLevel';
 
 export const DAILY_MISSION_KEY = 'tm_daily_mission_v2';
 // Device-local on purpose (not in cloudSync SYNC_KEYS): see above.
@@ -58,25 +72,115 @@ const oneRound = (t) => String(t).replace(/\b1 rounds\b/, '1 round');
 // after another session has become the last one).
 const snapshot = (last) => ({ kind: last.kind, cfg: last.cfg, disc: last.disc ?? null, at: last.at ?? null });
 
+// ── a fresh day (pure) ──────────────────────────────────────────────────────
+// The old Daily Mission's deal (before Today's Bout took its place): 3 minutes,
+// the athlete's side and level, one step easier the day after a session.
+export const FRESH_MINUTES = 3;
+// The Quick Mission foci (data/quickMissionConfig QM_FOCI, in the config's
+// display form). Listed here because that module pulls in a component.
+export const FRESH_FOCI = ['Full Body', 'Upper', 'Lower', 'Core', 'Combat'];
+const FIGHT_LEVEL = { EASY: 'Easy', NORMAL: 'Normal', HARD: 'Hard', ADVANCED: 'Hard' };
+const DISCIPLINES = ['Boxing', 'Kickboxing', 'Muay Thai', 'MMA'];
+const cap = (s) => String(s).charAt(0).toUpperCase() + String(s).slice(1).toLowerCase();
+
+// A small stable number from the date, so the deal does not change all day.
+function dateSeed(iso) {
+  let h = 2166136261;
+  for (let i = 0; i < iso.length; i++) { h ^= iso.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+
+// Which side the athlete leans to: their stated goal (the app's own rule,
+// recommendations.firstPick), else where their XP is.
+export function freshSide(profile, stats) {
+  const goal = profile?.goal;
+  if (FIT_GOALS.has(goal)) return 'fit';
+  if (goal) return 'fight';
+  const x = xpBySide(stats);
+  return x.fit > x.fight ? 'fit' : 'fight';
+}
+
+// A fresh day's bout for `date` ('YYYY-MM-DD', local). A fighter gets one
+// 3-minute Fight Focus round of their discipline (no warm-up), a fit athlete a
+// 3-minute Quick Mission (its focus dealt from the date). START runs it
+// straight away; its config carries `freshBout` (the day), so it is not
+// stored as the last session.
+export function freshBout({ date, profile = {}, stats = {} }) {
+  const side = freshSide(profile, stats);
+  const yesterday = addDaysIso(date, -1);
+  const trainedYesterday = (Array.isArray(stats?.sessions) ? stats.sessions : [])
+    .some((s) => isTrainingRow(s) && localIso(s.completedAt) === yesterday);
+  const own = athleteTier(stats, side);
+  const tier = trainedYesterday ? TIERS[Math.max(0, TIERS.indexOf(own) - 1)] : own;
+  const base = { date, bonusXp: XP_DAILY_MISSION_BONUS, kind: 'fresh', turn: 'fresh', side, cta: 'START', minutes: FRESH_MINUTES, why: 'Something new today' };
+  // "Lighter" only when the level shown really is lower (Fight Focus has no
+  // Advanced: an Advanced fighter one step down is still Hard).
+  const lighterThan = (a, b) => (a !== b ? 'Lighter after yesterday' : null);
+  if (side === 'fight') {
+    const discipline = DISCIPLINES.includes(profile?.discipline) ? profile.discipline : 'Boxing';
+    const difficulty = FIGHT_LEVEL[tier] || 'Normal';
+    const lighter = lighterThan(difficulty, FIGHT_LEVEL[own] || 'Normal');
+    const cfg = {
+      difficulty, mode: 'Technical', rounds: 1, roundMin: FRESH_MINUTES, restSec: 60,
+      voiceOn: true, rushMode: false, rushPattern: 'endRound', rushMix: 'explosive',
+      encouragement: profile?.encouragement || 'normal', warmupMin: 0, ghost: null, ghostChallengeId: null,
+      freshBout: date,
+    };
+    return {
+      ...base, title: `One Round: ${discipline}`, parts: ['Fight Focus', difficulty, lighter].filter(Boolean),
+      run: { type: 'replay', last: { kind: 'timer', cfg, disc: discipline, at: null } },
+    };
+  }
+  const focus = FRESH_FOCI[dateSeed(date) % FRESH_FOCI.length];
+  const lighter = lighterThan(tier, own);
+  return {
+    ...base, title: `Quick Mission: ${focus}`, parts: ['No gear', cap(QUICK_MISSION_WORD[tier] || tier), lighter].filter(Boolean),
+    // Home builds the config (data/quickMissionConfig pulls in a component) and tags it with `freshBout`.
+    run: { type: 'freshQm', qm: { duration: FRESH_MINUTES, focus, difficulty: cap(tier) } },
+  };
+}
+
+// ── whose turn: a repeat day or a fresh day ─────────────────────────────────
+// A held day's turn: 'repeat' (the last session again, or the next stage of a
+// saga or the camp), 'fresh' (dealt fresh), 'pick' (a new athlete's setup
+// pick). A bout held before the turns existed reads from its kind.
+export function turnOf(bout) {
+  if (!bout || typeof bout !== 'object') return null;
+  if (bout.turn === 'fresh' || bout.turn === 'repeat' || bout.turn === 'pick') return bout.turn;
+  return bout.kind === 'fresh' ? 'fresh' : bout.kind === 'bout' ? 'pick' : 'repeat';
+}
+// Today's turn from the last day held before it: a fresh day only after a
+// repeat day; after a fresh day, a new athlete's pick, or no day held at all,
+// a repeat day.
+export const turnAfter = (prevTurn) => (prevTurn === 'repeat' ? 'fresh' : 'repeat');
+
 // Today's bout for `date`, from what Home's pick engine knows. Everything is
 // passed in, so this stays pure:
 //   last, lastInfo  the last session started (data/lastSession) and describeSession(last)
 //   next, nextLine  the path's current node of that saga or camp (switch `path`) and nextUpLine(next)
 //   plan            the Game Plan's bout (data/gamePlan getTodayBout), null when never set up
 //   suggestion      the setup's first pick (data/recommendations firstPick)
+//   prevTurn        the turn of the last day held before `date` (todaysBout), null for none
+//   profile, stats  for a fresh day's deal (freshBout)
 // The order is the card's own: the last session (folded with NEXT UP for a
-// saga or the camp), else the Game Plan, else the first pick.
-// A bout: { date, kind: 'last'|'next'|'bout'|'surprise', side: 'fit'|'fight',
-//   title, parts (the line under it), cta, label?, minutes (null when the pick
-//   does not know its length), why (a true personal line, or null), bonusXp,
-//   run (what START does: replay | next | route | qmSetup | surprise) }.
-export function pickTodaysBout({ date, last = null, lastInfo = null, next = null, nextLine = null, plan = null, suggestion = null }) {
+// saga or the camp), else the Game Plan, else the first pick. Someone with a
+// last session gets a fresh deal instead on every other day (turnAfter).
+// A bout: { date, kind: 'last'|'next'|'fresh'|'bout'|'surprise', turn:
+//   'repeat'|'fresh'|'pick', side: 'fit'|'fight', title, parts (the line under
+//   it), cta, label?, minutes (null when the pick does not know its length),
+//   why (a true personal line, or null), bonusXp, run (what START does:
+//   replay | next | freshQm | route | qmSetup | surprise) }.
+export function pickTodaysBout({
+  date, last = null, lastInfo = null, next = null, nextLine = null, plan = null, suggestion = null,
+  prevTurn = null, profile = null, stats = null,
+}) {
   const base = { date, bonusXp: XP_DAILY_MISSION_BONUS };
   if (last && lastInfo) {
+    if (turnAfter(prevTurn) === 'fresh') return freshBout({ date, profile: profile || {}, stats: stats || {} });
     const side = lastInfo.mode === 'fit' ? 'fit' : 'fight';
     if (next && nextLine && (last.kind === 'arcade' || last.kind === 'camp')) {
       return {
-        ...base, kind: 'next', side, title: lastInfo.title, parts: nextLine.parts, label: nextLine.label,
+        ...base, kind: 'next', turn: 'repeat', side, title: lastInfo.title, parts: nextLine.parts, label: nextLine.label,
         cta: lastInfo.cta || 'CONTINUE', minutes: null, why: null, run: { type: 'next', next, last: snapshot(last) },
       };
     }
@@ -84,11 +188,12 @@ export function pickTodaysBout({ date, last = null, lastInfo = null, next = null
     // next day: not a repeat, so they do not say "same as last time".
     const repeats = !['camp', 'arcade'].includes(last.kind) && !(last.kind === 'fit' && last.cfg?.programId);
     return {
-      ...base, kind: 'last', side, title: lastInfo.title, parts: [lastInfo.sub, lastInfo.diff].filter(Boolean).map(oneRound),
+      ...base, kind: 'last', turn: 'repeat', side, title: lastInfo.title, parts: [lastInfo.sub, lastInfo.diff].filter(Boolean).map(oneRound),
       cta: lastInfo.cta || 'START', minutes: minutesOf(lastInfo.time), why: repeats ? 'Same as last time' : null,
       run: { type: 'replay', last: snapshot(last) },
     };
   }
+  base.turn = 'pick';
   if (plan?.kind === 'train') {
     return {
       ...base, kind: 'bout', side: 'fight', title: plan.session?.label || 'Fight Focus', parts: [`Fits your ~${plan.gapMin} min window`],
@@ -150,14 +255,16 @@ export function boutRowCounts(row, date) {
 // ── storage ─────────────────────────────────────────────────────────────────
 // { v: 3, date, bout, done, doneAt, xp }. The old daily mission's box
 // ({ date, mission, done, doneAt, xp }) reads with no bout: its done flag for
-// today still counts (that day's bonus was paid).
+// today still counts (that day's bonus was paid), and it was a fresh deal.
+// `turn`: the held day's turn (turnOf), for the day after it.
 function readBox() {
   try {
     const raw = safeStorage()?.getItem(DAILY_MISSION_KEY);
     const p = raw ? JSON.parse(raw) : null;
     if (!p || typeof p !== 'object' || typeof p.date !== 'string') return null;
     const bout = p.v === 3 && p.bout && typeof p.bout === 'object' && p.bout.date === p.date ? p.bout : null;
-    return { date: p.date, bout, done: !!p.done, doneAt: p.doneAt ?? null, xp: Number(p.xp) || 0 };
+    const turn = bout ? turnOf(bout) : p.v !== 3 && p.mission ? 'fresh' : null;
+    return { date: p.date, bout, turn, done: !!p.done, doneAt: p.doneAt ?? null, xp: Number(p.xp) || 0 };
   } catch { return null; }
 }
 const writeBox = (box) => safeSetItem(DAILY_MISSION_KEY, JSON.stringify({ v: 3, ...box }));
@@ -169,24 +276,28 @@ export function boutPaidInRows(stats, date) {
 
 // Today's held bout and whether its bonus is paid. Reads only: Home holds a
 // fresh pick with holdBout (from an effect, never a render).
-//   { date, bout (null while none is held), done, saved }
+//   { date, bout (null while none is held), done, saved,
+//     prevTurn (the turn of the last day held before today, or null) }
 export function todaysBout({ now = Date.now(), stats } = {}) {
   const today = localIso(now);
   const box = readBox();
   const same = !!(box && box.date === today);
   const paidRow = stats ? boutPaidInRows(stats, today) : false;
-  return { date: today, bout: same ? box.bout : null, done: (same && box.done) || paidRow, saved: !!(same && box.bout) };
+  const prevTurn = box && box.date < today ? box.turn : null;
+  return { date: today, bout: same ? box.bout : null, done: (same && box.done) || paidRow, saved: !!(same && box.bout), prevTurn };
 }
 
 // Hold `bout` as its day's bout. A bout already held for that day stays (only
-// SURPRISE ME replaces it: `replace`); a done flag written earlier that day is
-// kept, with its time and XP, so the end screen's strip still finds it.
+// SURPRISE ME replaces it: `replace`, and the day keeps its turn); a done flag
+// written earlier that day is kept, with its time and XP, so the end screen's
+// strip still finds it.
 export function holdBout(bout, { replace = false } = {}) {
   if (!bout?.date) return false;
   const box = readBox();
   const same = !!(box && box.date === bout.date);
   if (same && box.bout && !replace) return false;
-  return writeBox({ date: bout.date, bout, done: same && box.done, doneAt: same ? box.doneAt : null, xp: same ? box.xp : 0 });
+  const held = same && box.bout && !bout.turn ? { ...bout, turn: turnOf(box.bout) } : bout;
+  return writeBox({ date: bout.date, bout: held, done: same && box.done, doneAt: same ? box.doneAt : null, xp: same ? box.xp : 0 });
 }
 export const rerollBout = (bout) => holdBout(bout, { replace: true });
 

@@ -998,3 +998,99 @@ section **Built**.
 2. **The off-setting line** ("Board settings only: …") shows on every finished fight session at another setting,
    Today's Bout included. Keep, or say nothing there?
 3. **A for-time run stopped by its cap**: off the board for now. Add it under the finishers (a second number on the row)?
+
+## The owner's answers: today's bout takes turns, and the week streak everywhere (2026-11-23)
+
+Two answers from the preview board. Both sit behind the `weeks` switch (`data/retentionFlags.js`, off for everyone,
+on with the owner preview); with it off, the screens, storage, share card and reminder are as before.
+
+### What today's bout is (`q-boutpick`): "Deal something fresh on some days"
+
+- **What the owner chose**: not the last session every day. Days now take turns: after a day whose bout was a
+  **repeat** (the last session again, or the next stage of a saga or the camp) comes a **fresh** day, and after a fresh
+  day a repeat day.
+- **A fresh day** is dealt the way the old Daily Mission dealt it (`data/dailyMission.js` `freshBout`, the deal the
+  merge removed, brought back): a fighter gets one 3-minute Fight Focus round of their discipline (no warm-up), a fit
+  athlete a 3-minute Quick Mission (its focus dealt from the date); the side is their stated goal, else where their XP
+  is; on their level, one step easier the day after a session ("Lighter after yesterday", only when the level shown
+  really is lower: Fight Focus has no Advanced, so an Advanced fighter one step down is still Hard and the line does not
+  claim it). START runs it straight away; ADJUST opens Fight Focus's or the Quick Mission page's setup.
+- **The card says which it is**: "3 MIN · SOMETHING NEW TODAY" on a fresh day, "SAME AS LAST TIME" on a repeat day (as
+  before). A next stage keeps its own line (the stage), as before.
+- **Deterministic and held for the day**: each held bout carries its turn (`bout.turn`: `repeat`, `fresh`, or `pick`
+  for a new athlete's setup pick) in `tm_daily_mission_v2` (synced, as before). The next day reads the last held day's
+  turn from the box (`todaysBout().prevTurn`), so the turns follow the days the athlete opened the app, not the
+  calendar: a skipped day does not break them. The deal itself is a pure function of the date, the profile and the
+  rows at the day's first open, then held. A bout held before this change reads its turn from its kind (the last
+  session or a next stage: repeat; the old daily mission's box: fresh); no box at all, or an unreadable one: a repeat
+  day (so the cards seen today stay as they are, and tomorrow is fresh).
+- **Kept as they were**: a brand-new athlete (no last session) gets the setup's pick (or the Game Plan's) whatever the
+  turn, then a repeat day, then a fresh one; SURPRISE ME re-rolls the card in place and the day keeps its turn; the
+  +25 XP rules (armed by START or ADJUST, paid once a day for the card's session run to its end) are untouched.
+- **The fresh session is never stored as the last session** (its config carries `freshBout`; `data/lastSession`
+  `rememberSession` skips it, so RETRY and TRAIN AGAIN on its end screen are not stored either). Why: otherwise the next
+  repeat day would repeat the 3-minute deal instead of the athlete's own session, and a saga or camp player would lose
+  their next stage from the card for good. So the repeat day brings back their own session, still "SAME AS LAST TIME"
+  (the same settings as the last session they chose).
+- **On a fresh day the separate NEXT UP row stays hidden** (as under a surprise pick: the card is the one thing to do);
+  the saga or camp comes back on the next repeat day, and the Arcade card is always there.
+- **The "?"**: Home's TODAY'S BOUT step now starts "Today's one pick, kept all day: your last session one day,
+  something new the next." (5 lines at 360), and the first-run tour's step says the same. Gallery: a new card
+  "Home: TODAY'S BOUT, a fresh day" (the real deal).
+- **Where**: `data/dailyMission.js` (`freshBout`, `freshSide`, `turnOf`, `turnAfter`, `pickTodaysBout({ prevTurn,
+  profile, stats })`, the box's turn), `HomeDashboard.jsx` (passes the turn; runs a fresh Quick Mission tagged with its
+  day; ADJUST and AT YOUR PACE for a fresh bout), `data/lastSession.js`, `shared/screenGuides.js`,
+  `retention/lookStreak.jsx`.
+- **No new spoken line**: the fresh session is an ordinary 1-round Fight Focus or a generated 3-minute Quick Mission,
+  whose lines `test:spoken` already sweeps; `voice:coverage` reads 0 missing.
+
+### Other places that showed the day streak (`q-daystreak`): "Switch them all to the week streak"
+
+- **What the owner chose**: every place that showed the old day count shows the week streak instead.
+- **Every place found**, and what each shows now with the switch on (`data/weekStreakStore` `weekStreakCount`, the same
+  number as Home's chip):
+  - **Profile**: the streak tile reads 🔥9 over **WEEK STREAK** (was 🔥n over STREAK, the day count).
+  - **Progress**: the rank card's 🔥n now has a **WEEK STREAK** label under it; "LV 69" stays together when a long rank
+    name wraps at 360 (FIGHT ASCENDANT ·, then LV 69).
+  - **The Level page**: the fact reads **WEEK STREAK 9** (was DAY STREAK; `data/levelStory` `opts.weekStreak`).
+  - **The share card** (the end screens' SHARE YOUR WIN, Cardio's, and a ghost battle's): its stat reads **9 WEEK
+    STREAK** (`data/shareCard` `streakLabel`); the share text says "Streak: 9 weeks" (was "Streak: n days").
+  - **The come-back reminder** (Home's toast; it is a screen line, not a phone notification and not spoken): its streak
+    case is now the week streak's, shown when a streak is held, this week still needs training days and the days left
+    can still get them: "9-week streak: 1 more day this week." with KEEP STREAK (`data/weekStreak` `streakAtStake`,
+    `streakReminderCopy`). Otherwise the other reminder lines, as before. Two lines at 360.
+- **Left as they are** (not the day count, or not shown): Home's old 🔥 chip (switch off only), the guides' "keep your
+  streak" lines, Notifications' "Streak about to break" switch (it now governs the week case), `evaluateReminder` (the
+  browser-notification path, called nowhere), the unused `shareRankUp` and `CompletedWorkoutShareCard`.
+- **Where**: `Profile.jsx`, `ProgressScreen.jsx`, `LevelView.jsx`, `data/levelStory.js`, `shared/MissionComplete.jsx`,
+  `SharePromptModal.jsx`, `ShareCardSheet.jsx` (a `data-streak-label` for the preview's check), `shared/GhostResultScreen.jsx`,
+  `data/shareCard.js`, `data/shareUtils.js`, `data/reminderEngine.js`, `shared/ReminderCard.jsx`, `HomeDashboard.jsx`,
+  `data/weekStreak.js`, `data/weekStreakStore.js`.
+
+### Checked
+
+- `test:streak` 244 (was 185): the fresh deal (side, discipline, level, lighter only when lower, the Advanced fighter,
+  an award row yesterday, the fit focus by date, a 3-minute Quick Mission runs 3 minutes at every level and focus, plain
+  data), the turns (after repeat: fresh; after fresh, a pick or nothing: repeat; a next stage is a repeat; a new athlete
+  keeps the setup pick), five days held in a row (repeat, fresh, repeat, fresh, repeat), a reload, a skipped day,
+  SURPRISE ME on either turn, a new athlete's first three days, the old boxes, a fresh session not stored as the last
+  session, the bonus on a fresh day, the wiring; the week streak's reminder case and line, the reminder on the real
+  clock (switch on and off), the share text, the wiring of every screen. `test:levels` 187 (the WEEK STREAK fact).
+  Also `test:xp`, `test:missions`, `test:concepts`, `test:power`, `test:path`, `test:nearmiss`, `test:qm`, `test:ayp`,
+  `test:athlete`, `test:storage`, `test:maxout`, `test:tapes`, `check-guides` (25 guides, 257 steps), eslint on every
+  changed file, `tsc`, `voice:coverage` (0 missing), `test:spoken` (155).
+- `retention-preview.mjs` at 360, 390 and 430, new states: `f1-home-bout-fresh` (a fighter's fresh day),
+  `f1-home-bout-fresh-fit` (a fit athlete's), `f1-home-bout-repeat` (the day after a fresh day), `f1-end-fresh` (the
+  fresh round played for real on the fake clock to its end screen, +25 XP, and the last session still the athlete's own),
+  `f1-profile-week-streak`, `f1-progress-week-streak` (the longest rank name and a 2-digit level), `f1-level-week-streak`,
+  `f1-share-week-streak` (the share card from the end screen: 9 WEEK STREAK on the picture), `f1-home-reminder-week`.
+  The whole preview (every f1, f2, f3 and f4 state, 56 states) fits at the three widths (one camp photo caught the map
+  still loading under load; on its own it fits). Looked at each new photo: the fresh card's title, its line ("Fight
+  Focus · Hard", "No gear · Easy · Lighter after yesterday") and "3 MIN · SOMETHING NEW TODAY" each on one line at 360;
+  the guide step on 5 lines; Profile's tile "🔥9 / WEEK STREAK"; Progress's "FIGHT ASCENDANT ·" then "LV 69" beside
+  "🔥12 / WEEK STREAK" at 360 (one line at 390 and 430); the Level page's WEEK STREAK 9; the share card's "9 WEEK
+  STREAK"; the reminder on two lines beside KEEP STREAK at 360.
+- Switch off (no owner preview), on this build and on `5f4aff2a` with the same seeded athlete (trained yesterday, so the
+  come-back reminder's day-streak case shows) and a fixed clock: Home, Profile, the Level page, Progress, a 1-round Fight
+  Focus played to its end screen, the share card sheet (and the hash of the rendered card image), and storage after.
+  The same DOM, the same card image and the same storage, apart from the new row's id and time.

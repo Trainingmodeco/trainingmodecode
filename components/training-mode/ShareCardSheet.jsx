@@ -84,7 +84,8 @@ export default function ShareCardSheet({ shareData, cardData, onClose }) {
       background: 'rgba(4,0,10,0.86)', backdropFilter: 'blur(4px)',
     }}>
       <style dangerouslySetInnerHTML={{ __html: sheetCSS }}/>
-      <div onClick={e => e.stopPropagation()} style={{
+      {/* data-streak-label: the week streak switch's WEEK STREAK (absent with it off), for the preview's check. */}
+      <div onClick={e => e.stopPropagation()} data-streak-label={cardData?.streakLabel} style={{
         width: '100%', maxWidth: 340, maxHeight: '92dvh', overflowY: 'auto',
         background: 'linear-gradient(180deg,#140a24,#0a0106)',
         borderRadius: 18, border: '1px solid rgba(253,224,71,0.4)',

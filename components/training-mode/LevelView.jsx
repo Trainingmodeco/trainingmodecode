@@ -1,9 +1,11 @@
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import PhoneFrame from './PhoneFrame';
 import TrainingHeader from './TrainingHeader';
 import CornerHUD from './CornerHUD';
 import { levelStory } from './data/levelStory';
 import { getStreak } from './data/userStats';
+import { retentionOn } from './data/retentionFlags';
+import { weekStreakCount } from './data/weekStreakStore';
 import { getCurrentTier, tierImage } from './data/tiers';
 import { RustyPortraitImage } from './retention/ui/RustyLook';
 
@@ -130,7 +132,11 @@ function Fact({ label, value }) {
 
 export default function LevelView({ stats, name, sex, rusty = false, onBack, onHome, onChangeAvatar }) {
   const st = stats || { xp: 0, sessions: [] };
-  const story = levelStory(st, { streak: getStreak(st), tier: getCurrentTier(st) });
+  // The week streak switch: the streak fact is the week streak.
+  const [weeksOn] = useState(() => retentionOn('weeks'));
+  const story = levelStory(st, weeksOn
+    ? { weekStreak: weekStreakCount(Date.now(), Array.isArray(st.sessions) ? st.sessions : []), tier: getCurrentTier(st) }
+    : { streak: getStreak(st), tier: getCurrentTier(st) });
   const t = story.tier;
   const avSex = String(sex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
   const displayName = (name && String(name).trim()) ? String(name).trim().toUpperCase() : 'TRAINEE';

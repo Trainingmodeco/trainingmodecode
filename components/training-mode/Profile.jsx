@@ -25,7 +25,7 @@ import { sharesGhosts, removeMyPoolGhosts } from './data/ghostCloud';
 import LevelView from './LevelView';
 import VoiceCheck from './shared/VoiceCheck';
 import { retentionOn } from './data/retentionFlags';
-import { setWeekTarget, chosenWeekTarget, loadWeekStreak, saveGamePlanKeepingTarget } from './data/weekStreakStore';
+import { setWeekTarget, chosenWeekTarget, loadWeekStreak, saveGamePlanKeepingTarget, weekStreakCount } from './data/weekStreakStore';
 import WeekTargetRow from './retention/ui/WeekTargetRow';
 import { loadPower } from './data/powerStore';
 import { RustyPortraitImage } from './retention/ui/RustyLook';
@@ -387,7 +387,8 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
   if (profileView === 'overview') {
     const stats = loadStats();
     const lvl = getLevel(stats.xp);
-    const strk = getStreak(stats);
+    // With the week streak on, the streak tile is the week streak (the header's chip on Home).
+    const strk = weeksOn ? weekStreakCount(Date.now(), stats.sessions) : getStreak(stats);
     // The same count the Level page prints: award rows are not sessions.
     const sessionCount = trainingSessionCount(stats);
     const lp = getLevelProgress(stats.xp);
@@ -451,8 +452,8 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
                   <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 3 }}>{lp.current} / {lp.needed} XP to next</div>
                   {/* Streak · sessions · trophies — inside the card now. */}
                   <div style={{ display: 'flex', gap: 6, marginTop: 7 }}>
-                    {[{ v: `🔥${strk}`, label: 'STREAK', color: '#ff8a4a' }, { v: String(sessionCount), label: 'SESSIONS', color: '#fff' }, { v: String(tierIndexForLevel(lvl) + 1), label: 'TROPHIES', color: '#b06aff' }].map(s => (
-                      <div key={s.label} style={{ flex: 1, minWidth: 0, background: 'rgba(8,2,18,0.7)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 7, padding: '3px 2px', textAlign: 'center' }}>
+                    {[{ v: `🔥${strk}`, label: weeksOn ? 'WEEK STREAK' : 'STREAK', color: '#ff8a4a', week: weeksOn }, { v: String(sessionCount), label: 'SESSIONS', color: '#fff' }, { v: String(tierIndexForLevel(lvl) + 1), label: 'TROPHIES', color: '#b06aff' }].map(s => (
+                      <div key={s.label} data-retention={s.week ? 'profile-week-streak' : undefined} style={{ flex: 1, minWidth: 0, background: 'rgba(8,2,18,0.7)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 7, padding: '3px 2px', textAlign: 'center' }}>
                         <div style={{ font: "900 12px 'Orbitron',sans-serif", color: s.color, lineHeight: 1.2 }}>{s.v}</div>
                         <div style={{ font: "600 6px 'Orbitron',sans-serif", color: '#9a90b8', letterSpacing: '0.05em' }}>{s.label}</div>
                       </div>

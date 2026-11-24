@@ -312,7 +312,7 @@ function drawPanel(ctx, W, H, data, fmt) {
   };
   cell(`+${data.xp ?? 0}`, 'XP EARNED', true);
   cell(String(data.level ?? 1), 'LEVEL');
-  cell(String(data.streak ?? 0), 'DAY STREAK');
+  cell(String(data.streak ?? 0), data.streakLabel || 'DAY STREAK');
   cell(String(data.sessions ?? 0), 'SESSIONS');
 
   y += s.cellH + s.verGap;
@@ -321,7 +321,8 @@ function drawPanel(ctx, W, H, data, fmt) {
 
 /**
  * Render the share card. Returns a Blob (image/png).
- * data: { eyebrow, title, subtitle, xp, level, tierLabel, tierImg, streak, sessions, verified }
+ * data: { eyebrow, title, subtitle, xp, level, tierLabel, tierImg, streak, streakLabel?, sessions, verified }
+ * streakLabel: 'WEEK STREAK' with the week streak switch on (default DAY STREAK).
  */
 export async function renderShareCard({ format = 'story', data = {} }) {
   const F = FORMATS[format] || FORMATS.story;
@@ -408,7 +409,7 @@ export async function renderShareCard({ format = 'story', data = {} }) {
   let px = cx - rowW / 2;
   drawStatPill(ctx, px, y, L.pillW, L.pillH, String(data.level ?? 1), 'LEVEL');
   px += L.pillW + gap;
-  drawStatPill(ctx, px, y, L.pillW, L.pillH, `${data.streak ?? 0}`, 'DAY STREAK');
+  drawStatPill(ctx, px, y, L.pillW, L.pillH, `${data.streak ?? 0}`, data.streakLabel || 'DAY STREAK');
   px += L.pillW + gap;
   drawStatPill(ctx, px, y, L.pillW, L.pillH, String(data.sessions ?? 0), 'SESSIONS');
   y += L.pillH + L.pillGap;

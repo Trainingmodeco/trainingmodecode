@@ -38,8 +38,10 @@ const TONE = {
   default: { emoji: '🥊', border: 'rgba(176,106,255,0.55)', glow: 'rgba(176,106,255,0.45)', fill: 'rgba(176,106,255,0.12)', cta: '#c9a6ff' },
 };
 
-export default function ReminderCard({ onAction, style, compact = false }) {
-  const [reminder, setReminder] = useState(() => (dismissedToday() ? null : getDashboardReminder()));
+// `weeks`: the week streak switch is on (Home passes it): the streak case is
+// the week streak's (data/reminderEngine).
+export default function ReminderCard({ onAction, style, compact = false, weeks = false }) {
+  const [reminder, setReminder] = useState(() => (dismissedToday() ? null : getDashboardReminder({ weeks })));
   if (!reminder) return null;
 
   const tone = TONE[reminder.category === 'streak' ? 'streak' : reminder.category === 'progress' ? 'progress' : 'default'] || TONE.default;

@@ -339,7 +339,7 @@ const WEEKS_HOME = {
   },
   'home-continue': {
     title: 'TODAY\'S BOUT',
-    body: 'Today\'s one pick, kept all day. Finish it from START for +25 XP, once a day; then the card turns green and TRAIN AGAIN runs it again. SURPRISE ME swaps the pick; ADJUST opens its settings.',
+    body: 'Today\'s one pick, kept all day: your last session one day, something new the next. Finish it from START for +25 XP, once a day; then the card turns green and TRAIN AGAIN runs it again. SURPRISE ME swaps the pick; ADJUST opens its settings.',
   },
 };
 SCREEN_GUIDES.home_weeks = SCREEN_GUIDES.home.map((s) => (WEEKS_HOME[s.target] ? { ...s, ...WEEKS_HOME[s.target] } : s));
@@ -366,7 +366,7 @@ export const homeGuide = ({ weeks = false, power = false } = {}) => (
 );
 SCREEN_GUIDES.full_intro_weeks = SCREEN_GUIDES.full_intro.map((s) => {
   if (s.screen === 'home' && s.target === 'home-continue') {
-    return { ...s, title: '▶ TODAY\'S BOUT', body: 'This card holds today\'s bout: a workout picked for you, and once you have trained, the last session you ran, ready to go again. Finish it from START and you earn +25 XP, once a day; then the card says so until tomorrow\'s bout. If you only ever press one thing, make it START (once this tour is closed).' };
+    return { ...s, title: '▶ TODAY\'S BOUT', body: 'This card holds today\'s bout: a workout picked for you, and once you have trained, the last session you ran one day and something new the next. Finish it from START and you earn +25 XP, once a day; then the card says so until tomorrow\'s bout. If you only ever press one thing, make it START (once this tour is closed).' };
   }
   if (s.screen === 'home' && s.target === null && /🔥 streak/.test(s.body)) {
     return { ...s, body: s.body.replace('train days in a row to grow your 🔥 streak', 'reach your weekly target to grow your 🔥 week streak') };

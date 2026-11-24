@@ -15,8 +15,11 @@ import { QUICK_MISSION_WORD } from './athleteLevel';
 // ladder on the next session instead of repeating the last one.
 const KEY = 'tm_last_session_v1';
 
+// A fresh day's session from Today's Bout (week streak switch: its config
+// carries `freshBout`, data/dailyMission freshBout) is not stored: the next
+// day's bout brings back the athlete's own last session, not the dealt one.
 export function rememberSession(kind, cfg, disc) {
-  if (!cfg) return;
+  if (!cfg || cfg.freshBout) return;
   // A ghost battle is a race against one recorded run — replaying it as a plain
   // "continue" would silently start a race, so the ghost is never stored.
   const { ghost: _ghost, ...clean } = cfg;

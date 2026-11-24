@@ -8,7 +8,7 @@ import WeekMomentStrip from './ui/WeekMomentStrip';
 import WeekTargetRow from './ui/WeekTargetRow';
 import OneUpMark from './ui/OneUpMark';
 import { noticeCopy } from '../data/weekStreak';
-import { boutMeta } from '../data/dailyMission';
+import { boutMeta, freshBout } from '../data/dailyMission';
 
 // 1 · Weekly streak + Today's Bout + 1UPs (once called freezes). The streak counts weeks that
 // reach the weekly target of training days (default 4), so a rest day never
@@ -28,6 +28,11 @@ const FIT_BOUT = {
   date: '2026-11-26', kind: 'bout', side: 'fit', bonusXp: 25, title: 'Quick Mission — 12 Min Starter', parts: ['A short bodyweight circuit to get moving.'],
   cta: 'START', minutes: 12, why: 'Fits your level', run: { type: 'route' },
 };
+// A fresh day (the day after a repeat day): the real deal for a level-6 boxer.
+const FRESH_BOUT = freshBout({
+  date: '2026-11-26', profile: { goal: 'Train Like a Fighter', discipline: 'Boxing' },
+  stats: { xp: 2600, sessions: [{ type: 'Fight Focus', completedAt: '2026-11-20T18:00:00.000Z', completedCount: 3, totalCount: 3, xpEarned: 2600 }] },
+});
 // The real card with a sample bout.
 function Bout({ bout, done = false }) {
   return (
@@ -91,9 +96,14 @@ export default function LookStreak() {
         <NewHeader/>
       </Look>
 
-      <Look name="Home: TODAY'S BOUT, ready" note="Home's one card at the top: the day's pick, held all day (here the last session, ready to run again), its length, why it was picked, and the daily bonus beside START: +25 XP once a day for a session started here that runs to its end." height={296}>
+      <Look name="Home: TODAY'S BOUT, a repeat day" note="Home's one card at the top: the day's pick, held all day (on a repeat day, the last session, ready to run again), its length, why it was picked, and the daily bonus beside START: +25 XP once a day for a session started here that runs to its end." height={296}>
         <NewHeader/>
         <Bout bout={FIGHT_BOUT}/>
+      </Look>
+
+      <Look name="Home: TODAY'S BOUT, a fresh day" note="The day after a repeat day: something new, dealt like the old Daily Mission (3 minutes, the athlete's side and level). The next day is a repeat day again. The fresh session is never stored as the last one, so the repeat day brings back the athlete's own." height={296}>
+        <NewHeader/>
+        <Bout bout={FRESH_BOUT}/>
       </Look>
 
       <Look name="Home: TODAY'S BOUT, new fit athlete" note="No history yet: the setup's first pick, a 12-minute Quick Mission on the athlete's own level." height={312}>

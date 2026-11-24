@@ -5,6 +5,8 @@ import { loadProfile } from '../data/userProfile';
 import { getLastBattle, exportGhostCode, getMyBestGhost, currentVsVariant } from '../data/ghostBattles';
 import { loadStats, getLevel, getStreak } from '../data/userStats';
 import { getCurrentTier, tierImage } from '../data/tiers';
+import { retentionOn } from '../data/retentionFlags';
+import { weekStreakCount } from '../data/weekStreakStore';
 
 // Item 11c/11d — the ghost battle result, and its share card.
 //
@@ -41,6 +43,8 @@ export default function GhostResultScreen({ battle, challenge, onRematch, onDone
   const [toast, setToast] = useState('');
   // Same pose the VS screen showed — reading, not advancing the rotation.
   const [variant] = useState(() => currentVsVariant());
+  // The week streak switch: the share card's streak is the week streak.
+  const [weeksOn] = useState(() => retentionOn('weeks'));
 
   const b = battle || getLastBattle();
   if (!b?.result) return null;
@@ -67,7 +71,7 @@ export default function GhostResultScreen({ battle, challenge, onRematch, onDone
     level: getLevel(stats.xp),
     tierLabel: tier.label,
     tierImg: tierImage(tier.id, sex),
-    streak: getStreak(stats),
+    ...(weeksOn ? { streak: weekStreakCount(Date.now(), stats.sessions), streakLabel: 'WEEK STREAK' } : { streak: getStreak(stats) }),
     sessions: Array.isArray(stats.sessions) ? stats.sessions.length : 0,
     verified: true,
   };

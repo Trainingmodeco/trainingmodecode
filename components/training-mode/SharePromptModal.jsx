@@ -9,12 +9,17 @@ import ShareCardSheet from './ShareCardSheet';
 import { loadStats, getStreak, getLevel } from './data/userStats';
 import { getCurrentTier, tierImage } from './data/tiers';
 import { loadProfile } from './data/userProfile';
+import { retentionOn } from './data/retentionFlags';
+import { weekStreakCount } from './data/weekStreakStore';
 
 export default function SharePromptModal({ shareData, delayMs = 2500, placement = 'fixed' }) {
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [showQr, setShowQr] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
+  // The week streak switch (retention feature 1): the card's streak is the
+  // week streak (WEEK STREAK), from the end screen or read here.
+  const [weeksOn] = useState(() => retentionOn('weeks'));
 
   useEffect(() => {
     const timer = setTimeout(() => setVisible(true), delayMs);
@@ -39,7 +44,9 @@ export default function SharePromptModal({ shareData, delayMs = 2500, placement 
       level: shareData?.level ?? getLevel(stats.xp),
       tierLabel: tier.label,
       tierImg: tierImage(tier.id, sex),
-      streak: shareData?.streak ?? getStreak(stats),
+      ...(weeksOn
+        ? { streak: shareData?.streakUnit === 'week' ? shareData.streak : weekStreakCount(Date.now(), stats.sessions), streakLabel: 'WEEK STREAK' }
+        : { streak: shareData?.streak ?? getStreak(stats) }),
       sessions: Array.isArray(stats.sessions) ? stats.sessions.length : (stats.totalSessions ?? 0),
       verified: shareData?.verified !== false,
     };

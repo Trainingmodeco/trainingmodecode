@@ -7,10 +7,11 @@ import Embers from './Embers';
 import { ChevronLeft, Award } from 'lucide-react';
 import EmptyState from './EmptyState';
 import { loadStats, getLevel, getStreak } from './data/userStats';
+import { retentionOn } from './data/retentionFlags';
+import { weekStreakCount } from './data/weekStreakStore';
 import { VISIBLE_TIERS, getCurrentTier, tierIndexForLevel } from './data/tiers';
 import { groupedAchievements, progressByKind, ACHIEVEMENTS_UPDATED } from './data/achievements';
 import RunHistory from './RunHistory';
-import { retentionOn } from './data/retentionFlags';
 import WorkoutsPage, { useWorkoutRows } from './fit-challenge/WorkoutsPage';
 
 // Progress · Overview — pixel match of design 23a:
@@ -254,6 +255,9 @@ function AchievementsSection() {
 }
 
 export default function ProgressScreen({ onHome, profile, onOpenCardRun }) {
+  // The week streak switch (retention feature 1): the rank card's streak is
+  // the week streak, labelled, in place of the old day count.
+  const [weeksOn] = useState(() => retentionOn('weeks'));
   const [stats, setStats] = useState(() => loadStats());
   const [tab, setTab] = useState('overview');
   // YOUR WORKOUTS (switch fitCard): every mode's finished workouts, as a page
@@ -274,7 +278,7 @@ export default function ProgressScreen({ onHome, profile, onOpenCardRun }) {
   const sex = String(profile?.sex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
   const totalXp = stats.xp || 0;
   const level = getLevel(totalXp);
-  const streak = getStreak(stats);
+  const streak = weeksOn ? weekStreakCount(Date.now(), stats.sessions) : getStreak(stats);
   // Secret tiers replace the visible rank once unlocked.
   const curTier = getCurrentTier(stats);
   const rank = curTier.secret
@@ -336,10 +340,18 @@ export default function ProgressScreen({ onHome, profile, onOpenCardRun }) {
                   <SafeImage src={`/static/tiers/${rank.tier}-${sex}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 18%' }}/>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ font: "800 11px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.05em' }}>{rank.name.toUpperCase()} · LV {level}</div>
+                  {/* With the week streak's label beside it, a long rank name can wrap at 360: "LV 26" stays together. */}
+                  <div style={{ font: "800 11px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.05em' }}>{weeksOn ? `${rank.name.toUpperCase()} · LV\u00A0${level}` : <>{rank.name.toUpperCase()} · LV {level}</>}</div>
                   <div style={{ height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.05)', overflow: 'hidden', marginTop: 5 }}><div style={{ width: `${Math.round(rankProgress(totalXp) * 100)}%`, height: '100%', background: 'linear-gradient(90deg,#b06aff,#fde047)' }}/></div>
                 </div>
-                <div style={{ font: "900 14px 'Orbitron',sans-serif", color: '#ff8a4a' }}>🔥{streak}</div>
+                {weeksOn ? (
+                  <div data-retention="progress-week-streak" style={{ flexShrink: 0, textAlign: 'center' }}>
+                    <div style={{ font: "900 14px 'Orbitron',sans-serif", color: '#ff8a4a' }}>🔥{streak}</div>
+                    <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#9a90b8', letterSpacing: '0.06em', marginTop: 2, whiteSpace: 'nowrap' }}>WEEK STREAK</div>
+                  </div>
+                ) : (
+                  <div style={{ font: "900 14px 'Orbitron',sans-serif", color: '#ff8a4a' }}>🔥{streak}</div>
+                )}
               </Card>
 
               {sessions.length === 0 ? (
