@@ -283,7 +283,9 @@ const STATES = [
   // ── AT YOUR PACE on the first screen (running, then paused) ──────────────
   { name: 'pace-emom', pace: true, expectNow: 'lit', note: 'IRON CLOCK 16 (EMOM, four lifts) AT YOUR PACE in its second minute: the clock, the lit move and PAUSE / STOP.',
     open: (page, w) => libraryRun(page, w, 'IRON CLOCK 16', { runSec: 75 }), expect: /AT YOUR PACE[\s\S]*IRON CLOCK 16[\s\S]*ELAPSED/ },
-  { name: 'pace-amrap', pace: true, expectNow: 'lit', note: 'BEST OF 3 (AMRAP, three moves) AT YOUR PACE: the clock, ROUND and UNDO, the moves and PAUSE / STOP.',
+  { name: 'pace-firstbell', pace: true, expectNow: 'lit', note: 'FIRST BELL (EMOM, kettlebell: the owner\'s screenshot of 2026-11-24) AT YOUR PACE in its second set.',
+    open: (page, w) => libraryRun(page, w, 'FIRST BELL', { runSec: 49 }), expect: /AT YOUR PACE[\s\S]*FIRST BELL/ },
+  { name: 'pace-amrap', pace: true, expectNow: 'first', note: 'BEST OF 3 (AMRAP, three moves: a circuit, so no single move is lit) AT YOUR PACE: the ring, ROUND 1 and its time, UNDO / ROUND, the moves and PAUSE / STOP.',
     open: (page, w) => libraryRun(page, w, 'BEST OF 3', { runSec: 40 }), expect: /AT YOUR PACE[\s\S]*BEST OF 3[\s\S]*ROUND 1/ },
   { name: 'pace-fortime', pace: true, expectNow: 'first', note: 'ONE-BELL 300 (for time, six moves) AT YOUR PACE: the clock, ROUND, FINISH, the moves and PAUSE / STOP.',
     open: (page, w) => libraryRun(page, w, 'ONE-BELL 300', { runSec: 40 }), expect: /AT YOUR PACE[\s\S]*ONE-BELL 300[\s\S]*FINISH/ },
@@ -410,6 +412,21 @@ function measureRun({ expectNow }) {
   const pill = document.querySelector('button[aria-label="Report beta feedback"]');
   if (pill) { const p = rect(pill); if (btns.some((x) => { const r = rect(x); return p.left < r.right && r.left < p.right && p.top < r.bottom && r.top < p.bottom; })) fails.push('the BETA pill is over a bar button'); }
   if (h.bottom > b.top - 40) fails.push(`the head leaves no room for the moves (ends ${Math.round(h.bottom)}, bar at ${Math.round(b.top)})`);
+  // The look (owner, 2026-11-24, docs/quick-mission/PACE-LOOK.md): the clock is the
+  // ring, the move in hand is big beside it, the rows are readable from a couple
+  // of feet, the buttons are raised, and the PACE card, the LOAD line, the note
+  // and the format sentence are off the run screen (they live on the pre-run page).
+  const ring = document.querySelector('[data-run-ring]');
+  if (!ring || !ring.querySelector('[role="timer"]')) fails.push('the clock is not the ring (no [data-run-ring] holding the timer)');
+  const nowName = document.querySelector('[data-run-now] .sr-name');
+  if (!nowName || !nowName.innerText.trim()) fails.push('no move in hand beside the ring');
+  else if (parseFloat(getComputedStyle(nowName).fontSize) < 20) fails.push(`the move in hand is ${getComputedStyle(nowName).fontSize}, under 20px`);
+  const bodyText = document.body.innerText;
+  const gone = bodyText.match(/Beeps play while the screen is on|LOAD ·|\bELITE\b|The pass:|Warm up \d+ min/);
+  if (gone) fails.push(`removed text is back on the run screen: "${gone[0]}"`);
+  const biggest = (el) => Math.max(...[el, ...el.querySelectorAll('*')].filter((x) => [...x.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())).map((x) => parseFloat(getComputedStyle(x).fontSize)), 0);
+  for (const e of lit) if (biggest(e) < 20) fails.push(`the lit move's words are ${biggest(e)}px, under 20`);
+  for (const x of btns) if (!/gradient/.test(getComputedStyle(x).backgroundImage)) fails.push(`${x.innerText.trim()} is flat (no raised gradient)`);
   return { fails, info: { head: `${Math.round(h.top)}..${Math.round(h.bottom)}`, bar: `${Math.round(b.top)}..${Math.round(b.bottom)}`, tabs: Math.round(navTop), lit: lit.length } };
 }
 

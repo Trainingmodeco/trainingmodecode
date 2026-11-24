@@ -46,14 +46,15 @@ function TickRow({ move, index, on, next, onTick }) {
       <button type="button" role="checkbox" aria-checked={on ? 'true' : 'false'} aria-label={`${move.name}, ${doseWord(move)}`} data-now={next ? 'true' : undefined} onClick={onTick} style={{
         width: '100%', minHeight: 52, display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px', borderRadius: 8,
         boxSizing: 'border-box', border: 'none', cursor: 'pointer', textAlign: 'left',
-        background: next ? 'rgba(242,190,69,0.08)' : 'transparent', boxShadow: next ? `inset 3px 0 0 ${GOLD}` : 'none',
+        background: next ? 'linear-gradient(90deg, rgba(242,190,69,0.26) 0%, rgba(242,190,69,0.08) 100%)' : 'transparent', boxShadow: next ? `inset 4px 0 0 ${GOLD}, 0 0 16px rgba(242,190,69,0.28)` : 'none', opacity: on ? 0.55 : 1,
       }}>
         <TickBox on={on} next={next}/>
         <span style={{ width: 18, flexShrink: 0, font: `700 11px ${HEAD}`, color: on ? MUTED : GOLD }}>{String(index + 1).padStart(2, '0')}</span>
         {/* A done move is dimmed, not struck through: the gold check says done,
             and a strike made the name hard to read. */}
-        <span style={{ flex: 1, minWidth: 0, font: `600 14px ${BODY}`, lineHeight: 1.25, color: on ? MUTED : '#fff' }}>{move.name}</span>
-        <span style={{ flexShrink: 0, font: `600 12px ${HEAD}`, color: on ? MUTED : '#CFC9E4', whiteSpace: 'nowrap' }}>{doseWord(move)}</span>
+        {/* Readable from a couple of feet (owner, 2026-11-24): the name 20 px bold, the dose 20 px gold. */}
+        <span style={{ flex: 1, minWidth: 0, font: `700 20px ${HEAD}`, lineHeight: 1.15, color: on ? MUTED : '#fff', overflowWrap: 'anywhere' }}>{move.name}</span>
+        <span style={{ flexShrink: 0, font: `800 20px ${HEAD}`, color: on ? MUTED : GOLD, whiteSpace: 'nowrap' }}>{doseWord(move)}</span>
       </button>
     </li>
   );
