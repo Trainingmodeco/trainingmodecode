@@ -99,7 +99,7 @@ const ONLY = process.env.SMOKE_ONLY ? new RegExp(process.env.SMOKE_ONLY) : null;
 async function check(name, fn, expectRe) {
   if (ONLY && !ONLY.test(name)) return;
   step = name;
-  try { await fn(); } catch (e) { failures.push(`${name}: could not drive the screen — ${String(e.message).split('\n')[0].slice(0, 160)}`); return; }
+  try { await fn(); } catch (e) { if (process.env.SMOKE_DEBUG) console.log('--- text at failure:\n' + (await text()).slice(0, 700)); failures.push(`${name}: could not drive the screen — ${String(e.message).split('\n')[0].slice(0, 160)}`); return; }
   const t = await text();
   const m = t.match(/Training Mode runtime error\s*\n+([^\n]*)/);
   if (m) failures.push(`${name}: CRASH SCREEN — ${m[1] || '(no message)'}`);
@@ -108,7 +108,7 @@ async function check(name, fn, expectRe) {
 }
 
 await check('home', async () => { await home(); }, /FIT MODE/);
-await check('fit hub', async () => { await fit(); }, /Quick Mission/);
+await check('fit hub', async () => { await fit(); }, /Quick Mission/i);
 await check('quick mission start', async () => { await fit(); await page.locator('[data-guide="fit-quick"]').click(); await S(1200); await btn(/^START$/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WORK|EXERCISE/);
 
 // The Fit hub on the fullest day it gets: a run ghost waiting (GHOST ACTIVE
@@ -118,7 +118,8 @@ await check('quick mission start', async () => { await fit(); await page.locator
 // with its bottom chopped off and the Cardio row was cut under the tab bar, so
 // the stack has to FIT, not scroll: every block above the tab bar, none on top
 // of another, the title whole. Boots once; the next checks only resize.
-const FIT_BLOCKS = ['fit-today', 'fit-concept', 'fit-quick', 'fit-builder', 'fit-programs', 'fit-tapes', 'fit-cardio'];
+// Quick Mission is the top card now (its page opens from ADJUST, fit-quick), so it is not a block of its own.
+const FIT_BLOCKS = ['fit-today', 'fit-concept', 'fit-builder', 'fit-programs', 'fit-tapes', 'fit-cardio'];
 // atYourPace: the saved AT YOUR PACE choice puts "· At your pace" on the card's
 // line, so the day uses the Quick Mission pick (no earlier session, which would
 // make today's pick the long Recovery Circuit) with its two-line title.
@@ -162,10 +163,10 @@ const fitsHub = (m, label) => {
   }
   if (m.stack[0] > m.stack[1] + 1) throw new Error(`${label}: the stack needs scrolling (${m.stack[0]} > ${m.stack[1]})`);
 };
-await check('fit hub fits 412x811 with a ghost, Coach\'s Tapes and a drop', async () => { await fullFitHub(); await resizeTo(412, 811); fitsHub(await hubMetrics(), '412x811'); }, /Quick Mission/);
+await check('fit hub fits 412x811 with a ghost, Coach\'s Tapes and a drop', async () => { await fullFitHub(); await resizeTo(412, 811); fitsHub(await hubMetrics(), '412x811'); }, /Quick Mission/i);
 await check('fit hub fits 412x790, 360x740 and 390x844 (the title wraps on the narrow one)', async () => {
   try { for (const [w, h] of [[412, 790], [360, 740], [390, 844]]) { await resizeTo(w, h); fitsHub(await hubMetrics(), `${w}x${h}`); } } finally { await resizeTo(390, 844); }
-}, /Quick Mission/);
+}, /Quick Mission/i);
 // Under about 700px tall even the floors cannot fit, so the stack scrolls; the
 // last row has to scroll fully clear of the tab bar and the fade above it.
 await check('fit hub at 375x667 scrolls the Cardio row fully clear of the tab bar', async () => {
@@ -185,7 +186,7 @@ await check('fit hub at 375x667 scrolls the Cardio row fully clear of the tab ba
     if (!clear.hit) throw new Error('something sits on top of the Cardio row at the end of the scroll');
     if (clear.mask && clear.mask !== 'none') throw new Error('the scroll fade is still on at the end of the scroll');
   } finally { await resizeTo(390, 844); }
-}, /Quick Mission/);
+}, /Quick Mission/i);
 // A 320px phone is the narrowest one in use: no row subtitle may be cut off.
 await check('fit hub at 320x640: no row subtitle is cut off', async () => {
   try {
@@ -193,7 +194,7 @@ await check('fit hub at 320x640: no row subtitle is cut off', async () => {
     const cut = await page.evaluate(() => [...document.querySelectorAll('.fm-s')].filter(e => e.scrollWidth > e.clientWidth + 0.5).map(e => e.textContent));
     if (cut.length) throw new Error(`cut off at 320 wide: ${cut.join(' | ')}`);
   } finally { await resizeTo(390, 844); }
-}, /Quick Mission/);
+}, /Quick Mission/i);
 // The gold ring ScreenGuide draws on the highlighted element (null on a step with none).
 const guideRing = () => page.evaluate(() => {
   const el = [...document.querySelectorAll('body div')].find(d => d.style.position === 'fixed' && d.style.pointerEvents === 'none' && /2px solid/.test(d.style.border));
@@ -221,7 +222,7 @@ await check('fit hub guide ends on the concept step, and GOT IT closes it', asyn
   await btn(/^NEXT/).click({ timeout: 3000 }); await S(450);
   await btn(/^GOT IT/).click({ timeout: 3000 }); await S(500);
   if (await page.locator('[aria-label="Close guide"]').count()) throw new Error('GOT IT did not close the guide');
-}, /Quick Mission/);
+}, /Quick Mission/i);
 // (Runs last on the Fit hub: tapping SURPRISE ME swaps the long title for a short one.)
 // Every tap on the hub is a real 44px one. SURPRISE ME and ADJUST are 44px
 // buttons that overlap the card above and the spacer below, so the browser's own
@@ -375,8 +376,11 @@ const V2_PUBLIC = /QM_V2_FOR_EVERYONE\s*=\s*true/.test(
   fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'components', 'training-mode', 'data', 'qmV2.js'), 'utf8'));
 const quick = async () => { await fit(); await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200); };
 // Every owner check starts clean: preview() boots with wiped storage.
+// The preview turns the workout card on (switch fitCard); these checks are
+// about the Mission Library page, so they hold the card off (tm_preview_off).
 const ownerQuick = async () => {
   await preview();
+  await page.evaluate(() => localStorage.setItem('tm_preview_off', 'fitCard'));
   await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 3000 }).catch(() => {});
   await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200);
   await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
@@ -1017,7 +1021,7 @@ await check('fit hub: on the fullest day, with "At your pace" saved, the card st
   await fullFitHub({ atYourPace: true });
   try { for (const [w, h] of [[412, 811], [360, 740]]) { await resizeTo(w, h); fitsHub(await hubMetrics(), `${w}x${h} At your pace`); } } finally { await resizeTo(390, 844); }
   if (!/\s·\s+At\s+your\s+pace/.test(await page.evaluate(() => document.querySelector('[data-guide="fit-today"]').innerText))) throw new Error('the card does not say At your pace');
-}, /Quick Mission/);
+}, /Quick Mission/i);
 await check('quick mission: ▾ opens the card, ADJUST is a sheet', async () => {
   await quick();
   const n = Number((await page.locator('[data-guide="qm-expand"]').innerText()).match(/\d+/)?.[0] || 3);
@@ -1461,6 +1465,82 @@ await check('owner: turbo solo start', async () => {
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   if (!/STOP/.test(await text())) throw new Error('no STOP on the SOLO screen');
 }, /AT YOUR PACE/);
+// The + on a library row (owner, 2026-11-24): the whole workout drops down under
+// the row, one at a time; a pick, a tap elsewhere or the − closes it, and the
+// row's own tap still picks. Both lists: the classic MISSION LIBRARY, and CHOOSE
+// on the Fit card's workout card.
+await check('owner: the library +: the whole workout drops down, one at a time; a pick, a tap elsewhere or the − closes it', async () => {
+  await ownerQuick(); await library();
+  const plus = (re) => sheet().locator('.ml-row', { has: page.getByRole('radio', { name: re }) }).getByRole('button', { name: /full workout/ });
+  const drops = () => sheet().locator('[data-drop="true"]').count();
+  const box = await plus(/^IRON CLOCK 16/).boundingBox();
+  if (!box || box.width < 44 || box.height < 44) throw new Error(`the + is ${box && Math.round(box.width)}x${box && Math.round(box.height)}, under 44`);
+  await plus(/^IRON CLOCK 16/).click({ timeout: 4000 }); await S(300);
+  const panel = await sheet().locator('[data-drop="true"]').innerText();
+  if (await drops() !== 1 || !/EMOM/.test(panel) || !/4 ROUNDS/.test(panel) || !/BARBELL/i.test(panel) || !/Deadlifts[\s\S]*Bent-Over Rows[\s\S]*Front Squats[\s\S]*Push Press/.test(panel)) throw new Error(`the dropped workout is not the whole IRON CLOCK 16: ${panel.replace(/\n/g, ' | ')}`);
+  if (await plus(/^IRON CLOCK 16/).getAttribute('aria-expanded') !== 'true') throw new Error('the open + does not say aria-expanded');
+  await plus(/^BEST OF 3/).click({ timeout: 4000 }); await S(300);
+  if (await drops() !== 1 || !/Sprawls/.test(await sheet().locator('[data-drop="true"]').innerText())) throw new Error('opening a second row did not close the first');
+  await sheet().getByRole('radio', { name: /^BEST OF 3/ }).click({ timeout: 4000 }); await S(300);
+  if (await drops() !== 0) throw new Error('picking the row left its workout open');
+  if (!/ON TOP/.test(await sheet().innerText())) throw new Error('the row tap no longer picks the workout');
+  await plus(/^IRON CLOCK 16/).click({ timeout: 4000 }); await S(300);
+  await sheet().locator('#ml-sub').click({ timeout: 4000 }); await S(300);
+  if (await drops() !== 0) throw new Error('a tap elsewhere left the workout open');
+  await plus(/^IRON CLOCK 16/).click({ timeout: 4000 }); await S(300);
+  await plus(/^IRON CLOCK 16/).click({ timeout: 4000 }); await S(300);
+  if (await drops() !== 0) throw new Error('the − did not close it');
+}, /MISSION LIBRARY/);
+await check('owner: CHOOSE on the workout card: the + drops the whole workout down, one at a time; the row still picks it', async () => {
+  await preview();
+  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 3000 }).catch(() => {});
+  await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200);
+  await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
+  await btn(/^CHOOSE$/).click({ timeout: 4000 }); await S(600);
+  const plus = (re) => page.getByRole('button', { name: re }).first().locator('xpath=..').getByRole('button', { name: /full workout/ });
+  const drops = () => page.locator('[data-drop="true"]').count();
+  await plus(/^IRON CLOCK 16/).click({ timeout: 4000 }); await S(300);
+  const panel = await page.locator('[data-drop="true"]').innerText();
+  if (await drops() !== 1 || !/EMOM/.test(panel) || !/4 ROUNDS/.test(panel) || !/Deadlifts[\s\S]*Push Press/.test(panel)) throw new Error(`the dropped workout is not the whole IRON CLOCK 16: ${panel.replace(/\n/g, ' | ')}`);
+  await plus(/^FULL BODY WARRIOR/).click({ timeout: 4000 }); await S(300);
+  const warrior = await page.locator('[data-drop="true"]').innerText();
+  if (await drops() !== 1 || !/Dive Bomber Push-Ups[\s\S]*Resistance Towel Curls/.test(warrior) || !/ROUNDS/.test(warrior)) throw new Error(`opening another row left the first open or FULL BODY WARRIOR is short: ${warrior.replace(/\n/g, ' | ')}`);
+  await page.getByText('CHOOSE A WORKOUT', { exact: true }).click({ timeout: 4000 }); await S(300);
+  if (await drops() !== 0) throw new Error('a tap elsewhere left the workout open');
+  await plus(/^BEST OF 3/).click({ timeout: 4000 }); await S(300);
+  await btn(/^BEST OF 3/).click({ timeout: 4000 }); await S(700);
+  if (await drops() !== 0 || await page.locator('[data-look="choose"]').count() || !/BEST OF 3/.test(await text())) throw new Error('the row tap did not put BEST OF 3 on the card');
+}, /BEST OF 3/);
+// AT YOUR PACE on the first screen (owner, 2026-11-24: "I couldn't find a pause
+// button"): the clock and the current move above PAUSE / STOP, which are a bar
+// fixed above the tab bar, at 360x640, running and paused.
+await check('quick mission: AT YOUR PACE keeps the clock, the current move and PAUSE / STOP on the first screen at 360x640, running and paused', async () => {
+  await ownerQuick(); await putOnCard(/^IRON CLOCK 16/);
+  await adjust();
+  await adjustSheet().getByRole('radiogroup', { name: 'Run mode' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
+  await done();
+  await btn(/^START$/).click({ timeout: 4000 }); await S(8000);
+  try {
+    await resizeTo(360, 640);
+    const read = () => page.evaluate(() => {
+      const r = (e) => e.getBoundingClientRect();
+      const bar = document.querySelector('[data-run-bar]'), nav = document.querySelector('[data-guide="nav-tabs"]'), clock = document.querySelector('[role="timer"]'), lit = document.querySelector('[data-now="true"]');
+      if (!bar || !nav || !clock || !lit) return { missing: { bar: !!bar, nav: !!nav, clock: !!clock, lit: !!lit } };
+      const btns = [...bar.querySelectorAll('button')].map((b) => { const q = r(b); const el = document.elementFromPoint(q.left + q.width / 2, q.top + q.height / 2); return { t: b.innerText.trim(), h: Math.round(q.height), hit: !!el && b.contains(el) }; });
+      return { bar: r(bar), nav: r(nav), clock: r(clock), lit: r(lit), btns };
+    });
+    const ok = (g, where, names) => {
+      if (g.missing) throw new Error(`${where}: not on screen ${JSON.stringify(g.missing)}`);
+      if (g.bar.bottom > g.nav.top + 1) throw new Error(`${where}: the bar runs under the tab bar`);
+      if (g.clock.top < 0 || g.clock.bottom > g.bar.top) throw new Error(`${where}: the clock is not above the bar`);
+      if (g.lit.top < 0 || g.lit.bottom > g.bar.top) throw new Error(`${where}: the current move is not above the bar`);
+      if (g.btns.map((b) => b.t).join() !== names || g.btns.some((b) => b.h < 44 || !b.hit)) throw new Error(`${where}: the bar buttons are ${JSON.stringify(g.btns)}, not ${names} at 44px or more and uncovered`);
+    };
+    ok(await read(), 'running', 'PAUSE,STOP');
+    await btn(/^PAUSE$/).click({ timeout: 4000 }); await S(500);
+    ok(await read(), 'paused', 'RESUME,STOP');
+  } finally { await resizeTo(390, 844); }
+}, /PAUSED/);
 // The owner's own workouts. BAR FIGHT runs GUIDED (the clean slate's mode):
 // SKIP the brief, and GET READY names its first bar drill.
 await check('owner: BAR FIGHT guided start', async () => {
@@ -1893,6 +1973,18 @@ await check('build workout: a finish whose stats write fails still lands on the 
   if (n !== 1) throw new Error('the screen has no "cannot save" notice (' + n + ')');
 }, /WORKOUT COMPLETE/);
 await check('programs', async () => { await fit(); await page.locator('[data-guide="fit-programs"]').click(); await S(1500); }, /PROGRAM/i);
+// The workout card (switch fitCard, on under the preview): Quick Mission opens
+// on it, + adds a round, and START runs it.
+await check('owner: the workout card on Quick Mission: SHUFFLE, CHOOSE, the rounds, + and START', async () => {
+  await preview();
+  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 3000 }).catch(() => {});
+  await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200);
+  await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
+  const before = await page.locator('[data-guide="fc-rounds"]').innerText();
+  await btn(/One round more/).click({ timeout: 4000 }); await S(300);
+  if (before === await page.locator('[data-guide="fc-rounds"]').innerText()) throw new Error('+ did not add a round');
+  await btn(/^START$/).click({ timeout: 4000 }); await S(4000);
+}, /ROUND|WORK|EXERCISE/);
 await check('cardio setup', async () => { await fit(); await page.locator('[data-guide="fit-cardio"]').click(); await S(1800); }, /START/);
 await check('cardio GPS run start', async () => { await btn(/START RUN|^START$/).click({ timeout: 4000 }); for (let i = 0; i < 25; i++) { await S(1000); if (/ELAPSED|LOCKING GPS/.test(await text())) break; } }, /GPS LIVE|GPS ACQUIRING|LOCKING GPS|ELAPSED/);
 await check('just train start', async () => { await fight(); await page.locator('.fb', { hasText: 'JUST TRAIN' }).first().click(); await S(1200); await btn(/START/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WARM/i);
@@ -2053,37 +2145,243 @@ await check('level page: AT YOUR LEVEL for a level 3 and a level 10 athlete (Qui
 }, /AT YOUR LEVEL/);
 
 await check('training camp map', async () => { await fight(); await page.locator('.fb', { hasText: 'TRAINING CAMP' }).first().click(); await S(1800); }, /TRAINING CAMP/);
-await check('practice mode', async () => { await fight(); await page.locator('.ft.prac').click(); await S(1500); }, /PRACTICE MODE/);
-// A move with a tutorial (practiceData videoUrl) plays it on its card: Muay
-// Thai › Rear Knee is past the first six tiles, so SEE ALL opens the grid.
-await check('practice tutorial plays', async () => {
-  await fight(); await page.locator('.ft.prac').click(); await S(1500);
-  await page.getByRole('tab', { name: /MUAY THAI/i }).click({ timeout: 4000 }); await S(600);
-  await btn(/^SEE ALL/).click({ timeout: 4000 }); await S(400);
-  await page.locator('.pm-tile', { hasText: /^RK?\s*Rear Knee/ }).first().click({ timeout: 4000 }).catch(async () => {
-    await page.locator('.pm-tile', { hasText: 'Rear Knee' }).first().click({ timeout: 4000 });
-  });
-  await S(600);
-  await page.getByRole('button', { name: /Watch the Rear Knee tutorial/ }).click({ timeout: 4000 });
-  await S(2500);
-  const t = await page.evaluate(() => { const v = document.querySelector('video'); return v ? v.currentTime : -1; });
-  if (!(t > 0.5)) throw new Error(`the tutorial did not play (currentTime ${t})`);
-}, /KEY POINTS/);
-// Shadowboxing in Practice: the owner's clips arrive as assets (public/static/practice/shadow/index.json), so
-// without that file Practice looks as it always did, and with it a SHADOWBOXING row opens the clips by discipline.
+// ── Practice Mode: the Ladder ────────────────────────────────────────────────
+// One scrolling list of a discipline's moves (data/practiceMoves.js). The next move not yet learned plays at the top
+// (UP NEXT); a row opens the move card; DRILL IT starts a drill at once; finishing it marks the move LEARNED.
+// The owner's shadowboxing clips (public/static/practice/shadow/index.json) are served or refused by each check, so a
+// real delivery in public/ never changes what a check sees.
 const SHADOW_LIST = '**/static/practice/shadow/index.json';
 const SHADOW_FILES = '**/static/practice/shadow/*.{mp4,webp}';
 // A real (tutorial) video stands in for a delivered clip, so playback can be checked.
 const shadowVideo = () => fs.readFileSync(path.join(ROOT, 'static', 'practice', 'rear-knee.mp4'));
-await check('practice: no shadowboxing row while no clips are delivered', async () => {
-  // Routed to a 404 so a real delivery in public/ (which needs no code) never fails this check.
-  await page.route(SHADOW_LIST, (r) => r.fulfill({ status: 404, body: '' }));
+const noShadow = () => page.route(SHADOW_LIST, (r) => r.fulfill({ status: 404, body: '' }));
+const practice = async () => { await fight(); await page.locator('.ft.prac').click(); await S(1800); };
+// A practice check with no shadowboxing clips delivered.
+const practiceWith = (fn) => async () => { await noShadow(); try { await fn(); } finally { await page.unroute(SHADOW_LIST); } };
+const row = (id) => page.locator(`[data-testid="pm-move"][data-move="${id}"]`);
+const learnedStore = () => page.evaluate(() => { try { return JSON.parse(localStorage.getItem('tm_practice_learned_v1') || '{}'); } catch { return {}; } });
+const progressText = async () => (await page.locator('[data-testid="pm-progress"]').innerText()).replace(/\s+/g, ' ');
+// A drill that runs 40 times faster than the clock: its calls, bells and rests all follow the elapsed time it reads.
+const speedUpDrills = () => page.evaluate(() => { const now = performance.now.bind(performance); performance.now = () => now() * 40; });
+const drillDone = async () => { await page.locator('[data-testid="practice-drill"][data-view="done"]').waitFor({ timeout: 20000 }); await S(300); };
+const BEGINNER = { name: 'SMOKE', sex: 'male', age: '', heightVal: '', heightUnit: 'FT/IN', weightVal: '', weightUnit: 'LBS', experience: 'Beginner', goal: 'Learn Combat Basics', specialty: '', voiceCoach: 'FEMALE', coachStyle: 'STANDARD', encouragement: 'normal', callStyle: 'names', discipline: 'Boxing' };
+const asBeginner = () => page.evaluate((p) => localStorage.setItem('tm_user_profile', JSON.stringify(p)), BEGINNER);
+
+await check('practice mode', practiceWith(async () => { await practice(); }), /PRACTICE MODE/);
+
+await check('practice: the Ladder shows UP NEXT, the progress count and the first group, and only a beginner reads the rule', practiceWith(async () => {
+  await practice();
+  const t = await text();
+  if (!/\b0 OF \d+ LEARNED/.test(t)) throw new Error('no "0 OF n LEARNED" count: ' + t.slice(0, 200).replace(/\n/g, ' '));
+  if (!/UP NEXT/.test(t) || !/DRILL IT · \d+:\d\d/.test(t) || !/\bCUES\b/.test(t)) throw new Error('UP NEXT, DRILL IT · m:ss or CUES is missing');
+  if ((await page.locator('[data-testid="pm-upnext"]').getAttribute('data-move')) !== 'boxing:boxing-stance') throw new Error('Boxing does not start on its stance');
+  if ((await page.locator('[data-testid="pm-group"]').first().getAttribute('data-group')) !== 'STANCE & GUARD') throw new Error('STANCE & GUARD is not the first group');
+  if (await row('shared:jab').getAttribute('data-state') !== 'video' && (await row('shared:jab').getAttribute('data-state')) !== 'guide') throw new Error('Jab is not an open, unlearned row');
+  if (await page.locator('[data-testid="pm-rule"]').count()) throw new Error('an athlete who is not a beginner learner reads the beginner rule');
+  if (await page.getByRole('button', { name: /CONTINUE LEARNING|SEE ALL|DRILL A COMBO/ }).count()) throw new Error('a removed control (CONTINUE LEARNING, SEE ALL, DRILL A COMBO) is still on the screen');
+  // A beginner learner is told what drilling does.
+  await asBeginner(); await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1500);
+  await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await S(1200);
+  await page.locator('.ft.prac').click(); await S(1500);
+  if (!/Drill a strike once and Combo Coach starts calling it\./.test(await text())) throw new Error('a beginner learner does not read the rule');
+}), /PRACTICE MODE/);
+
+// A move with a tutorial (practiceData videoUrl) plays it on its card: Muay Thai › Rear Knee.
+await check('practice tutorial plays', practiceWith(async () => {
+  await practice();
+  await page.getByRole('tab', { name: /MUAY THAI/i }).click({ timeout: 4000 }); await S(600);
+  await row('muay-thai:rear-knee').click({ timeout: 4000 }); await S(2500);
+  const card = page.locator('[data-testid="pm-card"]');
+  if (!(await card.count())) throw new Error('the move card did not open');
+  const v = await page.evaluate(() => { const el = document.querySelector('[data-testid="pm-card"] video'); return el ? { t: el.currentTime, muted: el.muted, loop: el.loop, paused: el.paused, src: el.getAttribute('src') } : null; });
+  if (!v || !/rear-knee\.mp4$/.test(v.src || '') || !v.muted || !v.loop || v.paused || !(v.t > 0.5)) throw new Error('the video does not play muted and looping as the card opens: ' + JSON.stringify(v));
+  if ((await card.locator('[data-testid="pm-video"]').getAttribute('data-playing')) !== 'true') throw new Error('the video is not marked playing');
+  // The pause / play control, with no play button over the picture.
+  await card.getByRole('button', { name: 'Pause the Rear Knee video' }).click({ timeout: 4000 }); await S(400);
+  if (!(await page.evaluate(() => document.querySelector('[data-testid="pm-card"] video').paused))) throw new Error('PAUSE did not pause the video');
+  await card.getByRole('button', { name: 'Play the Rear Knee video' }).click({ timeout: 4000 }); await S(600);
+  if (await page.evaluate(() => document.querySelector('[data-testid="pm-card"] video').paused)) throw new Error('PLAY did not play the video');
+  const t = await card.innerText();
+  if (!/KEY POINTS/.test(t) || !/WATCH FOR/.test(t) || !/DRILL IT · \d+:\d\d/.test(t) || !/NEXT MOVE/.test(t)) throw new Error('the card lacks KEY POINTS, WATCH FOR, DRILL IT or NEXT MOVE');
+  if (/READ ALOUD|GUIDE · VIDEO COMING/.test(t)) throw new Error('a move with a video shows the guide plate or READ ALOUD');
+  const chips = await card.locator('[data-testid="pm-steps"] [data-step]').evaluateAll((els) => els.map((e) => e.getAttribute('data-step') + ':' + e.getAttribute('data-state')));
+  if (chips.join('|') !== 'watch:on|drill:off|learned:off') throw new Error('step chips: ' + chips.join('|'));
+  // Escape closes the card, and the video with it.
+  await page.keyboard.press('Escape'); await S(500);
+  if (await page.locator('[data-testid="pm-card"]').count()) throw new Error('Escape did not close the card');
+}), /PRACTICE MODE/);
+
+await check('practice: a move with no video shows the guide, its steps and one READ ALOUD, and NEXT MOVE goes on', practiceWith(async () => {
+  await practice();
+  await page.locator('[data-testid="pm-cues"]').click({ timeout: 4000 }); await S(700);
+  const card = page.locator('[data-testid="pm-card"]');
+  if ((await card.getAttribute('data-move')) !== 'boxing:boxing-stance') throw new Error('CUES did not open the UP NEXT move');
+  const t = await card.innerText();
+  if (!/GUIDE · VIDEO COMING/.test(t)) throw new Error('no guide plate');
+  if ((await card.getByRole('button', { name: /READ ALOUD/ }).count()) !== 1) throw new Error('READ ALOUD is not exactly one button');
+  if (!(await card.locator('[data-testid="pm-guide"]').count()) || (await card.locator('video').count())) throw new Error('the card has a video or no guide plate');
+  await card.locator('[data-testid="pm-next-move"]').click({ timeout: 4000 }); await S(600);
+  if ((await page.locator('[data-testid="pm-card"]').getAttribute('data-move')) !== 'boxing:guard-footwork') throw new Error('NEXT MOVE did not open the next move');
+  await page.locator('[data-testid="pm-card"]').getByRole('button', { name: 'Close' }).click({ timeout: 4000 }); await S(400);
+  if (await page.locator('[data-testid="pm-card"]').count()) throw new Error('Close did not close the card');
+}), /PRACTICE MODE/);
+
+await check('practice: DRILL IT starts round 1 at once, with no setup screen, and END banks nothing', practiceWith(async () => {
+  await practice();
+  await page.locator('[data-testid="pm-drill"]').click({ timeout: 4000 }); await S(2500);
+  const drill = page.locator('[data-testid="practice-drill"]');
+  if ((await drill.getAttribute('data-view')) !== 'live') throw new Error('the drill is not live right after DRILL IT');
+  const t = await drill.innerText();
+  if (!/ROUND 1 OF 1/.test(t) || !/PAUSE/.test(t) || !/\bEND\b/.test(t)) throw new Error('the live view lacks ROUND 1 OF 1, PAUSE or END: ' + t.replace(/\n/g, ' '));
+  if (/START|SETUP|BEGIN/i.test(t.replace(/PRACTICE DRILL/, ''))) throw new Error('a setup screen is still in the way: ' + t.replace(/\n/g, ' '));
+  const chips = await drill.locator('[data-step]').evaluateAll((els) => els.map((e) => e.getAttribute('data-step') + ':' + e.getAttribute('data-state')));
+  if (!/drill:on/.test(chips.join('|'))) throw new Error('the DRILL chip is not lit: ' + chips.join('|'));
+  if (!/^\d:\d\d$/.test((await drill.locator('[data-testid="drill-clock"]').innerText()).trim())) throw new Error('no clock');
+  await drill.getByRole('button', { name: /^END$/ }).click({ timeout: 4000 }); await S(600);
+  if (await page.locator('[data-testid="practice-drill"]').count()) throw new Error('END did not close the drill');
+  if (Object.keys(await learnedStore()).length) throw new Error('END before the bell learned a move: ' + JSON.stringify(await learnedStore()));
+  if (!/\b0 OF \d+ LEARNED/.test(await progressText())) throw new Error('the count moved after END');
+}), /PRACTICE MODE/);
+
+// The drill video plays the clip of the strike being called (the owner's cuts in static/practice/calls, listed in
+// data/callClips.json), and a clip that will not load leaves that call as text.
+const drillJab = async () => {
+  await practice();
+  await row('shared:jab').click({ timeout: 4000 }); await S(700);
+  await page.locator('[data-testid="pm-card"] [data-testid="pm-drill"]').click({ timeout: 4000 });
+};
+await check('practice: the drill video plays the clip of the strike being called', practiceWith(async () => {
+  await drillJab();
+  // Every call of a Jab drill is a jab, a stance reset or a step: the clip on screen must be the one of the call.
+  let jab = false;
+  for (let i = 0; i < 40 && !jab; i++) {
+    await S(500);
+    const d = await page.evaluate(() => {
+      const box = document.querySelector('[data-testid="drill-video"]');
+      const vs = box ? [...box.querySelectorAll('video')].filter((v) => v.style.opacity === '1') : [];
+      return { clip: box ? box.getAttribute('data-clip') : null, playing: vs.some((v) => !v.paused && v.currentTime > 0), muted: vs.every((v) => v.muted), label: (document.querySelector('[data-testid="drill-clip-label"]') || {}).textContent || '', call: (document.querySelector('[data-testid="drill-call"]') || {}).textContent || '' };
+    });
+    if (!d.clip) continue;
+    if (/\/static\/practice\/calls\/jab\.mp4$/.test(d.clip)) {
+      if (!d.playing || !d.muted) throw new Error('the jab clip is on screen but not playing, muted: ' + JSON.stringify(d));
+      if (!/JAB/i.test(d.label) || !/^JAB/.test(d.call)) throw new Error('the label or the call does not name the jab: ' + JSON.stringify(d));
+      jab = true;
+    } else if (!(/\/stance-boxing\.mp4$/.test(d.clip) && /STANCE|GUARD/.test(d.call))) throw new Error('the clip of another strike plays while the jab is called: ' + JSON.stringify(d));
+  }
+  if (!jab) throw new Error('the jab clip never played');
+  await page.getByRole('button', { name: /^END$/ }).click({ timeout: 4000 }); await S(400);
+}), /PRACTICE MODE/);
+await check('practice: when a call clip is missing (404) the drill shows that call as text and carries on', async () => {
+  await noShadow();
+  await page.route('**/static/practice/calls/jab.mp4', (r) => r.fulfill({ status: 404, body: '' }));
   try {
-    await fight(); await page.locator('.ft.prac').click(); await S(1500);
-    if (await page.locator('[data-testid="shadow-entry"]').count()) throw new Error('the SHADOWBOXING row shows with no clip list');
-  } finally { await page.unroute(SHADOW_LIST); }
+    await drillJab();
+    let text1 = '';
+    for (let i = 0; i < 40 && !text1; i++) {
+      await S(500);
+      // A "JAB" or "JAB × 2" call: with its clip there it would be a picture, so this is the 404 shown as text.
+      const t = (await page.locator('[data-testid="drill-text-only"] [data-testid="drill-call"]').innerText().catch(() => '')).trim();
+      if (/^JAB( × \d)?$/.test(t)) text1 = t;
+    }
+    if (!text1) throw new Error('a jab call whose clip is missing is never shown as text');
+    if (await page.locator('[data-testid="drill-video"]').getAttribute('data-clip')) throw new Error('a clip is on screen for the call that has none');
+    const c1 = await page.locator('[data-testid="drill-clock"]').innerText(); await S(2200);
+    const c2 = await page.locator('[data-testid="drill-clock"]').innerText();
+    if (c1 === c2) throw new Error('the drill stopped at the missing clip');
+    await page.getByRole('button', { name: /^END$/ }).click({ timeout: 4000 }); await S(400);
+  } finally { await page.unroute('**/static/practice/calls/jab.mp4'); await page.unroute(SHADOW_LIST); }
 }, /PRACTICE MODE/);
-await check('practice: SHADOWBOXING lists the clips by discipline, plays one and steps through them', async () => {
+
+await check('practice: finishing a drill marks the move LEARNED, moves UP NEXT on and the count up', practiceWith(async () => {
+  await practice();
+  await page.locator('[data-testid="pm-drill"]').click({ timeout: 4000 }); await S(1500);
+  await speedUpDrills();
+  await drillDone();
+  const v = (await page.locator('[data-testid="drill-verdict"]').innerText()).trim();
+  const c = (await page.locator('[data-testid="drill-count"]').innerText()).replace(/\s+/g, ' ');
+  if (v !== 'LEARNED' || !/^1 of \d+ learned/.test(c)) throw new Error('the done view says ' + v + ' / ' + c);
+  const done = await page.locator('[data-testid="practice-drill"]').innerText();
+  if (!/\+\d+ XP/.test(done) || !/NEXT: GUARD \+ FOOTWORK/.test(done) || !/TAKE IT TO COMBO COACH/.test(done) || !/BACK TO THE LIST/.test(done)) throw new Error('the done view lacks XP, NEXT, TAKE IT TO COMBO COACH or BACK TO THE LIST: ' + done.replace(/\n/g, ' ').slice(0, 300));
+  if (!/3 LEARNED|drilled/.test(done) && !/drilled \d+:\d\d/.test(done)) throw new Error('the done view does not say how long the drill ran');
+  const chips = await page.locator('[data-testid="practice-drill"] [data-testid="pm-steps"] [data-step]').evaluateAll((els) => els.map((e) => e.getAttribute('data-state')));
+  if (chips.join('|') !== 'done|done|done') throw new Error('the three steps are not all ticked: ' + chips.join('|'));
+  if (!(await learnedStore())['boxing:boxing-stance']) throw new Error('the learned store has no Boxing Stance: ' + JSON.stringify(await learnedStore()));
+  await page.locator('[data-testid="drill-back"]').click({ timeout: 4000 }); await S(600);
+  if (await page.locator('[data-testid="practice-drill"]').count()) throw new Error('BACK TO THE LIST did not close the drill');
+  if ((await row('boxing:boxing-stance').getAttribute('data-state')) !== 'learned') throw new Error('the stance row is not LEARNED');
+  if ((await page.locator('[data-testid="pm-upnext"]').getAttribute('data-move')) !== 'boxing:guard-footwork') throw new Error('UP NEXT did not move on');
+  if (!/\b1 OF \d+ LEARNED/.test(await progressText())) throw new Error('the count did not go to 1: ' + await progressText());
+  // The new key outlives a reload.
+  await page.reload({ waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1200);
+  await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await S(1200); await page.locator('.ft.prac').click(); await S(1500);
+  if ((await row('boxing:boxing-stance').getAttribute('data-state')) !== 'learned') throw new Error('LEARNED did not survive a reload');
+  // NEXT: opens the next move's card (from the done view of a second drill).
+  await page.locator('[data-testid="pm-drill"]').click({ timeout: 4000 }); await S(1500);
+  await speedUpDrills(); await drillDone();
+  await page.locator('[data-testid="drill-next"]').click({ timeout: 4000 }); await S(700);
+  if (!(await page.locator('[data-testid="pm-card"]').count())) throw new Error('NEXT: did not open a card');
+}), /PRACTICE MODE/);
+
+await check('practice: TEST OUT marks a whole group learned and folds it', practiceWith(async () => {
+  await practice();
+  await page.getByRole('button', { name: 'Test out STANCE & GUARD' }).click({ timeout: 4000 }); await S(1500);
+  await speedUpDrills(); await drillDone();
+  const done = await page.locator('[data-testid="practice-drill"]').innerText();
+  if (!/LEARNED/.test(done) || !/2 of \d+ learned/.test(done)) throw new Error('the test-out done view: ' + done.replace(/\n/g, ' ').slice(0, 200));
+  await page.locator('[data-testid="drill-back"]').click({ timeout: 4000 }); await S(600);
+  const g = page.locator('[data-testid="pm-group"][data-group="STANCE & GUARD"]');
+  if ((await g.getAttribute('data-folded')) !== 'true') throw new Error('a fully learned group is not folded');
+  if (await g.locator('[data-testid="pm-move"]').count()) throw new Error('a folded group still lists its moves');
+  const store = await learnedStore();
+  if (!store['boxing:boxing-stance'] || !store['boxing:guard-footwork']) throw new Error('not every move of the group is learned: ' + JSON.stringify(store));
+  if ((await page.locator('[data-testid="pm-upnext"]').getAttribute('data-move')) !== 'shared:jab') throw new Error('UP NEXT is not the first move after the group');
+  await g.locator('[data-testid="pm-group-fold"]').click({ timeout: 4000 }); await S(400);
+  if ((await g.locator('[data-testid="pm-move"]').count()) !== 2 || (await g.locator('[data-state="learned"]').count()) !== 2) throw new Error('unfolding does not list the two learned moves');
+  // A group that is not finished keeps its TEST OUT button and its "n of m".
+  if (!(await page.getByRole('button', { name: 'Test out PUNCHES' }).count())) throw new Error('PUNCHES has no TEST OUT');
+}), /PRACTICE MODE/);
+
+// Combo Coach: a beginner learner starts with Jab and Cross only; Practice adds the rest. (The pool itself is proved
+// in test:practice-moves; this checks the screen the athlete sees.)
+await check('practice: a beginner learner\'s Combo Coach calls only jab and cross until a move is learned, then Practice adds it', async () => {
+  await noShadow();
+  try {
+    await fight(); await asBeginner();
+    // The Fight hub sends a beginner to Practice until a first lesson is done; this athlete has done it, with the starter arsenal only.
+    await page.evaluate(() => localStorage.setItem('trainingModeStartHereFirstLessonComplete', 'true'));
+    await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1500);
+    await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await S(1200);
+    await page.locator('.fb', { hasText: 'COMBO COACH' }).first().click(); await S(1500);
+    await btn(/START COMBOS/).click({ timeout: 4000 }); await S(2500);
+    const calls = new Set();
+    for (let i = 0; i < 30; i++) { const c = await page.locator('[data-testid="cc-call"]').innerText().catch(() => ''); if (c.trim()) calls.add(c.trim().replace(/\s+/g, ' ')); await S(500); }
+    if (calls.size < 2) throw new Error('fewer than two calls seen in 15 s: ' + [...calls].join(' | '));
+    const bad = [...calls].filter((c) => /HOOK|UPPERCUT|KICK|KNEE|ELBOW|TEEP|OVERHAND|BODY|[3-9]/i.test(c));
+    if (bad.length) throw new Error('a beginner learner is called more than jab and cross: ' + bad.join(' | '));
+    // Learn Lead Hook in Practice (a fresh start: the run above left a paused session): Combo Coach banks it for every discipline.
+    await fight(); await asBeginner();
+    await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1500);
+    await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await S(1200);
+    await page.locator('.ft.prac').click(); await S(1800);
+    if (!/Drill a strike once and Combo Coach starts calling it\./.test(await text())) throw new Error('the rule is not on the Ladder');
+    await row('shared:lead-hook').click({ timeout: 4000 }); await S(700);
+    await page.locator('[data-testid="pm-card"] [data-testid="pm-drill"]').click({ timeout: 4000 }); await S(1500);
+    await speedUpDrills(); await drillDone();
+    if (!/Combo Coach will now call it\./.test(await page.locator('[data-testid="drill-count"]').innerText())) throw new Error('the done view does not say Combo Coach calls the move now');
+    const arsenal = await page.evaluate(() => JSON.parse(localStorage.getItem('tm_arsenal') || '{}'));
+    if (!['boxing', 'kickboxing', 'muay-thai', 'mma'].every((k) => (arsenal[k] || []).includes('Hook'))) throw new Error('Lead Hook (the Hook token) is not banked for the four disciplines: ' + JSON.stringify(arsenal));
+    await page.locator('[data-testid="drill-combo"]').click({ timeout: 4000 }); await S(1500);
+    if (!/START COMBOS/.test(await text())) throw new Error('TAKE IT TO COMBO COACH did not open the setup');
+  } finally { await page.unroute(SHADOW_LIST); }
+}, /START COMBOS/);
+
+// Shadowboxing in Practice: the owner's clips arrive as assets, so without that file Practice has no LEARN | SHADOWBOX
+// switch, and with it SHADOWBOX opens the clips by discipline.
+await check('practice: no LEARN | SHADOWBOX switch while no clips are delivered', practiceWith(async () => {
+  await practice();
+  if (await page.locator('[data-testid="shadow-entry"]').count()) throw new Error('the SHADOWBOX switch shows with no clip list');
+}), /PRACTICE MODE/);
+await check('practice: SHADOWBOX lists the clips by discipline, plays one and steps through them', async () => {
   // File order interleaves two groups: the screen groups them, and NEXT follows the screen.
   const clips = [
     { id: 'jab-cross', discipline: 'Boxing', group: 'Combinations', title: 'Jab, cross', video: 'jab-cross.mp4', seconds: 24, level: 'Beginner', note: 'Chin down.' },
@@ -2095,10 +2393,10 @@ await check('practice: SHADOWBOXING lists the clips by discipline, plays one and
   await page.route(SHADOW_LIST, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ clips }) }));
   await page.route(SHADOW_FILES, (r) => (/jab-cross\.mp4$/.test(r.request().url()) ? r.fulfill({ status: 200, contentType: 'video/mp4', body: shadowVideo() }) : r.fulfill({ status: 404, body: '' })));
   try {
-    await fight(); await page.locator('.ft.prac').click(); await S(1800);
+    await practice();
     const entry = page.locator('[data-testid="shadow-entry"]');
-    if (!(await entry.count())) throw new Error('no SHADOWBOXING row on Practice');
-    if (!/SHADOWBOXING[\s\S]*3 CLIPS/.test(await entry.innerText())) throw new Error('the row does not count the 3 Boxing clips: ' + (await entry.innerText()).replace(/\n/g, ' '));
+    if (!(await entry.count())) throw new Error('no SHADOWBOX switch on Practice');
+    if (!/LEARN/.test(await page.locator('[role="group"][aria-label="Practice section"]').innerText()) || !/SHADOWBOX/.test(await entry.innerText())) throw new Error('the switch does not read LEARN | SHADOWBOX');
     await entry.click({ timeout: 4000 }); await S(800);
     const t = await text();
     if (!/SHADOWBOXING/.test(t) || !/3 CLIPS/.test(t) || !/COMBINATIONS\s*·\s*2/.test(t) || !/FOOTWORK\s*·\s*1/.test(t)) throw new Error('the list is not 3 Boxing clips in two groups (a group in another letter case is the same group): ' + t.slice(0, 220).replace(/\n/g, ' '));
@@ -2110,7 +2408,7 @@ await check('practice: SHADOWBOXING lists the clips by discipline, plays one and
     if ((await page.locator('.sb-tile').count()) !== 1 || !/Sprawl flow/.test(await text())) throw new Error('MMA does not list its one clip');
     await page.getByRole('button', { name: 'Back to Practice' }).click({ timeout: 4000 }); await S(600);
     if ((await page.getByRole('tab', { name: /MMA/i }).getAttribute('aria-selected')) !== 'true') throw new Error('Back to Practice is not on the MMA tab chosen on the clips screen');
-    if (!/1 CLIP\b/.test(await page.locator('[data-testid="shadow-entry"]').innerText())) throw new Error('the row does not read the one MMA clip');
+    if (!(await page.locator('[data-testid="practice-ladder"]').count()) || !/\bOF \d+ LEARNED/.test(await progressText())) throw new Error('Back to Practice does not return to the Ladder');
     await page.locator('[data-testid="shadow-entry"]').click({ timeout: 4000 }); await S(500);
     await page.getByRole('tab', { name: /BOXING/i }).first().click({ timeout: 4000 }); await S(500);
     // The first clip plays (muted), shows its position and note, and PREVIOUS is off.
@@ -2150,33 +2448,75 @@ await check('practice: SHADOWBOXING lists the clips by discipline, plays one and
     await page.unroute(SHADOW_LIST); await page.unroute(SHADOW_FILES);
   }
 }, /START COMBOS|COMBO COACH/i);
-// The row costs the library grid a line of height: Practice still shows its entry row, the grid and the DRILL A COMBO
-// button above the tab bar on a 412x811 and a 360x740 phone, and on a very short screen (320x568) the row steps aside
-// instead of pushing DRILL A COMBO under the BETA chip.
-await check('practice: with shadowboxing clips the screen still fits 412x811, 360x740 and 320x568', async () => {
-  const clips = [{ id: 'a', discipline: 'Boxing', group: 'Combinations', title: 'Jab, cross', video: 'a.mp4', seconds: 20 }, { id: 'b', discipline: 'Kickboxing', title: 'x', video: 'b.mp4' }];
-  await page.route(SHADOW_LIST, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ clips: [...clips, ...Array.from({ length: 11 }, (_, i) => ({ id: `k${i}`, discipline: 'Kickboxing', title: `K${i}`, video: `k${i}.mp4` }))] }) }));
+// A delivered clip of a move is that move's watch video: a clip titled "Boxing Stance" plays on the stance card.
+await check('practice: a delivered shadowboxing clip is the watch video of the move it is titled for', async () => {
+  const clips = [{ id: 'boxing-stance', discipline: 'Boxing', group: 'Stance & Guard', title: 'Boxing Stance', video: 'boxing-stance.mp4', seconds: 8 }];
+  await page.route(SHADOW_LIST, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ clips }) }));
+  await page.route(SHADOW_FILES, (r) => (/boxing-stance\.mp4$/.test(r.request().url()) ? r.fulfill({ status: 200, contentType: 'video/mp4', body: shadowVideo() }) : r.fulfill({ status: 404, body: '' })));
+  try {
+    await practice(); await S(1200);
+    const up = page.locator('[data-testid="pm-upnext"]');
+    if (!(await up.locator('[data-testid="pm-video"]').count())) throw new Error('UP NEXT shows no video for the stance');
+    await page.locator('[data-testid="pm-cues"]').click({ timeout: 4000 }); await S(2000);
+    const t = await page.evaluate(() => { const v = document.querySelector('[data-testid="pm-card"] video'); return v ? v.currentTime : -1; });
+    if (!(t > 0.3)) throw new Error('the stance clip did not play on its card (' + t + ')');
+  } finally { await page.unroute(SHADOW_LIST); await page.unroute(SHADOW_FILES); }
+}, /PRACTICE MODE/);
+
+// The Ladder scrolls and fits: header, tabs and the switch stay put, UP NEXT and its buttons are in reach, and the last
+// row ends above the tab bar and the BETA chip. With the switch showing (clips delivered) and without it.
+await check('practice: the Ladder fits 412x811, 360x740 and 320x568, scrolls to its last row above the tab bar, and never runs sideways', async () => {
+  const clips = [{ id: 'a', discipline: 'Boxing', group: 'Combinations', title: 'Jab, cross', video: 'a.mp4', seconds: 20 }];
+  await page.route(SHADOW_LIST, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ clips }) }));
   try {
     for (const [w, h] of [[412, 811], [360, 740], [320, 568]]) {
       await page.setViewportSize({ width: w, height: h });
-      await fight(); await page.locator('.ft.prac').click(); await S(1800);
+      await practice();
       const m = await page.evaluate(() => {
         const box = (el) => { if (!el) return null; const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, shown: r.width > 0 && r.height > 0 }; };
-        const combo = [...document.querySelectorAll('button')].find((b) => /DRILL A COMBO/.test(b.innerText));
-        const row = document.querySelector('[data-testid="shadow-entry"]');
-        const label = row ? row.lastElementChild : null;
-        return { h: innerHeight, w: innerWidth, row: box(row), label: box(label), combo: box(combo), tile: box(document.querySelector('.pm-tile')), doc: document.documentElement.scrollWidth };
+        const sc = document.querySelector('[data-testid="pm-scroll"]');
+        const before = { head: box(document.querySelector('[data-testid="practice-ladder"] header')), sw: box(document.querySelector('[data-testid="shadow-entry"]')), up: box(document.querySelector('[data-testid="pm-upnext"]')), drill: box(document.querySelector('[data-testid="pm-drill"]')) };
+        sc.scrollTo({ top: sc.scrollHeight });
+        const rows = [...document.querySelectorAll('[data-testid="pm-move"]')];
+        const last = box(rows[rows.length - 1]);
+        const after = { head: box(document.querySelector('[data-testid="practice-ladder"] header')), sw: box(document.querySelector('[data-testid="shadow-entry"]')) };
+        const tall = rows.every((r) => r.getBoundingClientRect().height >= 55.5);
+        return { w: innerWidth, h: innerHeight, nav: document.querySelector('[data-guide="nav-tabs"]').getBoundingClientRect().top, before, after, last, tall, scrolls: sc.scrollHeight > sc.clientHeight + 1, doc: document.documentElement.scrollWidth, side: sc.scrollWidth > sc.clientWidth + 1, rowCount: rows.length };
       });
-      if (m.doc > m.w + 1) throw new Error(`${w}x${h}: the page scrolls sideways`);
-      if (h <= 620) { if (m.row && m.row.shown) throw new Error(`${w}x${h}: the row is on screen on a very short screen`); continue; }
-      if (!m.row || !m.row.shown || !m.combo || !m.tile) throw new Error(`${w}x${h}: the row, the grid or DRILL A COMBO is missing`);
-      if (m.row.right > m.w + 1 || m.row.left < -1 || m.label.right > m.row.right) throw new Error(`${w}x${h}: the SHADOWBOXING row or its label overflows`);
-      if (m.combo.bottom > m.h - 40) throw new Error(`${w}x${h}: DRILL A COMBO sits under the tab bar (${Math.round(m.combo.bottom)} of ${m.h})`);
-      if (m.tile.top < m.row.bottom) throw new Error(`${w}x${h}: the grid starts above the row`);
+      const at = `${w}x${h}`;
+      if (m.doc > m.w + 1 || m.side) throw new Error(`${at}: the page scrolls sideways`);
+      if (!m.before.sw || !m.before.sw.shown || m.before.sw.right > m.w + 1 || m.before.sw.left < -1) throw new Error(`${at}: the LEARN | SHADOWBOX switch is missing or runs off the screen`);
+      if (!m.before.up || !m.before.up.shown || !m.before.drill || !m.before.drill.shown) throw new Error(`${at}: UP NEXT or DRILL IT is missing`);
+      if (!m.scrolls) throw new Error(`${at}: the list does not scroll`);
+      if (!m.last || m.last.bottom > m.nav + 0.5) throw new Error(`${at}: the last row ends at ${Math.round(m.last && m.last.bottom)}, under the tab bar at ${Math.round(m.nav)}`);
+      if (!m.tall) throw new Error(`${at}: a row is under 56 px tall`);
+      if (Math.abs(m.before.head.top - m.after.head.top) > 1 || Math.abs(m.before.sw.top - m.after.sw.top) > 1) throw new Error(`${at}: the header or the switch scrolled away`);
     }
   } finally {
     await page.setViewportSize({ width: 390, height: 844 }); await page.unroute(SHADOW_LIST);
   }
+}, /PRACTICE MODE/);
+// The drill fits too: the call, the clock, PAUSE and END above the bottom edge, nothing sideways.
+await check('practice: the drill fits 412x811, 360x740 and 320x568', async () => {
+  await noShadow();
+  try {
+    for (const [w, h] of [[412, 811], [360, 740], [320, 568]]) {
+      await page.setViewportSize({ width: w, height: h });
+      await practice();
+      await page.locator('[data-testid="pm-drill"]').click({ timeout: 4000 }); await S(2500);
+      const m = await page.evaluate(() => {
+        const box = (el) => { if (!el) return null; const r = el.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right }; };
+        const end = [...document.querySelectorAll('[data-testid="practice-drill"] button')].find((b) => /^END$/.test(b.innerText.trim()));
+        const d = document.querySelector('[data-testid="practice-drill"]');
+        return { w: innerWidth, h: innerHeight, end: box(end), clock: box(document.querySelector('[data-testid="drill-clock"]')), side: d.scrollWidth > d.clientWidth + 1, doc: document.documentElement.scrollWidth };
+      });
+      const at = `${w}x${h}`;
+      if (!m.end || !m.clock) throw new Error(`${at}: END or the clock is missing`);
+      if (m.end.bottom > m.h + 0.5 || m.clock.top < 0 || m.end.right > m.w + 1 || m.end.left < -1) throw new Error(`${at}: the drill runs off the screen (END ends at ${Math.round(m.end.bottom)} of ${m.h})`);
+      if (m.side || m.doc > m.w + 1) throw new Error(`${at}: the drill scrolls sideways`);
+      await page.getByRole('button', { name: /^END$/ }).click({ timeout: 4000 }); await S(300);
+    }
+  } finally { await page.setViewportSize({ width: 390, height: 844 }); await page.unroute(SHADOW_LIST); }
 }, /PRACTICE MODE/);
 await check('combat conditioning start', async () => { await fight(); await page.locator('.ft.cond').click(); await S(1500); await page.locator('text=GAS TANK').first().click(); await S(600); await btn(/START CIRCUIT/).click({ timeout: 4000 }); await S(4000); }, /ROUND|DRILL|WARM/i);
 
@@ -2213,6 +2553,107 @@ await check('combat conditioning: a finished circuit stashed in its hand-off is 
   const rows = (stats.sessions || []).filter((x) => /combat/i.test(JSON.stringify(x)));
   if (rows.length !== 1) throw new Error('expected one Combat Conditioning row banked, found ' + rows.length);
 }, /RETURN HOME/);
+// The owner's "small things that were there before", fixed for everyone (2026-11-23). On a page that scrolls the
+// BETA pill and the scroll chevron sit on the shelf over the tab bar (inside its solid part); elsewhere nothing
+// that shows (a text's glyphs, a button) is under the pill. The end-screen banner is the stats row's width, and
+// the end screen's recap/chips card shows on a short phone.
+const bottomRow = () => page.evaluate(() => {
+  const r = (el) => el && el.getBoundingClientRect();
+  const pill = r(document.querySelector('button[aria-label="Report beta feedback"]'));
+  const chev = r(document.querySelector('[data-ui="scroll-chevron"]'));
+  const shelfEl = document.querySelector('[data-ui="nav-shelf"]');
+  const shelf = r(shelfEl), fade = Number(shelfEl?.dataset.fade) || 0;
+  const onShelf = (x) => !!shelf && x.top >= shelf.top + fade - 1 && x.bottom <= shelf.bottom + 1;
+  const hit = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+  const clipped = (el, x) => { for (let e = el.parentElement; e && e !== document.body; e = e.parentElement) { const cs = getComputedStyle(e); if (cs.overflowX !== 'visible' || cs.overflowY !== 'visible') { const c = e.getBoundingClientRect(); x = { left: Math.max(x.left, c.left), top: Math.max(x.top, c.top), right: Math.min(x.right, c.right), bottom: Math.min(x.bottom, c.bottom) }; } } return x; };
+  const under = [];
+  if (pill && !onShelf(pill)) {
+    for (const el of document.querySelectorAll('body *')) {
+      if (el.closest('[aria-label="Report beta feedback"]') || el.closest('[data-guide="nav-tabs"]')) continue;
+      const own = [...el.childNodes].filter((n) => n.nodeType === 3 && n.textContent.trim());
+      const boxes = el.tagName === 'BUTTON' ? [el.getBoundingClientRect()] : own.flatMap((n) => { const g = document.createRange(); g.selectNodeContents(n); return [...g.getClientRects()]; });
+      if (boxes.some((x) => { const v = clipped(el, x); return v.right > v.left && v.bottom > v.top && hit(v, pill); }) && getComputedStyle(el).visibility !== 'hidden') under.push((el.innerText || el.textContent || '').trim().slice(0, 30));
+    }
+  }
+  return { under, pillOnShelf: pill ? onShelf(pill) : null, chevOk: !chev || onShelf(chev), hasShelf: !!shelf };
+});
+const rowClear = async (at) => {
+  const g = await bottomRow();
+  if (g.under.length) throw new Error(`${at}: the BETA pill sits on ${JSON.stringify(g.under.slice(0, 3))}`);
+  if (!g.chevOk) throw new Error(`${at}: the scroll chevron is not on the shelf`);
+  return g;
+};
+await check('owner fixes: the BETA pill and the chevron cover nothing; the end-screen banner spans the cards; the chips show on a short phone', async () => {
+  try {
+    // Combat Conditioning's summary (an end screen that scrolls) at 430 wide: the banner lines up with the stats.
+    await resizeTo(430, 932);
+    await startCircuit(); await endCircuit(); await S(1500);
+    const g = await rowClear('cc summary 430x932');
+    if (!g.hasShelf || !g.pillOnShelf) throw new Error('the CC summary has no shelf under the BETA pill');
+    const al = await page.evaluate(() => { const a = document.querySelector('[data-ui="integrity-banner"]')?.getBoundingClientRect(); const b = document.querySelector('[data-ui="mc-stats"]')?.getBoundingClientRect(); return a && b ? [a.left - b.left, a.right - b.right] : null; });
+    if (!al || Math.abs(al[0]) > 1 || Math.abs(al[1]) > 1) throw new Error(`the banner is not the stats row's width (${JSON.stringify(al)})`);
+    // Build Workout ended early on a short phone: its SESSION SUMMARY chips show (they were dropped under 812 px).
+    await resizeTo(360, 640);
+    const { done, total } = await builderAt(2);
+    await btn(/^FINISH WORKOUT$/).click({ timeout: 4000 }); await S(400);
+    await finishDialog().getByRole('button', { name: /^FINISH$/ }).click({ timeout: 4000 }); await S(3000);
+    if (!(await text()).includes(`${done}/${total}`)) throw new Error('not the Build Workout summary');
+    if (!(await page.locator('.mc-extra').first().isVisible())) throw new Error('the SESSION SUMMARY chips are hidden at 360x640');
+    await rowClear('build workout summary 360x640');
+    await page.evaluate(() => { const sc = document.querySelector('.no-scrollbar'); sc.scrollTop = sc.scrollHeight; }); await S(800);
+    await rowClear('build workout summary scrolled to its end');
+    // One-screen pages that scroll inside: Quick Mission's page at 360x780 and Build Workout's at 360x640.
+    await resizeTo(360, 780); await fit(); await page.locator('[data-guide="fit-quick"]').click(); await S(1500);
+    await rowClear('quick mission 360x780');
+    await resizeTo(360, 640); await fit(); await page.locator('[data-guide="fit-builder"]').click(); await S(1500);
+    await rowClear('build workout 360x640');
+    await fight(); await S(500); await rowClear('fight hub 360x640');
+  } finally { await resizeTo(390, 844); }
+}, /FIGHT/);
+// A session paused (left by the tab bar) puts its RESUME pill on the right of the shelf, and the pill reaches past
+// the middle (RESUME · COMBAT CONDITIONING runs 107..344 at 360 wide), where the scroll chevron sat under it. While
+// the pill shows the chevron stays off, and the pill sits inside the shelf's solid part, clear of the BETA pill.
+// Swiped away (the session dropped), the chevron comes back: the page still has more below.
+const pausedRow = () => page.evaluate(() => {
+  const r = (el) => el && el.getBoundingClientRect();
+  const pill = r(document.querySelector('[data-ui="resume-pill"]'));
+  const beta = r(document.querySelector('button[aria-label="Report beta feedback"]'));
+  const shelfEl = document.querySelector('[data-ui="nav-shelf"]');
+  const shelf = r(shelfEl), fade = Number(shelfEl?.dataset.fade) || 0;
+  const sc = document.querySelector('.no-scrollbar');
+  return {
+    pill: pill && { left: pill.left, right: pill.right, top: pill.top, bottom: pill.bottom },
+    pillOnShelf: !!pill && !!shelf && pill.top >= shelf.top + fade - 1 && pill.bottom <= shelf.bottom + 1,
+    apart: !pill || !beta || beta.right + 4 <= pill.left,
+    chevron: !!document.querySelector('[data-ui="scroll-chevron"]'),
+    more: !!sc && sc.scrollHeight - sc.clientHeight > 200,
+  };
+});
+await check('owner fixes: a paused session\'s RESUME pill sits on the shelf, with no scroll chevron under it', async () => {
+  try {
+    await resizeTo(360, 780);
+    await home();
+    await page.evaluate(() => sessionStorage.setItem('__smoke_seed', JSON.stringify([{ screen: 'cc_active', disc: 'Boxing', cfg: {}, reason: 'nav', timestamp: Date.now() }])));
+    await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(180, 120); await S(1800);
+    await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
+    await btn(/^PROGRESS$/).click({ timeout: 4000 }); await S(1200);
+    await btn(/^TROPHIES$/).click({ timeout: 4000 }); await S(1500);
+    const g = await pausedRow();
+    if (!g.pill) throw new Error('no RESUME pill on Progress with a session paused');
+    if (!g.more) throw new Error('TROPHIES does not scroll at 360x780 (the check needs a page with more below)');
+    if (g.chevron) throw new Error('the scroll chevron shows while the RESUME pill is on the row');
+    if (!g.pillOnShelf) throw new Error(`the RESUME pill is not inside the shelf's solid part (${Math.round(g.pill.top)}..${Math.round(g.pill.bottom)})`);
+    if (!g.apart) throw new Error('the RESUME pill runs into the BETA pill');
+    // Swipe the pill away: the paused session goes, and with it the reason to keep the chevron off.
+    const y = (g.pill.top + g.pill.bottom) / 2, x = (g.pill.left + g.pill.right) / 2;
+    await page.mouse.move(x, y); await page.mouse.down();
+    for (let i = 1; i <= 8; i++) { await page.mouse.move(x - i * 25, y); await S(16); }
+    await page.mouse.up(); await S(1200);
+    const after = await pausedRow();
+    if (after.pill) throw new Error('the RESUME pill did not swipe away');
+    if (!after.chevron) throw new Error('the scroll chevron did not come back once the paused session was dropped');
+  } finally { await resizeTo(390, 844); }
+}, /TROPHIES/);
 // A page of the app in a fresh browser context (own storage, own user agent), for the storage notices.
 const inContext = async (name, ctxOpts, initScript, run) => {
   const c = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, ...ctxOpts });

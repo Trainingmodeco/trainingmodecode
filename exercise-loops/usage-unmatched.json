@@ -1,0 +1,11683 @@
+{
+ "note": "Names the app shows that are neither an active library move nor a Quick pool name (weighted with the same weights, programs/missions/camp/warmup only).",
+ "count": 828,
+ "list": [
+  {
+   "name": "Running Man",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 38,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 114,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Butt Kicks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 38,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 114,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Front Arm Jacks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 32,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 96,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Cross Arm Jacks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 32,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 96,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Stretch",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 17,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 51,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Hindu Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 9,
+    "missions": 1,
+    "camp": 3,
+    "warmup": 0
+   },
+   "weighted": 29.5,
+   "src": [
+    "plan",
+    "loadout",
+    "cc-prebuilt",
+    "cc-library",
+    "concept"
+   ]
+  },
+  {
+   "name": "All Round",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 8,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 24,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Interval Calisthenics",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 8,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 24,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Abs",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 8,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 24,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Warm-Up Circuit",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 7,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 21,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Dynamic Stretches",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 7,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 21,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Inside Fighting",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 7,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 21,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Outside Fighting",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 7,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 21,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Forward Jacks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 6,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 18,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Ice Skater Jumps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 6,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 18,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Non-Stop Striking",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 5,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 15,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jump Rope",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 4,
+    "missions": 1,
+    "camp": 4,
+    "warmup": 0
+   },
+   "weighted": 15,
+   "src": [
+    "plan",
+    "classic",
+    "arcade",
+    "concept"
+   ]
+  },
+  {
+   "name": "In and Out",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 4,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 12,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Speed",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 4,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 12,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Power Strikes",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 4,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 12,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Warm-Up Shadowboxing",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 4,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 12,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Feints",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 4,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 12,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Simple Combos",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 4,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 12,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Simple and Fast",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 4,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 12,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Hyper Defense · Counters",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 4,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 12,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "20 · 40 · 60 Percent Striking",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 4,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 12,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Sumo Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 3,
+    "missions": 0,
+    "camp": 3,
+    "warmup": 0
+   },
+   "weighted": 10.5,
+   "src": [
+    "plan",
+    "arcade",
+    "concept"
+   ]
+  },
+  {
+   "name": "Hindu Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 1,
+    "camp": 4,
+    "warmup": 0
+   },
+   "weighted": 9,
+   "src": [
+    "plan",
+    "loadout",
+    "arcade",
+    "concept"
+   ]
+  },
+  {
+   "name": "Defense · Blocks and Movement",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 3,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 9,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Boxing Focus",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 3,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 9,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with a Push-Up",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 7,
+   "src": [
+    "plan",
+    "classic"
+   ]
+  },
+  {
+   "name": "Burpees with a Double Push-Up",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 7,
+   "src": [
+    "plan",
+    "classic"
+   ]
+  },
+  {
+   "name": "Pseudo Planche Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 7,
+   "src": [
+    "plan",
+    "classic"
+   ]
+  },
+  {
+   "name": "American Swings",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 7,
+   "src": [
+    "plan",
+    "loadout"
+   ]
+  },
+  {
+   "name": "Dive Bomber Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 6.5,
+   "src": [
+    "plan",
+    "concept"
+   ]
+  },
+  {
+   "name": "Cross-Legged Crunches",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Tyson Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Plie Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with a Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Straight Arm Pulldowns",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Twisting Scissor Kicks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Boxing Stance",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Boxing Movement",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Super Defense · Slips, Ducks, Pull-Backs",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Kickboxing Stance",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Kickboxing Movement",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Teeps and Side Kicks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Roundhouse",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Muay Thai Stance",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Muay Thai Movement",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "MMA Stance",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "MMA Movement",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Slow Tyson Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Slow Dive Bombers",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Reverse Axe Chops",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Lunge Hops",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Bounce Footwork",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 2,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 6,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Typewriter Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 1,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 5,
+   "src": [
+    "plan",
+    "classic",
+    "concept"
+   ]
+  },
+  {
+   "name": "Broad Jumps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 1,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 5,
+   "src": [
+    "plan",
+    "classic",
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Pulse Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 3,
+    "warmup": 0
+   },
+   "weighted": 4.5,
+   "src": [
+    "plan",
+    "arcade",
+    "concept"
+   ]
+  },
+  {
+   "name": "Hanging Knee Raises",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 3,
+    "warmup": 0
+   },
+   "weighted": 4.5,
+   "src": [
+    "plan",
+    "arcade",
+    "concept"
+   ]
+  },
+  {
+   "name": "180 Jump Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 1,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 4.5,
+   "src": [
+    "plan",
+    "classic",
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Door Frame Rows",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 4,
+   "src": [
+    "plan",
+    "loadout"
+   ]
+  },
+  {
+   "name": "Burpees with a Single-Leg Hop",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 4,
+   "src": [
+    "plan",
+    "classic"
+   ]
+  },
+  {
+   "name": "Burpees with a Frog Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 4,
+   "src": [
+    "plan",
+    "classic"
+   ]
+  },
+  {
+   "name": "Burpees with a Star Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 4,
+   "src": [
+    "plan",
+    "classic"
+   ]
+  },
+  {
+   "name": "Burpees with a Bear Crawl",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 4,
+   "src": [
+    "plan",
+    "classic"
+   ]
+  },
+  {
+   "name": "Burpees with a Tuck Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 4,
+   "src": [
+    "plan",
+    "classic"
+   ]
+  },
+  {
+   "name": "Burpees with a 180 Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 4,
+   "src": [
+    "plan",
+    "classic"
+   ]
+  },
+  {
+   "name": "Russian Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 4,
+   "src": [
+    "plan",
+    "classic"
+   ]
+  },
+  {
+   "name": "Kick-Out Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 4,
+   "src": [
+    "plan",
+    "classic"
+   ]
+  },
+  {
+   "name": "Slow Bodyweight Rows",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 4,
+   "src": [
+    "plan",
+    "classic"
+   ]
+  },
+  {
+   "name": "Torso Twists",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 2
+   },
+   "weighted": 4,
+   "src": [
+    "plan",
+    "warmup-suggestions",
+    "mobility-block"
+   ]
+  },
+  {
+   "name": "Single-Leg Box Jumps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 4,
+   "src": [
+    "plan",
+    "classic"
+   ]
+  },
+  {
+   "name": "Push Press",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 3,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 4,
+   "src": [
+    "loadout",
+    "cc-prebuilt",
+    "concept"
+   ]
+  },
+  {
+   "name": "Jumping Lunges",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 8,
+    "warmup": 0
+   },
+   "weighted": 4,
+   "src": [
+    "cc-library",
+    "arcade",
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Breathing cooldown",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 8,
+    "warmup": 0
+   },
+   "weighted": 4,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Wide-Grip Pull-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 3.5,
+   "src": [
+    "plan",
+    "concept"
+   ]
+  },
+  {
+   "name": "Dumbbell Clean to Snatch",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 3.5,
+   "src": [
+    "plan",
+    "concept"
+   ]
+  },
+  {
+   "name": "Ickey Shuffle",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 3.5,
+   "src": [
+    "plan",
+    "concept"
+   ]
+  },
+  {
+   "name": "Ali Shuffle",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 3.5,
+   "src": [
+    "plan",
+    "concept"
+   ]
+  },
+  {
+   "name": "Tuck-Ins",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 3.5,
+   "src": [
+    "plan",
+    "concept"
+   ]
+  },
+  {
+   "name": "Step and Slide Footwork",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jab Focus",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jab and Move",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jab-Cross",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Guard Snap-Back",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Combo Flow",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Lead and Rear Roundhouse",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Check Kick",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Rear Knee to Teep",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Slip Drill",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Duck and Reset",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Slip, Duck and Counter",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Hook-Uppercut Focus",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Step to the Side After a Strike",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Freestyle · Hooks and Uppercuts",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jab, Cross, Hook, Rear Roundhouse",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Rear Uppercut, Hook, Cross, Rear Knee",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Freestyle Burst",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "One to Four Strike Combos",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Speed and Power Strikes",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Sphinx Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Hack Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Cherry Pickers",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Single-Arm Door Rows",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Shadow Deadlifts",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Chair Dips",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Wide Dips",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Pike Military Press",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Reverse Calf Raises",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Sissy Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "90 Degree Squat Hold",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Deep Squat Hold",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Tiptoe Hack Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Narrow Push-Up to Tuck",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Kneeling Tucked Tricep Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Kneeling Diamond Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Plank Up-Downs",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Floor Tricep Dips",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Scissor Tricep Kickbacks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Knee Touch Crunches",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Alternating Toe Touches",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Banana Hold",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Lying Back Flies",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Horizontal Pull-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Upward Dog Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Kneeling Bodyweight Rows",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Reacher Rows",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Alternate Back Raises",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Shadow Kettlebell Swings",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Leaning Rear Deadlifts",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Hamstring Heel Curls",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Plank Kickbacks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Back Lunge to Shadow Curls",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Shadow Flex Bicep Curls",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Reverse-Grip Wall Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Backward Palm Curls",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Leg Bicep Curls",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Body Drag Lat Pulls",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Cross-Legged Crunches Right",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Cross-Legged Crunches Left",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Stationary Lunges",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Squat Hold Hip Abductors",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Kneeling Hip Thrusts",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Kneeling Shoulder Press Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Quadruped Thoracic Rotations",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Superman I, Y, T",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Pike to Hindu Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Tiger Bend Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Hollow Body Rocks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Oblique V-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Spiderman Planks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with a Push-Up Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Tyson Push-Ups and Leg Jacks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Full Depth Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Ninja Squats Strong Leg",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Ninja Squats Weak Leg",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Wide to Narrow Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Diamond Push-Up to Jump Squat",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Tricep Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Plank-Ups with Tricep Extension",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Hand-Over-Top Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Forearm Plank Rocks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Plank Hip Dips",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Chaturanga Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Body Drag Lat Pulldowns",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Back Extensions with Trap Pinch",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "T Push-Ups to Shadow Swings",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Wall Half Nordic Curls",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Static Side Lunge Right",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Static Side Lunge Left",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Mixed-Grip Push-Up to Tuck",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Single-Leg Bicep Curl Left",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Single-Leg Bicep Curl Right",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Towel Hammer Curl Drag",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Towel Bicep Curl Drag",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "V-Up to Knee Tuck",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "L-Sit to Tuck Hold",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Pike-Ups with Knee Tuck",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Twisting Mountain Climbers",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Hollow to Arch Hold",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Table Top Hold",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Plyo Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Skater Lunges",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Reverse Bear Crawl with Hamstring Curl",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Pike Push-Ups with Leg Lifts",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Reverse Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Thoracic Rotations Right",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Thoracic Rotations Left",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Renegade Row Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "T Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Shoulder Blade Squeeze",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Dolphin Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Plank Side Walk to Russian Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Butterfly Sit-Ups with Twist",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Single-Leg Jackknife Sit-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Bicycle Crunch with Reach",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "V-Sit Leg Lift and Reach",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with an Elevator Squat Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with a Double Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with a High Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with a Leg Tuck",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Alternating One-Arm Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Knuckle Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Dive Bombers",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Tornado Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "45 Degree Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Tuck Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Single-Leg Squat to Curtsy",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Tiptoe Deep Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Deep Sissy Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Single-Leg Squat Roll Right",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Single-Leg Squat Roll Left",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Body Dip to Body Roll Squat",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Four-Level Tricep Extensions",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Typewriter to Archer Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Fist Roll Tricep Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Straight Arm to Forearm Plank",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Tuck Dragon Hold",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Tuck Dragon Side Hold Left",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Tuck Dragon Side Hold Right",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Tuck Dragon Thrust",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Reverse Dragon Flag",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Flutter Kick Hold",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Wall Rear Delt Flys",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Back Extensions",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Back Windows",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Wall Nordic Curls",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Single-Leg Hip Thrust Right",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Single-Leg Hip Thrust Left",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Single-Leg Curtsy Lunge",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Russian Lunge",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Squat to Headstand",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Reverse Knuckle Planche Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Body Saw",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Double Leg Bicep Curl",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Leg Resist Curls Left",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Leg Resist Curls Right",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Plank to Shadow Bicep Curl",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Reverse Plank",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Windshield Wipers",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Twisting Reverse Crunches",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Seated Leg Tucks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Cobra Hold",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Double Pulse Squat to 180 Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Alternating Ninja Lunges",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Single-Leg Jump Squats Right",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Single-Leg Jump Squats Left",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Deep Narrow Tiptoe Hack Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Pike Shoulder Press",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Back Bridge",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Pseudo Low Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Wall Handstand Shoulder Taps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Uneven Pike Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Crow Pose to Chaturanga",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Twisting Spiderman Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Alternating Grip Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Clapping Diamond Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "L-Sit to V-Sit",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Plank Leg Lift and Side Crunch",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Spiderman Plank Crunches",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Side Plank Knee Tuck",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Russian Twist Hold",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with a Double Squat",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with Push-Ups and a Double Squat",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with a Plyo Push-Up",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with a 360 Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with a Dive Bomber",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with a Hand-Release Push-Up",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with a Side-to-Side Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with a Spiderman Push-Up",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with a Jackknife",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Straights",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Hooks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Uppercuts",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Knees",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Elbows",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Shadow Clinch",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Super Defense · Slips and Pull-Backs",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Muay Thai Focus",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Ground Focus",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Shootboxing",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Tempo Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Slow Plank Tricep Extensions",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "3-Second Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Arms Across Stretch",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Arms Behind the Back",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Tempo Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Elevator Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "3-Second Full Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Lunge Stretch",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Deep Squat to Hamstring Stretch",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Slow Russian Twists",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Plank to Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Slow Pike Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Slow Negative Pull-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Super Slow Shoulder Taps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Neck Curls · Front and Back",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Lateral Neck Flexions",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Kirk Shrugs",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Heels-Up Goblet Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Narrow, Mid, Sumo Squat Burnout",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Kettlebell Pulse Swings",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Kettlebell Swing to Calf Raise",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Wide-Grip Chin-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Lat Pulldowns",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Face Pull Rows",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Tiger Rock Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "One-Arm Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Shadowboxing with Resistance",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jog, Bike, Jump Rope or Freestyle Shadowboxing",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Yoga Flow Stretch",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jumping Dumbbell Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Muscle-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "L-Sit to V-Up Flow",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpees with High Jumps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Explosive Uneven Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Ball Throw to Squat Catch",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Wall Ball to Sprawl",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Side Steps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "In and Outs",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Side Step Hops",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Back Pedal to Cross Step",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Freestyle Strikes over a Line",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Cone Sprints",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Forward-Back Jumps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Angle Shadowboxing",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Standard Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Depth to 180 Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Depth to Tuck Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "High-Rep Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Half-to-Full Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Single-Arm Inverted Rows",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Pike-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Assisted Single-Arm Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Assisted Single-Arm Pull-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Frog Leaps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Standing Shoulder Press",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Axe Chops",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Kettlebell Halo Press",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Atlas Swings",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Single-Arm Crossbody Snatch",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jumping Goblet Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Long Jump to Burpee",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Explosive Step-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Reverse Lunges with Torso Twist",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Deep Bodyweight RDLs",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Around-the-World Catch",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Goblet Squat Press",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Kettlebell Snatch",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Low Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Hanging Rows",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Reverse Lunge to Knee Drive",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Hanging Crunches",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Air Leg Kicks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Double Jab, Low Teep, Cross, Feint Teep, Rear Elbow",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Dash Jab, Step Cross, Spinning Kick",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Cross, Jumping Hook, Palm Push",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jab, Low Kick, Overhand, Side Step",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "One-Two, Duck, Uppercut, Spinning Elbow",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Feint, Cross, Hook, Jumping Spin Kick",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Dash, Low Kick, Cross, Rising Uppercut",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Spinning Kick, Cross, Guard",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Hook, Elbow, Elbow, Knee",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Blitz · Jab, Hook, Low Kick, Cross",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jumping Knee, Hook, Low Kick, Palm Push",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Dash Cross, Rear Kick, Elbow",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Cross, Rising Uppercut, Cross",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Hook, Jumping Knee, Hook",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Cross, Hook, Spinning Kick",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Three-Kick Chain",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Overhand, Body Shot, Jumping Kick",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Low Kick, Hook, Hook, Cross",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Uppercut, Hook, Cross, Flying Knee",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Double Med Ball Slam",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jumping Med Ball Slam",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Sandbag Slam",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpee to Muscle-Up",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jumping Kicks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jab, Cross, Step-In Rising Uppercut",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Cross, Hook, Spinning Roundhouse",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Low Kick, Hook, Jumping Spin Kick",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "One-Two, Dash, Cross, Elbow",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Feint, Cross, High Kick",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jab, Jab, Step Hook, Cross",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Roundhouse, Cross, Step Knee",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Double Jab, Cross, Spinning Heel Kick",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jump Kick, Hook, Elbow, Guard Up",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jab, Fake Cross, Spinning Hook Kick",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jab, Rear Low Kick, High Kick",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Jumping Hook, Rising Uppercut",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Four Jabs, Cross, Rear Kick",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Roundhouse, Hook, Hook, Elbow",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Hook, Cross, Step-Through Knee",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Spinning Kick, Hook, Low Kick",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Cross, Hook, Uppercut, Spinning Back Kick",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Dash Jab, Jab, Jumping Roundhouse",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Overhand, Body Shot, Knee, Switch Kick",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Med Ball Wall Throw",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Speed Knees on the Bag",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Burpee Jump, Lateral Tuck, Sprint",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Ball Slam to Overhead Throw",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 1,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "plan"
+   ]
+  },
+  {
+   "name": "Freestyle Shadowboxing",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 3,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "One-Two",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 3,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "classic",
+    "loadout"
+   ]
+  },
+  {
+   "name": "Plate Goblet Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 3,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Strict Press",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 3,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Kettlebell Presses",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 3,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Goblet Reverse Lunges",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 3,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Hang Power Cleans",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 3,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Jumping Pull-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 3,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 3,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Kettlebell Cleans",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 2,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 2,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Kettlebell Rows",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 2,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 2,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Dead-Stop Barbell Rows",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 2,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 2,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Step-Back Sprawls",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 2,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 2,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Step-Over Burpees",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 2,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 2,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Bar-Facing Burpees",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 2,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 2,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "One-Arm Swings",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 2,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 2,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Knee Plank Pull-Throughs",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 2,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 2,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Plank Pull-Throughs",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 2,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 2,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Two-Hand Presses",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 2,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 2,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Sissy Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 1.5,
+   "src": [
+    "classic",
+    "concept"
+   ]
+  },
+  {
+   "name": "Step-Through Lunges",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 1.5,
+   "src": [
+    "classic",
+    "concept"
+   ]
+  },
+  {
+   "name": "Wall Sit Calf Raises",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 1.5,
+   "src": [
+    "classic",
+    "concept"
+   ]
+  },
+  {
+   "name": "Jump Lunges",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 1.5,
+   "src": [
+    "classic",
+    "concept"
+   ]
+  },
+  {
+   "name": "Weighted Turkish Get-Up",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 1.5,
+   "src": [
+    "loadout",
+    "concept"
+   ]
+  },
+  {
+   "name": "Heavy Bag Power Punch Intervals",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 3,
+    "warmup": 0
+   },
+   "weighted": 1.5,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Heavy Bag Kick Burnouts",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 3,
+    "warmup": 0
+   },
+   "weighted": 1.5,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Sandbag Bear Hug Carries",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 3,
+    "warmup": 0
+   },
+   "weighted": 1.5,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Shadowbox Rounds",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 3,
+    "warmup": 0
+   },
+   "weighted": 1.5,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Medicine Ball Slams",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 3,
+    "warmup": 0
+   },
+   "weighted": 1.5,
+   "src": [
+    "cc-library",
+    "concept"
+   ]
+  },
+  {
+   "name": "Loaded carry",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 3,
+    "warmup": 0
+   },
+   "weighted": 1.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Push-Ups on Knees",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Jab",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Sumo Squat",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Cross",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Front Kick",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Hook",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Hip Hinge",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Uppercut",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Caterpillar Walks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "T-Pose Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Punch to Roundhouse Kick",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "High Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Clasp Grip Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Core Rotation Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Spiderman Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "3 Level Crunches",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "3 Level Bicycle Crunches",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Indian Sit Crunches",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Frog Tucks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Plank Tuck Crunch",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Side Plank Thrust Right",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Side Plank Thrust Left",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Frog Jumps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Depth Landings",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Wall Walks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Sprint",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "classic"
+   ]
+  },
+  {
+   "name": "Mile Run",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "named"
+   ]
+  },
+  {
+   "name": "Half Mile Run",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "named"
+   ]
+  },
+  {
+   "name": "Sally Up Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "named"
+   ]
+  },
+  {
+   "name": "Sally Up Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "named"
+   ]
+  },
+  {
+   "name": "Ground and Pound",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "named"
+   ]
+  },
+  {
+   "name": "Dumbbell Power Cleans",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Squats to a Bench",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Power Cleans",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Kettlebell Hang Cleans",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Left Arm Complex",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Right Arm Complex",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Kettlebell Front Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Double-Bell Complex",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Front-Rack Reverse Lunges",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Lunge to Teep",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Heels-Down Hindu Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Windshield Wiper Punches",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Switch Kicks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Knee Hindu Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Hang Muscle Cleans",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Push Jerks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Hang Power Clean + Push Press",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Clean and Jerks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Three-Step Ground-to-Overheads",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Ground-to-Overheads",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Zercher Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Turkish Get-Up",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Goblet Thrusters",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Suitcase Deadlifts",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Kettlebell Halos",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Kettlebell Dead Bugs",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Goblet Lateral Lunges",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Goblet Bulgarian Split Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Devil Presses",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Burpees Over the Bell",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Run",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Explosive Front Presses",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Explosive Overhead Presses",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Barbell Uppercuts",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Explosive Front Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Explosive Shadowboxing",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Front-Rack Good Mornings",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Touch the Sky",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Two-Hand Rows",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Two-Hand High Pulls",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "One-Arm High Pulls",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Kettlebell Snatches",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Bent-Knee Bench Dips",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Parallel-Bar Dips",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Backpack Deadlifts",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Slow Mountain Climbers",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 1,
+    "camp": 0,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "loadout"
+   ]
+  },
+  {
+   "name": "Shadowboxing with Light Dumbbells",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Speed Bag Work",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Plank x Arm Shuffles",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Jumping Bulgarian Lunge",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Static Chamber Kick Hold",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Resistance Band Roundhouse Kicks",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Dummy Slams",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Jump Rope Double-Unders",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Body Saw Planks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Cable Woodchoppers",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Pallof Press",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "arcade"
+   ]
+  },
+  {
+   "name": "Gi/Towel Pull-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Dead Hangs",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "arcade"
+   ]
+  },
+  {
+   "name": "Agility Ladder Drills",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Rope Ducking",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Trap Bar Deadlift",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Hang Clean",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "1-2-3-4 Combo Sprints on Heavy Bag",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-prebuilt",
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Speed Knees",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-library",
+    "concept"
+   ]
+  },
+  {
+   "name": "Hanging Leg Raises",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-library",
+    "concept"
+   ]
+  },
+  {
+   "name": "Cossack Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "cc-library",
+    "arcade"
+   ]
+  },
+  {
+   "name": "Tempo push-ups (3-1-3)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Tempo squats (3-1-3)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Sprint intervals",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Loaded carries",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Mobility",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 1
+   },
+   "weighted": 1,
+   "src": [
+    "arcade",
+    "warmup-suggestions"
+   ]
+  },
+  {
+   "name": "Core hold",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Prone Swimmers",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Dead Hang",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "arcade",
+    "concept"
+   ]
+  },
+  {
+   "name": "Neck Curls (Front)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Barbell Hip Thrusts",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Rower",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Monkey Bar Traverse",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 2,
+    "warmup": 0
+   },
+   "weighted": 1,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "leg swings",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 2
+   },
+   "weighted": 1,
+   "src": [
+    "warmup-suggestions",
+    "mobility-block"
+   ]
+  },
+  {
+   "name": "Plyometric Push-Up to Punch",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Bag Takedown Drills",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Interval Run",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Airdyne/Assault Bike Tabata",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Medicine Ball Rotational Throw Against Wall",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Landmine 180s",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Plate Pinches",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Partner Neck Ties",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Mirror Drill",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Pivot & Circle Drills",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Reactive Lateral Shuffle to Sprint",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Zercher Carries",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Lateral Bound to Stick",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Plyo Push-Up to Box",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Focus Mitt Flurries",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Step-Up x Knee",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Weighted Step-Ups with Knee Drive",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Check x Roundhouse Drill",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Cable Machine Teep/Push Kicks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Push-Up Variation",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-prebuilt"
+   ]
+  },
+  {
+   "name": "Sprints",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Burpee to Shadowbox Combo",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Weighted Kicks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Round-Based Bag Work",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Speed Straights",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Speed Combos",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Speed Kicks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Hands Only",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Kicks Only",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Knees Only",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Elbows Only",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Medicine Ball Rotational Throw",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Dummy Carries",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-library"
+   ]
+  },
+  {
+   "name": "T-Drill Sprints",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Cossack Squats (Mobility)",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "cc-library"
+   ]
+  },
+  {
+   "name": "Cooldown breathing",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Rows ( )",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Tempo rows (3-1-3)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Tempo lunges (3-1-3)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Squat-hold (bottom) to target",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Slow-lowering push-ups (4s down)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Slow-lowering squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Slow-lowering rows",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Slow-lowering lunges",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Very-slow tempo push-ups (4-2-3)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Very-slow tempo squats (4-2-3)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Horse-stance hold to target",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Mixed-tempo push-ups (slow down, fast up)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Mixed-tempo squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Mixed-tempo rows",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Mixed-tempo lunges",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Very-slow push-ups (4-2-3)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Very-slow squats (4-2-3)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Squat-hold (peak target)",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Easy-tempo push-ups (light)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Easy-tempo squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Full mobility flow",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Deep breathing / down-regulation",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Gentle stretch",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Tempo push-ups to target (4-1-3)",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Tempo squats to target",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Tempo rows to target",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Tempo lunges to target",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Squat-hold to target",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Horse-stance to target",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Rows (pull-up bar, band, or doorway)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Jump rope (bounce, then boxer-skip)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Pogo hops + ankle hops (low)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Line hops (front/back, side/side)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Shadowbox flow round",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Broad jumps (soft landing, reset each rep)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Cooldown shoulder mobility",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Med-ball chest pass (explosive)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Med-ball rotational throw (both sides)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Med-ball scoop / overhead slam",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Shadowbox rounds between sprints",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Light aerobic jog block",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Core finisher",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Heavy-ish squat or step-up (Pair A)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Loaded or hard push (Pair B)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Hip-hinge to target (Pair C)",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Broad jumps (Pair C)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Easy full-body movement flow",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Shoulder + rotator-cuff care (bands, light)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Wrist/forearm mobility",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Hip/ankle mobility",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Down-regulation breathing + stretch",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Broad jumps (capped)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Sprint set",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Med-ball throws (capped finisher)",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Conditioning finisher to target (capped)",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Neck activation",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Y-W-T shoulder sequence",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Hip and ankle mobility",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Pull-up or band-assisted pull-up",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Typewriter push-up progression",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Heel-elevated goblet squat",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Kettlebell swing progression",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Farmer hold or towel-grip hold",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Stability plank",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Medicine-ball chest throw",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Neck isometric series",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Easy roadwork, bike, or walk-jog",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Pull-up or row variation",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Core circuit",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Neck mobility and isometrics",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Shoulder stability",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Plank shoulder taps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Rotational core work",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Light roadwork",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Mobility sequence",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Shrug variation",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Pull-up or pulldown",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "High-repetition bodyweight finisher",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Ladder or line drills",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Cone-direction changes",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Short sprint intervals",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Low-volume jump training",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Medicine-ball rotational throw",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Dive-bomber push-ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Tiptoe jumping squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Archer pull-up progression",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Tiger-rock push-ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Neck isometrics",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Short conditioning intervals",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Walk, light jog, or easy bike",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Light jump rope",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Light core activation",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Breathing drills",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Short low-volume power activation",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Push-up variation test",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Squat variation test",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Pull-up or row test",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Loaded or bodyweight carry",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "neck-strength exercise",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Final endurance circuit",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Hanging or lying leg raises",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "High-speed pull-ups (or negatives)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Tuck-ups and hollow rocks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Medicine-ball slams or bodyweight throws",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Medicine-ball chest/rotational throws",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Explosive push-up variations",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Hip-drive work (KB swings or bridges)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Core anti-rotation (Pallof)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Wrist and forearm strengthening",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Deep squat & horse-stance holds",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Single-leg balance and control",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Hip mobility flow",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Core rotation",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Dead hangs and towel hangs",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Plate pinches or grip-trainer crushes",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Farmer holds / suitcase carries",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Thick-bar or towel pull-ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Wrist curls and reverse curls",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Forearm and hand mobility",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Bridging and hip thrusts",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Rotational core and neck strengthening (gentle)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Mobility flow",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Squat pattern to a target",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Weighted or hard-progression pull-ups",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Dips — integrated bodyweight block",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Core circuit under load",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Sandbag or backpack clean and press",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Hardest pull progression to target",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Hardest push progression to target",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Explosive broad jumps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Heavy carries",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Core peak circuit",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Capped conditioning finisher — targets, not",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "High-rep pull-up target",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "High-rep push-up target (capped)",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Grip max-hold",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Explosive jump target",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Narrow Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Slow Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Slow Sit-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Slow Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Burnout Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Cardio",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Scapular Pulls",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Superman Pulls",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "arcade"
+   ]
+  },
+  {
+   "name": "Running high knees",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Machine gun kicks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Check kicks — alternate legs",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Star jumps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Broad jump — back-pedal",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Fast feet",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Burpee tuck jumps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Split jumps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Up-downs",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Power skips",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Lateral bounds",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Speed squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Push-up to shoulder tap",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Shadow sprint in place",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Drop and pop",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Switch knees",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Flying knee bursts",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Sprawl to jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "rush-pool"
+   ]
+  },
+  {
+   "name": "Squat Jump to Pull-Up",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Sandbag Over-Shoulder Toss",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Plank to Push-Up to Knee Tuck",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Med-Ball Chest Pass",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Alternating Squat to Press",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Burpee Tuck Jump Sprint",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Overhead Med-Ball Jump Throw",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "180° Tuck Jumps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Horse Stance Hold",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Fighter Hip Mobility",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Alternating Front and Side Kicks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Alternating Roundhouse Kicks",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Shadowboxing",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Burpee to Pull-Up",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Sandbag Carry Sprint",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Dive Bomber Split-Kick Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Heavy Knees",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Rotational Jump Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Neck Curls (Back)",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Wide Grip Pull-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "False-Grip Body Rows",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Tiger Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Jumping Bar Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Jumping Muscle-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Flow Core Chain",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Slow-Eccentric Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Burpee High Jumps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Uneven Platform Explosive Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Ball Throw to Squat",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Single-Arm Wall Ball to Sprawl",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Lunge to Single-Leg Jump",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Tennis Ball Wall Bounce",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Alternating Ladder Drills",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Lead-Foot In-and-Outs",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Cone Angle Drill",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Freestyle Footwork with Strikes",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Single-Arm Inverted Row with Reach",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Shoulder Plate Rotations",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Barbell Push-Out to Press",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Kettlebell Around the World to High Catch",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Shoulder Tap Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Hero Push-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Dragon Flag Negatives",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Pause Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Assisted Pistol Squats",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Butterfly Sit-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Tuck Sit-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Cross-Body Sit-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Feet-to-Ceiling Sit-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Sit-Up Punches",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Decline Sit-Ups",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Alternating Dumbbell Snatch",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Cable Glute Kickbacks",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Side Plank with Reach-Under",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Weighted Walking Lunges",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Burpee Broad Jumps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Cable Oblique Crunch",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Pullover Crunch",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Single-Arm Kettlebell Swings",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Reverse Lunge to Step-Up",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Clean and Jerk",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Quarter-Mile Run",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Flexibility Flow",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Rope Climb",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Low-Ring Muscle-Up Transitions",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Ring Support Hold",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Hanging Tuck Raises",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Light Deadlift",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Yoga Flow",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Precision Jumps",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "Safety Vaults",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "L-Sit Hold",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 1,
+    "warmup": 0
+   },
+   "weighted": 0.5,
+   "src": [
+    "concept"
+   ]
+  },
+  {
+   "name": "LIGHT RUN",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 1
+   },
+   "weighted": 0.5,
+   "src": [
+    "warmup-suggestions"
+   ]
+  },
+  {
+   "name": "in place or out the door",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 1
+   },
+   "weighted": 0.5,
+   "src": [
+    "warmup-suggestions"
+   ]
+  },
+  {
+   "name": "Talk-test pace",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 1
+   },
+   "weighted": 0.5,
+   "src": [
+    "warmup-suggestions"
+   ]
+  },
+  {
+   "name": "light on the feet",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 1
+   },
+   "weighted": 0.5,
+   "src": [
+    "warmup-suggestions"
+   ]
+  },
+  {
+   "name": "Rest whenever",
+   "likelyLabelNotAMove": true,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 1
+   },
+   "weighted": 0.5,
+   "src": [
+    "warmup-suggestions"
+   ]
+  },
+  {
+   "name": "hip circles",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 1
+   },
+   "weighted": 0.5,
+   "src": [
+    "warmup-suggestions"
+   ]
+  },
+  {
+   "name": "SHADOWBOX",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 1
+   },
+   "weighted": 0.5,
+   "src": [
+    "warmup-suggestions"
+   ]
+  },
+  {
+   "name": "bounce on the feet",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 1
+   },
+   "weighted": 0.5,
+   "src": [
+    "warmup-suggestions"
+   ]
+  },
+  {
+   "name": "easy punches",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 1
+   },
+   "weighted": 0.5,
+   "src": [
+    "warmup-suggestions"
+   ]
+  },
+  {
+   "name": "SHOULDER ROLLS",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 1
+   },
+   "weighted": 0.5,
+   "src": [
+    "mobility-block"
+   ]
+  },
+  {
+   "name": "ARM SWINGS",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 1
+   },
+   "weighted": 0.5,
+   "src": [
+    "mobility-block"
+   ]
+  },
+  {
+   "name": "HIP OPENERS",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 1
+   },
+   "weighted": 0.5,
+   "src": [
+    "mobility-block"
+   ]
+  },
+  {
+   "name": "BOUNCE + SHADOW",
+   "likelyLabelNotAMove": false,
+   "units": {
+    "programs": 0,
+    "missions": 0,
+    "camp": 0,
+    "warmup": 1
+   },
+   "weighted": 0.5,
+   "src": [
+    "mobility-block"
+   ]
+  }
+ ]
+}

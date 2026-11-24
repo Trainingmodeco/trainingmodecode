@@ -108,3 +108,29 @@ the voice's own rate, no break inside, a clean start and end. `need.json`
 lists the keys to record again: expect about one in ten, more for the female
 voice, which often runs "minutes, seconds" together. `place.mjs` installs the
 chosen takes and bumps the bank version.
+
+## Waiting on the owner (2026-11-22)
+
+`exercise-loops/PENDING.md` lists what the owner asked to be reminded of (new exercise names to add and record later, the 40 stretches ticked but never made,
+one exercise short of the majority of animated exercises). When the owner talks about loops, exercises or recording, remind them of it in one line.
+
+## Pick the smallest model that does the job well (owner's rule, 2026-11-22)
+
+"If the groceries cost $21, don't put a $50 bill down." When building anything for the app, and in every
+subagent or workflow, use the cheapest model that will still do the job well:
+
+- **Building features, hard design or debugging:** Opus. Fable only when Opus has failed at it or the task
+  clearly needs the most capable model (say why).
+- **Reviewing code, checking renders, matching, summarising:** Sonnet.
+- **Mechanical work (running tests, screenshots, file moves, simple checks):** Haiku, or a script with no model at all.
+- Prefer scripts over agents for anything that can be measured, and one agent over a panel unless the result
+  needs an independent check.
+
+## Never run past the plan's usage (owner's rule, 2026-11-23)
+
+"If we extend past usage, please pause until token reset or switch to another model." Do not push work into
+paid overage. When a usage limit stops a call (or a notice says the session is in overage): stop starting new
+agents and workflows, let nothing retry in a loop, and tell the owner where things stand. Either wait for the
+reset and then resume (a workflow resumes from its cache with `resumeFromRunId`, so finished agents are not paid
+for twice), or carry on with a cheaper model (Sonnet in place of Opus for a fix, Haiku or a plain script for
+mechanical steps) when the step allows it. Never move up to a bigger model to get past a limit.

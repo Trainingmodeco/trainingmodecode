@@ -58,7 +58,7 @@ export const SWING_RUN_MAX = 3;
 // do. DEFENCE COUNTS. That is the stricter reading of the owner's "no more than
 // 4", and it keeps the Level page honest: strikes never outnumber pieces, so
 // "up to N strikes" is true of anything the cap lets through. (In the real pool
-// 104 of 275 combos hold a defence or movement word.)
+// 105 of 283 combos hold a defence or movement word.)
 //  - Two-word strikes are one piece: Low Kick, Body Hook, Switch Kick, High
 //    Kick, Lead Uppercut, Spinning Back Kick, Question Mark Kick...
 //  - "Double" doubles the strike after it: Double Jab is two pieces, Double Low

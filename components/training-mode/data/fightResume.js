@@ -19,6 +19,7 @@ export function readCarry(raw, totalRounds) {
     perRound: Array.isArray(c.perRound) ? c.perRound.slice(0, total).map((n) => whole(n)) : [],
     called: whole(c.called),
     peak: whole(c.peak, 9999),
+    cut: Math.min(total, whole(c.cut, 999)),
   };
 }
 

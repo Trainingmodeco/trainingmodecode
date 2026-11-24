@@ -26,11 +26,17 @@ const STRIKE_TOKENS = [
   'Shovel Hook', 'Body Jab', 'Body Cross', 'Body Hook', 'Roundhouse', 'Uppercut',
   'Overhand', 'Teep', 'Knee', 'Elbow', 'Hook', 'Cross', 'Jab',
 ];
+// A bare "Kick" ("Check Cross Kick") is a strike too. It is read as a whole
+// word, after every named kick has been taken out, so it never matches inside
+// "Kickboxing". "Catch Kick" is a defence and is taken out first.
+const BARE_KICK = 'Kick';
+const bareKicks = (work) => (work.match(/\bkick\b/g) || []).length;
+const withoutDefence = (name) => ` ${String(name || '').toLowerCase()} `.replace(/\bcatch kick\b/g, ' ');
 
 // Extract the canonical strike tokens taught by a lesson/technique name.
 // Non-strikes (stance, guard, footwork, defense, sprawl…) yield [].
 export function strikesFrom(name) {
-  let work = ` ${String(name || '').toLowerCase()} `;
+  let work = withoutDefence(name);
   const found = [];
   for (const tok of STRIKE_TOKENS) {
     const t = tok.toLowerCase();
@@ -39,6 +45,7 @@ export function strikesFrom(name) {
       work = work.split(t).join(' ');   // consume so sub-words don't re-match
     }
   }
+  if (bareKicks(work)) found.push(BARE_KICK);
   return found;
 }
 
@@ -48,7 +55,7 @@ export function strikesFrom(name) {
 // and matches compound strikes first so "Low Kick" isn't double-counted as
 // a "Kick". Non-strike movements (slip/roll/pivot) count as 0.
 export function countStrikes(name) {
-  let work = ` ${String(name || '').toLowerCase()} `;
+  let work = withoutDefence(name);
   let n = 0;
   for (const tok of STRIKE_TOKENS) {
     const t = tok.toLowerCase();
@@ -58,11 +65,15 @@ export function countStrikes(name) {
       work = work.slice(0, idx) + ' ' + work.slice(idx + t.length);
     }
   }
+  n += bareKicks(work);
   return n;
 }
 
 function loadAll() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch { return {}; }
+  try {
+    const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    return all && typeof all === 'object' && !Array.isArray(all) ? all : {};
+  } catch { return {}; }
 }
 function saveAll(all) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(all)); } catch { /* quota */ }
@@ -91,23 +102,29 @@ export function getArsenal(discipline) {
   return loadAll()[disciplineSlug(discipline)] || [];
 }
 
-// Starter basics every beginner begins with — Basic Mode is a floor, not a
-// cage. Tokens cover lead+rear variants ('Hook' spans Lead/Rear Hook).
-// Boxing: Jab/Cross/Hooks/Uppercuts · Kickboxing: +Rear Roundhouse ·
-// Muay Thai: +Rear Knee · MMA: all of it (sprawl/footwork/defense are
-// movements and never gated).
-const BOXING_BASICS = ['Jab', 'Cross', 'Hook', 'Uppercut'];
+// What a beginner learner is called in Combo Coach before any Practice: Jab
+// and Cross, in every discipline. Every other strike is learned in Practice
+// Mode (data/practiceMoves learnMove banks it here). Movements (sprawl,
+// footwork, defence) are never gated.
+const STARTER = ['Jab', 'Cross'];
 export const STARTER_ARSENAL = {
-  boxing: BOXING_BASICS,
-  kickboxing: [...BOXING_BASICS, 'Roundhouse'],
-  'muay-thai': [...BOXING_BASICS, 'Roundhouse', 'Knee'],
-  mma: [...BOXING_BASICS, 'Roundhouse', 'Knee'],
+  boxing: [...STARTER],
+  kickboxing: [...STARTER],
+  'muay-thai': [...STARTER],
+  mma: [...STARTER],
 };
+
+// The six punches every discipline shares are learned once for all four
+// (data/practiceMoves), so their tokens count wherever they were banked. Data
+// saved before that rule holds them under one discipline only.
+const SHARED_TOKENS = ['Jab', 'Cross', 'Hook', 'Uppercut'];
 
 // The arsenal Basic Mode actually calls from: starter basics ∪ learned.
 export function getEffectiveArsenal(discipline) {
   const slug = disciplineSlug(discipline);
-  return [...new Set([...(STARTER_ARSENAL[slug] || []), ...(loadAll()[slug] || [])])];
+  const all = loadAll();
+  const shared = Object.values(all).flatMap(list => (Array.isArray(list) ? list : [])).filter(t => SHARED_TOKENS.includes(t));
+  return [...new Set([...(STARTER_ARSENAL[slug] || []), ...(Array.isArray(all[slug]) ? all[slug] : []), ...shared])];
 }
 
 export function arsenalCount(discipline) {

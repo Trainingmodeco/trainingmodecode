@@ -1,0 +1,140 @@
+// DRAFT library records for the 13 loops that have no home in the Training Mode
+// library, the Quick Mission pool or the mission moves (catalog.json, kind "new").
+//
+// NOT imported anywhere. To merge, either
+//   a) paste the ex(...) calls below into FIT_MODE_CORE_EXERCISES in
+//      components/training-mode/fit-mode/fitModeExerciseDataCore.js (it already
+//      defines this exact ex() helper, so drop the copy here), or
+//   b) spread NEW_EXERCISE_DRAFTS into FIT_MODE_EXERCISES.
+//
+// Shape: copied verbatim from fitModeExerciseDataCore.js (`idOf` and `ex`), which
+// is the builder of the newest curated records (Pull-Ups, Close-Grip Pull-Ups,
+// Zercher Good Mornings ...). Ids follow its rule: <muscle>_<name>_core. Values
+// for primaryMuscle, secondaryMuscles, equipment, difficulty and movementType
+// only use values that already occur in the library data.
+//
+// DRAFT COPY: the coachNote (also spoken as voiceIntro and shown as previewTip),
+// the combatCarryover line, the difficulty and the reps/hold/rest were written
+// from the standard form of each lift and what the loop shows; none comes from
+// the owner. Review them before merging, and record every new name and
+// voiceIntro in both voices (CLAUDE.md: npm run voice:coverage, test:spoken).
+// Cable rows and pulldowns carry equipment 'Cable', which the Workout Builder
+// never deals (GYM_ONLY in fitModeGenerator): they show in the library and the
+// info sheet only. Hangs and landmine rows need a bar or a landmine; gearNote
+// only names the bar for pull-ups, chin-ups, box jumps, dips and ropes.
+
+const idOf = (muscle, name) => `${muscle.toLowerCase().replace(/\s+/g, '_')}_${name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')}_core`;
+
+// ex(name, muscle, secondary, equipment, difficulty, movement, cue, carry, opts)
+// opts: hold (seconds) for timed work · reps (string) · rest · tempo · style · fixedDose
+function ex(name, primaryMuscle, secondaryMuscles, equipment, difficulty, movementType, coachNote, combatCarryover, opts = {}) {
+  const hold = opts.hold || null;
+  const bodyMapRegion = ['Biceps', 'Triceps'].includes(primaryMuscle) ? 'Arms'
+    : ['Quads', 'Hamstrings', 'Calves'].includes(primaryMuscle) ? 'Legs' : primaryMuscle;
+  return {
+    id: idOf(primaryMuscle, name),
+    name,
+    primaryMuscle,
+    secondaryMuscles,
+    equipment,
+    difficulty,
+    movementType,
+    trainingStyle: opts.style || (hold ? 'Endurance' : 'Strength'),
+    sets: 3,
+    reps: hold ? `${hold}s` : (opts.reps || (equipment === 'Bodyweight' ? '10-15' : '8-12')),
+    durationSeconds: hold,
+    restSeconds: opts.rest || (hold ? 30 : 60),
+    coachNote,
+    voiceIntro: `${name}. ${coachNote}`,
+    voiceCountingType: hold ? 'timed_hold' : 'rep_count',
+    voiceCadenceSeconds: hold ? null : 1.5,
+    tempo: opts.tempo || (hold ? null : '2 down, control, strong finish'),
+    combatCarryover,
+    cardioFinisher: false,
+    bodyMapRegion,
+    videoUrl: '',
+    previewTip: coachNote,
+    active: true,
+    // The builder keeps this row's own reps and rest (fitModeGenerator).
+    ...(opts.fixedDose ? { fixedDose: true } : {}),
+  };
+}
+
+export const NEW_EXERCISE_DRAFTS = [
+  // ── Back ─────────────────────────────────────────────────────────────
+  // loop: seated-cable-rows
+  ex('Seated Cable Rows', 'Back', ['Biceps', 'Shoulders'], 'Cable', 'Normal', 'Compound',
+    'Sit tall, pull the handle to the stomach, squeeze the shoulder blades together and let the arms reach out slowly.',
+    'Pulling strength for the clinch and a tall posture under pressure.'),
+  // loop: straight-arm-pulldowns
+  ex('Straight-Arm Pulldowns', 'Back', ['Triceps', 'Core'], 'Cable', 'Normal', 'Isolation',
+    'Arms nearly straight, hinge slightly forward, sweep the bar down to the thighs and let it rise slowly.',
+    'Lat strength for pulling an opponent in and keeping them there.', { reps: '10-12' }),
+  // loop: alternate-arm-dead-hang (timed hold, the arms swap inside the one set)
+  ex('Alternating-Arm Dead Hangs', 'Back', ['Biceps', 'Shoulders'], 'Bodyweight', 'Normal', 'Isolation',
+    'Hang from the bar, shift the weight onto one arm and ease the other, then switch, shoulders pulled down.',
+    'Grip and shoulder strength for hand fighting.', { hold: 30 }),
+  // loop: pull-up-hold
+  ex('Pull-Up Hold', 'Back', ['Biceps', 'Shoulders'], 'Bodyweight', 'Hard', 'Isolation',
+    'Chin over the bar, palms facing away, hold the top and keep breathing.',
+    'Isometric pulling strength for the clinch.', { hold: 20, rest: 60 }),
+  // loop: landmine-rows
+  ex('Landmine Rows', 'Back', ['Biceps', 'Shoulders'], 'Weighted', 'Normal', 'Compound',
+    'Bar anchored in a corner or landmine, hinge with a flat back, pull the loaded end to the chest and lower slowly.',
+    'Pulling strength for the clinch and the posterior chain.'),
+  // loop: pull-up-negatives
+  ex('Pull-Up Negatives', 'Back', ['Biceps', 'Shoulders'], 'Bodyweight', 'Hard', 'Compound',
+    'Start with the chin over the bar, lower yourself as slowly as you can, then reset and go again.',
+    'Builds the pulling strength for the clinch when the opponent pulls back.', { reps: '3-5', rest: 90 }),
+  // loop: wide-grip-pull-ups
+  ex('Wide-Grip Pull-Ups', 'Back', ['Biceps', 'Shoulders'], 'Bodyweight', 'Hard', 'Compound',
+    'Hands wider than the shoulders, hang long, pull the chest toward the bar, lower all the way down.',
+    'Lat width and pulling strength for the clinch.', { reps: '5-8', rest: 90 }),
+
+  // ── Shoulders ────────────────────────────────────────────────────────
+  // loop: decline-pike-push-ups
+  ex('Decline Pike Push-Ups', 'Shoulders', ['Triceps', 'Chest'], 'Bodyweight', 'Hard', 'Compound',
+    'Feet on a box, hips high, lower the head between the hands and press back up.',
+    'Shoulder strength for overhead pressing and framing.', { reps: '6-10', rest: 75 }),
+
+  // ── Core ─────────────────────────────────────────────────────────────
+  // loop: hanging-knee-raises
+  ex('Hanging Knee Raises', 'Core', ['Back'], 'Bodyweight', 'Hard', 'Isolation',
+    'Hang from the bar, pull the knees up toward the chest without swinging, lower slowly.',
+    'Lower-ab strength for knee strikes.', { reps: '8-12' }),
+  // loop: heel-touches
+  ex('Heel Touches', 'Core', [], 'Bodyweight', 'Easy', 'Isolation',
+    'On your back, knees bent, lift the shoulders slightly and reach one hand to the same-side heel, then switch.',
+    'Side-ab control for hooks and body rotation.', { reps: '20-30', rest: 30 }),
+  // loop: seated-knee-tucks
+  ex('Seated Knee Tucks', 'Core', [], 'Bodyweight', 'Normal', 'Isolation',
+    'Sit leaning back on the hands, pull the knees in toward the chest, then extend the legs again without touching down.',
+    'Lower-ab strength for knee strikes and kicks.', { reps: '12-15', rest: 30 }),
+  // loop: tuck-ups
+  ex('Tuck-Ups', 'Core', ['Quads'], 'Bodyweight', 'Normal', 'Compound',
+    'Lie flat, curl up and pull the knees in to meet the chest, lower with control.',
+    'Abs and hip flexors for knees and kicks.', { reps: '12-15', rest: 30 }),
+
+  // ── Full Body ────────────────────────────────────────────────────────
+  // loop: barbell-clean (mission Power Cleans / Hang Power Cleans are the nearest existing moves)
+  ex('Barbell Cleans', 'Full Body', ['Back', 'Hamstrings', 'Shoulders'], 'Weighted', 'Hard', 'Compound',
+    'Bar over the mid-foot, drive through the floor, pull the bar up the body and catch it on the shoulders, then stand tall.',
+    'Explosive hip drive for lifting an opponent and driving through them.', { style: 'Power', reps: '3-5', rest: 120, fixedDose: true }),
+];
+
+// loop slug for each draft id, for wiring the demo art once the records are merged.
+export const NEW_EXERCISE_LOOP_SLUGS = {
+  back_seated_cable_rows_core: 'seated-cable-rows',
+  back_straight_arm_pulldowns_core: 'straight-arm-pulldowns',
+  back_alternating_arm_dead_hangs_core: 'alternate-arm-dead-hang',
+  back_pull_up_hold_core: 'pull-up-hold',
+  back_landmine_rows_core: 'landmine-rows',
+  back_pull_up_negatives_core: 'pull-up-negatives',
+  back_wide_grip_pull_ups_core: 'wide-grip-pull-ups',
+  shoulders_decline_pike_push_ups_core: 'decline-pike-push-ups',
+  core_hanging_knee_raises_core: 'hanging-knee-raises',
+  core_heel_touches_core: 'heel-touches',
+  core_seated_knee_tucks_core: 'seated-knee-tucks',
+  core_tuck_ups_core: 'tuck-ups',
+  full_body_barbell_cleans_core: 'barbell-clean',
+};

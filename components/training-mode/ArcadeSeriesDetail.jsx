@@ -23,6 +23,11 @@ import { HelpButton } from './shared/WorkoutHelpPanel';
 import ChallengeShareModal from './shared/ChallengeShareModal';
 import { seriesTint, tintFilter } from './data/seriesTint';
 import { conceptSagaProgress } from './data/concepts/saga';
+import { retentionOn } from './data/retentionFlags';
+import { sagaPath, stageStars, nextStarLine, fmtTime as fmtPathTime } from './data/pathStars';
+import { takePathFocus } from './data/pathNextUp';
+import PathMap from './retention/ui/PathMap';
+import ReplaySheet, { PathChoice } from './retention/ui/ReplaySheet';
 
 const GOLD = C.yellow;
 const CADENCE_MS_MAP = { slow: 3500, moderate: 2000, fast: 1000 };
@@ -149,10 +154,16 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   const [guideScreen, setGuideScreen] = useState(null);
   const [shakeIdx, setShakeIdx] = useState(null);
   const [toast, setToast] = useState(null);
+  // Retention feature 2 (switch `path`): the path in place of the ladder. A
+  // tap goes through this screen's own pop-up, locked hint and start flow.
+  const [pathOn] = useState(() => retentionOn('path'));
   const [boxH, setBoxH] = useState(0);
   const boxRef = useRef(null);
   const shakeTimer = useRef(null);
   const toastTimer = useRef(null);
+  // The path shows the locked hint under the node that was tapped (never over
+  // another node); the ladder keeps its toast at the top.
+  const hintIdx = useRef(null);
 
   useEffect(() => {
     const measure = () => { if (boxRef.current) setBoxH(boxRef.current.clientHeight); };
@@ -226,15 +237,20 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   // back exactly where they were.
   const [proGateOpen, setProGateOpen] = useState(false);
 
+  // Locked: brief shake + unlock hint toast instead of the modal.
+  function lockedHint(idx) {
+    hintIdx.current = idx;
+    setShakeIdx(idx);
+    const byWorkouts = Number.isFinite(series.maxUnlocked) && idx >= series.maxUnlocked && (idx === 0 || completedSet.has(nodes[idx - 1]?.id));
+    setToast(idx === mythicIdx ? 'CLEAR ALL STAGES TO UNLOCK' : byWorkouts && series.gateNote ? series.gateNote.toUpperCase() : `CLEAR STAGE ${(nodes[idx].stageNumber || idx + 1) - 1} TO UNLOCK`);
+    clearTimeout(shakeTimer.current); clearTimeout(toastTimer.current);
+    shakeTimer.current = setTimeout(() => setShakeIdx(null), 500);
+    toastTimer.current = setTimeout(() => setToast(null), 1800);
+  }
+
   function onNodeTap(e, idx) {
     if (!accessible(idx)) {
-      // Locked: brief shake + unlock hint toast instead of the modal.
-      setShakeIdx(idx);
-      const byWorkouts = Number.isFinite(series.maxUnlocked) && idx >= series.maxUnlocked && (idx === 0 || completedSet.has(nodes[idx - 1]?.id));
-      setToast(idx === mythicIdx ? 'CLEAR ALL STAGES TO UNLOCK' : byWorkouts && series.gateNote ? series.gateNote.toUpperCase() : `CLEAR STAGE ${(nodes[idx].stageNumber || idx + 1) - 1} TO UNLOCK`);
-      clearTimeout(shakeTimer.current); clearTimeout(toastTimer.current);
-      shakeTimer.current = setTimeout(() => setShakeIdx(null), 500);
-      toastTimer.current = setTimeout(() => setToast(null), 1800);
+      lockedHint(idx);
       return;
     }
     const btn = e.currentTarget;
@@ -333,6 +349,34 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
     if (wasFirst) setTimeout(() => openStageCentered(currentStageIdx()), 140);
   };
 
+  // The path (switch on): the current node opens this screen's own stage
+  // pop-up; a cleared one its replay sheet, whose REPLAY is ENTER STAGE
+  // (handleStart: the Pro gate, the path, the v2 path + difficulty step); a
+  // locked one the same hint as the ladder.
+  const path = pathOn ? sagaPath(series, progress, (i) => stageState(i)) : null;
+  const pathNodes = path ? path.nodes.map((n) => ({ ...n, guide: n.boss ? 'arc-boss' : n.state === 'current' ? 'arc-stage' : undefined })) : null;
+  function pathPick(node, idx) {
+    if (!accessible(idx)) { lockedHint(idx); return; }
+    if (node.state === 'cleared') {
+      const info = stageStars(series, stages[idx], progress.completedStages[stages[idx].id]);
+      // Replay a path not yet cleared first, where one is left.
+      if (pathModes && info.missing.length) setSelMode(info.missing[0]);
+      setOpenInfo({ idx, replay: true, top: 0, side: 'C', notch: 'none', notchY: 0 });
+      return;
+    }
+    openStageCentered(idx);
+  }
+  // Home's NEXT UP opens this saga on its current node's pop-up (once). A
+  // first visit to a campaign shows its intro first, which then does the same.
+  useEffect(() => {
+    if (!pathOn || !takePathFocus(series.id)) return undefined;
+    if (series.v2Campaign && !hasSeenIntro(series.id)) return undefined;
+    const i = nodes.findIndex((_, k) => stageState(k) === 'current');
+    if (i < 0) return undefined;
+    const t = setTimeout(() => openStageCentered(i), 320);
+    return () => clearTimeout(t);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // 2.10 — the how-to walkthrough (same spotlight engine as Training Camp's ⓘ).
   // The campaign description sits centred first, then each function lights up on
   // its own: the ladder and a stage node are spotlighted in place, then the guide
@@ -395,7 +439,10 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
   const earnedStars = compData?.stars || (isCleared ? 1 : 0);
 
   // Modal horizontal placement per side.
-  const modalPos = openInfo
+  // On the path (switch on) the pop-up opens centred, as wide as the phone
+  // allows, so its objectives read whole.
+  const modalPos = openInfo && pathOn ? { left: 16, right: 16, maxWidth: 340, margin: '0 auto' }
+    : openInfo
     ? openInfo.side === 'L' ? { left: 8, width: '55%' }
       : openInfo.side === 'R' ? { right: 8, width: '55%' }
       : { left: '22%', width: '56%' }
@@ -425,9 +472,15 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
           rightSlot={(
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <HelpButton onClick={() => setHowTo(true)} size={16} style={{ width: 26, height: 26, borderRadius: 7 }} />
+              {path?.hasStars ? (
+                <span data-guide="arc-stars" aria-label={`${path.earned} of ${path.total} stars`} style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: GOLD, letterSpacing: '0.06em', background: 'rgba(253,224,71,0.08)', border: '1px solid rgba(253,224,71,0.28)', borderRadius: 8, padding: '5px 9px', whiteSpace: 'nowrap' }}>
+                  ★ {path.earned}<span style={{ color: 'rgba(200,170,255,0.6)' }}>/{path.total}</span>
+                </span>
+              ) : (
               <span data-guide="arc-stars" style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10, color: GOLD, letterSpacing: '0.06em', background: 'rgba(253,224,71,0.08)', border: '1px solid rgba(253,224,71,0.28)', borderRadius: 8, padding: '5px 9px' }}>
                 {clearedCount}<span style={{ color: 'rgba(200,170,255,0.6)' }}>/{stages.length}</span>
               </span>
+              )}
             </div>
           )}
         />
@@ -435,7 +488,10 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
 
         {/* Ladder box — compact, no scroll */}
         <div ref={boxRef} data-guide="arc-ladder" style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+          {/* The path (switch on) in place of the ladder. */}
+          {pathOn && <PathMap nodes={pathNodes} onPick={pathPick} unit="STAGE" bossLabel="BOSS" nodeClass="ladder-node" dim={!!openInfo && !openInfo.replay} hint={toast ? { index: hintIdx.current, text: toast } : null}/>}
           {/* Everything dimmable lives in this layer */}
+          {!pathOn && (
           <div className={`ladder-layer${openInfo ? ' ladder-dim' : ''}`} style={{ position: 'absolute', inset: 0 }}>
             {/* Centre spine: gold → violet, green over the cleared lower section */}
             <div style={{
@@ -610,14 +666,15 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
               );
             })}
           </div>
+          )}
 
           {/* Tap-outside catcher while the modal is open */}
-          {openInfo && (
+          {openInfo && !openInfo.replay && (
             <div onClick={() => setOpenInfo(null)} style={{ position: 'absolute', inset: 0, zIndex: 10, background: 'transparent' }} />
           )}
 
           {/* Side-anchored glass stage modal */}
-          {openInfo && selected && (
+          {openInfo && !openInfo.replay && selected && (
             <div key={selected.id} className="stage-modal" style={{
               position: 'absolute', top: openInfo.top, ...modalPos, zIndex: 20,
               background: 'rgba(16,9,31,0.72)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
@@ -747,8 +804,30 @@ function StageLadder({ series, progress, arcadeSettings, onHome, onBack, onStart
             </div>
           )}
 
-          {/* Locked-stage toast */}
-          {toast && (
+          {/* A cleared node's replay sheet (the path, switch on). */}
+          {openInfo?.replay && selected && (() => {
+            const info = stageStars(series, selected, compData);
+            const tiles = [
+              ...(info.bestSec != null ? [{ label: 'YOUR BEST', value: fmtPathTime(info.bestSec) }] : []),
+              ...(info.kind === 'time' && info.next ? [{ label: 'NEEDS', stars: info.next.stars, value: info.next.needs, gold: true }] : []),
+            ];
+            return (
+              <ReplaySheet
+                eyebrow={`${selected.isFinalRound ? 'BOSS' : `STAGE ${selected.stageNumber || openIdx + 1}`} · CLEARED`}
+                title={selected.title}
+                stars={info.stars} max={info.max} check={info.check}
+                tiles={tiles}
+                line={nextStarLine(info)}
+                onReplay={handleStart}
+                onClose={() => setOpenInfo(null)}
+              >
+                {pathModes && <PathChoice paths={pathModes} cleared={info.paths} value={selMode} onChange={setSelMode}/>}
+              </ReplaySheet>
+            );
+          })()}
+
+          {/* Locked-stage toast (the ladder; the path hangs it under the node) */}
+          {toast && !pathOn && (
             <div style={{
               position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 30,
               padding: '7px 14px', borderRadius: 9, background: 'rgba(20,4,10,0.92)',

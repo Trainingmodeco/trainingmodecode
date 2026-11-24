@@ -1,10 +1,12 @@
 import { useState, useMemo, useEffect, useRef, Fragment } from 'react';
-import { X, Check, ChevronRight } from 'lucide-react';
+import { X, Check } from 'lucide-react';
 import { NAV_H } from './Styles';
 import OverlayPortal, { OVERLAY_Z } from './shared/OverlayPortal';
 import { FLOAT_BACKDROP, floatPanel } from './shared/BottomSheet';
 import useSheetModal, { GRAB_BAR } from './shared/useSheetModal';
 import { GoldButton, GhostButton, Tag, HEAD, BODY, MUTED, VIOLET, VIOLET_TEXT, GOLD } from './shared/FitSetupKit';
+import { useOneOpen, DropButton, WorkoutDrop } from './shared/WorkoutDrop';
+import { libraryDrop } from './data/libraryDrop';
 import { QM_LEVEL_WORD } from './data/quickMissionConfig';
 import { namedWorkoutById } from './data/namedWorkouts';
 import {
@@ -21,7 +23,11 @@ import {
 // LIBRARY · 43 and one line, "Ready-made workouts. START runs it GUIDED." (it
 // follows the highlighted row and the saved choice). Only the list scrolls: the header, the pinned preview of the
 // highlighted mission, the LOADOUT / THEME chips and the footer stay put.
-// Tapping a row only highlights it. PUT ON CARD hands it to the page, where
+// Tapping a row only highlights it; the + at its end (− when open) drops the
+// whole workout down under it: every move with its reps or time, the rounds,
+// the format and the gear (shared/WorkoutDrop). One is open at a time:
+// opening another row, picking one or tapping elsewhere closes it.
+// PUT ON CARD hands it to the page, where
 // its card opens to every move and its swaps, with LEVEL and GUIDED / AT YOUR PACE
 // behind ADJUST; START runs it from here, in the remembered run mode (AT YOUR PACE
 // for a mission only offered that way) at its default level, the one the preview and the
@@ -47,7 +53,7 @@ const CHIP_WORD = { bell: 'BELL / DB' };
 const CSS = `
 @keyframes ml-up { from { transform: translateY(24px); opacity: .4; } to { transform: none; opacity: 1; } }
 .ml-row { transition: border-color .18s ease, background .18s ease; }
-.ml-row:not([aria-checked="true"]):hover, .ml-row:not([aria-checked="true"]):focus-visible { border-color: ${VIOLET} !important; background: rgba(157,108,255,.12) !important; }
+.ml-row:not([data-on="true"]):hover { border-color: ${VIOLET} !important; background: rgba(157,108,255,.12) !important; }
 .ml-chip { position: relative; }
 .ml-chip::after { content: ''; position: absolute; top: -2px; bottom: -2px; left: 0; right: 0; }
 @media (max-height: 760px) {
@@ -120,33 +126,46 @@ function ChipRow({ label, children }) {
 
 // One mission: number, title (+ YOUR PACE / PRO), "~16 MIN · BARBELL · EMOM".
 // The accessible name is the title, as the old shelf chips had it.
-function MissionRow({ entry, index, on, line, onPick, rowRef }) {
+function MissionRow({ entry, index, on, line, onPick, rowRef, open, onToggle, wrapRef, model }) {
   const name = [entry.title, entry.soloOnly && 'YOUR PACE ONLY', entry.pro && 'PRO'].filter(Boolean).join(' ');
+  const titleId = `ml-title-${keyOf(entry)}`;
+  const panelId = `ml-drop-${keyOf(entry)}`;
   return (
-    <button ref={rowRef} type="button" role="radio" aria-checked={on ? 'true' : 'false'} aria-label={name} className="ml-row" onClick={onPick} style={{
-      width: '100%', minHeight: 54, flexShrink: 0, display: 'flex', alignItems: 'center', gap: 12, padding: '6px 12px', borderRadius: 10,
-      boxSizing: 'border-box', textAlign: 'left', cursor: 'pointer',
+    // The box (border, fill) is the item's; the row button and the + sit side by
+    // side in it (a button cannot hold a button), and the dropped workout under them.
+    <div ref={open ? wrapRef : undefined} className="ml-row" data-on={on ? 'true' : undefined} style={{
+      width: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', borderRadius: 10, boxSizing: 'border-box',
+      scrollMarginTop: 34, // clear of the group's sticky header when the row is scrolled to the top
       background: on ? 'rgba(242,190,69,0.10)' : '#16131F', border: `1px solid ${on ? 'rgba(242,190,69,0.75)' : 'rgba(255,255,255,0.06)'}`,
     }}>
-      <span style={{ width: 18, flexShrink: 0, font: `700 11px ${HEAD}`, color: on ? GOLD : MUTED }}>{String(index + 1).padStart(2, '0')}</span>
-      <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-          <span style={{ minWidth: 0, font: `700 13px ${HEAD}`, letterSpacing: '0.1em', color: on ? GOLD : '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{entry.title}</span>
-          {/* PACE ONLY is as wide as the old YOUR PACE, so no title is cut on a 360px phone; the row's name and the card tag say YOUR PACE ONLY. */}
-          {entry.soloOnly && pill('PACE ONLY', '#9D6CFF', '#0D0A18')}
-          {entry.pro && pill('PRO', GOLD, '#1A1204')}
-          {/* ON TOP rides the title line, so the line under it keeps its
-              format word on a narrow phone. */}
-          {on && (
-            <span style={{ marginLeft: 'auto', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 4, font: `700 10px ${HEAD}`, letterSpacing: '0.12em', color: GOLD }}>
-              <Check size={14} strokeWidth={3}/>ON TOP
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, paddingRight: 4 }}>
+        <button ref={rowRef} type="button" role="radio" aria-checked={on ? 'true' : 'false'} aria-label={name} onClick={onPick} style={{
+          flex: 1, minWidth: 0, minHeight: 52, display: 'flex', alignItems: 'center', gap: 12, padding: '6px 4px 6px 12px', borderRadius: 10,
+          boxSizing: 'border-box', textAlign: 'left', cursor: 'pointer', background: 'transparent', border: 'none', color: 'inherit',
+        }}>
+          <span style={{ width: 18, flexShrink: 0, font: `700 11px ${HEAD}`, color: on ? GOLD : MUTED }}>{String(index + 1).padStart(2, '0')}</span>
+          <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* The + takes the row's end, so a long title or line wraps (a pill or ON TOP drops under it) rather than being cut. */}
+            <span style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '2px 6px', minWidth: 0 }}>
+              <span id={titleId} style={{ minWidth: 0, font: `700 13px ${HEAD}`, letterSpacing: '0.1em', color: on ? GOLD : '#fff', overflowWrap: 'anywhere' }}>{entry.title}</span>
+              {/* PACE ONLY is as wide as the old YOUR PACE, so no title is cut on a 360px phone; the row's name and the card tag say YOUR PACE ONLY. */}
+              {entry.soloOnly && pill('PACE ONLY', '#9D6CFF', '#0D0A18')}
+              {entry.pro && pill('PRO', GOLD, '#1A1204')}
+              {/* ON TOP rides the title line, so the line under it keeps its
+                  format word on a narrow phone. */}
+              {on && (
+                <span style={{ marginLeft: 'auto', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4, paddingLeft: 4, font: `700 10px ${HEAD}`, letterSpacing: '0.12em', color: GOLD }}>
+                  <Check size={14} strokeWidth={3}/>ON TOP
+                </span>
+              )}
             </span>
-          )}
-        </span>
-        <span style={{ font: `500 12px ${BODY}`, color: MUTED, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{line}</span>
-      </span>
-      {!on && <ChevronRight size={16} color="#7D7799" style={{ flexShrink: 0 }}/>}
-    </button>
+            <span style={{ font: `500 12px ${BODY}`, color: MUTED, overflowWrap: 'anywhere' }}>{line}</span>
+          </span>
+        </button>
+        <DropButton open={open} controls={panelId} titleId={titleId} onClick={onToggle}/>
+      </div>
+      {open && <WorkoutDrop id={panelId} model={model} label={`${entry.title}: full workout`}/>}
+    </div>
   );
 }
 
@@ -161,6 +180,8 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, initial = null
   const [highlight, setHighlight] = useState(() => (shelf || []).find(e => same(e, onTop)) || null);
   const pickLoadout = (id) => { setLoadout(id); saveShelfPrefs({ loadout: id }); };
   const pickTheme = (id) => { setTheme(id); saveShelfPrefs({ theme: id }); };
+  // The + on a row: one workout dropped down at a time.
+  const { openId, close, toggle, wrapRef } = useOneOpen();
 
   const list = useMemo(() => filterShelf(shelf, { loadout, theme }), [shelf, loadout, theme]);
   const tCounts = useMemo(() => themeCounts(shelf, loadout), [shelf, loadout]);
@@ -290,10 +311,15 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, initial = null
                   {g.label}<span style={{ color: '#7D7799' }}>{g.rows.length}</span>
                   <span style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.08)' }}/>
                 </div>
-                {g.rows.map((e, i) => (
-                  <MissionRow key={keyOf(e)} entry={e} index={i} on={same(e, current)} line={shelfEntryLine(e, { level: e.kind === 'v2' ? libraryLevelFor(e.id, undefined, initial?.level) : undefined })}
-                    onPick={() => setHighlight(e)} rowRef={(el) => { rowRefs.current[keyOf(e)] = el; }}/>
-                ))}
+                {g.rows.map((e, i) => {
+                  const level = e.kind === 'v2' ? libraryLevelFor(e.id, undefined, initial?.level) : undefined;
+                  const open = openId === keyOf(e);
+                  return (
+                    <MissionRow key={keyOf(e)} entry={e} index={i} on={same(e, current)} line={shelfEntryLine(e, { level })}
+                      onPick={() => { setHighlight(e); close(); }} rowRef={(el) => { rowRefs.current[keyOf(e)] = el; }}
+                      open={open} onToggle={() => toggle(keyOf(e))} wrapRef={wrapRef} model={open ? libraryDrop(e, { gear, level }) : null}/>
+                  );
+                })}
               </div>
             ))}
             {empty && (

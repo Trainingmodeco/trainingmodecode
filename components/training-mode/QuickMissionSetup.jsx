@@ -108,7 +108,7 @@ const reducedMotion = () => { try { return !!window.matchMedia?.('(prefers-reduc
 // slider to a screen reader and the arrow keys; 44px tall for the thumb) and
 // the card's ▾ toggle. The slider's rules name input[type=range] so they
 // outrank the app-wide range style in Styles.js.
-const QM_CSS = `
+export const QM_CSS = `
 .qm-dice { display: flex; align-items: flex-end; justify-content: center; height: 22px; }
 .qm-die { display: inline-block; font-size: 18px; line-height: 1; }
 .qm-die.a { transform: rotate(-14deg); }
@@ -197,7 +197,7 @@ function PlainMove({ index, name, dose, finisher, gold }) {
 
 // GEAR: the kit's chamfered radio strip (SegRow's look, 44px). value null
 // lights none (a library mission is on the card).
-function GearRow({ value, onPick }) {
+export function GearRow({ value, onPick }) {
   return (
     <div role="radiogroup" aria-label="Gear" style={{ ...chf, display: 'flex', padding: 3, gap: 3, background: CARD, border: `1px solid ${CARD_BORDER}` }}>
       {QM_TYPES.map(t => {
@@ -259,7 +259,7 @@ function RunModeSwitch({ value, guidedOff, soloOff, onPick }) {
 // commits the minutes: onCommit saves them (and the live card is already the
 // card for them).
 const SLOP = 8;
-function TimeSlider({ value, onLive, onCommit, dim }) {
+export function TimeSlider({ value, onLive, onCommit, dim }) {
   const inputRef = useRef(null);
   const gesture = useRef(null); // { id, x, y, dragging, grab }
   const skipClick = useRef(false);

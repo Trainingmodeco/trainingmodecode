@@ -17,7 +17,7 @@ const idOf = (muscle, name) => `${muscle.toLowerCase().replace(/\s+/g, '_')}_${n
 
 // ex(name, muscle, secondary, equipment, difficulty, movement, cue, carry, opts)
 // opts: hold (seconds) for timed work · reps (string) · rest · tempo · style
-function ex(name, primaryMuscle, secondaryMuscles, equipment, difficulty, movementType, coachNote, combatCarryover, opts = {}) {
+export function ex(name, primaryMuscle, secondaryMuscles, equipment, difficulty, movementType, coachNote, combatCarryover, opts = {}) {
   const hold = opts.hold || null;
   const bodyMapRegion = ['Biceps', 'Triceps'].includes(primaryMuscle) ? 'Arms'
     : ['Quads', 'Hamstrings', 'Calves'].includes(primaryMuscle) ? 'Legs' : primaryMuscle;

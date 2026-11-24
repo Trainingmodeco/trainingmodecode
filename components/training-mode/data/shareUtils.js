@@ -17,7 +17,8 @@ function getMotivationalLine() {
   return MOTIVATIONAL_LINES[Math.floor(Math.random() * MOTIVATIONAL_LINES.length)];
 }
 
-export function buildShareText({ mode, xpEarned, streak, level, completedCount, totalCount, style, difficulty, duration, workoutName }) {
+// streakUnit 'week': the week streak (the switch on): "Streak: 9 weeks".
+export function buildShareText({ mode, xpEarned, streak, streakUnit, level, completedCount, totalCount, style, difficulty, duration, workoutName }) {
   const modeDisplay = style ? `${mode} (${style})` : (mode || 'Training');
   const name = workoutName || modeDisplay;
   const lines = [
@@ -27,7 +28,7 @@ export function buildShareText({ mode, xpEarned, streak, level, completedCount, 
     totalCount ? `Exercises: ${completedCount ?? 0}/${totalCount}` : null,
     duration ? `Duration: ${duration} min` : null,
     `XP earned: +${xpEarned ?? 0}`,
-    streak > 0 ? `Streak: ${streak} days` : null,
+    streak > 0 ? (streakUnit === 'week' ? `Streak: ${streak} week${streak === 1 ? '' : 's'}` : `Streak: ${streak} days`) : null,
     '',
     getMotivationalLine(),
     '',

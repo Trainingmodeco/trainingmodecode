@@ -8,12 +8,15 @@ import CampTransitionCard from './shared/CampTransitionCard';
 // conditioning block. Reports a combined result so both S1 + S2 mark done at
 // ✓✓ and the level clears in a single sitting. Reuses the same two runners, so
 // the 1.6 anti-cheat gate applies to each block.
-function judge(rounds, cfg, completed, ir) {
+// `cut`: the block's rounds cut short (the runner's own count), for the
+// camp's stars (data/campStars); null when the runner did not say.
+function judge(rounds, cfg, completed, ir, stats) {
   const total = cfg.rounds || (Array.isArray(rounds) ? rounds.length : 1);
   const done = typeof completed === 'number' ? completed : (Array.isArray(rounds) ? rounds.length : 0);
   const awarded = !ir || ir.awardXp !== false;
   const fully = !ir || ir.isFullyValid;
-  return { total, done, valid: done >= total && awarded && fully };
+  const cut = Number.isInteger(stats?.cut) ? stats.cut : null;
+  return { total, done, valid: done >= total && awarded && fully, cut };
 }
 
 export default function CampFullSession({
@@ -45,11 +48,11 @@ export default function CampFullSession({
   }
   if (stage === 'skill') {
     return <FightFocusTimer discipline={discipline} cfg={cfgSkill} {...resumeFor('skill')} onStateChange={report}
-      onEnd={(r, c, comp, ir) => { setSkill(judge(r, c, comp, ir)); setStage('intro2'); }} />;
+      onEnd={(r, c, comp, ir, st) => { setSkill(judge(r, c, comp, ir, st)); setStage('intro2'); }} />;
   }
   if (stage === 'intro2') {
     return <CampTransitionCard label="S2 · CONDITIONING" sub="FULL CAMP · BLOCK 2 OF 2" detail="Short recover, then push" onDone={() => setStage('fit')} />;
   }
   return <CampFitRunner cfg={cfgFit} {...resumeFor('fit')} onStateChange={report}
-    onEnd={(r, c, comp, ir) => onComplete({ skill, fit: judge(r, c, comp, ir) })} />;
+    onEnd={(r, c, comp, ir, st) => onComplete({ skill, fit: judge(r, c, comp, ir, st) })} />;
 }

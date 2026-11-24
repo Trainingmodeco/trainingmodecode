@@ -55,12 +55,12 @@ export const SCREEN_GUIDES = {
     { screen: 'fight_hub', target: 'fh-combo', title: '🥊 COMBO COACH', body: 'The coach calls combinations and you throw them — "one-two, slip, hook". Builds speed, rhythm and reaction. You set how often the calls come.' },
     { screen: 'fight_hub', target: 'fh-camp', title: '⛺ TRAINING CAMP', body: 'A 12-level fight camp that builds you toward a Title Fight, like a real camp: Foundation, Development, Hard Camp, Taper, then the belt. Clear a level to unlock the next.' },
     { screen: 'fight_hub', target: null, title: '👻 GHOST CHALLENGES', body: 'Your best sessions come back to haunt you. Every so often a past Fight Focus session or run returns as a ghost — beat it for bonus XP and the Ghost Hunter trophy. Other fighters\' ghosts turn up too, anonymous — just their level. After a Fight Focus session that counted your strikes, HAUNT A FRIEND sends it as a short code or link: whoever opens it races your exact session.' },
-    { screen: 'fight_hub', target: 'fh-practice', title: '📚 PRACTICE MODE', body: 'New to striking? Start here. A seven-lesson path per discipline plus a library of strikes, defense and footwork. Every lesson ends in a Practice Round — the coach calls what you just learned, and the rounds grow as you learn more.' },
+    { screen: 'fight_hub', target: 'fh-practice', title: '📚 PRACTICE MODE', body: 'New to striking? Start here. Every stance, strike, defense and footwork move of a discipline in one list, in the order to learn them. Watch a move, drill it once — the coach calls it out and the video shows it — and it is learned. The drills grow as you learn more.' },
 
     { screen: 'fit_hub', target: 'mode-fit', title: 'FIT MODE — BUILD THE BODY', body: 'Choose this for strength and cardio, no fighting required. Here is what is inside.' },
     { screen: 'fit_hub', target: 'fit-builder', title: '🛠 BUILD WORKOUT', body: 'Tell it which muscles to hit, what equipment you have and how hard — it builds the workout. Then shape it: tap any exercise name for a demo and form cues, swipe to remove, hold to reorder, and double-tap ⛓ to link exercises into a superset or circuit. Once you have trained once, TRAIN AGAIN repeats your last session with the progression already added.' },
     { screen: 'fit_hub', target: 'fit-builder', title: 'AND WHILE YOU TRAIN', body: 'The coach counts your reps out loud and times your rest. You are never locked into the order — a WORKOUT MAP sits above the tab bar, and holding any exercise starts that one instead. Every set you log builds a history, so the app knows what to ask of you next time.' },
-    { screen: 'fit_hub', target: 'fit-quick', title: '🎯 QUICK MISSION', body: 'Short on time? Pick a length and it generates a circuit on the spot. No setup, no decisions — just start moving.' },
+    { screen: 'fit_hub', target: 'fit-today', title: '🎯 QUICK MISSION', body: 'Short on time? The card at the top is a quick circuit picked for you: tap START. ADJUST lets you pick the length and it builds a new one on the spot.' },
     { screen: 'fit_hub', target: 'fit-programs', title: '📋 PROGRAMS', body: 'Rather follow a plan? Programs runs a split for you — Push/Pull/Legs, Upper/Lower and more — and remembers which day is next, so every session is one tap.' },
     { screen: 'fit_hub', target: 'fit-cardio', title: '❤ CARDIO MODE', body: 'Cardio on its own: runs on GPS or a treadmill, machine work, and fight rounds or Tabata, with pace coaching and a target you set by distance or time.' },
     { screen: 'fit_hub', target: 'fit-cardio', title: '🗺️ AND IT TRACKS YOUR RUN', body: 'Start an outdoor run and Training Mode maps it. The route draws itself as you move, coloured green where you are on pace and orange where you drop off it, with a split called at every half mile or kilometre. Afterwards it all goes to PROGRESS → RUNS — career totals, a weekly distance goal, your best time at each distance, and the map of every run you have done.' },
@@ -122,8 +122,8 @@ export const SCREEN_GUIDES = {
 
   fit_hub: [
     { target: null, title: '💪 FIT MODE', body: 'This is the Fit Mode hub — strength, conditioning and cardio, no fighting required. The card at the top is today\'s workout; everything below it is for when you want to choose your own.' },
-    { target: 'fit-today', title: "TODAY'S MISSION", body: 'A workout picked for you from your goal and your last session. The line under the title is exactly what START runs. Not feeling it? SURPRISE ME deals a random one in its place, and ADJUST lets you set the length and intensity yourself.' },
-    { target: 'fit-quick', title: 'QUICK MISSION', body: 'Circuit-style workouts for when you are short on time — slide to the minutes you have and it builds the circuit at your level.' },
+    { target: 'fit-today', title: 'QUICK MISSION', body: 'Today\'s quick workout, picked from your goal and your last session. The line under the title is exactly what START runs. Not feeling it? SURPRISE ME deals a random one in its place.' },
+    { target: 'fit-quick', title: 'ADJUST', body: 'Opens the Quick Mission page: slide to the minutes you have and it builds the circuit at your level.' },
     { target: 'fit-builder', title: 'BUILD WORKOUT', body: 'Want a workout built off the muscle groups you select? Pick your muscles, gear and difficulty. It remembers what you lifted and pushes you a little further each time, and TRAIN AGAIN repeats your last session in one tap.' },
     { target: 'fit-programs', title: 'PROGRAMS', body: 'Follow a plan instead of deciding each day. Pick a split — Full Body, Push/Pull/Legs, Upper/Lower or Bro Split — and it remembers which day is next.' },
     { target: 'fit-cardio', title: 'CARDIO', body: 'Runs on GPS or a treadmill, machine work and intervals, with pace coaching and a target you set by distance or time.' },
@@ -243,6 +243,23 @@ export const SCREEN_GUIDES = {
     { target: 'qm-library', title: 'MISSION LIBRARY', body: 'Ready-made workouts: new missions for no gear, one bell or one bar, and classics like Murph. LOADOUT and THEME narrow the list. MAX OUT: max reps on each move, then switch. Tap one to see it on top, then START, or PUT ON CARD to bring it here. START follows your GUIDED or AT YOUR PACE pick; a YOUR PACE ONLY tag means that is the only way to run it.' },
   ],
 
+  // Quick Mission with the workout card (switch fitCard, fit-challenge/FitCardSetup).
+  quick_mission_card: [
+    { target: null, title: '⏱️ QUICK MISSION', body: 'A quick workout without the planning. Set your gear and time, then START. Build Workout is for the specifics.' },
+    { target: 'fc-card', title: 'THE WORKOUT CARD', body: "What START runs. It opens on a fresh, balanced deal each day: pushing, pulling, legs, core and arms. A workout from CHOOSE or YOUR WORKOUTS has a ‹ TODAY to come back." },
+    { target: 'fc-deal', title: 'SHUFFLE · CHOOSE', body: 'SHUFFLE deals new moves at the same level, gear and rounds. CHOOSE opens the library: FULL BODY WARRIOR, your saved workouts and the ready-made missions, by body part. SURPRISE ME sits at its foot.' },
+    { target: 'fc-rounds', title: 'ROUNDS', body: 'The rounds and reps are built for your time. Want more? + adds a round of the same moves and − takes one off; the totals, the time and the XP follow.' },
+    { target: 'fc-expand', title: 'SEE ALL', body: 'Opens the card where it is: every move with its swap, the BALANCED line, ADJUST and the PULL-UP BAR switch. SHOW LESS folds it back.' },
+    { target: 'fc-adjust', title: 'ADJUST · PULL-UP BAR', body: 'Level, focus and run mode. No pull-up bar? Switch it off and every bar move gets a stand-in with the same reps. Rows marked "table or low bar" need a sturdy table.' },
+    { target: 'fc-how', title: 'GUIDED OR AT YOUR PACE', body: 'GUIDED: the coach calls every move and keeps time. AT YOUR PACE: just the moves and a timer, with beeps and no coach voice. Your pick is kept for next time.' },
+    { target: 'fc-checkoff', title: 'CHECK-OFF', body: 'At your pace, tick each move as you go; a round counts when all its moves are ticked. Off, you tap ROUND after each round. Your choice is kept.' },
+    { target: 'fc-start', title: 'START', body: 'Runs exactly the workout on the card. The XP is paid once, when it ends.' },
+    { target: 'fc-gear', title: 'GEAR', body: 'Bodyweight needs nothing. Weighted uses dumbbells or a kettlebell; hybrid mixes both. A weighted set ends when you tap DONE.' },
+    { target: 'fc-time', title: 'TIME', body: '5 to 60 minutes. The moves, reps and rounds are built to fit the time you have; the card changes as you slide.' },
+    { target: 'fc-bonus', title: 'BONUS TRAINING', body: 'Optional extras, never in your totals or XP. Tick CARDIO COOL-DOWN and your workout goes straight into an easy 10-minute walk when it ends.' },
+    { target: 'fc-workouts', title: 'YOUR WORKOUTS', body: 'Every workout you have finished, in every mode. Tap a card workout to put it back on the card.' },
+  ],
+
   combat_conditioning_setup: [
     { target: null, title: '🔥 COMBAT CONDITIONING', body: 'This screen builds a fight-pace circuit — explosive, athletic conditioning that trains your gas tank.' },
     { target: 'ccs-discipline', title: 'DISCIPLINE', body: 'Your fight base — drills lean toward the striking style you pick. It is the same choice as on the Fight Mode hub.' },
@@ -257,16 +274,6 @@ export const SCREEN_GUIDES = {
     { target: 'jt-steppers', title: 'YOUR ROUNDS', body: 'Rounds, round length and rest. Tap a number to type it — round length is in minutes, so 3 means 3:00. TOTAL is the whole session.' },
     { target: 'jt-rush', title: '⚡ RUSH MODE', body: 'Optional. Turns on surges — sudden calls to go all-out. Rushes are spoken, so the coach only talks when this is on.' },
     { target: 'jt-start', title: 'START TIMER', body: 'The bell starts round one. Pause, skip or end any time from the timer.' },
-  ],
-
-  practice: [
-    { target: null, title: '📚 PRACTICE MODE', body: 'Learn a move, then drill it. Everything here is one lesson or one technique at a time.' },
-    { target: 'pm-discipline', title: 'DISCIPLINE', body: 'Each discipline has its own path and library. Your pick is shared with Fight Mode and Combat Conditioning.' },
-    { target: 'pm-continue', title: 'CONTINUE LEARNING', body: 'Opens the next lesson on your path. Each lesson has step-by-step key points — press play and the coach reads them to you.' },
-    { target: 'pm-path', title: 'FUNDAMENTALS PATH', body: 'Seven lessons, in order. Gold ✓ is done, the glowing ring is next. Tap any dot to open that lesson.' },
-    { target: 'pm-library', title: 'TECHNIQUE LIBRARY', body: 'Every strike, defense and footwork move for this discipline. Tap one for its key points and what to watch for. SEE ALL shows the full list.' },
-    { target: 'pm-combo', title: '🥊 DRILL A COMBO', body: 'Opens Combo Coach, where the coach calls full combinations for you to throw.' },
-    { target: null, title: 'PRACTICE ROUNDS', body: 'Every lesson and technique ends with START PRACTICE ROUND: a short round where the coach calls what you just learned mixed with what you already know. It starts at 1 × 1:00 and grows to 3 × 3:00 as you learn more.' },
   ],
 
   cardio_mode: [
@@ -317,7 +324,64 @@ export const SCREEN_GUIDES = {
 // with the Quick Mission row naming the Mission Library's missions and today's
 // mission saying what "At your pace" on its line means.
 SCREEN_GUIDES.fit_hub_v2 = SCREEN_GUIDES.fit_hub.map(s => (s.target === 'fit-quick'
-  ? { ...s, body: 'A quick workout without the planning: set your gear and time, then START. Ready-made missions for no gear, one bell or one bar wait in its Mission Library.' }
+  ? { ...s, body: 'Opens the Quick Mission page: set your gear and time, then START. Ready-made missions for no gear, one bell or one bar wait in its Mission Library.' }
   : s.target === 'fit-today'
     ? { ...s, body: `${s.body} If the line ends "At your pace", START runs the moves and a timer, no coach voice: you choose that on the Quick Mission page.` }
     : s));
+
+// Home and the intro tour while the week streak is on (retention feature 1,
+// data/retentionFlags `weeks`): the header's chip is the week streak, and the
+// top card is TODAY'S BOUT, with its daily bonus and its done state.
+const WEEKS_HOME = {
+  'home-level': {
+    title: 'LEVEL · RANK · WEEK STREAK',
+    body: 'Every finished workout adds XP and fills the bar; fill it to level up and climb the ranks. Beside it, your week streak: 🔥 counts the weeks in a row you hit your target (set it in PROFILE), the dots are this week\'s days, and 1UP is a spare life that saves the streak in a short week (one more every 4 weeks on target, hold 2). Rest days never break it.',
+  },
+  'home-continue': {
+    title: 'TODAY\'S BOUT',
+    body: 'Today\'s one pick, kept all day: your last session one day, something new the next. Finish it from START for +25 XP, once a day; then the card turns green and TRAIN AGAIN runs it again. SURPRISE ME swaps the pick; ADJUST opens its settings.',
+  },
+};
+SCREEN_GUIDES.home_weeks = SCREEN_GUIDES.home.map((s) => (WEEKS_HOME[s.target] ? { ...s, ...WEEKS_HOME[s.target] } : s));
+
+// POWER, RUSTY and REVIVE (data/retentionFlags `power`): one centred step
+// after the header's, in plain short words. Centred (no target), because the
+// POWER line only shows once the fighter is below full.
+const POWER_STEP = {
+  target: null,
+  title: '⚡ POWER · RUSTY · REVIVE',
+  body: 'Your fighter\'s POWER stays full for 3 days after you train, then slowly drains; a line under the header shows it once it drops. After a month away your fighter turns RUSTY. One finished session REVIVES it to 100%. Nothing you earned is ever taken away: your level, XP, streak and badges stay.',
+};
+const withPower = (steps) => {
+  const i = steps.findIndex((s) => s.target === 'home-level');
+  return [...steps.slice(0, i + 1), POWER_STEP, ...steps.slice(i + 1)];
+};
+SCREEN_GUIDES.home_power = withPower(SCREEN_GUIDES.home);
+SCREEN_GUIDES.home_weeks_power = withPower(SCREEN_GUIDES.home_weeks);
+
+// Training Camp with the path's stars (data/retentionFlags `path`): one
+// centred step after the belt's, the owner's star rule in plain words
+// (data/campStars). Switch off: the camp's guide as before.
+SCREEN_GUIDES.training_camp_stars = [
+  ...SCREEN_GUIDES.training_camp,
+  {
+    target: null,
+    title: '★ LEVEL STARS',
+    body: 'Each cleared level earns up to three stars. ★ for the clear. ★★ when every round is done and verified. ★★★ for doing it the camp\'s way: every round to the bell, none cut short, and on a two-a-day level Session 2 four to eight hours after Session 1. Tap a cleared level to see its stars and what the next one needs; a replay keeps your best.',
+  },
+];
+
+// Home's "?" for the switches that are on (each switch off: as before).
+export const homeGuide = ({ weeks = false, power = false } = {}) => (
+  weeks ? (power ? SCREEN_GUIDES.home_weeks_power : SCREEN_GUIDES.home_weeks)
+    : (power ? SCREEN_GUIDES.home_power : SCREEN_GUIDES.home)
+);
+SCREEN_GUIDES.full_intro_weeks = SCREEN_GUIDES.full_intro.map((s) => {
+  if (s.screen === 'home' && s.target === 'home-continue') {
+    return { ...s, title: '▶ TODAY\'S BOUT', body: 'This card holds today\'s bout: a workout picked for you, and once you have trained, the last session you ran one day and something new the next. Finish it from START and you earn +25 XP, once a day; then the card says so until tomorrow\'s bout. If you only ever press one thing, make it START (once this tour is closed).' };
+  }
+  if (s.screen === 'home' && s.target === null && /🔥 streak/.test(s.body)) {
+    return { ...s, body: s.body.replace('train days in a row to grow your 🔥 streak', 'reach your weekly target to grow your 🔥 week streak') };
+  }
+  return s;
+});

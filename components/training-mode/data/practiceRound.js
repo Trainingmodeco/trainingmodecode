@@ -1,19 +1,21 @@
-// Practice Round — the short drill after a lesson, built from what the
-// athlete has learned so far (Simplify revamp, PracticeRound.dc.html).
+// Practice Round — the short drill of a move, built from what the athlete
+// has learned so far (Simplify revamp, PracticeRound.dc.html).
 //
-// Rounds grow with the number of techniques learned: basics done on the
-// discipline's path, plus Technique Library moves drilled to the end of a
-// round. The focus mix and the calls follow the design: early rounds lean on
+// Rounds grow with the number of moves learned in the discipline.
+// data/practiceMoves drillFor gives what buildRound takes: the move, the
+// learned moves before it, and that count (groupDrill for a whole group).
+// The focus mix and the calls follow the design: early rounds lean on
 // what is already known and keep coming back to the stance; later rounds
 // turn into combinations.
 
 export const REST_SEC = 30;
 
+// `when` is the number of moves learned in the discipline (tierFor below).
 export const PLANS = [
-  { rounds: 1, lenSec: 60, name: 'LEVEL 1 · FIRST STEPS', when: 'First 1–2 techniques' },
-  { rounds: 2, lenSec: 90, name: 'LEVEL 2 · BUILDING BLOCKS', when: '3–6 techniques learned' },
-  { rounds: 3, lenSec: 120, name: 'LEVEL 3 · FUNDAMENTALS DONE', when: 'All fundamentals' },
-  { rounds: 3, lenSec: 180, name: 'LEVEL 4 · FIGHT READY', when: 'Basics + 4 library moves' },
+  { rounds: 1, lenSec: 60, name: 'LEVEL 1 · FIRST STEPS', when: 'Your first 2 moves' },
+  { rounds: 2, lenSec: 90, name: 'LEVEL 2 · BUILDING BLOCKS', when: '3 to 6 moves learned' },
+  { rounds: 3, lenSec: 120, name: 'LEVEL 3 · FUNDAMENTALS DONE', when: '7 to 10 moves learned' },
+  { rounds: 3, lenSec: 180, name: 'LEVEL 4 · FIGHT READY', when: '11 moves or more' },
 ];
 
 export const tierFor = (learned) => (learned >= 11 ? 3 : learned >= 7 ? 2 : learned >= 3 ? 1 : 0);
@@ -21,7 +23,9 @@ export const xpFor = (tier) => 30 + 20 * tier;
 
 export const mmss = (sec) => `${Math.floor(sec / 60)}:${String(Math.round(sec % 60)).padStart(2, '0')}`;
 export const planLine = (plan) => `${plan.rounds} × ${mmss(plan.lenSec)}`;
-export const planMinutes = (plan) => Math.ceil((plan.rounds * plan.lenSec + (plan.rounds - 1) * REST_SEC) / 60);
+// The whole drill, rests included: what DRILL IT shows as m:ss.
+export const planSeconds = (plan) => plan.rounds * plan.lenSec + (plan.rounds - 1) * REST_SEC;
+export const planMinutes = (plan) => Math.ceil(planSeconds(plan) / 60);
 
 const STANCE_CALLS = ['RESET STANCE', 'GUARD UP'];
 const isStanceLesson = (item) => /stance|guard/i.test(item.name);
@@ -31,7 +35,7 @@ const single = (item) => item.calls.find(c => !isCombo(c)) || null;
 const NUMBERS_SINGLES = ['1', '2', '3'];
 const NUMBERS_COMBOS = ['1-2', '1-2-3', '1-1-2', '2-3-2', '1-2 → 3 TO THE BODY'];
 
-// focus: { id?, name, calls }  — the lesson or technique being drilled.
+// focus: { id?, name, calls }  — the move being drilled.
 // prior: [{ name, calls }]     — what came before it, oldest first.
 export function buildRound({ focus, prior = [], learned = 1 }) {
   const tier = tierFor(learned);
@@ -82,8 +86,8 @@ export function buildRound({ focus, prior = [], learned = 1 }) {
     return groups[0].calls[0];
   };
 
-  // One call from each group first, then the rest of the focus: what the
-  // setup screen shows as SAMPLE CALLS.
+  // One call from each group first, then the rest of the focus: a short
+  // sample of what the round calls.
   const sample = [...new Set([...groups.map(g => g.calls[0]), ...groups.flatMap(g => g.calls)])].slice(0, 5);
 
   return { tier, plan, xp: xpFor(tier), groups, sample, pick, callMs: tier === 0 ? 3500 : 3000 };

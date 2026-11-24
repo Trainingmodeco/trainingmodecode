@@ -180,6 +180,16 @@ const COMBO_POOL = [
   { id: 'mt-37', discipline: 'muay-thai', minDifficulty: 'easy', comboText: 'Jab Cross Teep', category: 'basic', coachingCue: 'Punch, then push them out.' },
   { id: 'mt-38', discipline: 'muay-thai', minDifficulty: 'easy', comboText: 'Rear Knee', category: 'single', coachingCue: 'Hips forward. Spear it.' },
 
+  // ===== Jab and cross only =====
+  // A beginner learner starts Combo Coach with Jab and Cross and learns the rest in Practice (data/arsenal
+  // STARTER_ARSENAL). Muay Thai had no call made of those two at any level, and Kickboxing none past the easy pool,
+  // so a beginner there was dealt the whole pool instead. These give every level of both a call to deal.
+  { id: 'mt-69', discipline: 'muay-thai', minDifficulty: 'easy', comboText: 'Jab', category: 'single', coachingCue: 'Snap it back.' },
+  { id: 'mt-70', discipline: 'muay-thai', minDifficulty: 'easy', comboText: 'Cross', category: 'single', coachingCue: 'Turn the hip. Full extension.' },
+  { id: 'mt-71', discipline: 'muay-thai', minDifficulty: 'easy', comboText: 'Jab Cross', category: 'basic', coachingCue: 'Straight punches. Hands back high.' },
+  { id: 'mt-72', discipline: 'muay-thai', minDifficulty: 'normal', comboText: 'Check Jab Cross', category: 'counter', coachingCue: 'Check the kick, answer with the hands.' },
+  { id: 'kb-69', discipline: 'kickboxing', minDifficulty: 'normal', comboText: 'Check Jab Cross', category: 'counter', coachingCue: 'Check the kick, answer with the hands.' },
+
   // ===== MMA — easy expansion =====
   { id: 'mma-31', discipline: 'mma', minDifficulty: 'easy', comboText: 'Jab Cross Hook', category: 'basic', coachingCue: 'Basic hands. Chin down.' },
   { id: 'mma-32', discipline: 'mma', minDifficulty: 'easy', comboText: 'Sprawl Cross', category: 'basic', coachingCue: 'Stuff it, then make them pay.' },

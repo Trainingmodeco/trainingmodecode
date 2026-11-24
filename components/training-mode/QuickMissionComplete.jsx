@@ -5,6 +5,8 @@ import { formatScore, splitsLine, downCopy, isUntilDown, paysByTime, soloRounds,
 import { mmss } from './data/missionMoves';
 import { quickMissionXp } from './data/userStats';
 import { levelWord } from './data/quickMissionConfig';
+import { quickMissionRetryKey } from './data/retrySafety';
+import ScoreBoardSlot from './retention/ui/ScoreBoardSlot';
 
 // Quick Mission complete — rendered by the shared design-24f screen.
 const GOLD = '#fde047';
@@ -13,7 +15,12 @@ const GOLD = '#fde047';
 // too_fast is the floor rule refusing the run, so it reads as VALIDATION FAILED.
 const SOLO_PRESET = { pass: 'pass', partial: 'partial', too_fast: 'validation_failed', none: 'fail' };
 
-export default function QuickMissionComplete({ result, cardioResult, onRetry, onFitHub, onHome }) {
+// The preset's variant → the verdict word the near-miss panel reads.
+const VARIANT_OUTCOME = { success: 'pass', partial: 'partial', fail: 'fail', validation_failed: 'validation_failed' };
+
+// retry (retention feature 3): { token, onRetry, onLeave } — this same mission
+// again and the way home, for the near-miss panel (MissionComplete).
+export default function QuickMissionComplete({ result, cardioResult, onRetry, onFitHub, onHome, retry = null }) {
   const { completed, roundsCompleted, totalRounds, exercisesCompleted, totalExercises, mission, integrityResult } = result;
   const solo = result.mode === 'solo';
   // MAX OUT (MAX REPS): the score is the total reps, with the sets behind it.
@@ -85,9 +92,23 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
         { value: String(exercisesCompleted), label: 'EXERCISES', color: '#fff' },
       ];
 
+  // Near miss, from the counts this screen has: MAX OUT's sets (a max effort:
+  // never a retry), a clocked GUIDED run's rounds, else the exercises done of
+  // the mission's. AT YOUR PACE and an until-down run have no count to show.
+  const missCount = maxReps
+    ? (result.score?.kind === 'totalReps' ? { unit: 'sets', done: result.score.sets, total: result.score.of } : {})
+    : solo || isUntilDown(mission) ? {}
+      : guidedSettle && paysByTime(mission) ? { unit: 'rounds', done: roundsCompleted, total: totalRounds }
+        : { unit: 'exercises', done: exercisesCompleted, total: totalExercises };
+  const nearMiss = retry ? {
+    key: quickMissionRetryKey(mission), token: retry.token, outcome: VARIANT_OUTCOME[preset.variant],
+    maxEffort: maxReps, ...missCount, onRetry: retry.onRetry, onLeave: retry.onLeave,
+  } : null;
+
   return (
     <MissionComplete
       onBack={onFitHub}
+      nearMiss={nearMiss}
       variant={preset.variant}
       eyebrow={eyebrow}
       title={mission.title}
@@ -102,11 +123,12 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
         ? (result.score?.kind === 'totalReps' ? <MaxRepsRecap score={result.score} capSec={mission.capSec || 0} totalSec={result.elapsedSec || 0} message={result.settle?.credited > 0 ? result.settle?.message : null}/> : null)
         : recap ? <RoundSplits rounds={rounds} count={scoreCount(result, mission, rounds.length)} tag={roundTag} word={roundWord} one={roundOne} totalSec={result.elapsedSec || 0}/> : null}
       cardioResult={cardioResult}
+      board={result.board ? <ScoreBoardSlot finish={result.board}/> : null}
       shareData={{ mode: 'Quick Mission', completedCount: exercisesCompleted, totalCount: totalExercises }}
       actions={[
         { label: 'NEW MISSION', onClick: onRetry, kind: 'primary' },
         { label: 'BACK TO FIT MODE', onClick: onFitHub, kind: 'secondary' },
-        { label: 'RETURN HOME', onClick: onHome, kind: 'ghost' },
+        { label: 'RETURN HOME', onClick: onHome, kind: 'ghost', role: 'home' },
       ]}
     />
   );

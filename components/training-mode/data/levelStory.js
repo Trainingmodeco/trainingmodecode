@@ -8,6 +8,8 @@
 // Pure and deterministic: no localStorage, no clock. The two things that need
 // them come in through `opts`:
 //   opts.streak  the current streak in days (userStats getStreak reads the clock)
+//   opts.weekStreak  the week streak instead (the week streak switch: data/weekStreakStore
+//                weekStreakCount); the fact then reads WEEK STREAK
 //   opts.tier    the athlete's tier (tiers getCurrentTier; its Final Form check
 //                reads saga progress from storage). Without it the tier comes
 //                from XP alone, and past the secret line from the Fit / Fight
@@ -396,7 +398,8 @@ export function levelStory(stats, opts = {}) {
   const total = trainingSessionCount({ sessions: rows });
   const counts = splitSessions(rows);
   const lean = tier.secret ? xpLean(rows) : null;
-  const streak = Number.isFinite(opts?.streak) && opts.streak >= 0 ? Math.floor(opts.streak) : null;
+  const weeks = Number.isFinite(opts?.weekStreak) && opts.weekStreak >= 0;
+  const streak = weeks ? Math.floor(opts.weekStreak) : Number.isFinite(opts?.streak) && opts.streak >= 0 ? Math.floor(opts.streak) : null;
 
   const [rangeLine, meaningLine] = levelText(level, tier, idx, lean);
   const top = mostUsed(counts);
@@ -411,7 +414,7 @@ export function levelStory(stats, opts = {}) {
   if (total > 0) facts.push({ key: 'sessions', label: 'SESSIONS', value: fmt(total) });
   if (total > 0 || xp > 0) facts.push({ key: 'xp', label: 'TOTAL XP', value: fmt(xp) });
   if (total > 0) {
-    if (streak != null) facts.push({ key: 'streak', label: 'DAY STREAK', value: fmt(streak) });
+    if (streak != null) facts.push({ key: 'streak', label: weeks ? 'WEEK STREAK' : 'DAY STREAK', value: fmt(streak) });
     if (top) facts.push({ key: 'top', label: 'MOST SESSIONS', value: top.label });
   }
   const split = total === 0 ? [] : MODES.filter((m) => counts[m.key] > 0).map((m) => ({

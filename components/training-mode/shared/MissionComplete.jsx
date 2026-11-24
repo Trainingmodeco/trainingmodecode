@@ -7,10 +7,18 @@ import MissionIntegrityBanner from '../MissionIntegrityBanner';
 import CardioFinisherSummaryCard from '../CardioFinisherSummaryCard';
 import { Trophy, ChevronLeft } from 'lucide-react';
 import { loadStats, getStreak, getLevel, getLevelProgress, getWeeklySessions } from '../data/userStats';
-import { getCurrentTier, tierImage } from '../data/tiers';
+import { getCurrentTier, tierImage, sessionMode } from '../data/tiers';
 import { loadProfile } from '../data/userProfile';
 import { BETA_FEEDBACK_FORM_URL, openExternalUrl } from '../data/links';
 import AchievementToast from './AchievementToast';
+import { retentionOn } from '../data/retentionFlags';
+import { takeEndScreenStrip, markEndScreenStrip, weekStreakCount } from '../data/weekStreakStore';
+import WeekMomentStrip from '../retention/ui/WeekMomentStrip';
+import { settleNearMiss, noteAttempt } from '../data/nearMissStore';
+import NearMissPanel from '../retention/ui/NearMissPanel';
+import { takeReviveMoment, markPowerMoments, loadPower } from '../data/powerStore';
+import ReviveLine from '../retention/ui/ReviveLine';
+import { RustyPortraitImage } from '../retention/ui/RustyLook';
 
 // Design 24f — shared Mission Complete screen for every mode. A celebratory
 // medal hero with an animated XP count-up, a mode-tinted headline, a stat
@@ -29,12 +37,13 @@ const mcCSS = `
 .mc-top { padding: 64px 16px 0; }
 .mc-hero-badge { height: 160px; }
 /* Short phones can't hold the full stack above the tab bar with a big badge —
-   pull the top in, shrink the badge, and drop the expendable pieces (recap/
-   chips detail and the beta-feedback link) rather than make the athlete scroll. */
+   pull the top in and shrink the badge. The round recap (or the chips) shows
+   on every phone (owner, 2026-11-23): the screen scrolls to it. Only the
+   beta-feedback link is left out: the BETA pill is on every screen. */
 @media (max-height: 812px) {
   .mc-top { padding: 44px 16px 0; }
   .mc-hero-badge { height: 128px; }
-  .mc-extra, .mc-beta { display: none !important; }
+  .mc-beta { display: none !important; }
 }
 @media (max-height: 700px) {
   .mc-top { padding: 28px 16px 0; }
@@ -91,9 +100,9 @@ export default function MissionComplete({
   xp = 0,
   integrityResult,
   stats = [],               // [{ value, label, color, highlight }]
-  extra = null,             // optional ReactNode (recap / chips)
-  summary = null,           // optional ReactNode that always shows, even on a
-                            // short phone (Quick Mission SOLO's round splits)
+  extra = null,             // optional ReactNode (recap / chips), under the summary
+  summary = null,           // optional ReactNode right under the stats (Quick
+                            // Mission SOLO's round splits). Both show on every phone.
   cardioResult,
   shareData,
   heroImage,                // badge art for a completed session
@@ -104,7 +113,16 @@ export default function MissionComplete({
                             // screen gets a header-level way out
   failReason,               // engine's guidance line, shown on fail / validation_failed
   achievements = [],        // item 10b — newly unlocked, shown as a toast on top
-  actions = [],             // [{ label, onClick, kind: 'primary'|'secondary'|'ghost' }]
+  actions = [],             // [{ label, onClick, kind: 'primary'|'secondary'|'ghost', role?: 'retry'|'home' }]
+  ctas = null,              // optional ReactNode drawn in place of the actions' buttons
+                            // (the Fit looks' end screen, in the Fit kit's buttons)
+  board = null,             // the world score board (switch `scores`): the session's
+                            // board slot (retention/ui/ScoreBoardSlot), drawn under the
+                            // summary; App hands one only with the switch on
+  nearMiss = null,          // retention feature 3 (switch `nearMiss`): this session's facts
+                            // { key, token, unit, done, total, outcome, boss?, maxEffort?,
+                            //   onRetry, onLeave, retryLabel? } (data/nearMissStore), or a
+                            // settled { miss, gate, show } (the gallery)
 }) {
   const v = VARIANT[variant] || VARIANT.success;
   const failed = variant === 'fail' || variant === 'validation_failed';
@@ -127,14 +145,48 @@ export default function MissionComplete({
     : partial ? partialBadge : heroImage;
   const displayXp = useCountUp(xp);
 
+  // Retention feature 1 (week streak switch): the one quiet strip in YOUR
+  // PROGRESS when this session filled a training day, completed the week,
+  // earned a freeze or paid Today's Bout's bonus. Worked out once, marked shown.
+  // A cardio finisher (cardioResult) banked a Cardio row of its own after the session's.
+  const [weeksOn] = useState(() => retentionOn('weeks'));
+  const [weekStrip] = useState(() => (!unpaid && weeksOn ? takeEndScreenStrip(Date.now(), { finisher: !!cardioResult }) : null));
+  useEffect(() => { markEndScreenStrip(weekStrip); }, [weekStrip]);
+
+  // POWER (switch on): the first valid finished session after the fighter
+  // was low or RUSTY shows one REVIVED line, once per revive. A session that
+  // earned nothing leaves a RUSTY fighter rusty, and the portrait says so.
+  const [powerOn] = useState(() => retentionOn('power'));
+  const [revive] = useState(() => (!unpaid && powerOn ? takeReviveMoment(Date.now(), { finisher: !!cardioResult }) : null));
+  useEffect(() => { if (revive) markPowerMoments([revive.id]); }, [revive]);
+  const [rusty] = useState(() => powerOn && loadPower().state === 'rusty');
+
+  // Retention feature 3 (near-miss switch): on a partial or failed end, how
+  // close it came and RETRY / COME BACK FRESH TOMORROW, under the stats; on a
+  // session ended with nothing done (the quiet SESSION ENDED card), what was
+  // left. Worked out once; a finished, valid session counts as one try at its
+  // stage or session today (one with nothing done never does).
+  // With the panel up, it is the screen's retry and its way home: the screen's
+  // own retry and home buttons step aside and its main button goes quiet.
+  const [nearMissOn] = useState(() => retentionOn('nearMiss'));
+  const [nm] = useState(() => (!nearMiss ? null : nearMiss.gate ? nearMiss : nearMissOn ? settleNearMiss(nearMiss) : null));
+  useEffect(() => { if (nm && nm !== nearMiss) noteAttempt(nm); }, [nm]); // eslint-disable-line react-hooks/exhaustive-deps
+  const showNearMiss = !!nm?.show;
+  const shownActions = showNearMiss
+    ? actions.filter((a) => a.role !== 'retry' && a.role !== 'home').map((a) => (a.kind === 'primary' ? { ...a, kind: 'secondary' } : a))
+    : actions;
+
   const [stats0] = useState(() => loadStats());
-  const streak = getStreak(stats0);
+  // The share card's streak: the week streak with the switch on (WEEK STREAK on the card).
+  const streak = weeksOn ? weekStreakCount(Date.now(), stats0.sessions) : getStreak(stats0);
   const level = getLevel(stats0.xp);
   const lp = getLevelProgress(stats0.xp);
   const sex = String(loadProfile()?.sex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
   const tier = getCurrentTier(stats0);
-  const weekSess = getWeeklySessions(stats0);
-  const weekXp = weekSess.reduce((a, s) => a + (s.xpEarned || 0), 0);
+  // With the week streak on, Today's Bout's bonus row is an award, not a
+  // session or a mode of its own (tiers.sessionMode 'bonus').
+  const weekSess = weeksOn ? getWeeklySessions(stats0).filter((s) => sessionMode(s) !== 'bonus') : getWeeklySessions(stats0);
+  const weekXp = (weeksOn ? getWeeklySessions(stats0) : weekSess).reduce((a, s) => a + (s.xpEarned || 0), 0);
   const weekModes = new Set(weekSess.map(s => s.type)).size;
   const pct = lp.needed ? Math.round((lp.current / lp.needed) * 100) : 100;
 
@@ -207,7 +259,7 @@ export default function MissionComplete({
           {/* XP + session stats, one row (LT-5). The XP hero card used to sit
               above the stat grid saying much the same thing; merged, it costs a
               third of the height. */}
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${1 + stats.length}, 1fr)`, gap: 7, marginBottom: 6, animation: 'mc-pop 0.5s ease both' }}>
+          <div data-ui="mc-stats" style={{ display: 'grid', gridTemplateColumns: `repeat(${1 + stats.length}, 1fr)`, gap: 7, marginBottom: 6, animation: 'mc-pop 0.5s ease both' }}>
             <div style={{ borderRadius: 10, border: `1px solid ${hexA(tone, 0.45)}`, background: `linear-gradient(135deg, ${hexA(tone, 0.14)}, rgba(8,2,18,0.6))`, padding: '8px 10px', textAlign: 'center' }}>
               <div style={{ font: "900 17px 'Orbitron',sans-serif", color: tone, textShadow: `0 0 14px ${hexA(tone, 0.5)}` }}>{unpaid ? '0' : `+${displayXp}`}</div>
               <div style={{ font: "600 7.5px 'Orbitron',sans-serif", color: v.eyebrowColor, letterSpacing: '0.08em', marginTop: 1 }}>{unpaid ? 'NO XP AWARDED' : 'XP EARNED'}</div>
@@ -215,7 +267,13 @@ export default function MissionComplete({
             {stats.map((s, i) => <Stat key={i} {...s}/>)}
           </div>
 
+          {showNearMiss && (
+            <div style={{ marginBottom: 6 }}>
+              <NearMissPanel miss={nm.miss} gate={nm.gate} onRetry={nearMiss?.onRetry} retryLabel={nearMiss?.retryLabel} onLeave={nearMiss?.onLeave}/>
+            </div>
+          )}
           {summary && <div style={{ marginBottom: 6 }}>{summary}</div>}
+          {board && <div style={{ marginBottom: 6 }}>{board}</div>}
           {extra && <div className="mc-extra" style={{ marginBottom: 6 }}>{extra}</div>}
 
           <CardioFinisherSummaryCard cardioResult={cardioResult}/>
@@ -224,14 +282,16 @@ export default function MissionComplete({
           <div style={{ background: 'rgba(8,2,18,0.88)', border: '1px solid rgba(176,106,255,0.3)', borderRadius: 11, padding: '9px 12px', marginBottom: 6 }}>
             <div style={{ font: "700 8px 'Orbitron',sans-serif", color: '#b06aff', letterSpacing: '0.16em', marginBottom: 7 }}>YOUR PROGRESS</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 7 }}>
-              <div style={{ width: 30, height: 30, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', flexShrink: 0 }}>
-                <SafeImage src={tierImage(tier.id, sex)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }}/>
+              <div style={{ position: rusty ? 'relative' : undefined, width: 30, height: 30, borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', flexShrink: 0 }}>
+                <RustyPortraitImage src={tierImage(tier.id, sex)} rusty={rusty} imgStyle={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%' }}/>
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', font: "700 10px 'Orbitron',sans-serif", color: tier.secret ? tier.color : '#fde047', marginBottom: 3 }}><span>LEVEL {level} · {tier.label.toUpperCase()}</span><span style={{ color: '#c4a4d8', fontWeight: 600 }}>{lp.current}/{lp.needed} XP</span></div>
                 <div style={{ height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}><div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg,#b06aff,#fde047)' }}/></div>
               </div>
             </div>
+            {revive && <ReviveLine sex={sex}/>}
+            {weekStrip && <WeekMomentStrip moment={weekStrip.moment} missionXp={weekStrip.missionXp}/>}
             <div style={{ font: "600 9px 'Rajdhani',sans-serif", color: '#9a90b8' }}>This week: <span style={{ color: '#fff', fontWeight: 700 }}>{weekSess.length} session{weekSess.length === 1 ? '' : 's'}</span> · <span style={{ color: '#fde047', fontWeight: 700 }}>{weekXp.toLocaleString()} XP</span> · <span style={{ color: '#fff', fontWeight: 700 }}>{weekModes} mode{weekModes === 1 ? '' : 's'}</span></div>
           </div>
 
@@ -242,13 +302,13 @@ export default function MissionComplete({
               to offer. It does not. */}
           {shareData && !unpaid && (
             <div style={{ marginBottom: 6 }}>
-              <SharePromptModal placement="inline" shareData={{ ...shareData, xpEarned: xp, streak, level }}/>
+              <SharePromptModal placement="inline" shareData={{ ...shareData, xpEarned: xp, streak, ...(weeksOn ? { streakUnit: 'week' } : {}), level }}/>
             </div>
           )}
 
           {/* CTAs */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {actions.map((a, i) => {
+          {ctas || <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {shownActions.map((a, i) => {
               if (a.kind === 'ghost') {
                 return <button key={i} onClick={a.onClick} style={{ width: '100%', height: 38, border: '1px solid rgba(255,255,255,0.12)', borderRadius: 11, background: 'transparent', color: '#9a90b8', font: "700 11px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer' }}>{a.label}</button>;
               }
@@ -257,7 +317,7 @@ export default function MissionComplete({
               }
               return <button key={i} onClick={a.onClick} style={{ width: '100%', height: 44, border: 'none', borderRadius: 11, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 13px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 20px rgba(253,224,71,0.35)' }}>{a.label}</button>;
             })}
-          </div>
+          </div>}
 
           <button className="mc-beta" onClick={() => openExternalUrl(BETA_FEEDBACK_FORM_URL)} style={{ margin: '6px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, border: 'none', background: 'rgba(253,224,71,0.06)', cursor: 'pointer' }}>
             <span style={{ font: "700 8px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.08em' }}>💬 GIVE BETA FEEDBACK</span>

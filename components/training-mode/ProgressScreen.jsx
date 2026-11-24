@@ -7,9 +7,12 @@ import Embers from './Embers';
 import { ChevronLeft, Award } from 'lucide-react';
 import EmptyState from './EmptyState';
 import { loadStats, getLevel, getStreak } from './data/userStats';
+import { retentionOn } from './data/retentionFlags';
+import { weekStreakCount } from './data/weekStreakStore';
 import { VISIBLE_TIERS, getCurrentTier, tierIndexForLevel } from './data/tiers';
 import { groupedAchievements, progressByKind, ACHIEVEMENTS_UPDATED } from './data/achievements';
 import RunHistory from './RunHistory';
+import WorkoutsPage, { useWorkoutRows } from './fit-challenge/WorkoutsPage';
 
 // Progress · Overview — pixel match of design 23a:
 // PROGRESS header + OVERVIEW/TROPHIES toggle · rank card · XP-this-month trend ·
@@ -251,9 +254,17 @@ function AchievementsSection() {
   );
 }
 
-export default function ProgressScreen({ onHome, profile }) {
+export default function ProgressScreen({ onHome, profile, onOpenCardRun }) {
+  // The week streak switch (retention feature 1): the rank card's streak is
+  // the week streak, labelled, in place of the old day count.
+  const [weeksOn] = useState(() => retentionOn('weeks'));
   const [stats, setStats] = useState(() => loadStats());
   const [tab, setTab] = useState('overview');
+  // YOUR WORKOUTS (switch fitCard): every mode's finished workouts, as a page
+  // of this screen; a kept card run goes back on the Quick Mission card.
+  const [fitCard] = useState(() => retentionOn('fitCard'));
+  const [workoutsOpen, setWorkoutsOpen] = useState(false);
+  const workoutRows = useWorkoutRows();
   const [detailOpen, setDetailOpen] = useState(false);
 
   useEffect(() => {
@@ -267,7 +278,7 @@ export default function ProgressScreen({ onHome, profile }) {
   const sex = String(profile?.sex || 'male').toLowerCase() === 'female' ? 'female' : 'male';
   const totalXp = stats.xp || 0;
   const level = getLevel(totalXp);
-  const streak = getStreak(stats);
+  const streak = weeksOn ? weekStreakCount(Date.now(), stats.sessions) : getStreak(stats);
   // Secret tiers replace the visible rank once unlocked.
   const curTier = getCurrentTier(stats);
   const rank = curTier.secret
@@ -295,6 +306,10 @@ export default function ProgressScreen({ onHome, profile }) {
   const counts = { fight: 0, fit: 0, cardio: 0, arcade: 0 };
   sessions.forEach(s => { counts[category(s)] += 1; });
   const totalC = Math.max(1, sessions.length);
+
+  if (fitCard && workoutsOpen) {
+    return <WorkoutsPage rows={workoutRows} onBack={() => setWorkoutsOpen(false)} onOpen={(r) => onOpenCardRun?.(r.cardId)}/>;
+  }
 
   return (
     <PhoneFrame useBrandBg>
@@ -325,10 +340,18 @@ export default function ProgressScreen({ onHome, profile }) {
                   <SafeImage src={`/static/tiers/${rank.tier}-${sex}.png`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 18%' }}/>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ font: "800 11px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.05em' }}>{rank.name.toUpperCase()} · LV {level}</div>
+                  {/* With the week streak's label beside it, a long rank name can wrap at 360: "LV 26" stays together. */}
+                  <div style={{ font: "800 11px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.05em' }}>{weeksOn ? `${rank.name.toUpperCase()} · LV\u00A0${level}` : <>{rank.name.toUpperCase()} · LV {level}</>}</div>
                   <div style={{ height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.05)', overflow: 'hidden', marginTop: 5 }}><div style={{ width: `${Math.round(rankProgress(totalXp) * 100)}%`, height: '100%', background: 'linear-gradient(90deg,#b06aff,#fde047)' }}/></div>
                 </div>
-                <div style={{ font: "900 14px 'Orbitron',sans-serif", color: '#ff8a4a' }}>🔥{streak}</div>
+                {weeksOn ? (
+                  <div data-retention="progress-week-streak" style={{ flexShrink: 0, textAlign: 'center' }}>
+                    <div style={{ font: "900 14px 'Orbitron',sans-serif", color: '#ff8a4a' }}>🔥{streak}</div>
+                    <div style={{ font: "700 7px 'Orbitron',sans-serif", color: '#9a90b8', letterSpacing: '0.06em', marginTop: 2, whiteSpace: 'nowrap' }}>WEEK STREAK</div>
+                  </div>
+                ) : (
+                  <div style={{ font: "900 14px 'Orbitron',sans-serif", color: '#ff8a4a' }}>🔥{streak}</div>
+                )}
               </Card>
 
               {sessions.length === 0 ? (
@@ -350,6 +373,24 @@ export default function ProgressScreen({ onHome, profile }) {
                 </svg>
                 <button onClick={() => setDetailOpen(true)} style={{ width: '100%', marginTop: 8, padding: '7px 0', borderRadius: 8, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(168,85,247,0.08)', color: '#c9a6ff', font: "700 8px 'Orbitron',sans-serif", letterSpacing: '0.1em', cursor: 'pointer' }}>FULL STATS · TRENDS &amp; BREAKDOWN ›</button>
               </Card>
+
+              {/* YOUR WORKOUTS (switch fitCard): the latest three, and the page. */}
+              {fitCard && (
+                <Card data-fc="progress-workouts">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+                    <span style={{ font: "700 9px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.08em' }}>YOUR WORKOUTS</span>
+                    <span style={{ font: "700 9px 'Orbitron',sans-serif", color: '#fde047' }}>{workoutRows.length}</span>
+                  </div>
+                  {workoutRows.slice(0, 3).map(r => (
+                    <div key={r.id} style={{ display: 'flex', alignItems: 'baseline', gap: 8, padding: '5px 0', borderTop: '1px solid rgba(168,85,247,0.12)' }}>
+                      <span style={{ width: 44, flexShrink: 0, font: "700 9px 'Orbitron',sans-serif", color: '#9a90b8' }}>{r.dow} {r.day}</span>
+                      <span style={{ flex: 1, minWidth: 0, font: "700 11px 'Rajdhani',sans-serif", color: '#fff', letterSpacing: '0.04em', overflowWrap: 'anywhere' }}>{r.name}</span>
+                      <span style={{ flexShrink: 0, font: "700 10px 'Rajdhani',sans-serif", color: r.pct >= 100 ? '#fde047' : '#9a90b8' }}>{r.pct}%</span>
+                    </div>
+                  ))}
+                  <button onClick={() => setWorkoutsOpen(true)} style={{ width: '100%', minHeight: 44, marginTop: 6, borderRadius: 8, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(168,85,247,0.08)', color: '#c9a6ff', font: "700 9px 'Orbitron',sans-serif", letterSpacing: '0.1em', cursor: 'pointer' }}>ALL WORKOUTS ›</button>
+                </Card>
+              )}
 
               {/* Training split */}
               <Card>

@@ -1399,6 +1399,22 @@
     "size": 144110,
     "sha1": "1c7a8923655e9e021ba77942e21c6982854ff02d"
   },
+  "static/retention/revive-female.webp": {
+    "size": 117878,
+    "sha1": "2f2594dc2aa15fdfb00df9f48c82a36cd2b0e8cd"
+  },
+  "static/retention/revive-male.webp": {
+    "size": 128916,
+    "sha1": "d3bb34c77a8d4fa64bea118d938bfc66111fbb78"
+  },
+  "static/retention/rusty-female.webp": {
+    "size": 35518,
+    "sha1": "188693becc376e2b3c818500781caf788dd73033"
+  },
+  "static/retention/rusty-male.webp": {
+    "size": 34360,
+    "sha1": "53e1c55860ab3233a541d7a755fd903fb37f7388"
+  },
   "static/revamp/arcade-banner.webp": {
     "size": 42322,
     "sha1": "93a310ed2f40c26661b268e321de4e1de107ae79"

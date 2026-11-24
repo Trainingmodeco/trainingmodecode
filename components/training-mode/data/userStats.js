@@ -103,7 +103,11 @@ export function addFightFocusSession(roundsCompleted, totalRounds, { justTrain =
 // Progress can show camp history. 2.8: XP is now computed by the engine's
 // campSessionXp (active-minutes × difficulty × completion + bonuses) and passed
 // in as `xpAward`. Falls back to the old round-based economy if omitted.
-export function addCampSession(level, roundsCompleted, totalRounds, xpAward) {
+// `meta` (optional): extra fields for the row. A Training Camp session (not an
+// arcade v2 stage, which banks here too) passes `{ camp: { slot, verified,
+// cut, startedAt } }`, what the camp's stars read (data/campStars). It never
+// changes the XP.
+export function addCampSession(level, roundsCompleted, totalRounds, xpAward, meta) {
   const stats = loadStats();
   const xpEarned = typeof xpAward === 'number'
     ? Math.max(0, Math.round(xpAward))
@@ -117,6 +121,7 @@ export function addCampSession(level, roundsCompleted, totalRounds, xpAward) {
     totalCount: totalRounds,
     xpEarned,
     campLevel: level,
+    ...(meta && typeof meta === 'object' ? meta : {}),
   });
   saveStats(stats);
   return xpEarned;
@@ -229,12 +234,17 @@ export function addQuickMissionSoloSession(m) {
     // The round timer's splits ({ n, atSec, lapSec, block }), when the
     // mission has one (data/missionSolo roundSplits).
     ...(Array.isArray(m.splits) ? { splits: m.splits.map(r => ({ n: r.n, atSec: r.atSec, lapSec: r.lapSec, block: r.block })) } : {}),
+    // A workout card run (switch fitCard): its title, rounds and reps, all
+    // scalars (data/fitCard cardRowFields), for YOUR WORKOUTS.
+    ...(m.cardFields && typeof m.cardFields === 'object' ? m.cardFields : {}),
   });
   saveStats(stats);
   return xpEarned;
 }
 
-export function addCombatConditioningSession(drillsCompleted, totalDrills, roundsCompleted, totalRounds, completed) {
+// `meta` (optional): { unverified: true } for a session the integrity check
+// refused (week streak switch; App), so it fills no training day.
+export function addCombatConditioningSession(drillsCompleted, totalDrills, roundsCompleted, totalRounds, completed, meta) {
   const stats = loadStats();
   const xpEarned = (drillsCompleted * XP_PER_FIT_EXERCISE) +
     (completed ? XP_FIT_FULL_BONUS : 0);
@@ -248,13 +258,14 @@ export function addCombatConditioningSession(drillsCompleted, totalDrills, round
     roundsCompleted,
     totalRounds,
     xpEarned,
+    ...(meta?.unverified ? { unverified: true } : {}),
   });
   saveStats(stats);
   return xpEarned;
 }
 
 const XP_START_HERE_LESSON = 20;
-const XP_DAILY_MISSION_BONUS = 25;
+export const XP_DAILY_MISSION_BONUS = 25;
 
 export function addStartHereLesson(lessonTitle) {
   const stats = loadStats();
@@ -272,7 +283,9 @@ export function addStartHereLesson(lessonTitle) {
   return XP_START_HERE_LESSON;
 }
 
-export function addDailyMissionBonus() {
+// `tag` (optional): Today's Bout (week streak switch) marks its row with the
+// day it paid for ({ bout: 'YYYY-MM-DD' }), so a synced copy reads as paid.
+export function addDailyMissionBonus(tag) {
   const stats = loadStats();
   stats.xp += XP_DAILY_MISSION_BONUS;
   stats.sessions.push({
@@ -282,6 +295,7 @@ export function addDailyMissionBonus() {
     completedCount: 1,
     totalCount: 1,
     xpEarned: XP_DAILY_MISSION_BONUS,
+    ...(tag && typeof tag.bout === 'string' ? { bout: tag.bout } : {}),
   });
   saveStats(stats);
   return XP_DAILY_MISSION_BONUS;

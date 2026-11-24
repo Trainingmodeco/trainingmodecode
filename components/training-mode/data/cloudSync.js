@@ -35,12 +35,17 @@ export const SYNC_KEYS = [
   'tm_camp_progress', 'tm_camp_sessions', 'tm_camp_complete', 'tm_camp_archetype', 'tm_camp_parq',
   // fit / fight content the athlete created or earned
   'tm_benchmarks', 'tm_saved_routines', 'tm_custom_combos', 'tm_arsenal',
-  'tm_practice_library_drilled', 'tm_practice_invite_v1',
+  'tm_practice_library_drilled', 'tm_practice_learned_v1', 'tm_practice_invite_v1',
   'tm_ghost_challenge_v1', 'tm_comeback_v1',
   'tm_fit_builder_history', 'tm_cardio_sessions', 'tm_weight_log',
   'tm_prog_bro', 'tm_prog_ppl', 'tm_prog_ul',
   // plan + preferences
   'tm_game_plan_v1', 'tm_equipment', 'tm_combo_v1', 'tm_ghosts_v1',
+  // retention: the daily mission of the day and the week streak's shown-moment markers;
+  // the near-miss retry's tries per stage or session today; POWER's shown-moment markers
+  'tm_daily_mission_v2', 'tm_week_moments_v1', 'tm_retry_log_v1', 'tm_power_moments_v1',
+  // the Fit workout card (switch fitCard): saved workouts, recent card runs, CHECK-OFF
+  'tm_fit_card_v1',
   'tm_audio_settings', 'tm_reminder_settings', 'tm_notification_prefs',
   // first-run milestones (so a restored device doesn't re-onboard)
   'tm_starthere_completed', 'trainingModeOnboardingComplete', 'trainingModeTourComplete',
@@ -237,7 +242,9 @@ export async function syncNow({ reason = 'manual', keepalive = false } = {}) {
         if (!already && reason !== 'unload') {
           sessionStorage.setItem(RESTORE_FLAG, '1');
           window.dispatchEvent(new Event('storage'));
-          window.dispatchEvent(new Event('training-mode-stats-updated'));
+          // Marked as a restore: the rows are another device's, not a session
+          // just banked here (App's Today's Bout settle reads it).
+          window.dispatchEvent(new CustomEvent('training-mode-stats-updated', { detail: { restored: true } }));
           setTimeout(() => { try { window.location.reload(); } catch { /* noop */ } }, 400);
         }
         return state;

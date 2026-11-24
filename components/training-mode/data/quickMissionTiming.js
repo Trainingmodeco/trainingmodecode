@@ -122,7 +122,10 @@ export function isCadenceEligible(exercise, missionCfg) {
   if (missionCfg.workoutType === 'Weighted') return false;
   if (missionCfg.workoutType === 'Hybrid' && exercise.isWeighted) return false;
   const name = (exercise.name || '').toLowerCase().trim();
-  return CADENCE_SAFE_NAMES.has(name);
+  // The workout card's bodyweight rep moves (switch fitCard: pull-ups, rows,
+  // dive bombers...) are dealt with `counted`, so the coach counts them too
+  // and never needs the manual line. No other mission carries it.
+  return CADENCE_SAFE_NAMES.has(name) || exercise.counted === true;
 }
 
 // ── one move ────────────────────────────────────────────────────────────────

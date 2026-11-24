@@ -3,6 +3,7 @@ import SafeImage from './SafeImage';
 import { C } from './Styles';
 import { getCurrentUser, onAuthChange, signInWithGoogle, signOut, userProfile } from './data/authClient';
 import { refreshEntitlement, clearEntitlementCache } from './data/entitlements';
+import { clearBoardCopies } from './data/scoreBoardCloud';
 import { onSyncState, syncNow } from './data/cloudSync';
 
 // Account card for the Profile screen. Signed out → "Continue with Google";
@@ -50,6 +51,9 @@ export default function AccountCard() {
       // on its own is not a sign-out: offline with an expired token reads the
       // same way, and a member must not lose Pro in a gym with no signal.
       if (u) refreshEntitlement(); else if (event === 'SIGNED_OUT') clearEntitlementCache();
+      // The world board's copies on the phone (its name, opt-in and boards) go
+      // with the account too.
+      if (!u && event === 'SIGNED_OUT') clearBoardCopies();
     };
     getCurrentUser().then(done).catch(() => done(null));
     const unsub = onAuthChange(done);
@@ -107,7 +111,7 @@ export default function AccountCard() {
             </span>
           </button>
         </div>
-        <button onClick={() => { clearEntitlementCache(); signOut(); }} style={{ flexShrink: 0, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '7px 11px', cursor: 'pointer', font: "700 8px 'Orbitron',sans-serif", color: '#f87171', letterSpacing: '0.08em' }}>SIGN OUT</button>
+        <button onClick={() => { clearEntitlementCache(); clearBoardCopies(); signOut(); }} style={{ flexShrink: 0, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, padding: '7px 11px', cursor: 'pointer', font: "700 8px 'Orbitron',sans-serif", color: '#f87171', letterSpacing: '0.08em' }}>SIGN OUT</button>
       </div>
     );
   }

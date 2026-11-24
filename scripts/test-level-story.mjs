@@ -177,6 +177,12 @@ check('secret band starts at level 25', K.SECRET_START_LEVEL === 25 && getLevel(
   check('unknown rows are "other training"', mixOther.recap === 'You have finished 3 sessions: 2 in Fit Mode and 1 in other training.', mixOther.recap);
   check('no streak given: no streak fact', !levelStory(mk([['Fit Mode', 2]])).facts.some((f) => f.key === 'streak'));
   check('a streak of 0 is shown as 0', levelStory(mk([['Fit Mode', 2]]), { streak: 0 }).facts.find((f) => f.key === 'streak').value === '0');
+  // The week streak switch (owner, 2026-11-23): the fact is the week streak.
+  const wk = levelStory(mk([['Fit Mode', 2]]), { weekStreak: 9 }).facts.find((f) => f.key === 'streak');
+  check('week streak switch: the fact reads WEEK STREAK with the weeks', wk.label === 'WEEK STREAK' && wk.value === '9');
+  check('week streak switch: it wins over a day streak given too', levelStory(mk([['Fit Mode', 2]]), { streak: 3, weekStreak: 0 }).facts.find((f) => f.key === 'streak').value === '0');
+  check('switch off: the day streak, as before', levelStory(mk([['Fit Mode', 2]]), { streak: 3 }).facts.find((f) => f.key === 'streak').label === 'DAY STREAK');
+  check('a NaN week streak falls back to the day streak given', levelStory(mk([['Fit Mode', 2]]), { streak: 3, weekStreak: NaN }).facts.find((f) => f.key === 'streak').label === 'DAY STREAK');
 }
 
 // ── pace ───────────────────────────────────────────────────────────────────

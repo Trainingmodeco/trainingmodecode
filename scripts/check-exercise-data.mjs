@@ -26,7 +26,10 @@ for (const ex of FIT_MODE_EXERCISES) {
     // the wrong work, and a stance or hold with a rep range has no clock.
     const timed = ex.durationSeconds || /^\d+\s*s$/i.test(String(ex.reps));
     if (timed && ex.voiceCountingType === 'rep_count') problems.push(`timed "${ex.name}" is marked rep_count`);
-    if (!timed && /\b(stance|hold|wall sit)\b/i.test(ex.name) && ex.voiceCountingType === 'rep_count') problems.push(`"${ex.name}" is a hold but has reps and no seconds`);
+    // A name that ENDS in "hold" (Plank Hold, Chin-Up Hold) or is a stance or wall sit is a hold; "Hold" in the middle of a rep move
+    // ("Kettlebell Hold Static Lunges", "Squat Hold Thrust Jumps") is only part of its name.
+    const bare = String(ex.name).replace(/\([^)]*\)/g, '').trim();
+    if (!timed && (/\b(stance|wall sit)\b/i.test(bare) || /\bhold$/i.test(bare)) && ex.voiceCountingType === 'rep_count') problems.push(`"${ex.name}" is a hold but has reps and no seconds`);
     // The kit a move needs must show: a bar, box or rope move filed as plain
     // Bodyweight reads wrong on the info sheet unless the label names it.
     if (/\b(pull-ups?|chin-ups?|box jumps?|dips?|battle ropes?)\b/i.test(ex.name) && !/\bassisted\b/i.test(ex.name)

@@ -3,8 +3,18 @@ import SafeImage from './SafeImage';
 import { C } from './Styles';
 import { ArcadePrimaryButton, ArcadeSecondaryButton } from './ArcadeUI';
 import { RotateCcw, Play, Share2, ChevronLeft, Star } from 'lucide-react';
-import { resolveOutcome } from './shared/sessionOutcome';
+import { arcadeOverlayOutcome } from './data/arcadeOutcome';
 import AchievementToast from './shared/AchievementToast';
+import { retentionOn } from './data/retentionFlags';
+import { getStarsForTime } from './data/trainingArcadeData';
+import StarsRow from './retention/ui/StarsRow';
+import NearMissPanel from './retention/ui/NearMissPanel';
+
+// Retention feature 3 (switch `nearMiss`): with the near-miss panel up the
+// screen holds more, so it scrolls when it must (spacers keep it centred when
+// it fits) and the hero art is a size smaller.
+const NM_FRAME = { justifyContent: 'flex-start', overflowX: 'hidden', overflowY: 'auto' };
+const NmSpacer = () => <div aria-hidden style={{ flex: '1 0 0' }}/>;
 
 const OVERLAY_STYLES = `
 @keyframes ov-fade-in {
@@ -75,17 +85,36 @@ function getRankStars(rank) {
 
 function StageClearedScreen({
   series, stage, result, pointsEarned, xpEarned, statRewards,
-  completedStageIds, onContinue, onNextStage, onReturnToArcade, onShare,
+  completedStageIds, onContinue, onNextStage, onReturnToArcade, onShare, onRetry, nearMiss,
 }) {
   const [phase, setPhase] = useState(0);
   const [displayXp, setDisplayXp] = useState(0);
   const [countDone, setCountDone] = useState(false);
   const animRef = useRef(null);
+  // Retention feature 2 (switch `path`): the stars land one by one, a tone
+  // each. A run's stars are what it saved: the benchmark saves its time's
+  // stars but does not put them on its result, so they are read the same way.
+  const [pathOn] = useState(() => retentionOn('path'));
+  const runStars = Number.isFinite(result?.stars) && result.stars > 0 ? Math.round(result.stars) : getStarsForTime(stage, result?.elapsedSeconds);
   const rank = result?.rank || null;
   const stages = series?.stages || [];
   const stageIdx = stages.findIndex(s => s.id === stage?.id);
   const nextStage = stageIdx >= 0 && stageIdx < stages.length - 1 ? stages[stageIdx + 1] : null;
   const nextStageNum = nextStage ? (nextStage.stageNumber || stageIdx + 2) : null;
+  // Fewer stars than the stage can hold: how far off the next one, a replay
+  // for it (when a retry is safe today) and the next stage as two equal
+  // buttons (never pushed; replays keep the best). A clear is a win, so the
+  // panel never says "come back tomorrow" here: with no replay today the gap
+  // stays over the next stage, and with no replay and no next stage (a boss,
+  // the saga's final stage) the panel stays out: the plain clear.
+  const nmFor = nearMiss?.show && nearMiss.miss?.kind === 'time' ? nearMiss : null;
+  const nmReplay = !!nmFor?.gate?.allowed && typeof onRetry === 'function';
+  const nm = nmFor && (nmReplay || (nextStage && onNextStage)) ? nmFor : null;
+  const nmGate = nm ? { ...nm.gate, line: null } : null;
+  // With the stars landing (the path switch), the stats keep one line each on
+  // a narrow phone (the stars cell is a little wider than the old one), and
+  // the three labels share one top line under a NEW BEST pill.
+  const oneLine = pathOn ? { whiteSpace: 'nowrap' } : null;
 
   useEffect(() => {
     const timers = [
@@ -122,8 +151,10 @@ function StageClearedScreen({
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       justifyContent: 'center', padding: 24, overflow: 'hidden',
       animation: 'ov-fade-in 0.3s ease-out',
+      ...(nm ? NM_FRAME : {}),
     }}>
       <style dangerouslySetInnerHTML={{ __html: OVERLAY_STYLES }}/>
+      {nm && <NmSpacer/>}
 
       {/* Green glow frame */}
       <div style={{
@@ -138,7 +169,7 @@ function StageClearedScreen({
           <SafeImage
             src="/static/arcade/stage-complete.webp"
             alt="Stage Cleared"
-            style={{ width: 180, height: 'auto', display: 'block', margin: '0 auto' }}
+            style={{ width: nm ? 140 : 180, height: 'auto', display: 'block', margin: '0 auto' }}
           />
         </div>
       )}
@@ -170,20 +201,20 @@ function StageClearedScreen({
       {phase >= 2 && (
         <div style={{
           animation: 'ov-slide-up 0.3s ease-out forwards',
-          display: 'flex', alignItems: 'center', gap: 16,
-          padding: '12px 20px', borderRadius: 12,
+          display: 'flex', alignItems: pathOn ? 'flex-start' : 'center', gap: pathOn ? 12 : 16,
+          padding: pathOn ? '12px 16px' : '12px 20px', borderRadius: 12,
           background: 'rgba(34,197,94,0.04)',
           border: '1px solid rgba(34,197,94,0.2)',
           marginBottom: 16,
         }}>
           {/* Time */}
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: '0.1em', marginBottom: 2 }}>YOUR TIME</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: '0.1em', marginBottom: 2, ...oneLine }}>YOUR TIME</div>
             <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 16, fontWeight: 900, color: '#fff' }}>
               {formatTime(result?.elapsedSeconds)}
             </div>
             {result?.newBest && (
-              <div style={{ marginTop: 3, display: 'inline-block', padding: '1px 7px', borderRadius: 99, background: 'rgba(253,224,71,0.12)', border: '1px solid rgba(253,224,71,0.45)', fontFamily: "'Orbitron',sans-serif", fontSize: 6.5, fontWeight: 800, color: '#fde047', letterSpacing: '0.14em' }}>
+              <div style={{ marginTop: 3, display: 'inline-block', padding: '1px 7px', borderRadius: 99, background: 'rgba(253,224,71,0.12)', border: '1px solid rgba(253,224,71,0.45)', fontFamily: "'Orbitron',sans-serif", fontSize: 6.5, fontWeight: 800, color: '#fde047', letterSpacing: '0.14em', ...oneLine }}>
                 ★ NEW BEST
               </div>
             )}
@@ -193,7 +224,7 @@ function StageClearedScreen({
 
           {/* XP */}
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: '0.1em', marginBottom: 2 }}>XP EARNED</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: '0.1em', marginBottom: 2, ...oneLine }}>XP EARNED</div>
             <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 16, fontWeight: 900, color: '#22c55e' }}>
               +{displayXp}
             </div>
@@ -204,7 +235,12 @@ function StageClearedScreen({
           {/* Stars — benchmark shows its rank; timed stages show the 3-star
               tier rating earned this run */}
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: '0.1em', marginBottom: 2 }}>{rank ? 'RANK' : 'STARS'}</div>
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 9, color: C.muted, fontWeight: 600, letterSpacing: '0.1em', marginBottom: 2, ...oneLine }}>{rank ? 'RANK' : 'STARS'}</div>
+            {pathOn ? (
+              rank
+                ? <StarsRow n={getRankStars(rank)} of={5} size={12} gap={2} land delay={0.35} step={0.3} onLand={(i) => playTone(880 + i * 110, 0.18, 0.05)} label={`Rank ${rank}`} color="#22c55e" glow="rgba(34,197,94,0.6)"/>
+                : <StarsRow n={runStars} of={3} size={15} gap={3} land delay={0.35} step={0.45} onLand={(i) => playTone([880, 1108, 1318][i] || 1318, 0.22, 0.06)}/>
+            ) : (
             <div style={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
               {rank
                 ? Array.from({ length: 5 }, (_, i) => (
@@ -214,12 +250,26 @@ function StageClearedScreen({
                     <Star key={i} size={13} fill={i < (result?.stars || 1) ? '#fde047' : 'transparent'} color={i < (result?.stars || 1) ? '#fde047' : 'rgba(255,255,255,0.18)'} strokeWidth={1.5}/>
                   ))}
             </div>
+            )}
           </div>
         </div>
       )}
 
+      {/* Near miss: the next star, a replay for it and the next stage as
+          two equal buttons (in place of the UP NEXT card and START). */}
+      {phase >= 3 && countDone && nm && (
+        <div style={{ width: '100%', maxWidth: 300, marginBottom: 8 }}>
+          <NearMissPanel
+            eyebrow="NEXT STAR"
+            miss={nm.miss} gate={nmGate}
+            onRetry={onRetry} retryLabel={nm.retryLabel || 'REPLAY'}
+            alt={nextStage && onNextStage ? { label: `START STAGE ${nextStageNum}`, onClick: onNextStage } : null}
+          />
+        </div>
+      )}
+
       {/* UP NEXT teaser */}
-      {phase >= 3 && countDone && nextStage && (
+      {phase >= 3 && countDone && nextStage && !nm && (
         <div style={{
           animation: 'ov-slide-up 0.3s ease-out forwards',
           display: 'flex', alignItems: 'center', gap: 10,
@@ -255,7 +305,7 @@ function StageClearedScreen({
       {/* Buttons */}
       {phase >= 3 && countDone && (
         <div style={{ animation: 'ov-fade-in 0.4s ease-out', display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 300 }}>
-          {nextStage && onNextStage && (
+          {nextStage && onNextStage && !nm && (
             <ArcadePrimaryButton onClick={onNextStage}>
               <Play size={15} fill="#0a0014" strokeWidth={0}/> START STAGE {nextStageNum}
             </ArcadePrimaryButton>
@@ -274,13 +324,17 @@ function StageClearedScreen({
           </button>
         </div>
       )}
+      {nm && <NmSpacer/>}
     </div>
   );
 }
 
 // ─── MISSION FAILED ──────────────────────────────────────────────────────────
 
-function MissionFailedScreen({ stage, result, onRetry, onReturnToArcade }) {
+function MissionFailedScreen({ stage, result, onRetry, onReturnToArcade, nearMiss, onLeave }) {
+  // Near miss: the tasks left, RETRY (when safe) and the way home, in place of
+  // the time row and the two buttons.
+  const nm = nearMiss?.show ? nearMiss : null;
   const targetMinutes = stage?.scoringTiers?.[0]?.maxMinutes || null;
   const yourTime = result?.elapsedSeconds || 0;
   const targetSeconds = targetMinutes ? targetMinutes * 60 : null;
@@ -293,8 +347,10 @@ function MissionFailedScreen({ stage, result, onRetry, onReturnToArcade }) {
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       justifyContent: 'center', padding: 24, overflow: 'hidden',
       animation: 'ov-fade-in 0.3s ease-out',
+      ...(nm ? NM_FRAME : {}),
     }}>
       <style dangerouslySetInnerHTML={{ __html: OVERLAY_STYLES }}/>
+      {nm && <NmSpacer/>}
 
       {/* Red glow frame */}
       <div style={{
@@ -307,7 +363,7 @@ function MissionFailedScreen({ stage, result, onRetry, onReturnToArcade }) {
       <SafeImage
         src="/static/arcade/mission-failure.webp"
         alt="Mission Failed"
-        style={{ width: 180, height: 'auto', display: 'block', margin: '0 auto 16px' }}
+        style={{ width: nm ? 140 : 180, height: 'auto', display: 'block', margin: '0 auto 16px' }}
       />
 
       {/* Title */}
@@ -326,7 +382,7 @@ function MissionFailedScreen({ stage, result, onRetry, onReturnToArcade }) {
       </div>
 
       {/* Time comparison row */}
-      <div style={{
+      {!nm && <div style={{
         display: 'flex', alignItems: 'stretch', gap: 0,
         borderRadius: 12, overflow: 'hidden',
         border: '1px solid rgba(239,68,68,0.2)',
@@ -356,7 +412,7 @@ function MissionFailedScreen({ stage, result, onRetry, onReturnToArcade }) {
             </div>
           </>
         )}
-      </div>
+      </div>}
 
       {/* No XP */}
       <div style={{
@@ -365,8 +421,14 @@ function MissionFailedScreen({ stage, result, onRetry, onReturnToArcade }) {
         marginBottom: 20, textAlign: 'center',
       }}>NO XP AWARDED</div>
 
+      {nm && (
+        <div style={{ width: '100%', maxWidth: 300 }}>
+          <NearMissPanel miss={nm.miss} gate={nm.gate} onRetry={onRetry} retryLabel="RETRY THE STAGE" onLeave={onLeave}/>
+        </div>
+      )}
+
       {/* Buttons */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 300 }}>
+      {!nm && <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 300 }}>
         <ArcadePrimaryButton onClick={onRetry} style={{
           background: 'linear-gradient(135deg, #ef4444, #dc2626)',
           boxShadow: '0 0 20px rgba(239,68,68,0.4)',
@@ -380,14 +442,18 @@ function MissionFailedScreen({ stage, result, onRetry, onReturnToArcade }) {
         }}>
           <ChevronLeft size={12} style={{ verticalAlign: 'middle', marginRight: 4 }}/> Back to Arcade
         </button>
-      </div>
+      </div>}
+      {nm && <NmSpacer/>}
     </div>
   );
 }
 
 // ─── PARTIAL COMPLETION ──────────────────────────────────────────────────────
 
-function PartialCompletionScreen({ stage, result, xpEarned, onRetry, onReturnToArcade }) {
+function PartialCompletionScreen({ stage, result, xpEarned, onRetry, onReturnToArcade, nearMiss, onLeave }) {
+  // Near miss: what is left, RETRY (when safe) and the way home, in place of
+  // the encouragement line and the two buttons.
+  const nm = nearMiss?.show ? nearMiss : null;
   const completionPercent = result?.completionPercent || Math.round((result?.completedTasks || 0) / (result?.totalTasks || 1) * 100);
   const partialXp = xpEarned || Math.round((stage?.rewards?.xp || 0) * (completionPercent / 100) * 0.5);
 
@@ -398,8 +464,10 @@ function PartialCompletionScreen({ stage, result, xpEarned, onRetry, onReturnToA
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       justifyContent: 'center', padding: 24, overflow: 'hidden',
       animation: 'ov-fade-in 0.3s ease-out',
+      ...(nm ? NM_FRAME : {}),
     }}>
       <style dangerouslySetInnerHTML={{ __html: OVERLAY_STYLES }}/>
+      {nm && <NmSpacer/>}
 
       {/* Violet glow frame */}
       <div style={{
@@ -412,7 +480,7 @@ function PartialCompletionScreen({ stage, result, xpEarned, onRetry, onReturnToA
       <SafeImage
         src="/static/arcade/partial-complete.webp"
         alt="Partial Completion"
-        style={{ width: 180, height: 'auto', display: 'block', margin: '0 auto 16px' }}
+        style={{ width: nm ? 140 : 180, height: 'auto', display: 'block', margin: '0 auto 16px' }}
       />
 
       {/* Title */}
@@ -460,16 +528,22 @@ function PartialCompletionScreen({ stage, result, xpEarned, onRetry, onReturnToA
       </div>
 
       {/* Encouragement */}
-      <div style={{
+      {!nm && <div style={{
         fontFamily: "'Rajdhani',sans-serif", fontSize: 12, fontWeight: 500,
         color: 'rgba(168,85,247,0.7)', marginBottom: 20, textAlign: 'center',
         maxWidth: 260, lineHeight: 1.5,
       }}>
         You made progress but did not finish. Complete the full stage to unlock the next one.
-      </div>
+      </div>}
+
+      {nm && (
+        <div style={{ width: '100%', maxWidth: 300 }}>
+          <NearMissPanel miss={nm.miss} gate={nm.gate} onRetry={onRetry} retryLabel="RETRY THE STAGE" onLeave={onLeave}/>
+        </div>
+      )}
 
       {/* Buttons */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 300 }}>
+      {!nm && <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 300 }}>
         <ArcadePrimaryButton onClick={onRetry} style={{
           background: 'linear-gradient(135deg, #a855f7, #7c3aed)',
           boxShadow: '0 0 20px rgba(168,85,247,0.4)',
@@ -483,7 +557,8 @@ function PartialCompletionScreen({ stage, result, xpEarned, onRetry, onReturnToA
         }}>
           Save &amp; Exit
         </button>
-      </div>
+      </div>}
+      {nm && <NmSpacer/>}
     </div>
   );
 }
@@ -550,26 +625,19 @@ function ValidationFailedScreen({ stage, result, onRetry, onReturnToArcade }) {
 export default function ArcadeStageClearOverlay({
   series, stage, result, pointsEarned, xpEarned, statRewards,
   totalArcadeXpBefore, completedStageIds, onContinue, onRetry, onReturnToArcade, onNextStage, onShare,
+  nearMiss = null,      // retention feature 3: settled by the player (data/nearMissStore classicNearMiss)
+  onDoneForToday,       // its COME BACK FRESH TOMORROW / DONE FOR TODAY (home)
 }) {
   // Item 9 — the four Arcade screens keep their own look, but the VERDICT now
   // comes from the same engine call every other mode uses (shared/sessionOutcome
   // → evaluateSession against pass-rules.json). A player's flags still win: a
   // stage that explicitly reports invalid/partial/hardFail is honoured as-is,
   // and the engine only decides when the runner didn't say.
-  const flagged = result?.invalid === true || result?.partial === true
-    || result?.hardFail === true || result?.missionFailed === true;
-  const verdict = flagged ? null : resolveOutcome({
-    completed: result?.completedTasks ?? result?.completedRounds,
-    total: result?.totalTasks ?? result?.totalRounds,
-    difficulty: result?.difficulty,
-    integrityResult: result?.integrityResult,
-    safetyFlag: result?.safetyFlag,
-  });
-
-  const isInvalid = result?.invalid === true || verdict?.outcome === 'validation_failed';
-  const isPartial = result?.partial === true || verdict?.outcome === 'partial';
-  const isHardFail = result?.hardFail === true || result?.missionFailed === true
-    || verdict?.outcome === 'fail';
+  // (data/arcadeOutcome: the same choice, pure.)
+  const { screen } = arcadeOverlayOutcome(result);
+  const isInvalid = screen === 'invalid';
+  const isHardFail = screen === 'failed';
+  const isPartial = screen === 'partial';
 
   // Item 10b — anything unlocked by this clear rides on top of whichever
   // outcome screen shows. App.jsx puts it on the result; award() already
@@ -595,6 +663,8 @@ export default function ArcadeStageClearOverlay({
         result={result}
         onRetry={onRetry || onContinue}
         onReturnToArcade={onReturnToArcade}
+        nearMiss={nearMiss}
+        onLeave={onDoneForToday || onReturnToArcade}
       /></>
     );
   }
@@ -607,6 +677,8 @@ export default function ArcadeStageClearOverlay({
         xpEarned={xpEarned}
         onRetry={onRetry || onContinue}
         onReturnToArcade={onReturnToArcade}
+        nearMiss={nearMiss}
+        onLeave={onDoneForToday || onReturnToArcade}
       /></>
     );
   }
@@ -624,6 +696,8 @@ export default function ArcadeStageClearOverlay({
       onNextStage={onNextStage}
       onReturnToArcade={onReturnToArcade}
       onShare={onShare}
+      onRetry={onRetry}
+      nearMiss={nearMiss}
     /></>
   );
 }

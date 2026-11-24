@@ -1,18 +1,21 @@
 import { createPortal } from 'react-dom';
 import SafeImage from './SafeImage';
 import { weeklySummary, WEEKLY_BONUS_XP } from './data/practiceInvite';
-import { getLibraryDrilled } from './data/practiceLessons';
+import { movesFor, nextMove, drillFor, getLearned } from './data/practiceMoves';
 import { buildRound, planLine } from './data/practiceRound';
 
 // The Practice posters (Simplify revamp, PracticeInvite.dc.html), full
 // screen over everything:
 //
 // - view 'intro': once, at the end of first-run setup, for new learners.
-//   START LESSON 1 opens Practice on lesson 1; the secondary button lets
-//   them explore on their own.
+//   START LESSON 1 opens Practice on the first move's card; the secondary
+//   button lets them explore on their own.
 // - view 'weekly': the weekly nudge until one discipline's basics are done.
-//   Shows each discipline's basics and the next lesson, and promises the
+//   Shows each discipline's basics and the next move, and promises the
 //   bonus data/practiceInvite actually pays.
+//
+// A lesson here is a move of the Ladder (data/practiceMoves.js). The one the
+// poster names is the Ladder's UP NEXT, which is the card START opens.
 //
 // When to show them is decided by data/practiceInvite; this only draws.
 
@@ -37,20 +40,18 @@ const BENEFITS = [
 export default function PracticeInvite({ view = 'intro', discipline = 'Boxing', onStart, onClose }) {
   const intro = view !== 'weekly';
   const { discs, focus } = weeklySummary(discipline);
-  const next = focus.next || focus.lessons[0];
-  const lessonNo = (focus.nextIndex >= 0 ? focus.nextIndex : 0) + 1;
-  // The round that lesson will end on, so "about N min" is the real length.
-  const { plan } = buildRound({
-    focus: { name: next.title, calls: next.calls },
-    learned: focus.done + 1 + getLibraryDrilled(focus.disc).length,
-  });
+  const moves = movesFor(focus.disc);
+  const move = nextMove(moves, getLearned()) || moves[0];
+  const lessonNo = moves.indexOf(move) + 1;
+  // The drill that move ends on, so the poster names its real length.
+  const { plan } = buildRound(drillFor(moves, move));
 
   const kicker = intro ? 'NEW TO FIGHTING? START HERE.' : `THIS WEEK · +${WEEKLY_BONUS_XP} XP`;
   const title = intro ? 'EVERY CHAMPION STARTED AT LESSON 1.' : 'ONE LESSON. ONE WEEK. KEEP BUILDING.';
   const line = intro
     ? 'Your coach in your pocket. Learn each move the right way, then drill it in a round built for you.'
     : `Finish one lesson in any discipline this week for +${WEEKLY_BONUS_XP} XP. Solid basics make every other workout safer and more effective.`;
-  const cta = intro ? `▶ START LESSON ${lessonNo} · ${next.title.toUpperCase()}` : `▶ CONTINUE · LESSON ${lessonNo}`;
+  const cta = intro ? `▶ START LESSON ${lessonNo} · ${move.name.toUpperCase()}` : `▶ CONTINUE · LESSON ${lessonNo}`;
 
   return createPortal(
     <div role="dialog" aria-modal="true" aria-label={intro ? 'Practice Mode — start here' : 'Weekly lesson'} style={{
@@ -125,7 +126,7 @@ export default function PracticeInvite({ view = 'intro', discipline = 'Boxing', 
               })}
             </div>
             <span style={{ fontSize: 12, color: '#BDB6D6' }}>
-              Next up: <span style={{ color: '#fff', fontWeight: 600 }}>Lesson {lessonNo} · {next.title}</span> · then a {planLine(plan)} practice round
+              Next up: <span style={{ color: '#fff', fontWeight: 600 }}>Lesson {lessonNo} · {move.name}</span> · then a {planLine(plan)} drill
             </span>
           </div>
         )}

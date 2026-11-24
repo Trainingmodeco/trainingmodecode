@@ -33,8 +33,12 @@ export default function FloatingResumeButton({ pausedSession, onResume, onDiscar
         position: 'fixed',
         // Same row as the BETA chip, just above the tab bar. Pages reserve this row
         // while a session is paused (--tm-resume-top, set by WithNav), so the
-        // pill never sits on a button.
-        bottom: 'calc(74px + env(safe-area-inset-bottom, 0px))',
+        // pill never sits on a button. On a page that scrolls the row is the
+        // shelf over the tab bar (ScreenRouter WithNav): 69px up the pill (35
+        // tall) is inside its solid part, 5px above the tab bar; at 74 its top
+        // 4px stood in the shelf's soft edge, over the page passing under it.
+        // The scroll chevron in the shelf's middle stays off while it shows.
+        bottom: 'calc(69px + env(safe-area-inset-bottom, 0px))',
         // Beta RS-04 — hug the app column's edge, not the browser window's:
         // at 1920px the pill floated ~600px from the content with no visual
         // relationship to the app.
@@ -44,6 +48,7 @@ export default function FloatingResumeButton({ pausedSession, onResume, onDiscar
     >
     <button
       onClick={onResume}
+      data-ui="resume-pill"
       style={{
         display: 'flex',
         alignItems: 'center',

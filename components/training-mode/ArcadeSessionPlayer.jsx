@@ -15,6 +15,9 @@ import { CARDIO_METHODS } from './data/cardioProtocolData';
 import ArcadeStageIntroOverlay from './ArcadeStageIntroOverlay';
 import ArcadeBenchmarkPlayer from './ArcadeBenchmarkPlayer';
 import ArcadeStageClearOverlay from './ArcadeStageClearOverlay';
+import { normalClearResult, stageClockStart, stageElapsedSeconds, STAGE_CLOCK_RETRY } from './data/arcadeOutcome';
+import { retentionOn } from './data/retentionFlags';
+import { classicNearMiss, noteAttempt } from './data/nearMissStore';
 import ArcadeCadenceRepPlayer from './ArcadeCadenceRepPlayer';
 import ArcadeBackBalanceChooser from './ArcadeBackBalanceChooser';
 import ArcadeCardioPlayer from './ArcadeCardioPlayer';
@@ -152,7 +155,7 @@ function buildTaskList(stage, blockKey, arcadeSettings, series) {
   return tasks;
 }
 
-export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeOrder, arcadeSettings, onComplete, onExit, onHome, initialPaused, onStateChange, initialResumeData }) {
+export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeOrder, arcadeSettings, onComplete, onExit, onHome, onDoneForToday, initialPaused, onStateChange, initialResumeData }) {
   const firstBlock = selectedMode === 'both'
     ? (modeOrder === 'fight-first' ? 'fight' : 'fit')
     : selectedMode;
@@ -211,7 +214,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
   const totalXpBefore = progress?.xpEarned || 0;
 
   const handleIntroComplete = useCallback(() => {
-    if (sessionStartedAtRef.current == null) sessionStartedAtRef.current = Date.now();
+    sessionStartedAtRef.current = stageClockStart(sessionStartedAtRef.current, Date.now());
     setSessionPhase('active');
   }, []);
 
@@ -220,20 +223,33 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
     setSessionPhase('clear');
   }, []);
 
+  // Every task of every block this stage runs: a clear did all of them, and
+  // the clear screen judges the run from these counts (data/arcadeOutcome).
+  const stageTaskCount = useMemo(() => (
+    buildTaskList(stage, firstBlock, arcadeSettings, series).length
+      + (secondBlock ? buildTaskList(stage, secondBlock, arcadeSettings, series).length : 0)
+  ), [stage, firstBlock, secondBlock, arcadeSettings, series]);
+
   const handleNormalStageComplete = useCallback((extra = {}) => {
-    const xp = stage?.rewards?.xp || 0;
-    setStageResult({
-      invalid: false,
-      rank: null,
-      points: xp,
-      xpEarned: xp,
+    setStageResult(normalClearResult({
+      xp: stage?.rewards?.xp || 0,
       statRewards: stage?.rewards?.statRewards || null,
+      taskCount: stageTaskCount,
       ...extra, // elapsedSeconds / stars / newBest from the timed run
-    });
+    }));
     setSessionPhase('clear');
-  }, [stage]);
+  }, [stage, stageTaskCount]);
+
+  // Retention feature 3 (switch `nearMiss`): the clear screen's near-miss
+  // panel, settled once per result (the stage counts as one try today).
+  const [nearMissOn] = useState(() => retentionOn('nearMiss'));
+  const nearMiss = useMemo(() => (nearMissOn && sessionPhase === 'clear' && stageResult ? classicNearMiss(series, stage, stageResult) : null), [nearMissOn, sessionPhase, stageResult, series, stage]);
+  useEffect(() => { if (nearMiss) noteAttempt(nearMiss); }, [nearMiss]);
 
   const handleRetryStage = useCallback(() => {
+    // A retry is timed from its own start: the stars are a time, and the
+    // first run's minutes must not count against it (for everyone).
+    sessionStartedAtRef.current = STAGE_CLOCK_RETRY;
     setStageResult(null);
     setSessionPhase('intro');
     setTaskIdx(0);
@@ -328,9 +344,7 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
       } else {
         const stageValid = integrityRef.current ? isStageFullyValid(integrityRef.current) : true;
         if (stageValid) {
-          const elapsedSec = sessionStartedAtRef.current
-            ? Math.round((Date.now() - sessionStartedAtRef.current) / 1000)
-            : null;
+          const elapsedSec = stageElapsedSeconds(sessionStartedAtRef.current, Date.now());
           // Snapshot the previous best BEFORE completeStage writes the new one.
           const prevBest = progress?.completedStages?.[stage.id]?.bestTimeSeconds;
           const stars = getStarsForTime(stage, elapsedSec);
@@ -459,6 +473,8 @@ export default function ArcadeSessionPlayer({ series, stage, selectedMode, modeO
         onRetry={handleRetryStage}
         onReturnToArcade={onExit}
         onNextStage={!stageResult.invalid ? onComplete : null}
+        nearMiss={nearMiss}
+        onDoneForToday={onDoneForToday || onExit}
       />
     );
   }

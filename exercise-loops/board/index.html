@@ -1,0 +1,1815 @@
+<title>Exercise Loop Board</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: a working board. Six sections: what still needs a video, the raw footage to name and queue, the finished loops to review, the loops made so far, the new exercises, and the squats to name. One editor opens in place per row; each footage card carries its own small form. On the two footage tabs every box has a size that does not depend on what loads into it. */
+:root { --bg: #F5F2FB; --surface: #FFFFFF; --sunk: #ECE7F7; --ink: #1B1230; --muted: #5E5478; --line: #D9D1EA; --line-strong: #8579A6; --accent: #6D3FD1; --gold: #8A6100; --good: #1E7B46; --warn: #B4491F; --on-accent: #FFFFFF; --stage: #0A0014;
+  --display: 'Chakra Petch', 'Trebuchet MS', sans-serif; --body: 'Inter', system-ui, sans-serif; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #0B0614; --surface: #140D24; --sunk: #1B1230; --ink: #EFE8FB; --muted: #AB9FC8; --line: #2D2147; --line-strong: #7A6BA3; --accent: #C4A3FF; --gold: #F2BE45; --good: #4ADE80; --warn: #FF9A6B; --on-accent: #0B0614; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #0B0614; --surface: #140D24; --sunk: #1B1230; --ink: #EFE8FB; --muted: #AB9FC8; --line: #2D2147; --line-strong: #7A6BA3; --accent: #C4A3FF; --gold: #F2BE45; --good: #4ADE80; --warn: #FF9A6B; --on-accent: #0B0614; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 400 15px/1.5 var(--body); }
+.wrap { max-width: 920px; margin: 0 auto; padding-block: 20px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 12px; }
+header { display: flex; flex-direction: column; gap: 8px; }
+main { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+h1 { font: 700 clamp(24px, 5vw, 32px)/1.15 var(--display); margin: 0; text-wrap: balance; }
+h2.grp { font: 600 12px var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 10px 0 0; }
+h3.nm { font: 600 15px var(--display); letter-spacing: .03em; margin: 0; min-width: 0; overflow-wrap: anywhere; }
+p { margin: 0; max-width: 68ch; }
+.muted { color: var(--muted); } .small { font-size: 13px; }
+.state { font-size: 13px; padding: 8px 12px; border-radius: 8px; background: var(--sunk); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 2px; }
+.state .sum { font-variant-numeric: tabular-nums; }
+.state .sum b { font: 700 15px var(--display); }
+.tabs, .bar, .seg { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.tabs button, .seg button, .chip { font: 700 12px var(--display); letter-spacing: .1em; min-height: 44px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--muted); cursor: pointer; }
+.tabs button[aria-current="page"], .seg button[aria-pressed="true"], .chip[aria-pressed="true"] { border-color: var(--accent); color: var(--ink); background: var(--sunk); }
+.seg button[aria-pressed="true"]::before, .chip[aria-pressed="true"]::before { content: '\2713\00a0'; }
+.tabs button:hover, .seg button:hover, .chip:hover, .btn:hover { border-color: var(--accent); }
+.tabs button:active, .seg button:active, .chip:active, .btn:active { transform: translateY(1px); }
+button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.bar label { font: 600 12px var(--body); color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.bar select, .bar input[type="search"], .bar input[type="number"] { font: 400 16px var(--body); min-height: 44px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); max-width: 100%; box-sizing: border-box; }
+.bar input[type="search"] { width: min(240px, 100%); }
+.bar input[type="number"] { width: 72px; }
+.frow { display: flex; gap: 6px; align-items: center; flex: 1 1 100%; min-width: 0; }
+.frow label { flex: none; }
+.frow select { max-width: 150px; flex: 0 1 auto; min-width: 0; }
+.frow input[type="search"] { flex: 1 1 120px; width: auto; min-width: 0; }
+::placeholder { color: var(--muted); opacity: .85; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+details.more { width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 0 10px 8px; box-sizing: border-box; }
+details.more summary { cursor: pointer; font: 600 12px var(--display); letter-spacing: .1em; color: var(--muted); min-height: 44px; display: flex; align-items: center; list-style: none; }
+details.more summary::-webkit-details-marker { display: none; }
+details.more summary::before { content: '+\00a0'; font-weight: 700; }
+details.more[open] summary::before { content: '\2212\00a0'; }
+.list { display: flex; flex-direction: column; gap: 8px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; }
+.slot { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.slot.has { flex-direction: row; flex-wrap: wrap; gap: 8px 12px; align-items: flex-start; }
+.slot.has > .body { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1 1 150px; }
+.slot.has > .ed { flex: 1 1 100%; }
+.head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 10px; flex-wrap: wrap; }
+.ln { font-size: 13px; min-width: 0; overflow-wrap: anywhere; }
+.nt { display: block; color: var(--muted); }
+.warnnote { color: var(--gold); }
+.pill { display: inline-block; font: 600 11px var(--display); letter-spacing: .1em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; border: 1px solid currentColor; white-space: nowrap; }
+.ok { color: var(--good); } .mine { color: var(--gold); } .none { color: var(--warn); } .stand { color: var(--accent); } .text { color: var(--muted); }
+.acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn { font: 600 13px var(--body); min-height: 44px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--sunk); color: var(--ink); cursor: pointer; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn.danger { color: var(--warn); background: transparent; }
+.btn:disabled { opacity: .5; cursor: default; }
+.ed { border-top: 1px solid var(--line); padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.ed label, .ed legend { font: 600 12px var(--body); color: var(--muted); }
+.ed input:not([type="checkbox"]):not([type="file"]), .ed select, .ed textarea { font: 400 16px var(--body); width: 100%; min-height: 44px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--bg); color: var(--ink); box-sizing: border-box; }
+.ed input[type="file"] { font: 400 14px var(--body); max-width: 100%; color: var(--ink); }
+.ed input[type="file"]::file-selector-button { min-height: 44px; padding: 0 16px; margin-right: 10px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--sunk); color: var(--ink); font: 600 13px var(--body); cursor: pointer; }
+.ck { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font: 400 14px var(--body); color: var(--ink); }
+.ck input { width: 22px; height: 22px; accent-color: var(--accent); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.two > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.err { color: var(--warn); font-size: 13px; font-weight: 600; }
+.err:empty { display: none; }
+.stage { position: relative; background: var(--stage); border-radius: 10px; overflow: hidden; flex: none; }
+.stage video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.stage.md { width: 120px; height: 120px; }
+.stage .pp { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.stage .ind { display: none; position: absolute; right: 6px; bottom: 6px; width: 28px; height: 28px; border-radius: 14px; background: rgba(10, 0, 20, .75); color: #fff; font-size: 12px; align-items: center; justify-content: center; }
+.stage .ind::before { content: '\25B6'; }
+.stage.paused .ind { display: flex; }
+.stage .pp:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+video.pv { width: 100%; max-width: 320px; max-height: 240px; object-fit: contain; border-radius: 8px; background: #000; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.copybox { width: 100%; min-height: 140px; font: 400 13px/1.4 var(--body); border-radius: 8px; border: 1px solid var(--line-strong); background: var(--bg); color: var(--ink); box-sizing: border-box; padding: 8px 10px; }
+/* Raw footage and review */
+.state.gen { width: 100%; box-sizing: border-box; gap: 8px; padding: 10px 12px; }
+.state.gen .btn { background: var(--surface); }
+.state.gen .btn.primary { background: var(--accent); }
+#gen-msg:empty { display: none; }
+.vgrp { display: flex; flex-direction: column; gap: 8px; min-width: 0; --ch: 512px; }
+/* A video's cards are only laid out near the screen. The size kept for the rest is a guess from the number of cards (--n, --j), then the real size once seen. Only where the browser holds the scroll position steady when such a guess is corrected (scroll anchoring); elsewhere every card is laid out, and the fixed boxes below keep the page from moving. */
+@supports (overflow-anchor: auto) { .vgrp { content-visibility: auto; contain-intrinsic-size: auto 300px auto calc(30px + var(--n, 2) * var(--ch) + var(--j, 0) * 54px); } }
+h3.vid { font: 600 13px var(--body); margin: 2px 0 0; overflow-wrap: anywhere; }
+h3.vid span { font-weight: 400; color: var(--muted); }
+.sgc { gap: 8px; }
+.sgc.skipped { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.sgc.skipped .ln { flex: 1 1 140px; }
+.sgc.skipped .err { flex: 1 1 100%; }
+/* The strip's box has one shape whatever the footage, so the page does not move when a picture arrives. The picture is fitted inside it once its own shape (--r, one frame) is known. */
+.strip { aspect-ratio: 10; border-radius: 8px; overflow: hidden; background: var(--sunk); }
+.strip.known { background: none; }
+.strip .fr { width: 100%; border-radius: 8px; overflow: hidden; }
+.strip:not(.known) img { visibility: hidden; }
+.strip span { display: block; overflow: hidden; }
+.strip img { display: block; width: 100%; max-width: none; height: auto; }
+.strip .b { display: none; }
+.sgrow { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-start; }
+.sgrow > .body { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1 1 150px; }
+.tm { font-weight: 600; font-variant-numeric: tabular-nums; }
+/* The preview box is one shape too. Its still picture (one frame of the strip) and its video sit inside it at the footage's own shape. */
+.stage.pvw { height: clamp(150px, 22vw, 240px); aspect-ratio: 16 / 9; max-width: 100%; display: grid; place-items: center; }
+.stage.pvw .fr, .stage.pvw video { grid-area: 1 / 1; }
+@media (max-width: 560px) { .sgrow > .stage.pvw { aspect-ratio: 1; } }
+.stage.pvw .fr { display: none; background: no-repeat 42.86% 50% / 800% 100%; }
+.stage.sq { width: 240px; max-width: 100%; aspect-ratio: 1; }
+.stage.pvw video, .stage.sq video { object-fit: contain; }
+.pair { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; container-type: inline-size; }
+.pair figure { margin: 0; display: flex; flex-direction: column; gap: 4px; min-width: 0; max-width: 100%; }
+.pair figcaption { font: 600 12px var(--body); color: var(--muted); }
+.pair .stage.pvw { height: 240px; aspect-ratio: var(--r, 0.5625); }
+.sgc form > input, .sgc form > details { max-width: 560px; }
+.more .in { display: flex; flex-direction: column; gap: 6px; }
+.ed details.more { border: 0; padding: 0; background: transparent; }
+details.junk { background: transparent; }
+details.junk:not([open]) { padding-bottom: 0; }
+details.junk > summary { font: 600 13px var(--body); letter-spacing: 0; }
+details.junk > .in { gap: 8px; }
+/* A closed section inside an open one keeps its plus sign. */
+details.more:not([open]) > summary::before { content: '+\00a0'; }
+/* v11: the cut editor has to be easy to find */
+details.more[data-cut] > summary { flex-wrap: wrap; column-gap: 10px; border: 1px solid var(--gold); border-radius: 8px; background: var(--sunk); color: var(--ink); padding: 4px 12px; margin-top: 8px; font: 700 13px var(--display); letter-spacing: .08em; }
+details.more[data-cut] > summary::before, details.more[data-cut][open] > summary::before, details.more[data-cut]:not([open]) > summary::before { content: '\2702\FE0E'; color: var(--gold); font-size: 18px; }
+details.more[data-cut] > summary:hover { border-color: var(--accent); }
+details.more[data-cut][open] > summary { border-color: var(--line-strong); }
+.cutsub { font: 400 12px var(--body); letter-spacing: 0; color: var(--muted); }
+.cuthelp { border: 1px solid var(--gold); border-radius: 8px; background: var(--sunk); padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; max-width: 68ch; }
+.cuthelp .t { font: 700 13px var(--display); letter-spacing: .1em; color: var(--gold); }
+.cuthelp ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 3px; }
+.ed .small:empty { display: none; }
+.ck.off { color: var(--muted); }
+@media (max-width: 560px) { .vgrp { --ch: 570px; } .strip { aspect-ratio: 32 / 9; } .strip.wide img { width: 200%; } .strip.wide .b { display: block; } .strip.wide .b img { margin-left: -100%; } .pair .stage.pvw { height: clamp(160px, 46vw, 240px); } .pair .stage.sq { width: clamp(160px, 46vw, 240px); } }
+@media (max-width: 480px) { .grid { grid-template-columns: 1fr; } .stage.md { width: 96px; height: 96px; } .tabs button { letter-spacing: .04em; padding: 8px; } .seg button { letter-spacing: .06em; padding: 8px 9px; } }
+@media (max-width: 379px) { .tabs button { font-size: 11px; padding: 8px 7px; } .seg button { padding: 8px; } }
+/* The source and its loop size to the card they sit in, so an upright source fits beside the loop and a wide one stacks above it. */
+@supports (width: 1cqw) {
+  .pair .stage.pvw { height: clamp(150px, 58cqw, 240px); } .pair .stage.sq { width: clamp(150px, 58cqw, 240px); }
+  .strip, .stage.pvw { container-type: size; }
+  .strip.known .fr { width: min(100cqw, calc(100cqh * 8 * var(--r))); }
+  .stage.pvw.known .fr { display: block; width: min(100cqw, calc(100cqh * var(--r))); aspect-ratio: var(--r); }
+  @media (max-width: 560px) { .strip.wide.known .fr { width: min(100cqw, calc(100cqh * 2 * var(--r))); } }
+}
+/* The cut editor: the whole video, a bar for its length with the stretch marked on it and a handle at each end, and the buttons to move them. One card at a time holds it. */
+.cx { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+.stage.cxv { width: 100%; max-width: 560px; aspect-ratio: 16 / 9; max-height: 60vh; }
+.stage.cxv video { object-fit: contain; }
+.cxbar { position: relative; height: 44px; max-width: 560px; touch-action: pan-y; cursor: pointer; --a: 0%; --b: 100%; --t: 0%; user-select: none; -webkit-user-select: none; }
+.cxtrack { position: absolute; left: 0; right: 0; top: 13px; height: 18px; border-radius: 4px; background: var(--sunk); border: 1px solid var(--line-strong); overflow: hidden; }
+.cxo { position: absolute; top: 0; bottom: 0; background: var(--line-strong); opacity: .35; }
+.cxo.j { opacity: .15; }
+.cxsel { position: absolute; top: 0; bottom: 0; left: var(--a); width: calc(var(--b) - var(--a)); background: var(--accent); opacity: .5; }
+.cxph { position: absolute; top: 0; bottom: 0; left: var(--t); width: 2px; margin-left: -1px; background: var(--ink); }
+.cxh { position: absolute; top: 4px; width: 14px; height: 36px; margin-left: -7px; border-radius: 4px; background: var(--accent); border: 2px solid var(--surface); box-sizing: border-box; cursor: ew-resize; }
+.cxh::after { content: ''; position: absolute; inset: -4px -10px; }
+.cxh[data-cxh="from"] { left: var(--a); } .cxh[data-cxh="to"] { left: var(--b); }
+.cxh:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cxh[aria-disabled="true"] { opacity: .45; cursor: default; }
+.cxt { font-variant-numeric: tabular-nums; }
+.cx .chip { min-width: 60px; }
+.btn.due { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Exercise Loop Board</h1>
+    <p class="muted">Your violet loops, the exercises that still need a video, raw footage to turn into loops, new exercises to approve and squats to name. Nothing goes into the app until you say push.</p>
+    <div class="state" id="state" role="status">Opening the board…</div>
+  </header>
+  <main>
+    <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+    <div class="bar" id="bar"></div>
+    <div id="out" class="list"><p class="muted">Loading the exercises…</p></div>
+  </main>
+  <div class="sr" id="live" role="status" aria-live="polite"></div>
+  <datalist id="ex-names"></datalist>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var MAX = 20 * 1024 * 1024, LINKMAX = 2000;
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }); };
+  var kebab = function (s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); };
+  var exKey = function (id) { return 'ex.' + kebab(id); };
+  var repKey = function (slug) { return 'rep.' + slug; };
+  var lpKey = function (slug) { return 'loop.' + slug; };
+  var isAsset = function (id) { return /^[A-Za-z0-9]{32}$/.test(id || ''); };
+  var reduced = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+
+  var D = null, byId = {}, E = new Map(), db = null, assets = null, known = false, dead = false, synced = false, slow = false;
+  var TABS = [['submit', 'TO SUBMIT'], ['raw', 'RAW FOOTAGE'], ['review', 'REVIEW'], ['loops', 'LOOPS MADE'], ['new', 'NEW EXERCISES'], ['squats', 'SQUATS']];
+  var tab = 'submit', sort = 'group', group = 'all', show = 'todo', q = '', kinds = { library: true, quick: true, program: true, mission: false };
+  var edit = null, copyText = '', justSaved = new Set(), moreOpen = false, drafts = {}, sqBusy = new Set(), qTimer = null;
+  // Raw footage: S holds Claude's "segs" documents by id. Ids are made safe (letters, digits, "-") before they go into element ids: sidOf and idOf map both ways.
+  var bare = function () { return Object.create(null); };
+  var EST = 6, CAPKEY = 'loopboard.cap', S = new Map(), sidOf = bare(), idOf = bare(), segSynced = false, NAMES = new Map(), LOOPED = new Set(), T = null;
+  var rshow = 'all', rfolder = 'all', sgDraft = bare(), rvDraft = bare(), rvOpen = bare(), sgErr = bare(), cutOpen = bare(), junkOpen = bare(), ar = bare(), asked = bare(), sgBusy = new Set(), keep = new Set();
+  // rvKeep: where an answered review card stays until the tab is left. sgSent and sgAgain: what a save in flight carried, and whether newer text waits behind it. qOf: the search text of each tab.
+  var rvKeep = bare(), sgSent = bare(), sgAgain = bare(), qOf = bare(), quiet = bare(), readOnly = false, accSeen = false, bulkAt = 0, bulkN = 0;
+  var cap = 150, capText = null, genBusy = '', genErr = '', stale = false, down = false, staleT = null;
+  // Cutting: C holds the "clips" documents (one per video: its whole-video proxy, written by Claude's scan), S0 Claude's own stretches. S is S0 plus the stretches the owner added ("add." documents in items) that Claude has not taken on yet.
+  // cutEd is the one stretch whose card holds the cut editor; cxLoop the range a "Play the cut" repeats; cxDrag a handle or the play mark being dragged.
+  var C = new Map(), S0 = new Map(), clipSynced = false, cutEd = null, cxLoop = bare(), cxDrag = null, cxBusy = '', cxHold = null;
+  // keepNew: stretches the owner added in this visit, shown whatever the search or folder filter. cxStart: where the editor's video starts when it is put on a card. cxArm: a Remove waiting for its second tap. cxQuiet: a short time after a removal in which taps are not taken (a double tap must not reach the card that slid up). issued: ids given out in this visit, never given out twice.
+  // DUP: stretches hidden as duplicates (id -> { of, why }), worked out in tally(); dupOn: whether they are hidden now.
+  var DUP = bare(), dupOn = true, DUPMIN = 0.6;
+  var keepNew = new Set(), cxStart = null, cxArm = bare(), cxQuiet = 0, issued = new Set();
+  // NEWDAYS: how long a stretch Claude has just added counts as new. topKeep: the stretches that were in the NEW AND TO CUT group when the owner answered them; they stay there until the tab is left, so a card never slides away under a finger.
+  var NEWDAYS = 21, topKeep = new Set();
+  var BUSYMSG = 'The queue is still being changed. Try again in a moment.';
+  try { var cap0 = parseInt(localStorage.getItem(CAPKEY), 10); if (cap0 >= 10 && cap0 <= 1000) cap = cap0; } catch (x) {}
+  var KIND_LABEL = { library: 'Library', quick: 'Quick Mission only', mission: 'Mission move', program: 'Shown in programs, not in the library', 'new': 'New' };
+
+  // ---- data helpers ----
+  var doc = function (k) { return E.get(k) || null; };
+  var hasVideo = function (d) { return !!d && ((d.source === 'upload' && isAsset(d.asset)) || (d.source === 'link' && /^https?:\/\//.test(d.video || ''))); };
+  var submitted = function (e) { return hasVideo(doc(exKey(e.id))); };
+  var loopDoc = function (slug) { return doc(lpKey(slug)) || {}; };
+  var loopName = function (slug) { var d = loopDoc(slug); return (d.name && String(d.name).trim()) || (D.loops[slug] && D.loops[slug].name) || slug; };
+  var needs = function (e) { return e.kind !== 'new' && e.match !== 'direct' && !e.nonExercise && !e.dupOf; };
+  var kindOk = function (e) { return kinds[e.kind] !== false; };
+  var wanted = function (e) { return needs(e) && kindOk(e); };
+  var matchQ = function (name, extra) { return !q || (String(name) + ' ' + (extra || '')).toLowerCase().indexOf(q.toLowerCase()) >= 0; };
+  var sentence = function (s) { s = String(s || '').trim(); return s && !/[.!?]$/.test(s) ? s + '.' : s; };
+  var canEdit = function () { return !!db && !dead && synced && !readOnly; };
+  var say = function (m) { var l = $('live'); if (!l) return; l.textContent = ''; setTimeout(function () { l.textContent = m; }, 40); };
+
+  function usedHint(e) {
+    var w = e.where;
+    if (!w) return e.kind === 'mission' ? 'Used in Loadout missions' : '';
+    var bits = [], p = Math.round(w.programs || 0);
+    if (p >= 1) bits.push(p + ' program day' + (p === 1 ? '' : 's')); else if (w.programs > 0) bits.push('a light program use');
+    if (w.quick) bits.push('Quick Mission pool');
+    if (w.builder) bits.push('Builder');
+    if (w.missions) bits.push(Math.round(w.missions) + ' mission use' + (Math.round(w.missions) === 1 ? '' : 's'));
+    return bits.length ? 'Used in: ' + bits.join(', ') : 'Not dealt by the generators yet';
+  }
+
+  // ---- video bits ----
+  function stage(slug, cls) {
+    var L = D.loops[slug];
+    if (!L) return '';
+    return '<div class="stage ' + cls + ' paused"><video muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" poster="' + esc(L.poster) + '" data-src="' + esc(L.file) + '"></video><button type="button" class="pp" data-pp="' + esc(slug) + '" aria-label="Play or pause the ' + esc(loopName(slug)) + ' loop"><span class="ind" aria-hidden="true"></span></button></div>';
+  }
+  // One watcher for the whole visit. After a redraw it lets go of the videos that left the page and takes on the new ones, so a video that stayed is not disturbed.
+  var io = null, watched = new Set();
+  function rewatch(all) {
+    if (!('IntersectionObserver' in window)) return;
+    if (all && io) { io.disconnect(); watched.clear(); }
+    if (!io) io = new IntersectionObserver(function (items) {
+      items.forEach(function (it) {
+        var v = it.target;
+        if (it.isIntersecting) {
+          if (reduced.matches || v.dataset.userPaused) return;
+          if (!v.getAttribute('src')) v.src = v.dataset.src;
+          var p = v.play(); if (p && p.catch) p.catch(function () {});
+        } else if (v.getAttribute('src')) {
+          // load() drops the pause event, so the play mark is put back by hand. A preview goes back to waiting for a tap.
+          v.pause(); v.removeAttribute('src'); v.load(); v.parentNode.classList.add('paused');
+          if ('tap' in v.dataset) { v.dataset.userPaused = '1'; settle(); }
+        }
+      });
+    }, { rootMargin: '100px' });
+    watched.forEach(function (v) { if (!v.isConnected) { io.unobserve(v); watched.delete(v); } });
+    [].forEach.call(document.querySelectorAll('#out video[data-src]'), function (v) { if (!watched.has(v)) { watched.add(v); io.observe(v); } });
+  }
+  function pickHtml(d, label) {
+    if (!d) return '';
+    var v = '', video = '';
+    if (d.source === 'upload' && isAsset(d.asset)) { v = 'your upload' + (d.file ? ' (' + esc(d.file) + ')' : ''); video = '<video class="pv" controls playsinline preload="metadata" src="/_blob/' + esc(d.asset) + '"></video>'; }
+    else if (d.source === 'link' && /^https?:\/\//.test(d.video || '')) v = '<a href="' + esc(d.video) + '" target="_blank" rel="noopener">your link</a>';
+    else return d.note ? '<div class="ln">Note: ' + esc(d.note) + '</div>' : '';
+    return '<div class="ln">' + (label || 'Your video') + ': ' + v + (d.note ? '<span class="nt">Note: ' + esc(d.note) + '</span>' : '') + '</div>' + video;
+  }
+
+  // ---- editors ----
+  function videoEditor(ed) {
+    var d = ed.d, lock = ed.busy || ed.up, h = '<form class="ed" id="ed" novalidate>';
+    var seg = (assets ? [['upload', 'UPLOAD A VIDEO']] : []).concat([['link', 'PASTE A LINK']]);
+    h += '<div class="seg" role="group" aria-label="Where the video comes from">' + seg.map(function (s) { return '<button type="button" data-src="' + s[0] + '" aria-pressed="' + (d.source === s[0]) + '"' + (lock ? ' disabled' : '') + '>' + s[1] + '</button>'; }).join('') + '</div>';
+    if (d.source === 'upload') {
+      h += '<label for="ed-file">Video file, up to 20 MB. Film one clean rep at a time, from the side or the front.</label><input type="file" id="ed-file" accept="video/*"' + (ed.up ? ' disabled' : '') + '>';
+      if (ed.up) h += '<span class="small muted">Uploading…</span>';
+      else if (isAsset(d.asset)) h += '<span class="small muted">Stored: ' + esc(d.file || 'your video') + '</span><video class="pv" controls playsinline preload="metadata" src="/_blob/' + esc(d.asset) + '"></video>';
+    } else {
+      h += '<label for="ed-link">Link to the video</label><input id="ed-link" type="url" inputmode="url" autocomplete="off" maxlength="' + LINKMAX + '" placeholder="https://drive.google.com/…" value="' + esc(d.link) + '"><span class="small muted">A Google Drive link works best. Set it so anyone with the link can view.</span>';
+    }
+    h += '<label for="ed-note">Note for Claude</label><input id="ed-note" maxlength="300" autocomplete="off" placeholder="e.g. this is the wide stance, use the second rep" value="' + esc(d.note) + '">';
+    h += '<div class="err" role="alert">' + esc(ed.err) + '</div><div class="acts">';
+    if (ed.confirm) h += '<button type="button" class="btn danger" data-remove' + (lock ? ' disabled' : '') + '>Tap again to delete for good</button><button type="button" class="btn" data-keep>Keep it</button>';
+    else h += '<button type="submit" class="btn primary"' + (lock ? ' disabled' : '') + '>' + (ed.busy ? 'Saving…' : 'Save') + '</button><button type="button" class="btn" data-cancel' + (ed.busy ? ' disabled' : '') + '>Cancel</button>' + (ed.had ? '<button type="button" class="btn danger" data-remove' + (lock ? ' disabled' : '') + '>Remove my video</button>' : '');
+    return h + '</div></form>';
+  }
+  function nameEditor(ed) {
+    var d = ed.d, h = '<form class="ed" id="ed" novalidate>';
+    h += '<label for="ed-name">Name</label><input id="ed-name" maxlength="80" autocomplete="off" value="' + esc(d.name) + '">';
+    if (ed.isNew) {
+      h += '<div class="two"><div><label for="ed-group">Muscle group</label><select id="ed-group">' + D.groups.map(function (g) { return '<option' + (g === d.group ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('') + '</select></div>';
+      h += '<div><label for="ed-equip">Equipment</label><select id="ed-equip">' + D.equipment.map(function (g) { return '<option' + (g === d.equipment ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('') + '</select></div></div>';
+      h += '<label class="ck" for="ed-ok"><input type="checkbox" id="ed-ok"' + (d.approved ? ' checked' : '') + '>Approve this as a new exercise</label>';
+    }
+    h += '<label for="ed-note">Note for Claude</label><input id="ed-note" maxlength="300" autocomplete="off" placeholder="optional" value="' + esc(d.note) + '">';
+    h += '<div class="err" role="alert">' + esc(ed.err) + '</div>';
+    h += '<div class="acts"><button type="submit" class="btn primary"' + (ed.busy ? ' disabled' : '') + '>' + (ed.busy ? 'Saving…' : 'Save') + '</button><button type="button" class="btn" data-cancel' + (ed.busy ? ' disabled' : '') + '>Cancel</button>' + (ed.had ? '<button type="button" class="btn danger" data-remove' + (ed.busy ? ' disabled' : '') + '>Reset name</button>' : '') + '</div></form>';
+    return h;
+  }
+  var open = function (key) { return edit && edit.key === key; };
+  var editorFor = function (key) { return open(key) ? (edit.type === 'video' ? videoEditor(edit) : nameEditor(edit)) : ''; };
+  var dis = function () { return canEdit() ? '' : ' disabled'; };
+
+  // ---- rows ----
+  function statusPill(e) {
+    if (submitted(e)) return '<span class="pill mine">Video sent</span>';
+    if (e.match === 'close') return '<span class="pill stand">Stand-in loop</span>';
+    return '<span class="pill none">Needs video</span>';
+  }
+  function submitRow(e) {
+    var key = exKey(e.id), d = doc(key), sent = hasVideo(d);
+    var h = '<div class="slot"><div class="head"><h3 class="nm">' + esc(e.name) + '</h3>' + statusPill(e) + '</div>';
+    h += '<div class="ln muted">' + esc(e.group) + (e.equipment ? ' · ' + esc(e.equipment) : '') + ' · ' + esc(KIND_LABEL[e.kind] || e.kind) + '</div>';
+    if (usedHint(e)) h += '<div class="ln muted">' + esc(usedHint(e)) + '</div>';
+    if (e.match === 'close' && e.matchNote) h += '<div class="ln">' + esc(sentence(e.matchNote)) + ' It could stand in until you send an exact video.</div>';
+    h += pickHtml(d);
+    if (open(key)) h += editorFor(key);
+    else if (canEdit()) h += '<div class="acts"><button type="button" class="btn" data-edit="video" data-key="' + esc(key) + '" data-id="' + esc(e.id) + '" aria-label="' + (sent ? 'Change my video for ' : 'Add video for ') + esc(e.name) + '">' + (sent ? 'Change my video' : 'Add video') + '</button></div>';
+    return h + '</div>';
+  }
+  function servesText(L) {
+    var others = L.serves.filter(function (s) { return s.kind !== 'new'; });
+    return others.map(function (s) { return esc(s.name) + (s.match === 'close' ? ' (stand-in)' : s.kind === 'mission' ? ' (mission move)' : ''); }).join(' · ');
+  }
+  function loopCard(slug) {
+    var L = D.loops[slug], ld = loopDoc(slug), isNew = !!L.isNew, nm = loopName(slug), rk = repKey(slug), rd = doc(rk), sv = servesText(L);
+    var h = '<div class="slot has">' + stage(slug, 'md') + '<div class="body"><div class="head"><h3 class="nm">' + esc(nm) + '</h3>' + (isNew ? (ld.approved ? '<span class="pill ok">Approved new</span>' : '<span class="pill stand">New exercise</span>') : '') + '</div>';
+    if (ld.name && ld.name !== L.name) h += '<div class="ln muted">My name for it: ' + esc(L.name) + '</div>';
+    if (isNew) {
+      var first = L.serves.filter(function (s) { return s.kind === 'new'; })[0], ent = first && byId[first.id];
+      h += '<div class="ln muted">Not in the library yet. ' + esc((ld.group || (ent && ent.group) || '') + ' · ' + (ld.equipment || (ent && ent.equipment) || '')) + (sv ? '<span class="nt">Also in the app as: ' + sv + '</span>' : '') + (L.alsoNote ? '<span class="nt">' + esc(L.alsoNote) + '</span>' : '') + '</div>';
+    } else if (sv) h += '<div class="ln muted">Shows in the app as: ' + sv + '</div>';
+    if (L.warn) h += '<div class="ln warnnote">Note: ' + esc(L.warn) + '</div>';
+    if (hasVideo(rd)) h += pickHtml(rd, 'Replacement you sent');
+    if (ld.note) h += '<div class="ln muted">Note: ' + esc(ld.note) + '</div>';
+    if (isNew && canEdit() && !open(lpKey(slug)) && !open(rk)) h += '<label class="ck"><input type="checkbox" data-approve="' + esc(slug) + '"' + (ld.approved ? ' checked' : '') + '>Approve as a new exercise</label>';
+    if (!open(lpKey(slug)) && !open(rk) && canEdit()) h += '<div class="acts"><button type="button" class="btn" data-edit="name" data-key="' + esc(lpKey(slug)) + '" data-slug="' + esc(slug) + '" aria-label="' + (isNew ? 'Edit name and details of ' : 'Rename ') + esc(nm) + '">' + (isNew ? 'Edit details' : 'Rename') + '</button><button type="button" class="btn" data-edit="video" data-key="' + esc(rk) + '" data-slug="' + esc(slug) + '" aria-label="Send a better video for ' + esc(nm) + '">' + (hasVideo(rd) ? 'Change replacement' : 'Send a better video') + '</button></div>';
+    h += '</div>' + (open(lpKey(slug)) ? editorFor(lpKey(slug)) : open(rk) ? editorFor(rk) : '');
+    return h + '</div>';
+  }
+  function squatCard(slug) {
+    var L = D.loops[slug], ld = loopDoc(slug), nm = loopName(slug), v = drafts[slug] != null ? drafts[slug] : nm, busy = sqBusy.has(slug);
+    var chips = D.squatNames.map(function (n) { return '<button type="button" class="chip" data-sqpick="' + esc(slug) + '" data-name="' + esc(n) + '" aria-pressed="' + (v.trim() === n) + '"' + dis() + '>' + esc(n) + '</button>'; }).join('');
+    var sv = servesText(L);
+    var h = '<div class="slot has">' + stage(slug, 'md') + '<div class="body"><div class="head"><h3 class="nm">' + esc(nm) + '</h3>' + (ld.name ? '<span class="pill ok">Named by you</span>' : '<span class="pill text">My guess</span>') + '</div>';
+    h += '<div class="ln">' + esc(L.desc || '') + '</div>' + (sv ? '<div class="ln muted">Shows in the app as: ' + sv + '</div>' : '') + (L.warn ? '<div class="ln warnnote">Note: ' + esc(L.warn) + '</div>' : '') + '</div>';
+    h += '<form data-sqform="' + esc(slug) + '" class="ed" novalidate><label for="sq-' + esc(slug) + '">What is this squat called?</label><input id="sq-' + esc(slug) + '" maxlength="80" autocomplete="off" value="' + esc(v) + '"' + dis() + '><div class="chips">' + chips + '</div><div class="err" role="alert" id="sqerr-' + esc(slug) + '"></div><div class="acts"><button type="submit" class="btn primary"' + (canEdit() && !busy ? '' : ' disabled') + '>' + (busy ? 'Saving…' : 'Save name') + '</button></div></form></div>';
+    return h;
+  }
+
+  // ---- raw footage and review ----
+  // Claude scans the raw videos and writes one "segs" document per stretch it found. The owner's choices for a stretch live in items/seg.<id>, written whole each time.
+  var num = function (v) { return typeof v === 'number' && isFinite(v) ? v : null; };
+  var ts = function (v) { var t = Date.parse(v); return isNaN(t) ? 0 : t; };
+  var lower = function (s) { return String(s == null ? '' : s).trim().toLowerCase(); };
+  var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+  var count = function (n, one, many) { return n + ' ' + (n === 1 ? one : many); };
+  var clock = function (s) { s = Math.max(0, Math.round(s || 0)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); };
+  var clock1 = function (v) { var m = Math.floor(v / 60), r = Math.round((v - m * 60) * 10) / 10; if (r >= 60) { m++; r = 0; } return m + ':' + (r < 10 ? '0' : '') + r; };
+  var sgKey = function (id) { return 'seg.' + id; };
+  var choice = function (id) { return doc(sgKey(id)) || {}; };
+  var segName = function (id) { var c = choice(id); return typeof c.name === 'string' ? c.name.trim() : ''; };
+  var guessOf = function (s) { return s && s.guess && typeof s.guess.name === 'string' ? s.guess.name.trim() : ''; };
+  var isEx = function (id) { return (S.get(id) || {}).kind !== 'junk' || !!segName(id); };
+  var folderOf = function (s) { return String(s.folder || 'No folder'); };
+  // Where Claude is with a stretch. "review" with no loop file to show is a failure, so the card offers another try and is never a dead end.
+  var stOf = function (s) { return !s.state ? 'ready' : s.state === 'review' && !isAsset(s.loop) ? 'failed' : s.state; };
+  var failText = function (s) { return s.state === 'failed' ? sentence(s.error || 'no reason given') : 'The loop file is missing.'; };
+  // A still stretch Claude saw, as [from, to] in seconds, or null.
+  var holdSpan = function (s) { var h = s && s.hold; return Array.isArray(h) && num(h[0]) != null && num(h[1]) != null && h[1] > h[0] ? h : null; };
+  // Claude's note on a stretch it checked by eye and did not render (the footage cannot make a loop: cut off, moved, sideways, too small).
+  var declined = function (s) { return Array.isArray(s && s.warn) && s.warn.some(function (w) { return typeof w === 'string' && /did not render it/.test(w); }); };
+  function verdictOf(id) {
+    var s = S.get(id) || {}, c = choice(id), v = c.verdict, st = stOf(s);
+    if (v !== 'approved' && v !== 'redo' && v !== 'rejected') return null;
+    // A redo has been answered once Claude writes a newer result for the stretch: a later time stamp, or a loop other than the one the redo was asked about.
+    if (v === 'redo' && (st === 'review' || st === 'failed' || st === 'done') && (ts(s.updatedAt) > ts(c.updatedAt) || (isAsset(s.loop) && has(c, 'forLoop') && s.loop !== c.forLoop))) return null;
+    // An answer given for one loop does not stand for another: when a different loop lands on the stretch, it waits for a verdict again.
+    if ((v === 'approved' || v === 'rejected') && st === 'review' && has(c, 'forLoop') && isAsset(c.forLoop) && isAsset(s.loop) && s.loop !== c.forLoop) return null;
+    return v;
+  }
+  function segStatus(id) {
+    var s = S.get(id) || {}, c = choice(id), v = verdictOf(id), st = stOf(s);
+    if (c.skip) return 'skipped';
+    if (st === 'generating') return 'generating';
+    if (v === 'redo') return 'redo';
+    if (st === 'failed') return 'failed';
+    if (st === 'review' || st === 'done') return v || (st === 'done' ? 'done' : 'review');
+    if (c.split) return 'split';
+    // Ticked, named, and Claude looked at the footage and could not make a loop from it ("did not render it" in its notes): it is not in the queue. A cut of your own puts it back.
+    if (c.queued && segName(id) && declined(s) && num(c.from) == null && num(c.to) == null) return 'refilm';
+    return !segName(id) ? 'noname' : c.queued ? 'queued' : 'named';
+  }
+  // What the next Generate sends: ticked and never made, or marked for another try.
+  var pending = function (id) { var st = segStatus(id); return (st === 'queued' || st === 'redo') && !!segName(id); };
+  var inReview = function (id) { var s = S.get(id) || {}, c = choice(id), st = stOf(s); return !c.skip && (st === 'review' || st === 'done' || st === 'failed') && (!!c.queued || isAsset(s.loop)); };
+  // What the owner should meet first on RAW FOOTAGE: a video parked with "This video shows several workouts" (waiting to be cut), and a stretch Claude has just put on the board (a new scan, or a video it just cut into parts: its "newAt" time stamp) that still waits for the owner to name, tick or skip it. They are listed above the folders, parked ones first, then the newest, and go back into their folder once answered.
+  function isFresh(id) {
+    var s = S.get(id), t;
+    if (!s) return false;
+    if (segStatus(id) === 'split') return true;
+    t = ts(s.newAt);
+    if (!t || s.kind === 'junk' || s.virtual || Date.now() - t > NEWDAYS * 864e5) return false;
+    t = segStatus(id);
+    return t === 'noname' || t === 'named';
+  }
+  var inTop = function (id) { return isFresh(id) || topKeep.has(id); };
+  // A guess Claude is fairly sure of, on an exercise stretch nobody has named or typed over: what "Accept Claude's names" takes.
+  function sureGuess(id) {
+    var s = S.get(id) || {}, g = guessOf(s), d = sgDraft[id];
+    return !!g && s.kind !== 'junk' && num(s.guess.confidence) != null && s.guess.confidence >= 0.6 && !(d && d.name != null && lower(d.name) !== lower(g));
+  }
+  // ---- duplicates ----
+  // One loop per exercise. A stretch is hidden as a DUPLICATE when its name is one the library already has a loop of, or when another stretch of that name is already the one to make: one you named, ticked or have a loop for (a stretch you only skipped does not count), else the best-looking untouched one. Only stretches whose guessed name is fairly sure (60 % or more) are ever hidden, and never one you touched, one with a loop under way or made, one with no exercise found, or one with no name. Nothing is deleted: Show them brings every one back.
+  var normName = function (s) { return String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); };
+  var dupQuality = function (s) { var len = (num(s.end) - num(s.start)) || 0, r = num(s.reps) || 0, c = num(s.guess && s.guess.confidence) || 0; return c * 3 + (r >= 4 && r <= 24 ? 1 : 0) + (len >= 6 && len <= 45 ? 1 : 0) - (Array.isArray(s.warn) ? s.warn.length : 0) * 0.8 + Math.min(len, 30) / 100; };
+  function dupScan() {
+    var out = bare(), by = new Map(), lib = new Set();
+    LOOPED.forEach(function (n) { lib.add(normName(n)); });
+    S.forEach(function (s, id) {
+      var o = E.get(sgKey(id)) || {}, d = sgDraft[id] || {}, typed = (d.name != null ? String(d.name) : typeof o.name === 'string' ? o.name : '').trim(), nm = typed || guessOf(s), k = normName(nm), g;
+      if (!k || (s.kind === 'junk' && !typed)) return;
+      var st = stOf(s), made = st === 'generating' || st === 'review' || st === 'done' || st === 'failed';
+      var touched = !!typed || !!(o.queued || o.verdict || o.split === true || o.hold === true || o.from != null || o.to != null || (typeof o.note === 'string' && o.note.trim()));
+      if (!by.has(k)) by.set(k, { name: nm, claim: null, free: [] });
+      g = by.get(k);
+      if (made || (touched && !o.skip && !o.split)) { if (!g.claim) g.claim = id; }
+      else if (!touched && !o.skip && s.kind !== 'junk' && (num(s.guess && s.guess.confidence) || 0) >= DUPMIN) g.free.push(id);
+    });
+    by.forEach(function (g, k) {
+      var libHas = lib.has(k), keeper = g.claim;
+      if (!keeper && !libHas && g.free.length) { g.free.sort(function (a, b) { return dupQuality(S.get(b)) - dupQuality(S.get(a)) || (a < b ? -1 : 1); }); keeper = g.free[0]; }
+      g.free.forEach(function (id) {
+        if (id === keeper && !libHas) return;
+        out[id] = libHas ? { of: null, why: 'the library already has a loop of ' + g.name } : { of: keeper, why: 'another stretch of ' + g.name + ' is already the one to make' };
+      });
+    });
+    Object.keys(out).forEach(function (id) { if (inTop(id)) delete out[id]; });
+    DUP = out;
+  }
+  function tally() {
+    var t = { videos: 0, ex: 0, named: 0, todo: 0, wait: 0, making: 0, dups: 0, fresh: 0, refilm: 0, pend: [], open: [], guess: [], folders: [], looped: new Map(), twice: new Map() }, clips = new Set(), fs = new Set();
+    if (!D) return t;
+    dupScan();
+    LOOPED.forEach(function (k) { t.looped.set(k, ''); });
+    Object.keys(D.loops).forEach(function (sl) { t.looped.set(lower(loopName(sl)), ''); });
+    S.forEach(function (s, id) {
+      if (DUP[id]) { t.dups++; if (dupOn) return; }
+      var st = segStatus(id), nm = lower(segName(id)), ex = isEx(id);
+      clips.add(String(s.clipId)); fs.add(folderOf(s));
+      if (ex) t.ex++;
+      if (ex && isFresh(id)) t.fresh++;
+      if (ex && nm && st !== 'skipped') t.named++;
+      if (ex && (st === 'noname' || st === 'named')) t.todo++;
+      if (st === 'named') t.open.push(id);
+      if (st === 'noname' && sureGuess(id)) t.guess.push(id);
+      if (st === 'generating') t.making++;
+      if (st === 'refilm') t.refilm++;
+      if (st === 'review' && inReview(id)) t.wait++;
+      if (st === 'approved' && nm && !t.looped.has(nm)) t.looped.set(nm, id);
+      if (pending(id)) { t.pend.push(id); t.twice.set(nm, (t.twice.get(nm) || 0) + 1); }
+    });
+    t.videos = clips.size; t.folders = Array.from(fs).sort(function (a, b) { return a.localeCompare(b); });
+    return t;
+  }
+  function dupNote(id) {
+    var nm = segName(id), k = lower(nm), st = segStatus(id), m = [];
+    if (!k || !T || (st !== 'named' && st !== 'queued' && st !== 'redo' && st !== 'failed')) return '';
+    if (T.looped.has(k) && T.looped.get(k) !== id) m.push(nm + ' already has a loop. Making another replaces nothing until you approve it.');
+    if (pending(id) && T.twice.get(k) > 1) m.push(nm + ' is queued twice. Both get made, and you choose between them in REVIEW.');
+    return m.join(' ');
+  }
+  var PILL = { refilm: ['none', 'Needs re-filming'], split: ['mine', 'Needs splitting'],skipped: ['text', 'Skipped'], noname: ['none', 'No name yet'], named: ['stand', 'Named'], queued: ['mine', 'Queued'], generating: ['stand', 'Generating'], review: ['mine', 'Ready to review'], approved: ['ok', 'Approved'], redo: ['mine', 'Redo asked'], rejected: ['text', 'Rejected'], failed: ['none', 'Failed'], done: ['ok', 'Approved'] };
+  var pill = function (st) { return '<span class="pill ' + PILL[st][0] + '">' + PILL[st][1] + '</span>'; };
+  function rangeText(s) {
+    var a = num(s.start), b = num(s.end), r = num(s.reps);
+    return (a != null && b != null ? clock(a) + ' to ' + clock(b) : 'Time not known') + (r != null && r >= 1 ? ' · about ' + count(Math.round(r), 'rep', 'reps') : '');
+  }
+  function guessText(s) {
+    var g = s.guess || {}, n = guessOf(s);
+    if (s.kind === 'junk') return n ? 'No clear exercise here. It might be: ' + n + '.' : 'No exercise found in this stretch.';
+    if (!n) return 'Claude could not tell which exercise this is.';
+    return 'Looks like: ' + n + ', ' + (num(g.confidence) != null && g.confidence >= 0.6 ? 'fairly sure' : 'unsure') + '.' + (g.view === 'front' || g.view === 'side' || g.view === 'back' ? ' Filmed from the ' + g.view + '.' : '');
+  }
+  // What the splitter says about a stretch: why it found no exercise, a still part that may be a hold, and anything to look out for.
+  function splitNotes(s, c, junk) {
+    var h = '', hs = holdSpan(s), why = typeof s.why === 'string' ? s.why.trim().slice(0, 240) : '';
+    if (junk && why) h += '<div class="ln muted">' + esc(sentence(why)) + '</div>';
+    if (hs) h += '<div class="ln">Held still from ' + clock(hs[0]) + ' to ' + clock(hs[1]) + '. ' + (c.hold ? 'You marked it as a hold.' : 'If this is a hold exercise (plank, wall sit, hang), name it and tick Hold.') + '</div>';
+    else if (c.hold) h += '<div class="ln">You marked this as a hold.</div>';
+    return h;
+  }
+  function warnLines(s) {
+    return (Array.isArray(s.warn) ? s.warn : []).filter(function (w) { return typeof w === 'string' && w.trim(); }).slice(0, 6).map(function (w) { return '<div class="ln muted">Heads up: ' + esc(sentence(w.trim().slice(0, 200))) + '</div>'; }).join('');
+  }
+  // The catalog entry a typed name stands for: the same name, or Claude's guess when the name is still its guess.
+  function entryFor(name, s) {
+    var k = lower(name), e = NAMES.get(k) || null, g = s && s.guess;
+    if (!e && g && lower(g.name) === k && typeof g.entryId === 'string' && has(byId, g.entryId) && !byId[g.entryId].nonExercise) e = byId[g.entryId];
+    return e;
+  }
+  function hintText(name, s) {
+    if (!lower(name)) return '';
+    var e = entryFor(name, s);
+    if (!e) return 'Not in the app yet. It would be a new exercise.';
+    return 'In the app' + (lower(e.name) === lower(name) ? '' : ' as ' + e.name) + ': ' + e.group + (e.equipment ? ' · ' + e.equipment : '');
+  }
+  // What a card's fields show: typed text first, then what is saved, then Claude's guess for the name.
+  function fields(id) {
+    var s = S.get(id) || {}, c = choice(id), d = sgDraft[id] || {};
+    return { name: d.name != null ? d.name : segName(id) || guessOf(s), from: d.from != null ? d.from : num(c.from) != null ? String(c.from) : '', to: d.to != null ? d.to : num(c.to) != null ? String(c.to) : '', note: d.note != null ? d.note : String(c.note || '') };
+  }
+  // A time as typed: 12.5, 12,5 or 1:05. Empty gives null, anything else NaN.
+  function parseTime(v) {
+    v = String(v == null ? '' : v).trim().replace(',', '.');
+    if (v === '') return null;
+    var m = /^(\d{1,3}):([0-5]?\d(?:\.\d*)?)$/.exec(v), n = m ? Number(m[1]) * 60 + Number(m[2]) : /^(\d+\.?\d*|\.\d+)$/.test(v) ? Number(v) : NaN;
+    return Math.round(n * 100) / 100;
+  }
+  // The card as its fields stand, checked: the values to save, or the reason they cannot be saved.
+  // It goes by what was typed and what is saved now, not by the page, so a card that is waiting for a redraw cannot write an older name back.
+  function readCard(id) {
+    var s = S.get(id) || {}, f = fields(id);
+    var name = f.name.trim().slice(0, 80), from = parseTime(f.from), to = parseTime(f.to), dur = num(s.clipDur);
+    if ((from !== null && !(from >= 0)) || (to !== null && !(to > 0))) return 'Type the time in seconds, like 12.5, or as minutes and seconds, like 1:05.';
+    if (dur != null && ((from != null && from >= dur) || (to != null && to > dur + 0.05))) return 'This video is ' + clock(dur) + ' long, which is ' + Math.floor(dur) + ' seconds. Pick a time inside it.';
+    var a = from != null ? from : num(s.start), b = to != null ? to : num(s.end);
+    if (a != null && b != null && a >= b) return 'Start has to come before End.';
+    var e = name ? entryFor(name, s) : null;
+    if (e && lower(e.name) === lower(name)) name = e.name;
+    return { name: name, entryId: e ? e.id : null, from: from, to: to, note: f.note.trim().slice(0, 300), sent: f };
+  }
+  // Typed text on a card that differs from what is saved.
+  function dirty(id) {
+    var d = sgDraft[id], c = choice(id), t = function (v) { var n = parseTime(v); return n !== n ? 'x' : n; };
+    return !!d && ((d.name != null && d.name.trim() !== segName(id)) || (d.from != null && t(d.from) !== num(c.from)) || (d.to != null && t(d.to) !== num(c.to)) || (d.note != null && d.note.trim() !== String(c.note || '').trim()));
+  }
+  // After a save: forget the typed text that went out with it, and keep anything typed since.
+  function dropper(id, sent) {
+    return function () { var d = sgDraft[id]; if (!d) return; Object.keys(sent).forEach(function (k) { if (d[k] === sent[k]) delete d[k]; }); if (!Object.keys(d).length) delete sgDraft[id]; };
+  }
+  // ---- cutting: data ----
+  // Claude's stretches plus the owner's added ones. An added stretch lives in items as "add.<id>" until Claude writes a stretch of that id; then Claude's copy is shown.
+  // "virtual" marks the owner's own copy: only that one can be removed again. Returns the ids that were virtual before and are gone now.
+  function mergeSegs() {
+    var next = new Map(S0), so = bare(), io2 = bare(), was = [];
+    S.forEach(function (x, id) { if (x && x.virtual) was.push(id); });
+    E.forEach(function (d, k) {
+      if (k.indexOf('add.') !== 0 || !d || d.kind !== 'add') return;
+      var id = k.slice(4), a = num(d.start), b = num(d.end);
+      if (next.has(id) || !/^[A-Za-z0-9-]{1,80}$/.test(id) || a == null || b == null || !(b > a) || !d.clipId) return;
+      next.set(id, { clipId: String(d.clipId), folder: d.folder, file: d.file, clipDur: num(d.clipDur), start: a, end: b, kind: 'exercise', added: true, virtual: true, fromSeg: typeof d.fromSeg === 'string' ? d.fromSeg : null, guess: null, warn: [] });
+    });
+    next.forEach(function (x, id) { var sid = String(id).replace(/[^A-Za-z0-9-]/g, '-') || 'x'; while (io2[sid]) sid += '-'; so[id] = sid; io2[sid] = id; });
+    S = next; sidOf = so; idOf = io2;
+    return was.filter(function (id) { return !next.has(id); });
+  }
+  var addKey = function (id) { return 'add.' + id; };
+  var clipOf = function (s) { return s ? C.get(String(s.clipId)) || null : null; };
+  // One length for the video everywhere: the shorter of the scan's and the whole-video copy's (a copy is often a fraction of a second off).
+  var clipLen = function (s) { var c = clipOf(s), a = c && num(c.dur) > 0 ? c.dur : null, b = s && num(s.clipDur) > 0 ? s.clipDur : null; return a && b ? Math.min(a, b) : a || b || null; };
+  // The whole video of a stretch, small, from its first second: what the cut editor plays. Null until Claude's scan has put it on the board.
+  var proxyOf = function (s) { var c = clipOf(s); return c && isAsset(c.proxy) && clipLen(s) ? c : null; };
+  var round1 = function (t) { return Math.round(t * 10) / 10; };
+  var pc = function (t, dur) { return (Math.max(0, Math.min(dur, t)) / dur * 100).toFixed(3) + '%'; };
+  var real = function (v) { return typeof v === 'number' && isFinite(v); };
+  // The cut as typed on the card (else saved, else where Claude or the owner put it), and whether it holds: both ends inside the video, start before end.
+  function cutRaw(id) {
+    var s = S.get(id) || {}, f = fields(id), a = parseTime(f.from), b = parseTime(f.to);
+    return [real(a) ? a : num(s.start), real(b) ? b : num(s.end)];
+  }
+  function cutBad(id) {
+    var r = cutRaw(id), dur = clipLen(S.get(id));
+    if (!real(r[0]) || !real(r[1])) return '';
+    if (r[0] < 0 || (dur && (r[0] >= dur || r[1] > dur + 0.05))) return 'A time is outside the video, which is ' + clock1(dur) + ' long.';
+    return r[1] - r[0] < 0.3 ? 'The start has to come before the end.' : '';
+  }
+  // The cut the handles show: a typed end that is outside the video is not taken; the saved or Claude's end stands in for it.
+  function cutRange(id) {
+    var s = S.get(id) || {}, f = fields(id), c = choice(id), dur = clipLen(s), a = parseTime(f.from), b = parseTime(f.to);
+    var ok = function (v) { return real(v) && v >= 0 && (!dur || v <= dur + 0.05); };
+    var fa = ok(num(c.from)) ? num(c.from) : num(s.start), fb = ok(num(c.to)) ? num(c.to) : num(s.end);
+    return [ok(a) ? a : fa, ok(b) ? b : fb];
+  }
+  function cutText(id) {
+    var s = S.get(id) || {}, r = cutRaw(id), c = choice(id), d = sgDraft[id] || {}, bad = cutBad(id);
+    if (!real(r[0]) || !real(r[1])) return '';
+    if (bad) return bad;
+    var mine = d.from != null || d.to != null || num(c.from) != null || num(c.to) != null;
+    return 'Cut: ' + clock1(r[0]) + ' to ' + clock1(r[1]) + ', ' + round1(r[1] - r[0]) + ' s' + (mine ? ' (your cut)' : s.added ? ' (where you added it)' : ' (the auto cut)');
+  }
+  // The ends can be moved until Claude starts on the stretch (after a loop is made they can still be moved, for a redo); never while a split or an add is being saved.
+  var canCut = function (id) { return canEdit() && !cxBusy && !sgBusy.has(id) && stOf(S.get(id) || {}) !== 'generating'; };
+  // Where the play mark is: the video's own time when it is on the page, else where the editor was told to open, else the start of the cut.
+  function cxNow(sid, a) { var v = cxVideo(sid); if (v && v.readyState >= 1 && isFinite(v.currentTime)) return v.currentTime; return cxStart && cxStart.sid === sid ? cxStart.t : a; }
+  function cutBox(id, s, sid, c) {
+    var cl = proxyOf(s), dur = clipLen(s), state = stOf(s);
+    if (!cl) return '<div class="small muted">' + (clipSynced ? 'The whole video of this stretch is not on the board yet, so for now the cut can only be typed. It comes with the next scan.' : 'Loading the whole video…') + '</div>';
+    if (cutEd !== id) return '<div class="acts"><button type="button" class="btn" data-cxa="open" data-id="' + sid + '">Watch and cut</button><span class="small muted">Plays the whole video, to move the start and end by eye.</span></div>';
+    var r = cutRange(id), a = real(r[0]) ? r[0] : 0, b = real(r[1]) ? r[1] : dur, lock = !canCut(id), ready = state === 'ready' && !lock, now = cxNow(sid, a);
+    var rat = num(cl.w) > 0 && num(cl.h) > 0 ? Math.min(2.4, Math.max(0.4, cl.w / cl.h)) : null;
+    var others = '';
+    S.forEach(function (o, oid) { if (oid === id || String(o.clipId) !== String(s.clipId) || !real(o.start) || !real(o.end)) return; var or = cutRange(oid); if (!real(or[0]) || !real(or[1]) || !(or[1] > or[0])) return; others += '<span class="cxo' + (isEx(oid) ? '' : ' j') + '" style="left:' + pc(or[0], dur) + ';width:' + pc(or[1] - or[0], dur) + '"></span>'; });
+    var handle = function (w, t) { return '<span class="cxh" role="slider" tabindex="' + (lock ? '-1' : '0') + '" data-cxh="' + w + '" data-id="' + sid + '" aria-label="' + (w === 'from' ? 'Start' : 'End') + ' of the cut" aria-valuemin="0" aria-valuemax="' + round1(dur) + '" aria-valuenow="' + round1(t) + '" aria-valuetext="' + clock1(t) + '"' + (lock ? ' aria-disabled="true"' : '') + '></span>'; };
+    var step = function (v, label, text) { return '<button type="button" class="chip" data-cxa="step" data-v="' + v + '" data-id="' + sid + '" aria-label="' + label + '">' + text + '</button>'; };
+    var cb = function (act, text, label, dis, cls) { return '<button type="button" class="btn' + (cls || '') + '" data-cxa="' + act + '" data-id="' + sid + '"' + (label ? ' aria-label="' + esc(label) + '"' : '') + (dis ? ' disabled' : '') + '>' + text + '</button>'; };
+    var h = '<div class="cx" id="cx-' + sid + '">';
+    h += '<div class="stage cxv paused" data-keep="cx' + esc(cl.proxy) + '"' + (rat ? ' style="aspect-ratio:' + rat + '"' : '') + '><video muted playsinline preload="auto" disablepictureinpicture aria-hidden="true" data-cxv="' + sid + '" src="/_blob/' + esc(cl.proxy) + '"></video><button type="button" class="pp" data-pp="cx-' + sid + '" aria-label="Play or pause the whole video"><span class="ind" aria-hidden="true"></span></button></div>';
+    h += '<div class="cxbar" data-cxbar="' + sid + '" style="--a:' + pc(a, dur) + ';--b:' + pc(b, dur) + ';--t:' + pc(now, dur) + '"><div class="cxtrack" aria-hidden="true">' + others + '<span class="cxsel"></span><span class="cxph"></span></div>' + handle('from', a) + handle('to', b) + '</div>';
+    h += '<div class="ln cxt"><b data-cxnow="' + sid + '">' + clock1(now) + '</b> of ' + clock1(dur) + ' · <span data-cxcut="' + sid + '">' + esc(cutText(id)) + '</span></div>';
+    h += '<div class="acts">' + step('-1', 'Back 1 second', '−1 s') + step('-0.1', 'Back a tenth of a second', '−0.1') + step('0.1', 'On a tenth of a second', '+0.1') + step('1', 'On 1 second', '+1 s') + '</div>';
+    h += '<div class="acts">' + cb('from', 'Start here', 'Start the cut at the play mark', lock) + cb('to', 'End here', 'End the cut at the play mark', lock) + cb('play', 'Play the cut') + '</div>';
+    h += '<div class="acts">' + cb('save', 'Save cut', '', lock, dirty(id) ? ' due' : '') + cb('auto', 'Auto cut', 'Go back to the auto cut', lock) + cb('split', cxBusy === 'split' ? 'Splitting…' : 'Split here', 'Split this stretch in two at the play mark', !ready) + cb('add', cxBusy === 'add' ? 'Adding…' : 'Add a stretch here', 'Add a new stretch of this video at the play mark', lock) + '</div>';
+    if (state === 'generating') h += '<div class="small muted">Claude is making this loop now, from the saved cut. The cut can be changed once it is done.' + (dirty(id) ? ' What you moved since the last save was not used.' : '') + '</div>';
+    else if (state !== 'ready') h += '<div class="small muted">A new cut is used when you ask for a redo. Split works only on a stretch with no loop yet.</div>';
+    else h += '<div class="small muted">Drag a handle sideways, or use Start here and End here at the play mark. A tap on the bar only moves the play mark. Split cuts this stretch in two; the second part becomes a new card. Auto cut goes back to where Claude cut it.</div>';
+    return h + '</div>';
+  }
+  // data-keep marks the parts of a card (strip, preview, loop) that are carried over when the card is rebuilt, so a picture does not blink and a video does not start again.
+  function tapStage(s, sid, what) {
+    if (!isAsset(s.preview)) return '';
+    return '<div class="stage pvw paused" data-keep="pv' + esc(s.preview) + (isAsset(s.strip) ? esc(s.strip) : '') + '" data-ar="' + sid + '"' + (isAsset(s.strip) ? ' data-strip="' + esc(s.strip) + '"' : '') + '><span class="fr" aria-hidden="true"></span><video muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true" data-tap data-user-paused="1" data-src="/_blob/' + esc(s.preview) + '"></video><button type="button" class="pp" data-pp="pv-' + sid + '" aria-label="Play or pause your video of ' + esc(what) + '"><span class="ind" aria-hidden="true"></span></button></div>';
+  }
+  function segCard(id) {
+    var s = S.get(id), c = choice(id), sid = sidOf[id], st = segStatus(id), state = stOf(s), ex = isEx(id), nm = segName(id), g = guessOf(s);
+    var busy = sgBusy.has(id), can = canEdit(), off = busy ? ' disabled' : '', what = (nm || g || 'an unnamed stretch') + ', ' + rangeText(s);
+    var err = '<div class="err" role="alert" id="sgerr-' + sid + '">' + esc(sgErr[id] || '') + '</div>';
+    if (st === 'skipped') return '<div class="slot sgc skipped" id="sgc-' + sid + '" role="group" aria-label="' + esc(what) + '"><div class="ln"><b>' + esc(nm || g || 'Unnamed stretch') + '</b><span class="nt">' + esc(rangeText(s)) + '</span></div>' + pill(st) + (can ? '<button type="button" class="chip" data-sg="skip" data-id="' + sid + '" aria-pressed="true" aria-label="Skip ' + esc(what) + '"' + off + '>Skip</button>' : '') + err + '</div>';
+    var h = '<div class="slot sgc" id="sgc-' + sid + '" role="group" aria-label="' + esc(what) + '">';
+    if (isAsset(s.strip)) h += '<div class="strip" data-keep="st' + esc(s.strip) + '" data-ar="' + sid + '"><div class="fr"><span><img loading="lazy" decoding="async" alt="Eight frames from this stretch" src="/_blob/' + esc(s.strip) + '"></span><span class="b" aria-hidden="true"><img loading="lazy" decoding="async" alt="" src="/_blob/' + esc(s.strip) + '"></span></div></div>';
+    h += '<div class="sgrow">' + tapStage(s, sid, what) + '<div class="body"><div class="head"><span class="ln tm">' + esc(rangeText(s)) + '</span>' + (ex ? (isFresh(id) && st !== 'split' ? '<span><span class="pill ok">New</span> ' + pill(st) + '</span>' : pill(st)) : '<span class="pill text">No exercise</span>') + '</div>';
+    h += '<div class="ln">' + esc(s.added ? 'You added this stretch. Name it, then tick Make this loop.' : guessText(s)) + '</div>' + splitNotes(s, c, s.kind === 'junk');
+    if (num(c.from) != null || num(c.to) != null) { var ca = num(c.from) != null ? c.from : num(s.start), cb = num(c.to) != null ? c.to : num(s.end); h += '<div class="ln muted">Your cut: ' + (ca != null ? clock1(ca) : 'the start') + ' to ' + (cb != null ? clock1(cb) : 'the end') + '</div>'; }
+    if (state === 'failed') h += '<div class="ln none">It failed: ' + esc(failText(s)) + '</div>';
+    var warn = dupNote(id); if (warn) h += '<div class="ln warnnote">' + esc(warn) + '</div>';
+    if (st === 'refilm') h += '<div class="ln none">Claude could not make a loop from this footage (the heads up below says why). It is not in the queue. Film it again, or cut a better stretch.</div>';
+    if (DUP[id]) { var kp = DUP[id].of && S.get(DUP[id].of); h += '<div class="ln warnnote">Duplicate: ' + esc(DUP[id].why) + (kp ? ' (' + String(kp.file || '') + ', ' + clock(num(kp.start) || 0) + ')' : '') + '.</div>'; }
+    h += warnLines(s) + '</div></div>';
+    if (!can) return h + (nm ? '<div class="ln">Name: <b>' + esc(nm) + '</b></div>' : '') + (c.note ? '<div class="ln muted">Note: ' + esc(c.note) + '</div>' : '') + '</div>';
+    var f = fields(id), typed = !!f.name.trim(), hs = holdSpan(s), openCut = cutOpen[id] != null ? cutOpen[id] : !!(f.from || f.to || f.note || (c.hold && !hs) || (c.split && proxyOf(s)));
+    var ph = function (v) { return num(v) != null ? String(Math.round(v * 10) / 10) : ''; };
+    // Once a loop is being made or has been made, the hold choice is locked until a redo is asked for.
+    var held = state === 'generating' || ((state === 'review' || state === 'done') && st !== 'redo');
+    var splitBox = '<label class="ck" for="sg-split-' + sid + '"><input type="checkbox" id="sg-split-' + sid + '" data-sgsplit="' + sid + '"' + (c.split ? ' checked' : '') + (busy || held ? ' disabled' : '') + '>This video shows several workouts</label>' + (c.split ? '<span class="small muted">Parked: it is not made as a loop until it is cut into one stretch per workout (Watch and cut below, or ask your PC session to re-split it).</span>' : '');
+    var holdBox = '<label class="ck" for="sg-hold-' + sid + '"><input type="checkbox" id="sg-hold-' + sid + '" data-sghold="' + sid + '"' + (c.hold ? ' checked' : '') + (busy || held ? ' disabled' : '') + '>This is a hold</label>' + (held ? '<span class="small muted">To change this, ask for a redo first.</span>' : '');
+    h += '<form class="ed" data-sgform="' + sid + '" novalidate><label for="sg-name-' + sid + '">' + (ex ? 'Name of this exercise' : 'Name it to turn it into an exercise') + '</label><input id="sg-name-' + sid + '" list="ex-names" maxlength="80" autocomplete="off" value="' + esc(f.name) + '"><span class="small muted" id="sg-hint-' + sid + '">' + esc(hintText(f.name, s)) + '</span>' + splitBox + (hs ? holdBox : '');
+    h += '<details class="more" data-cut="' + sid + '"' + (openCut ? ' open' : '') + '><summary data-cutsum="' + sid + '">CUT THIS VIDEO<span class="cutsub">watch it, move the start and end, split it · or add a note</span></summary><div class="in">' + cutBox(id, s, sid, c) + '<div class="two"><div><label for="sg-from-' + sid + '">Start at second</label><input id="sg-from-' + sid + '" type="text" inputmode="decimal" maxlength="12" autocomplete="off" placeholder="' + esc(ph(s.start)) + '" value="' + esc(f.from) + '"></div><div><label for="sg-to-' + sid + '">End at second</label><input id="sg-to-' + sid + '" type="text" inputmode="decimal" maxlength="12" autocomplete="off" placeholder="' + esc(ph(s.end)) + '" value="' + esc(f.to) + '"></div></div>';
+    h += '<label for="sg-note-' + sid + '">Note for Claude</label><input id="sg-note-' + sid + '" maxlength="300" autocomplete="off" placeholder="e.g. use the second rep" value="' + esc(f.note) + '">' + (hs ? '' : holdBox + '<span class="small muted">For a plank, a wall sit or a hang. Claude makes it as a still hold loop.</span>') + '</div></details>' + err;
+    // Save stays pressable while a save is on its way: a second press sends what was typed since.
+    h += '<div class="acts"><button type="submit" class="btn primary" data-sgsave="' + sid + '">' + (busy ? 'Saving…' : 'Save name') + '</button>';
+    if (state === 'failed') h += '<button type="button" class="chip" data-sg="retry" data-id="' + sid + '" aria-pressed="' + (st === 'redo') + '" aria-label="Try ' + esc(what) + ' again"' + (nm ? off : ' disabled') + '>Try again</button>' + (nm ? '' : '<span class="small muted">Save a name first.</span>');
+    else if (state === 'review' || state === 'done') h += inReview(id) ? '<button type="button" class="btn" data-sg="review" data-id="' + sid + '" aria-label="Open ' + esc(nm || 'this loop') + ' in REVIEW">Open in REVIEW</button>' : '';
+    else if (state !== 'generating') {
+      // The tick saves the name on screen with it, so a guess that is right needs one tap.
+      var on = !!(c.queued && nm && !c.split), canQ = (typed || on) && !busy && !c.split;
+      h += '<label class="ck' + (canQ ? '' : ' off') + '" for="sg-q-' + sid + '"><input type="checkbox" id="sg-q-' + sid + '" data-sgq="' + sid + '"' + (on ? ' checked' : '') + (canQ ? '' : ' disabled') + '>Make this loop<span class="small" id="sg-qh-' + sid + '"' + ((typed || on) && !c.split ? ' hidden' : '') + '>&nbsp;· ' + (c.split ? 'cut it first' : 'type a name first') + '</span></label>';
+    }
+    if (ex && state !== 'review' && state !== 'done' && state !== 'generating') h += '<button type="button" class="chip" data-sg="skip" data-id="' + sid + '" aria-pressed="false" aria-label="Skip ' + esc(what) + '"' + off + '>Skip</button>';
+    if (s.virtual && state === 'ready' && !c.queued) h += '<button type="button" class="btn danger" data-cxa="del" data-id="' + sid + '" aria-label="Remove ' + esc(what) + '"' + (busy || cxBusy ? ' disabled' : '') + '>' + (cxArm[id] > Date.now() ? 'Tap again to remove' : cxBusy === 'del' ? 'Removing…' : 'Remove') + '</button>';
+    return h + '</div></form></div>';
+  }
+  function reviewCard(id) {
+    var s = S.get(id), c = choice(id), sid = sidOf[id], st = segStatus(id), state = stOf(s), own = segName(id), nm = own || (state !== 'failed' ? guessOf(s) : ''), busy = sgBusy.has(id), off = busy ? ' disabled' : '', what = nm || 'this unnamed loop', cost = num(s.cost);
+    var h = '<div class="slot sgc rvc" id="sgc-' + sid + '" role="group" aria-label="' + esc(what) + '"><div class="head"><h3 class="nm">' + esc(nm || 'No name yet') + '</h3>' + pill(st) + '</div>';
+    h += '<div class="ln muted">' + esc(folderOf(s) + ' · ' + String(s.file || s.clipId || '') + ' · ' + rangeText(s) + (c.hold ? ' · a hold' : '') + (cost != null ? ' · cost ' + count(Math.round(cost * 10) / 10, 'credit', 'credits') : '')) + '</div>';
+    if (nm && !own) h += '<div class="ln muted">Claude\'s name for it. Approve keeps it; you can rename it in RAW FOOTAGE any time.</div>';
+    var loop = isAsset(s.loop) && state !== 'failed', pv = tapStage(s, sid, what);
+    if (pv || loop) {
+      h += '<div class="pair">' + (pv ? '<figure>' + pv + '<figcaption>Your video</figcaption></figure>' : '');
+      if (loop) h += '<figure><div class="stage sq paused" data-keep="lp' + esc(s.loop) + (isAsset(s.poster) ? esc(s.poster) : '') + '"><video muted loop playsinline preload="none" disablepictureinpicture aria-hidden="true"' + (isAsset(s.poster) ? ' poster="/_blob/' + esc(s.poster) + '"' : '') + ' data-src="/_blob/' + esc(s.loop) + '"></video><button type="button" class="pp" data-pp="lp-' + sid + '" aria-label="Play or pause the ' + esc(what) + ' loop"><span class="ind" aria-hidden="true"></span></button></div><figcaption>The loop</figcaption></figure>';
+      h += '</div>';
+    }
+    if (state === 'failed') h += '<div class="ln none">It failed: ' + esc(failText(s)) + '</div>';
+    if (c.note) h += '<div class="ln muted">' + (st === 'redo' ? 'What to fix: ' : 'Note: ') + esc(c.note) + '</div>';
+    h += warnLines(s);
+    if (!nm && state !== 'failed') h += '<div class="ln warnnote">Give it a name in RAW FOOTAGE before you approve it.</div>';
+    h += '<div class="err" role="alert" id="sgerr-' + sid + '">' + esc(sgErr[id] || '') + '</div>';
+    if (!canEdit()) return h + '</div>';
+    var btn = function (cls, v, text, label, dis) { return '<button type="button" class="btn' + cls + '" data-rv="' + v + '" data-id="' + sid + '" aria-label="' + esc(label) + '"' + (dis ? ' disabled' : off) + '>' + text + '</button>'; };
+    if (rvOpen[id]) h += '<form class="ed" data-rvform="' + sid + '" novalidate><label for="rv-note-' + sid + '">What should change?</label><input id="rv-note-' + sid + '" maxlength="300" autocomplete="off" placeholder="e.g. the knees cave in, use the second rep" value="' + esc(rvDraft[id] != null ? rvDraft[id] : c.note || '') + '"><div class="acts"><button type="submit" class="btn primary" data-rvsave="' + sid + '"' + off + '>' + (busy ? 'Saving…' : 'Ask for a redo') + '</button>' + btn('', 'cancel', 'Cancel', 'Cancel the redo of ' + what) + '</div></form>';
+    else if (state === 'failed') h += '<div class="acts"><button type="button" class="chip" data-sg="retry" data-id="' + sid + '" aria-pressed="' + (st === 'redo') + '" aria-label="Try ' + esc(what) + ' again"' + (nm ? off : ' disabled') + '>Try again</button>' + (nm ? '' : '<span class="small muted">Give it a name in RAW FOOTAGE first.</span>') + '</div>';
+    else if (st === 'review' || st === 'done') h += '<div class="acts">' + (st === 'review' ? btn(' primary', 'approved', 'Approve', 'Approve the ' + what + ' loop', !nm) : '') + btn('', 'redo', 'Redo', 'Ask for a redo of ' + what) + btn(' danger', 'rejected', 'Reject', 'Reject the ' + what + ' loop') + '</div>';
+    else h += '<div class="acts">' + btn('', 'clear', 'Change my answer', 'Change my answer for ' + what) + '</div>';
+    return h + '</div>';
+  }
+  function segShown(id) {
+    var s = S.get(id), st = segStatus(id);
+    if (dupOn && DUP[id]) return false;
+    if (keepNew.has(id)) return true;
+    if (rfolder !== 'all' && folderOf(s) !== rfolder) return false;
+    if (!matchQ(segName(id) + ' ' + ((s.guess && s.guess.name) || ''), (s.file || '') + ' ' + (s.folder || ''))) return false;
+    if (rshow === 'all' || keep.has(id)) return true;
+    return rshow === 'name' ? isEx(id) && st === 'noname' : rshow === 'queued' ? pending(id) : rshow === 'split' ? st === 'split' : rshow === 'refilm' ? st === 'refilm' : st === 'skipped';
+  }
+  // The two footage tabs are drawn as a frame (headings and groups) with a slot per card. The cards' own text is kept apart in "want", so a redraw can leave alone every card that has not changed.
+  var want = null;
+  var slot = function (id) { var sid = sidOf[id]; want[sid] = tab === 'review' ? reviewCard(id) : segCard(id); return '<i data-slot="' + sid + '"></i>'; };
+  function drawRaw() {
+    if (!db && known) return '<p class="muted">Open this page in Claude, signed in, to see your raw footage.</p>';
+    if (!segSynced) return '<p class="muted">' + (slow ? 'Could not reach your footage yet. Check your connection.' : 'Loading your footage…') + '</p>';
+    if (!S.size) return '<p class="muted">No footage scanned yet. Put your videos in the raw footage folder, one folder per type of exercise, then tell Claude: scan the raw footage.</p>';
+    var nd = Object.keys(DUP).length;
+    var folders = new Map(), h = (nd ? '<p class="small muted">' + count(nd, 'stretch', 'stretches') + (dupOn ? ' that repeat an exercise already made or already chosen are hidden.' : ' that repeat an exercise already made or already chosen are shown below, marked Duplicate.') + ' <button type="button" class="chip" data-dup="toggle" aria-pressed="' + (!dupOn) + '">' + (dupOn ? 'Show them' : 'Hide them') + '</button></p>' : '') + (canEdit() ? '<div class="cuthelp"><b class="t">✂︎ WHERE TO CUT A VIDEO</b><ol class="small"><li>Find the video below: type its file name or the exercise in <b>Search footage</b>, or pick its folder.</li><li>On its card, press the gold <b>✂︎ CUT THIS VIDEO</b> bar (under the name box).</li><li>The whole video opens. Press play, drag the two handles (or press <b>Start here</b> and <b>End here</b> at the play mark), then <b>Save cut</b>.</li><li><b>Split here</b> cuts a stretch in two. <b>Add a stretch here</b> adds one Claude missed. <b>Auto cut</b> goes back to Claude\'s cut.</li></ol></div>' : '');
+    S.forEach(function (s, id) {
+      var f = folderOf(s), cid = String(s.clipId || id);
+      if (!folders.has(f)) folders.set(f, new Map());
+      if (!folders.get(f).has(cid)) folders.get(f).set(cid, { id: cid, file: String(s.file || cid), dur: num(s.clipDur), segs: [] });
+      folders.get(f).get(cid).segs.push(id);
+    });
+    var order = function (id) { var s = S.get(id); return num(s.start) != null ? s.start : num(s.idx) || 0; };
+    // New and waiting to be cut: listed first, and left out of the folders below so no card shows twice.
+    var top = bare(), tops = new Map(), nTop = 0;
+    S.forEach(function (s, id) {
+      if (!inTop(id) || !isEx(id) || !segShown(id)) return;
+      var cid = String(s.clipId || id), g = tops.get(cid);
+      if (!g) tops.set(cid, g = { id: cid, file: String(s.file || cid), folder: folderOf(s), dur: num(s.clipDur), segs: [], cut: 0, at: 0 });
+      top[id] = 1; nTop++; g.segs.push(id); if (segStatus(id) === 'split') g.cut = 1; g.at = Math.max(g.at, ts(s.newAt));
+    });
+    if (nTop) {
+      h += '<h2 class="grp">NEW AND TO CUT · ' + nTop + '</h2><p class="small muted">Videos you parked to be cut, and stretches Claude has just added or cut. They stay here until you name, tick or skip them, then they go back into their folder.</p>';
+      Array.from(tops.values()).sort(function (a, b) { return (b.cut - a.cut) || (b.at - a.at) || a.file.localeCompare(b.file) || a.id.localeCompare(b.id); }).forEach(function (cl) {
+        var n = 0; cl.segs.sort(function (a, b) { return order(a) - order(b); }).forEach(function (id) { n += choice(id).skip ? 0.13 : 1; });
+        h += '<section class="vgrp" data-k="' + esc('~new~/' + cl.id) + '" data-folder="' + esc(cl.folder) + '" data-clip="' + esc(cl.id) + '" style="--n:' + Math.round(n * 100) / 100 + ';--j:0"><h3 class="vid">' + esc(cl.file) + ' <span>· ' + esc(cl.folder) + (cl.dur != null ? ' · ' + clock(cl.dur) + ' long' : '') + '</span></h3>' + cl.segs.map(slot).join('') + '</section>';
+      });
+    }
+    Array.from(folders.keys()).sort(function (a, b) { return a.localeCompare(b); }).forEach(function (f) {
+      var part = '', vids = 0;
+      Array.from(folders.get(f).values()).sort(function (a, b) { return a.file.localeCompare(b.file) || a.id.localeCompare(b.id); }).forEach(function (cl) {
+        var exs = [], junk = [], n = 0, holds = 0;
+        cl.segs.sort(function (a, b) { return order(a) - order(b); }).forEach(function (id) { if (!top[id] && segShown(id)) (isEx(id) ? exs : junk).push(id); });
+        if (rshow !== 'all') junk = [];
+        if (!exs.length && !junk.length) return;
+        vids++;
+        exs.forEach(function (id) { n += choice(id).skip ? 0.13 : 1; });
+        junk.forEach(function (id) { if (holdSpan(S.get(id))) holds++; });
+        if (junkOpen[cl.id]) n += junk.length;
+        part += '<section class="vgrp" data-k="' + esc(f + '/' + cl.id) + '" data-folder="' + esc(f) + '" data-clip="' + esc(cl.id) + '" style="--n:' + Math.round(n * 100) / 100 + ';--j:' + (junk.length ? 1 : 0) + '"><h3 class="vid">' + esc(cl.file) + (cl.dur != null ? ' <span>· ' + clock(cl.dur) + ' long</span>' : '') + '</h3>' + exs.map(slot).join('');
+        if (junk.length) part += '<details class="more junk" data-k="junk" data-junk="' + esc(cl.id) + '"' + (junkOpen[cl.id] ? ' open' : '') + '><summary data-junksum="' + esc(cl.id) + '">' + count(junk.length, 'stretch', 'stretches') + ' with no exercise found' + (holds ? ' · ' + (holds === 1 ? '1 may be a hold' : holds + ' may be holds') : '') + '</summary><div class="in" data-k="in">' + junk.map(slot).join('') + '</div></details>';
+        part += '</section>';
+      });
+      if (part) h += '<h2 class="grp">' + esc(f) + ' · ' + count(vids, 'video', 'videos') + '</h2>' + part;
+    });
+    return h.indexOf('<section') >= 0 ? h : h + '<p class="muted">Nothing matches. Try another filter.</p>';
+  }
+  var RANK = { redo: 0, approved: 1, done: 1, rejected: 2 };
+  var groupOf = function (st) { return st === 'review' ? 0 : st === 'failed' ? 1 : 2; };
+  // An answered card stays where it is until the tab is left, so the next card never slides under a finger that is still tapping.
+  function pin(id) { if (tab === 'review' && !has(rvKeep, id)) { var st = segStatus(id); rvKeep[id] = [groupOf(st), RANK[st] || 0]; } }
+  function drawReview() {
+    var h = '<p class="small muted">Approved loops join the library the next time you tell Claude: apply the loop board.</p>';
+    if (!db && known) return h + '<p class="muted">Open this page in Claude, signed in, to review your loops.</p>';
+    if (!segSynced) return h + '<p class="muted">' + (slow ? 'Could not reach your loops yet. Check your connection.' : 'Loading your loops…') + '</p>';
+    // Each group: its heading, the cards placed in it, and how many stretches truly have that status.
+    var groups = [['WAITING FOR YOU', [], 0], ['FAILED', [], 0], ['ANSWERED', [], 0]], redo = 0;
+    var rk = function (id) { return has(rvKeep, id) && rvKeep[id][0] === 2 ? rvKeep[id][1] : RANK[segStatus(id)] || 0; };
+    S.forEach(function (s, id) {
+      if (!inReview(id)) return;
+      var st = segStatus(id), real = groupOf(st); if (st === 'redo') redo++;
+      groups[real][2]++;
+      groups[has(rvKeep, id) ? rvKeep[id][0] : real][1].push(id);
+    });
+    var recent = function (a, b) { return ts((S.get(b) || {}).updatedAt) - ts((S.get(a) || {}).updatedAt) || (a < b ? -1 : 1); };
+    groups[0][1].sort(recent); groups[1][1].sort(recent);
+    groups[2][1].sort(function (a, b) { return rk(a) - rk(b); });
+    if (T && T.making) h += '<p class="small muted">Claude is making ' + T.making + ' now. ' + (T.making === 1 ? 'It shows' : 'They show') + ' up here when ready.</p>';
+    if (redo) h += '<p class="small muted">' + count(redo, 'loop is', 'loops are') + ' marked for another try. Press Generate on the RAW FOOTAGE tab to send ' + (redo === 1 ? 'it' : 'them') + '.</p>';
+    if (!groups.some(function (g) { return g[1].length; })) return h + '<p class="muted">Nothing to review yet.</p>';
+    groups.forEach(function (g, i) { if (g[1].length) h += '<h2 class="grp">' + g[0] + ' · ' + g[2] + '</h2><div class="grid" data-k="g' + i + '">' + g[1].map(slot).join('') + '</div>'; });
+    return h;
+  }
+  // The Generate bar: filled in place, so a snapshot can refresh it without rebuilding the cards under someone's fingers.
+  function genHtml() {
+    var h = '<div class="state gen" id="gen"><span class="sum" id="raw-sum"></span>';
+    if (canEdit()) {
+      h += '<div class="acts"><button type="button" class="btn primary" id="gen-go"></button><label for="gen-cap">Stop at <input id="gen-cap" type="number" inputmode="numeric" min="10" max="1000" step="10"> credits</label></div>';
+      h += '<div class="acts"><button type="button" class="btn" id="gen-acc" hidden></button><button type="button" class="btn" id="gen-all"></button><button type="button" class="btn" id="gen-clear"></button></div><div class="err" role="alert" id="gen-err"></div>';
+      h += '<span class="small" id="gen-msg"></span><span class="small muted">This page cannot start the renders. Claude runs them when you ask.</span>';
+    }
+    return h + '</div>';
+  }
+  function genNote(t) {
+    var cq = doc('control.queue'), ids = cq && Array.isArray(cq.ids) ? cq.ids : [], pend = new Set(t.pend), n = t.pend.length, m = [];
+    var still = ids.filter(function (i) { return pend.has(i); }).length;
+    // An id that left the list because Claude started on it is progress; one the owner unticked means the list has to be sent again. Without a time stamp from Claude, a stretch the owner has not touched since sending counts as progress.
+    var moved = function (i) { var s = S.get(i); return !!s && (s.state === 'generating' || ts(s.updatedAt) > ts(cq.requestedAt) || (!s.updatedAt && stOf(s) !== 'ready' && ts(choice(i).updatedAt) <= ts(cq.requestedAt))); };
+    if (t.making) m.push('Claude is making ' + t.making + ' now.');
+    if (still) m.push('Queued ' + still + '. ' + (still === n && cq.cap === cap && ids.every(function (i) { return pend.has(i) || moved(i); }) ? 'Tell Claude: run the queue.' : 'You changed things after that. Press Generate again to send the new list.'));
+    var gone = ids.filter(function (i) { var s = S.get(i); return !!s && !pend.has(i) && !moved(i) && (stOf(s) === 'ready' || (!!s.updatedAt && ts(choice(i).updatedAt) > ts(cq.requestedAt))); }).length;
+    if (!still && gone) m.push('The list you sent still names ' + gone + ' you have since taken out. Press Clear queue so Claude does not make ' + (gone === 1 ? 'it' : 'them') + '.');
+    if (n * EST > cap) m.push('About ' + n * EST + ' credits is over your limit of ' + cap + ', so Claude will stop part way.');
+    return m.join(' ');
+  }
+  function genUpdate() {
+    var t = T || tally(), n = t.pend.length, can = canEdit(), el, at = function (word) { return word + '… ' + bulkAt + ' of ' + bulkN; };
+    if ((el = $('raw-sum'))) el.innerHTML = '<b>' + t.videos + '</b> ' + (t.videos === 1 ? 'video' : 'videos') + ' · <b>' + t.ex + '</b> ' + (t.ex === 1 ? 'exercise' : 'exercises') + ' found · <b>' + t.named + '</b> named · <b>' + n + '</b> queued · about <b>' + n * EST + '</b> credits' + (t.refilm ? ' · <b>' + t.refilm + '</b> to re-film' : '');
+    if ((el = $('gen-go'))) { el.textContent = genBusy === 'go' ? 'Sending…' : 'Generate ' + count(n, 'loop', 'loops'); el.disabled = !n || !!genBusy || !can; }
+    // Shown once there is a guess to accept, then kept in place (off) for the rest of the visit so no other button slides under a finger.
+    if ((el = $('gen-acc'))) { if (t.guess.length) accSeen = true; el.hidden = !accSeen; el.textContent = genBusy === 'acc' ? at('Naming') : 'Accept Claude\'s names (' + t.guess.length + ')'; el.disabled = !t.guess.length || !!genBusy || !can; }
+    if ((el = $('gen-all'))) { el.textContent = genBusy === 'all' ? at('Ticking') : 'Queue all named' + (t.open.length ? ' (' + t.open.length + ')' : ''); el.disabled = !t.open.length || !!genBusy || !can; }
+    if ((el = $('gen-clear'))) { el.textContent = genBusy === 'clear' ? at('Clearing') : 'Clear queue'; el.disabled = !(n || doc('control.queue')) || !!genBusy || !can; }
+    if ((el = $('gen-err'))) el.textContent = genErr;
+    if ((el = $('gen-msg'))) el.textContent = genNote(t);
+  }
+  // Footage is not square. Once a picture or a video tells its shape (width over height of one frame), the strip and the preview are fitted inside their boxes. The boxes themselves never change size.
+  function applyAspect(root) {
+    [].forEach.call(root && root.nodeType ? root.querySelectorAll('[data-ar]') : document.querySelectorAll(root || '#out [data-ar]'), function (el) {
+      var r = ar[el.dataset.ar], strip = el.dataset.strip, fr;
+      if (!r) { if (strip && tab === 'review') ask(el.dataset.ar, strip); return; }
+      el.style.setProperty('--r', r); el.classList.add('known');
+      if (el.classList.contains('strip')) el.classList.toggle('wide', r > 1);
+      else if (strip && (fr = el.querySelector('.fr'))) fr.style.backgroundImage = 'url("/_blob/' + strip + '")';
+    });
+  }
+  // The review cards carry no strip of their own, so the shape is asked of the picture once.
+  function ask(sid, strip) {
+    if (asked[sid]) return; asked[sid] = 1;
+    var im = new Image(); im.addEventListener('load', function () { shape(sid, im.naturalWidth / 8, im.naturalHeight); }); im.src = '/_blob/' + strip;
+  }
+  var shape = function (sid, w, h) { if (!sid || !w || !h) return; ar[sid] = Math.min(2.4, Math.max(0.4, Math.round(w / h * 1000) / 1000)); applyAspect('#out [data-ar="' + sid + '"]'); };
+  function catalog() {
+    NAMES = new Map(); LOOPED = new Set();
+    D.entries.forEach(function (e) {
+      if (e.nonExercise || !e.name) return;
+      var k = lower(e.name), cur = NAMES.get(k);
+      if (!cur || (cur.dupOf && !e.dupOf)) NAMES.set(k, e);
+      if (e.match === 'direct') LOOPED.add(k);
+    });
+    Object.keys(D.loops).forEach(function (sl) { LOOPED.add(lower(D.loops[sl].name)); });
+    fillNames();
+  }
+  // Names offered under every name field: the exercises that still need a video first, then the rest.
+  function fillNames() {
+    var dl = $('ex-names'); if (!dl || !D) return;
+    var az = function (a, b) { return a.name.localeCompare(b.name); }, first = function (e) { return needs(e) && !submitted(e); }, all = Array.from(NAMES.values());
+    dl.innerHTML = all.filter(first).sort(az).concat(all.filter(function (e) { return !first(e); }).sort(az)).map(function (e) { return '<option value="' + esc(e.name) + '"></option>'; }).join('');
+  }
+
+  // ---- tabs ----
+  function sortedSubmit() {
+    var list = D.entries.filter(function (e) {
+      if (!needs(e)) return false;
+      if (edit && edit.type === 'video' && exKey(e.id) === edit.key) return true;
+      if (!kindOk(e)) return false;
+      if (group !== 'all' && e.group !== group) return false;
+      var sent = submitted(e);
+      if (show === 'todo' && sent && !justSaved.has(e.id)) return false;
+      if (show === 'done' && !sent) return false;
+      return matchQ(e.name, e.group + ' ' + (e.equipment || ''));
+    });
+    var byUse = function (a, b) { return (b.score || 0) - (a.score || 0) || a.name.localeCompare(b.name); };
+    if (sort === 'az') list.sort(function (a, b) { return a.name.localeCompare(b.name); });
+    else if (sort === 'used') list.sort(byUse);
+    else list.sort(function (a, b) { return a.group.localeCompare(b.group) || byUse(a, b); });
+    return list;
+  }
+  function buildCopy(list) {
+    var title = show === 'done' ? 'EXERCISES YOU HAVE SENT A VIDEO FOR' : show === 'all' ? 'EXERCISES WITHOUT AN EXACT LOOP' : 'EXERCISES THAT STILL NEED A VIDEO';
+    var lines = [title + ' (' + list.length + ')', sort === 'used' ? 'Most used first.' : sort === 'az' ? 'A to Z.' : 'Grouped by muscle, most used first.'];
+    var g = null;
+    list.forEach(function (e, i) {
+      if (sort === 'group' && e.group !== g) { g = e.group; lines.push(''); lines.push(g.toUpperCase()); }
+      lines.push((sort === 'group' ? '- ' : (i + 1) + '. ') + e.name + ' (' + (e.equipment || '—') + (sort === 'group' ? '' : ', ' + e.group) + ')' + (e.match === 'close' ? ' [stand-in loop exists]' : '') + (submitted(e) ? ' [video sent]' : ''));
+    });
+    return lines.join('\n');
+  }
+  // The bar is rebuilt only when its own text changes, so a field in it keeps its focus through a redraw. What is typed in its fields is put back by hand, not written into the text.
+  var shownBar = null;
+  function barHtml() {
+    var h = '';
+    if (tab === 'submit') {
+      h += '<div class="seg" role="group" aria-label="Order">' + [['group', 'BY MUSCLE'], ['used', 'MOST USED'], ['az', 'A TO Z']].map(function (s) { return '<button type="button" data-sort="' + s[0] + '" aria-pressed="' + (sort === s[0]) + '">' + s[1] + '</button>'; }).join('') + '</div>';
+      h += '<div class="seg" role="group" aria-label="Show">' + [['todo', 'STILL TO DO'], ['done', 'VIDEO SENT'], ['all', 'ALL']].map(function (s) { return '<button type="button" data-show="' + s[0] + '" aria-pressed="' + (show === s[0]) + '">' + s[1] + '</button>'; }).join('') + '</div>';
+    }
+    if (tab === 'submit' || tab === 'loops') h += '<label class="sr" for="f-q">Search</label><input type="search" id="f-q" placeholder="Search by name" autocomplete="off">';
+    if (tab === 'submit') {
+      h += '<button type="button" class="btn" id="copy">Copy this list</button>';
+      h += '<details class="more" id="more"><summary>MORE FILTERS</summary><div class="bar">';
+      h += '<div class="seg" role="group" aria-label="Include">' + [['library', 'LIBRARY'], ['quick', 'QUICK MISSION'], ['program', 'PROGRAM-ONLY'], ['mission', 'MISSION MOVES']].map(function (s) { return '<button type="button" data-kind="' + s[0] + '" aria-pressed="' + (kinds[s[0]] !== false) + '">' + s[1] + '</button>'; }).join('') + '</div>';
+      h += '<label>Muscle <select id="f-group"><option value="all">All</option>' + D.groups.map(function (g) { return '<option' + (g === group ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('') + '</select></label></div></details>';
+    } else if (tab === 'loops') {
+      h += '<label>Muscle <select id="f-group"><option value="all">All</option>' + D.groups.map(function (g) { return '<option' + (g === group ? ' selected' : '') + '>' + esc(g) + '</option>'; }).join('') + '</select></label>';
+    } else if (tab === 'raw' && S.size) {
+      h += genHtml();
+      h += '<div class="seg" role="group" aria-label="Show">' + [['all', 'ALL'], ['name', 'NEED A NAME'], ['queued', 'QUEUED'], ['split', 'NEEDS SPLITTING'], ['refilm', 'RE-FILM'], ['skipped', 'SKIPPED']].map(function (s) { return '<button type="button" data-rshow="' + s[0] + '" aria-pressed="' + (rshow === s[0]) + '">' + s[1] + '</button>'; }).join('') + '</div>';
+      h += '<div class="frow"><label class="sr" for="f-folder">Folder</label><select id="f-folder"><option value="all">All folders</option>' + (T || tally()).folders.map(function (f) { return '<option value="' + esc(f) + '"' + (f === rfolder ? ' selected' : '') + '>' + esc(f) + '</option>'; }).join('') + '</select><label class="sr" for="f-q">Search</label><input type="search" id="f-q" placeholder="Search footage" autocomplete="off"></div>';
+    }
+    return h;
+  }
+  function drawBar() {
+    var h = barHtml(), el;
+    if (h !== shownBar) {
+      $('bar').innerHTML = shownBar = h;
+      if ((el = $('f-q'))) el.value = q;
+      if ((el = $('gen-cap'))) el.value = capText != null ? capText : cap;
+      if ((el = $('more'))) el.open = moreOpen;
+    }
+    if (tab === 'raw') genUpdate();
+  }
+  function drawSubmit() {
+    var list = sortedSubmit();
+    copyText = list.length ? buildCopy(list) : '';
+    var all = D.entries.filter(needs), sent = all.filter(submitted).length, hidden = all.filter(function (e) { return !kindOk(e) && !submitted(e); }).length;
+    var skipped = D.entries.filter(function (e) { return e.nonExercise; }).length;
+    var h = '<p class="small muted">' + list.length + ' shown. ' + all.length + ' exercises on this board have no exact loop yet, and you have sent a video for ' + sent + '. A stand-in loop means a close variation exists, but the exact move still needs its own. ' + skipped + ' strike, kick and cardio-machine rows are left out because Practice Mode and the cardio screens cover them.</p>';
+    if (hidden) h += '<div class="acts"><button type="button" class="chip" data-kind="mission" aria-pressed="false">Show ' + hidden + ' hidden mission moves</button></div>';
+    h += '<div id="copyarea"></div>';
+    if (!list.length) return h + '<p class="muted">Nothing matches. Try another filter.</p>';
+    var g = null;
+    list.forEach(function (e) {
+      if (sort === 'group' && e.group !== g) { g = e.group; h += '<h2 class="grp">' + esc(g) + ' · ' + list.filter(function (x) { return x.group === g; }).length + '</h2>'; }
+      h += submitRow(e);
+    });
+    return h;
+  }
+  function drawLoops() {
+    var slugs = Object.keys(D.loops).filter(function (s) { var L = D.loops[s]; return (group === 'all' || L.serves.some(function (e) { var en = byId[e.id]; return en && en.group === group; })) && matchQ(loopName(s) + ' ' + L.name + ' ' + s, L.serves.map(function (e) { return e.name; }).join(' ')); });
+    slugs.sort(function (a, b) { return loopName(a).localeCompare(loopName(b)); });
+    var h = '<p class="small muted">' + Object.keys(D.loops).length + ' loops are finished and kept here, not in the app yet. Rename any I got wrong, or send a better video to replace one. Tap a loop to pause it.</p>';
+    if (!slugs.length) return h + '<p class="muted">Nothing matches.</p>';
+    return h + '<div class="grid">' + slugs.map(loopCard).join('') + '</div>';
+  }
+  function drawNew() {
+    var slugs = Object.keys(D.loops).filter(function (s) { return D.loops[s].isNew; });
+    var ok = slugs.filter(function (s) { return loopDoc(s).approved; }).length;
+    return '<p class="small muted">' + slugs.length + ' loops are for exercises that are not in the library yet. ' + ok + ' approved. Tick the ones you want added. They go into the library, with their names recorded in both coach voices, when we push.</p><div class="grid">' + slugs.map(loopCard).join('') + '</div>';
+  }
+  function drawSquats() {
+    return '<p class="small muted">Watch each loop and give it its proper name. Tap a name under a loop or type your own, then Save name. None of these shows a clearly wide stance, so a wide squat may still need filming.</p><div class="grid">' + D.squatLoops.filter(function (s) { return D.loops[s]; }).map(squatCard).join('') + '</div>';
+  }
+
+  function renderState() {
+    var need = D.entries.filter(wanted), todo = need.filter(function (e) { return !submitted(e); }).length;
+    var made = Object.keys(D.loops).length, newN = Object.keys(D.loops).filter(function (s) { return D.loops[s].isNew; }).length;
+    var up = Array.from(E.values()).filter(hasVideo).length;
+    var msg = dead ? 'Live saving stopped. Reload the page to keep editing.'
+      : readOnly ? 'View only here. This view cannot save changes.'
+      : db && !synced ? (slow ? 'Could not reach your saved videos yet. What you see may be out of date, so editing is off for now.' : 'Loading your saved videos…')
+      : db ? 'Saves as you go. When you are done, tell Claude: apply the loop board.'
+      : known ? 'View only here. Open this page in Claude, signed in, to send videos or rename loops.' : 'Opening the board…';
+    var html = '<span class="sum"><b>' + todo + '</b> to do · <b>' + up + '</b> sent · <b>' + made + '</b> loops · <b>' + newN + '</b> new exercises</span><span class="small muted">' + esc(msg) + '</span>' + (T && T.fresh && tab !== 'raw' ? '<span class="small"><b>' + T.fresh + '</b> new or waiting to be cut. <button type="button" class="chip" data-gotab="raw">Show them in RAW FOOTAGE</button></span>' : '') + (db ? '<span class="small"><b>✂︎ To cut a video:</b> open the RAW FOOTAGE tab and press the gold <b>CUT THIS VIDEO</b> bar on its card.' + (tab !== 'raw' ? ' <button type="button" class="chip" data-gotab="raw">Take me there</button>' : '') + '</span>' : '');
+    if ($('state').innerHTML !== html) $('state').innerHTML = html;
+  }
+  // Where the focus is, as a selector that finds the same control again after a redraw. Every control without an id carries a data attribute of its own for this.
+  function focusDesc() {
+    var a = document.activeElement;
+    if (!a || a === document.body || !a.closest || !a.closest('.wrap')) return null;
+    var s = a.id ? '#' + a.id : a.tagName.toLowerCase();
+    if (!a.id) [].forEach.call(a.attributes, function (at) { if (/^data-/.test(at.name)) s += '[' + at.name + '="' + String(at.value).replace(/["\\]/g, '\\$&') + '"]'; });
+    return { el: a, sel: s, s: a.selectionStart, e: a.selectionEnd };
+  }
+  function focusSel(sel, pos) {
+    var el = null; try { el = document.querySelector(sel); } catch (x) {}
+    if (el && el.focus) { el.focus({ preventScroll: true }); if (pos) try { el.setSelectionRange(pos.s, pos.e); } catch (x) {} }
+    return !!el;
+  }
+  // Tab badges: RAW FOOTAGE counts the stretches that still need a decision, REVIEW the loops waiting for a verdict.
+  var shownTabs = null;
+  function drawTabs() {
+    var t = T || tally();
+    var counts = { submit: D.entries.filter(function (e) { return wanted(e) && !submitted(e); }).length, raw: t.todo, review: t.wait, loops: Object.keys(D.loops).length, 'new': Object.keys(D.loops).filter(function (s) { return D.loops[s].isNew; }).length, squats: D.squatLoops.length };
+    var fr = t.fresh || 0;
+    var h = TABS.map(function (t) { return '<button type="button" data-tab="' + t[0] + '"' + (t[0] === tab ? ' aria-current="page"' : '') + '>' + t[1] + ' ' + counts[t[0]] + (t[0] === 'raw' && fr ? ' · ' + fr + ' NEW' : '') + '</button>'; }).join('');
+    if (h !== shownTabs) $('tabs').innerHTML = shownTabs = h;
+  }
+
+  // ---- painting ----
+  // "shown" is what #out holds: the tab, and for the footage tabs the frame and each card's text. A redraw compares against it and changes only what differs, so a card that has not changed keeps its element: its video keeps playing, its pictures do not blink, and a snapshot that changes nothing costs nothing.
+  var shown = { tab: '', html: null, frame: null, cards: null }, limbo = null;
+  // A video that is moved in the page is paused by the browser. Whatever was playing before a repaint is set going again after it.
+  function alive(work) {
+    var on = [].filter.call(document.querySelectorAll('#out video[src]'), function (v) { return !v.paused; });
+    work();
+    on.forEach(function (v) { if (v.isConnected && v.paused && v.getAttribute('src')) { var p = v.play(); if (p && p.catch) p.catch(function () {}); } });
+    rewatch();
+  }
+  // A new element for a card, put in the place of the one it replaces. The strip, the preview and the loop of the old card are carried over when they show the same files.
+  // The new card goes in whole first and the carried parts follow, so the page never holds a card with parts missing (the browser would move the scroll position to make up for it).
+  function makeCard(sid, old) {
+    var box = document.createElement('div'); box.innerHTML = want[sid];
+    var nu = box.firstChild;
+    if (old && old.parentNode) old.parentNode.replaceChild(nu, old);
+    if (old) [].forEach.call(nu.querySelectorAll('[data-keep]'), function (n) {
+      var o = old.querySelector('[data-keep="' + n.dataset.keep + '"]'), a, b;
+      if (!o) return;
+      if ((a = n.querySelector('.pp')) && (b = o.querySelector('.pp'))) b.setAttribute('aria-label', a.getAttribute('aria-label'));
+      n.parentNode.replaceChild(o, n);
+    });
+    applyAspect(nu);
+    return nu;
+  }
+  // The element a card should be now: the one on the page if its text is unchanged, else a new one.
+  function cardEl(sid) {
+    var old = $('sgc-' + sid) || (limbo && limbo[sid]) || null;
+    return old && shown.cards && shown.cards[sid] === want[sid] ? old : makeCard(sid, old);
+  }
+  var keyOf = function (n) { var d = n.nodeType === 1 ? n.dataset : null; return !d ? '' : d.slot ? 'c:' + d.slot : d.k ? 'k:' + d.k : /^sgc-/.test(n.id) ? 'c:' + n.id.slice(4) : ''; };
+  var alike = function (a, n) { return a.nodeType === n.nodeType && (a.nodeType === 1 ? a.outerHTML === n.outerHTML : a.nodeValue === n.nodeValue); };
+  // An open or closed section belongs to the person looking at it, so "open" is left as it is on the page.
+  function sameAttrs(o, n) {
+    [].slice.call(o.attributes).forEach(function (a) { if (a.name !== 'open' && !n.hasAttribute(a.name)) o.removeAttribute(a.name); });
+    [].forEach.call(n.attributes, function (a) { if (a.name !== 'open' && o.getAttribute(a.name) !== a.value) o.setAttribute(a.name, a.value); });
+  }
+  function fill(n) { [].forEach.call(n.querySelectorAll('[data-slot]'), function (ph) { ph.parentNode.replaceChild(cardEl(ph.dataset.slot), ph); }); return n; }
+  // Makes the children of "cur" (on the page) match those of "next" (the new frame). Cards and groups are matched by key and stay in place; headings and notes are swapped only when their text changed.
+  function morph(cur, next) {
+    var kids = [].slice.call(next.childNodes), wanted = bare(), old = bare(), at, dead;
+    kids.forEach(function (n) { var k = keyOf(n); if (k) wanted[k] = 1; });
+    [].slice.call(cur.childNodes).forEach(function (c) {
+      var k = keyOf(c); if (!k) return;
+      if (wanted[k]) old[k] = c; else { if (k.charAt(0) === 'c') limbo[k.slice(2)] = c; cur.removeChild(c); }
+    });
+    at = cur.firstChild;
+    kids.forEach(function (n) {
+      var k = keyOf(n), o = k ? old[k] : null, el;
+      if (o) {
+        while (at && at !== o && !keyOf(at)) { dead = at; at = at.nextSibling; cur.removeChild(dead); }
+        if (at === o) at = o.nextSibling; else cur.insertBefore(o, at);
+        if (n.dataset.slot) { el = cardEl(n.dataset.slot); if (el !== o && o.parentNode === cur) cur.replaceChild(el, o); }
+        else { sameAttrs(o, n); morph(o, n); }
+      } else if (k) cur.insertBefore(n.dataset.slot ? cardEl(n.dataset.slot) : fill(n), at);
+      else if (at && !keyOf(at)) { if (alike(at, n)) at = at.nextSibling; else { cur.replaceChild(n, at); at = n.nextSibling; } }
+      else cur.insertBefore(n, at);
+    });
+    while (at) { dead = at; at = at.nextSibling; cur.removeChild(dead); }
+  }
+  // "gentle" is a redraw nobody asked for (a snapshot): on the older tabs it is skipped when the text is the same. A redraw the page asks for itself always rebuilds those tabs, as before.
+  function paint(gentle) {
+    var out = $('out'), h;
+    if (tab !== 'raw' && tab !== 'review') {
+      h = tab === 'submit' ? drawSubmit() : tab === 'loops' ? drawLoops() : tab === 'new' ? drawNew() : drawSquats();
+      if (gentle && shown.tab === tab && shown.html === h) return;
+      out.innerHTML = h; shown = { tab: tab, html: h, frame: null, cards: null }; rewatch(true);
+      return;
+    }
+    want = bare();
+    var frame = tab === 'raw' ? drawRaw() : drawReview(), had = shown.tab === tab && shown.cards ? shown : null, cards = want;
+    alive(function () {
+      if (!had) { out.innerHTML = frame.replace(/<i data-slot="([^"]*)"><\/i>/g, function (m, sid) { return cards[sid]; }); applyAspect(); }
+      else if (had.frame === frame) Object.keys(cards).forEach(function (sid) { var old; if (had.cards[sid] !== cards[sid] && (old = $('sgc-' + sid))) makeCard(sid, old); });
+      else { var box = document.createElement('div'); box.innerHTML = frame; limbo = bare(); morph(out, box); limbo = null; }
+    });
+    shown = { tab: tab, html: null, frame: frame, cards: cards }; want = null;
+  }
+  function draw(keepBar, gentle) {
+    if (!D) return;
+    if (edit && $('ed')) pull();
+    var f = focusDesc();
+    stale = false; T = tally();
+    if (rfolder !== 'all' && T.folders.indexOf(rfolder) < 0) rfolder = 'all';
+    drawTabs();
+    renderState();
+    if (!keepBar) drawBar(); else if (tab === 'raw') genUpdate();
+    paint(gentle);
+    if (f && document.activeElement !== f.el) focusSel(f.sel, /^#(f-q$|sg-|rv-)/.test(f.sel) ? f : null);
+  }
+  // While someone types in a footage card, or several stretches are being written at once, a snapshot only refreshes the counts. The cards catch up once they let go, or when the batch ends.
+  var segField = function () { var a = document.activeElement; return !!(a && a.tagName === 'INPUT' && a.type !== 'checkbox' && /^(sg-|rv-|gen-cap$)/.test(a.id || '')); };
+  var batch = function () { return genBusy === 'all' || genBusy === 'clear' || genBusy === 'acc'; };
+  function soft() { stale = true; T = tally(); var f = focusDesc(); drawTabs(); if (f && document.activeElement !== f.el) focusSel(f.sel); renderState(); if (tab === 'raw') genUpdate(); }
+  function refresh() { if ((tab === 'raw' || tab === 'review') && (segField() || batch())) soft(); else draw(!!(document.activeElement && document.activeElement.id === 'f-q'), true); }
+  function settle() {
+    if (!stale) return;
+    clearTimeout(staleT);
+    staleT = setTimeout(function () { if (stale && !down && !segField() && !batch() && (tab === 'raw' || tab === 'review')) draw(); }, 350);
+  }
+  // Swaps one card for its current text, if that differs from what is shown.
+  function patchCard(id) {
+    var sid = sidOf[id], old = $('sgc-' + sid), html;
+    if (!old || !shown.cards || shown.tab !== tab || (tab !== 'raw' && tab !== 'review')) return;
+    html = tab === 'review' ? reviewCard(id) : segCard(id);
+    if (shown.cards[sid] === html) return;
+    want = bare(); want[sid] = html;
+    alive(function () { makeCard(sid, old); });
+    shown.cards[sid] = html; want = null;
+  }
+  // The card shows something its text does not say (a box ticked by hand that was not saved): forget its text so the next redraw rebuilds it.
+  function reset(id) { if (shown.cards) delete shown.cards[sidOf[id]]; }
+  // After a change to one stretch: redraw (which touches only what changed), unless a field in another card has the focus, when only this card is swapped and the rest waits.
+  function renew(id) {
+    var a = document.activeElement, card = a && a.closest ? a.closest('.sgc') : null, f;
+    if (segField() && card && card.id !== 'sgc-' + sidOf[id]) { T = tally(); f = focusDesc(); patchCard(id); if (f && document.activeElement !== f.el) focusSel(f.sel, f); soft(); } else draw();
+  }
+
+  // ---- editing ----
+  function startEdit(type, key, extra, opener) {
+    if (!canEdit() || (edit && edit.busy)) return;
+    if (edit) { pull(); var a = unsaved(edit); if (a) drop(a); }
+    var cur = doc(key), s = cur || {};
+    if (type === 'video') {
+      edit = { type: 'video', key: key, id: extra.id, slug: extra.slug, had: hasVideo(cur) ? cur : null, err: '', busy: false, up: false, confirm: false, opener: opener,
+        d: { source: s.source === 'link' ? 'link' : assets ? 'upload' : 'link', asset: s.source === 'upload' ? s.asset : '', file: s.file || '', link: s.source === 'link' ? s.video : '', note: s.note || '' } };
+    } else {
+      var slug = extra.slug, L = D.loops[slug], first = L.serves.filter(function (x) { return x.kind === 'new'; })[0], ent = first && byId[first.id];
+      edit = { type: 'name', key: key, slug: slug, isNew: !!L.isNew, had: cur && cur.name ? cur : null, err: '', busy: false, opener: opener,
+        d: { name: s.name || L.name, group: s.group || (ent && ent.group) || D.groups[0], equipment: s.equipment || (ent && ent.equipment) || D.equipment[0], approved: !!s.approved, note: s.note || '' } };
+    }
+    draw();
+    var first2 = $('ed-link') || $('ed-file') || $('ed-name'); if (first2) first2.focus();
+  }
+  function pull() {
+    if (!edit || !$('ed')) return;
+    var d = edit.d, val = function (id) { var el = $(id); return el ? el.value : null; }, v;
+    if ((v = val('ed-link')) != null) d.link = v.trim();
+    if ((v = val('ed-note')) != null) d.note = v.trim();
+    if ((v = val('ed-name')) != null) d.name = v.trim();
+    if ((v = val('ed-group')) != null) d.group = v;
+    if ((v = val('ed-equip')) != null) d.equipment = v;
+    var ok = $('ed-ok'); if (ok) d.approved = ok.checked;
+  }
+  var usedElsewhere = function (asset, exceptKey) { return Array.from(E.entries()).some(function (p) { return p[0] !== exceptKey && p[1] && p[1].asset === asset; }); };
+  var drop = function (asset) { if (assets && isAsset(asset)) assets.delete(asset).catch(function () {}); };
+  var unsaved = function (ed) { return ed && ed.type === 'video' && !ed.busy && ed.d.asset && ed.d.asset !== (ed.had && ed.had.asset) ? ed.d.asset : ''; };
+  function closeEdit(refocus) { var ed = edit, a = unsaved(ed); if (a) drop(a); edit = null; draw(); if (refocus && ed && ed.opener) focusSel(ed.opener); }
+  // One retry when the store is briefly away. The call starts inside a promise, so an error thrown at once (a path the store will not take) is a failed save like any other.
+  function write(fn) { return Promise.resolve().then(fn).catch(function (e) { if (!e || e.code !== 'unavailable') throw e; return new Promise(function (r) { setTimeout(r, 700); }).then(fn); }); }
+  function dbMsg(e) {
+    var c = e && e.code;
+    if (c === 'quota_exceeded') return 'This page is full. Tell Claude to apply the board, then try again.';
+    if (c === 'resource_exhausted') return 'Too many saves at once. Wait a moment and try again.';
+    if (c === 'invalid_argument') return 'This view cannot save changes.';
+    if (c === 'revoked' || c === 'not_granted' || c === 'capability_disabled' || c === 'capability_removed') return 'Saving is off in this view. Reload the page.';
+    return 'That did not save. Check your connection and try again.';
+  }
+  function fail(ed, msg) { ed.busy = false; ed.err = msg; if (edit === ed) draw(); }
+
+  function save() {
+    pull();
+    var ed = edit, d = ed.d, key = ed.key, body, now = new Date().toISOString();
+    if (ed.type === 'video') {
+      body = { kind: ed.slug ? 'replace' : 'exercise', entryId: ed.id || null, slug: ed.slug || null, source: d.source, note: d.note.slice(0, 300), updatedAt: now };
+      if (ed.id && byId[ed.id]) body.entryName = byId[ed.id].name;
+      if (d.source === 'upload') { if (!isAsset(d.asset)) return fail(ed, 'Choose a video file first.'); body.asset = d.asset; body.file = String(d.file).slice(0, 120); }
+      else {
+        if (!/^https?:\/\/\S+$/.test(d.link)) return fail(ed, 'Paste the full link, starting with https://');
+        if (d.link.length > LINKMAX) return fail(ed, 'That link is too long. Use a shorter share link.');
+        body.video = d.link;
+      }
+    } else {
+      if (!d.name) return fail(ed, 'Type a name first.');
+      var base = loopDoc(ed.slug);
+      body = { kind: 'loop', slug: ed.slug, name: d.name.slice(0, 80), note: d.note.slice(0, 300), updatedAt: now };
+      if (ed.isNew) { body.group = d.group; body.equipment = d.equipment; body.approved = !!d.approved; }
+      else if (base.approved != null) body.approved = base.approved;
+    }
+    var old = ed.had && ed.had.asset, stray = ed.type === 'video' && d.source !== 'upload' ? unsaved(ed) : '';
+    ed.busy = true; ed.err = ''; draw();
+    write(function () { return db.doc('items/' + key).set(body); }).then(function () {
+      E.set(key, body);
+      if (ed.type === 'video' && ed.id) justSaved.add(ed.id);
+      if (old && old !== body.asset && !usedElsewhere(old, key)) drop(old);
+      if (stray) drop(stray);
+      say(ed.type === 'video' ? 'Saved your video.' : 'Saved.');
+      if (edit === ed) { edit = null; draw(); if (ed.opener) focusSel(ed.opener); } else draw();
+    }, function (e) { fail(ed, dbMsg(e)); });
+  }
+  function remove() {
+    var ed = edit, key = ed.key, had = ed.had;
+    if (ed.type === 'video' && !ed.confirm) { ed.confirm = true; draw(); return; }
+    var extra = unsaved(ed);
+    ed.busy = true; ed.err = ''; draw();
+    var keep = Object.assign({}, had || {}); delete keep.name;
+    var other = ed.type === 'name' && (keep.approved || keep.group || keep.equipment || keep.note);
+    write(function () { return other ? db.doc('items/' + key).set(Object.assign(keep, { updatedAt: new Date().toISOString() })) : db.doc('items/' + key).delete(); }).then(function () {
+      if (other) E.set(key, keep); else E.delete(key);
+      if (had && had.asset && !usedElsewhere(had.asset, key)) drop(had.asset);
+      if (extra) drop(extra);
+      say('Removed.');
+      if (edit === ed) { edit = null; draw(); if (ed.opener) focusSel(ed.opener); } else draw();
+    }, function (e) { fail(ed, dbMsg(e)); });
+  }
+  function upload(file) {
+    var ed = edit;
+    if (!file || !assets || !ed || ed.type !== 'video') return;
+    pull();
+    if (file.type && !/^video\//.test(file.type)) return fail(ed, 'Choose a video file.');
+    if (!file.size) return fail(ed, 'That file is empty.');
+    if (file.size > MAX) return fail(ed, 'That file is over 20 MB. Trim it or export it smaller, or paste a link instead.');
+    var type = file.type === 'video/webm' ? 'video/webm' : 'video/mp4';
+    ed.up = true; ed.err = ''; draw();
+    var go = function () { return assets.upload(file, { type: type }); };
+    go().catch(function (e) { if (!e || e.code !== 'store_unavailable') throw e; return new Promise(function (r) { setTimeout(r, 700); }).then(go); }).then(function (r) {
+      if (edit !== ed) { drop(r.id); return; }
+      var prev = unsaved(ed); if (prev) drop(prev);
+      ed.up = false; ed.d.asset = r.id; ed.d.file = file.name || 'video'; ed.err = ''; draw(); say('Video uploaded. Press Save.');
+    }, function (e) {
+      if (edit !== ed) return;
+      var c = e && e.code; ed.up = false;
+      fail(ed, c === 'too_large' ? 'That file is over 20 MB. Trim it or export it smaller, or paste a link instead.'
+        : c === 'unsupported_type' || c === 'invalid_request' ? 'That file cannot be stored here. Try an MP4, or paste a link instead.'
+        : c === 'quota_or_state' ? 'This page has no room for more uploads. Tell Claude to apply the board, then try again.'
+        : c === 'rate_limited' ? 'Too many uploads at once. Wait a moment and try again.'
+        : 'The upload did not go through. Try again, or paste a link instead.');
+    });
+  }
+  function saveSquat(slug) {
+    if (sqBusy.has(slug)) return;
+    var inp = $('sq-' + slug), name = inp ? inp.value.trim() : '';
+    var showErr = function (m) { var n = $('sqerr-' + slug); if (n) n.textContent = m; };
+    if (!name) return showErr('Type a name first.');
+    var base = loopDoc(slug), body = Object.assign({}, base, { kind: 'loop', slug: slug, name: name.slice(0, 80), updatedAt: new Date().toISOString() });
+    sqBusy.add(slug); draw();
+    write(function () { return db.doc('items/' + lpKey(slug)).set(body); }).then(function () { E.set(lpKey(slug), body); delete drafts[slug]; sqBusy.delete(slug); say('Saved the name ' + name + '.'); draw(); }, function (e) { sqBusy.delete(slug); draw(); showErr(dbMsg(e)); });
+  }
+  function setApproved(slug, on) {
+    var base = loopDoc(slug), first = D.loops[slug].serves.filter(function (x) { return x.kind === 'new'; })[0], ent = first && byId[first.id];
+    var body = Object.assign({}, base, { kind: 'loop', slug: slug, approved: !!on, group: base.group || (ent && ent.group) || D.groups[0], equipment: base.equipment || (ent && ent.equipment) || D.equipment[0], updatedAt: new Date().toISOString() });
+    write(function () { return db.doc('items/' + lpKey(slug)).set(body); }).then(function () { E.set(lpKey(slug), body); say(on ? 'Approved.' : 'Approval removed.'); draw(); }, function (e) { say(dbMsg(e)); draw(); });
+  }
+  // ---- raw footage and review: saving ----
+  // One document per stretch, sent whole. The time stamp is never older than Claude's last write to the stretch, so "which came last" holds even if this clock runs slow.
+  // A verdict is stored with the loop it was given for (forLoop), so a new loop from Claude counts as an answer to a redo even with no time stamp on its side.
+  function segBody(id, patch) {
+    var s = S.get(id) || {}, c = choice(id);
+    var b = { kind: 'seg', segId: id, name: segName(id).slice(0, 80), entryId: typeof c.entryId === 'string' ? c.entryId : null, from: num(c.from), to: num(c.to), skip: !!c.skip, queued: !!c.queued, verdict: verdictOf(id), note: String(c.note || '').slice(0, 300), updatedAt: new Date(Math.max(Date.now(), ts(s.updatedAt) + 1)).toISOString() };
+    if (typeof c.hold === 'boolean') b.hold = c.hold;
+    if (typeof c.split === 'boolean') b.split = c.split;
+    if (has(c, 'forLoop')) b.forLoop = isAsset(c.forLoop) ? c.forLoop : null;
+    Object.keys(patch).forEach(function (k) { b[k] = patch[k]; });
+    if (has(patch, 'verdict')) b.forLoop = isAsset(s.loop) ? s.loop : null;
+    return b;
+  }
+  // The store refuses every write from a view that may only look. After the first such answer the page stops offering to save.
+  var refused = function (e) { if (e && e.code === 'invalid_argument') readOnly = true; return readOnly; };
+  function putSeg(id, patch, msg, onOk, focus) {
+    if (!S.has(id) || sgBusy.has(id)) return false;
+    if (cxHold === id) { sgErr[id] = 'Wait a moment: the split is being saved.'; renew(id); return false; }
+    if (!canEdit()) { sgErr[id] = 'Saving is off. Reload the page.'; draw(); return false; }
+    if (batch()) { sgErr[id] = BUSYMSG; renew(id); return false; }
+    var key = sgKey(id), body = segBody(id, patch), prev = E.get(key), f0 = focusDesc();
+    var back = function () { var a = document.activeElement; if (a && a !== document.body) return; if (!(focus && focusSel(focus)) && f0) focusSel(f0.sel); };
+    // The change shows at once, with the card's buttons held until it has landed. It is taken back if the save fails.
+    sgBusy.add(id); keep.add(id); if (isFresh(id)) topKeep.add(id); delete sgErr[id]; genErr = ''; E.set(key, body); renew(id);
+    write(function () { return db.doc('items/' + key).set(body); }).then(function () {
+      var again = sgAgain[id];
+      E.set(key, body); sgBusy.delete(id); delete sgSent[id]; delete sgAgain[id];
+      // Claude removed the stretch while the save was on its way. The late document is taken back, so it cannot land on another stretch that is later given the same id.
+      if (!S.has(id)) { E.delete(key); write(function () { return db.doc('items/' + key).delete(); }).catch(function () {}); return goneMsg(); }
+      if (onOk) onOk(); say(msg); renew(id); back();
+      // Save was pressed again while this one was on its way: send what the card holds now.
+      if (again && S.has(id)) saveSeg(id);
+    }, function (e) {
+      if (E.get(key) === body) { if (prev) E.set(key, prev); else E.delete(key); }
+      sgBusy.delete(id); delete sgSent[id]; delete sgAgain[id]; sgErr[id] = dbMsg(e);
+      if (refused(e) || !S.has(id)) draw(); else { reset(id); renew(id); }
+      back();
+    });
+    return true;
+  }
+  function saveSeg(id) {
+    var s = S.get(id), sid = sidOf[id];
+    if (!s) return;
+    if (!canEdit()) { sgErr[id] = 'Saving is off. Reload the page.'; draw(); return; }
+    var bad = function (m) { sgErr[id] = m; var n = $('sgerr-' + sid); if (n) n.textContent = m; };
+    var r = readCard(id), sent = sgSent[id], st = stOf(s);
+    if (sgBusy.has(id)) { if (typeof r === 'string' || !sent || ['name', 'from', 'to', 'note'].some(function (k) { return r.sent[k] !== sent[k]; })) sgAgain[id] = true; return; }
+    if (typeof r === 'string') return bad(r);
+    if (!r.name) {
+      // An emptied name takes the name away again, unless a loop has been made under it.
+      if (!segName(id)) {
+        if (!dirty(id)) return bad('Type a name first.');
+        if (putSeg(id, { from: r.from, to: r.to, note: r.note }, 'Saved the cut and the note. Name it to make a loop.', dropper(id, r.sent))) sgSent[id] = r.sent;
+        return;
+      }
+      if (st === 'generating' || st === 'review' || st === 'done') return bad('This one has a loop already. Rename it instead.');
+      if (putSeg(id, { name: '', entryId: null, queued: false, from: r.from, to: r.to, note: r.note }, 'Name removed.', dropper(id, r.sent))) sgSent[id] = r.sent;
+      return;
+    }
+    if (putSeg(id, { name: r.name, entryId: r.entryId, from: r.from, to: r.to, note: r.note }, 'Saved the name ' + r.name + '.', dropper(id, r.sent))) sgSent[id] = r.sent;
+  }
+  // The tick queues what is on the card, not what was saved earlier: the name, the cut and the note on screen are saved with it.
+  function setQueued(id, on) {
+    var s = S.get(id) || {}, undo = function (m) { if (m) sgErr[id] = m; reset(id); draw(); }, r;
+    if (choice(id).skip || stOf(s) !== 'ready') return undo();
+    if (choice(id).split) return undo('This video shows several workouts. Cut it into one stretch per workout first.');
+    if (!on) { if (!putSeg(id, { queued: false }, 'Unticked ' + (segName(id) || 'it') + '.')) undo(); return; }
+    r = readCard(id);
+    if (typeof r === 'string') return undo(r);
+    if (!r.name) return undo('Type a name first.');
+    var onCard = $('sg-name-' + sidOf[id]);
+    if (onCard && onCard.value !== r.sent.name) return undo('This card just changed. Check the name, then tick again.');
+    if (putSeg(id, { name: r.name, entryId: r.entryId, from: r.from, to: r.to, note: r.note, queued: true }, 'Ticked ' + r.name + '. Press Generate when you are ready.', dropper(id, r.sent))) sgSent[id] = r.sent; else undo();
+  }
+  // "This is a hold": saved at once. A name the owner typed on the card goes with it ("name it and tick Hold"), with the rest of the card, when it is fit to save. A guess nobody typed is not taken as the name.
+  function setHold(id, on) {
+    var d = sgDraft[id], r = d && d.name != null && d.name.trim() ? readCard(id) : null, patch = { hold: !!on }, ok = null;
+    if (r && typeof r !== 'string' && r.name) { patch = { name: r.name, entryId: r.entryId, from: r.from, to: r.to, note: r.note, hold: !!on }; ok = dropper(id, r.sent); }
+    if (putSeg(id, patch, on ? 'Marked as a hold.' : 'No longer marked as a hold.', ok)) { if (ok) sgSent[id] = r.sent; } else { reset(id); draw(); }
+  }
+  // "This video shows several workouts": saved at once, and the stretch is taken out of the queue. It is made only after it has been cut into one stretch per workout.
+  function setSplit(id, on) {
+    if (!putSeg(id, on ? { split: true, queued: false } : { split: false }, on ? 'Parked: this video shows several workouts. It is not made until it is cut.' : 'No longer marked as showing several workouts.')) { reset(id); draw(); }
+  }
+  function toggleSkip(id) {
+    var s = S.get(id) || {}, on = !choice(id).skip;
+    putSeg(id, on && stOf(s) === 'ready' ? { skip: true, queued: false } : { skip: on }, on ? 'Skipped.' : 'Brought back.');
+  }
+  // ---- cutting: actions ----
+  var cxVideo = function (sid) { return document.querySelector('#out video[data-cxv="' + sid + '"]'); };
+  var cxErr = function (id, m) { if (m) sgErr[id] = m; else delete sgErr[id]; var n = $('sgerr-' + sidOf[id]); if (n) n.textContent = m || ''; };
+  // Puts the editor in step with the card's cut without rebuilding the card, so a drag or a key press is never interrupted. The card's text is marked stale, so the next redraw rebuilds it from the same values.
+  function cxSync(id) {
+    var sid = sidOf[id], s = S.get(id), dur = clipLen(s), r = cutRange(id), f = fields(id), bar = document.querySelector('[data-cxbar="' + sid + '"]'), el;
+    if ((el = $('sg-from-' + sid)) && el.value !== f.from) el.value = f.from;
+    if ((el = $('sg-to-' + sid)) && el.value !== f.to) el.value = f.to;
+    if (bar && dur && real(r[0]) && real(r[1])) {
+      bar.style.setProperty('--a', pc(r[0], dur)); bar.style.setProperty('--b', pc(r[1], dur));
+      [['from', r[0]], ['to', r[1]]].forEach(function (p) { var hd = bar.querySelector('[data-cxh="' + p[0] + '"]'); if (hd) { hd.setAttribute('aria-valuenow', String(round1(p[1]))); hd.setAttribute('aria-valuetext', clock1(p[1])); } });
+    }
+    if ((el = document.querySelector('[data-cxcut="' + sid + '"]'))) el.textContent = cutText(id);
+    if ((el = document.querySelector('[data-cxa="save"][data-id="' + sid + '"]'))) el.classList.toggle('due', dirty(id));
+    reset(id);
+  }
+  // One end of the cut, as typed text on the card (saved with Save cut, Save name or the tick). The two ends never cross (they stay at least 0.3 s apart) and never leave the video.
+  function setCut(id, which, t, strict) {
+    var s = S.get(id), dur = clipLen(s), r = cutRange(id), v;
+    if (!canCut(id) || !dur || !real(t)) return false;
+    v = round1(Math.max(0, Math.min(dur, t)));
+    if (which === 'from' && real(r[1]) && v > r[1] - 0.3) { if (strict) { cxErr(id, 'The start has to come before the end. Move the end first, or play on a little.'); return false; } v = round1(r[1] - 0.3); }
+    if (which === 'to' && real(r[0]) && v < r[0] + 0.3) { if (strict) { cxErr(id, 'The end has to come after the start. Move the start first, or go back a little.'); return false; } v = round1(r[0] + 0.3); }
+    if (v < 0 || v > dur + 0.05) { cxErr(id, which === 'from' ? 'The start has to come before the end. Move the end first.' : 'The end has to come after the start, inside the video. Move the start first.'); return false; }
+    (sgDraft[id] = sgDraft[id] || {})[which] = String(v);
+    cxErr(id, '');
+    cxSync(id);
+    return v;
+  }
+  // Saves the cut and the note on the card. The name goes with them only when it was typed: Claude's guess in the name field is not taken as a name here.
+  function saveCut(id) {
+    var r = readCard(id), d = sgDraft[id] || {};
+    if (!canCut(id)) return cxErr(id, cxBusy ? 'Wait a moment: a stretch is being added or split.' : 'Still saving. Try again in a moment.');
+    if (typeof r === 'string') return cxErr(id, r);
+    var typed = d.name != null && !!d.name.trim() && !!r.name, patch = { from: r.from, to: r.to, note: r.note };
+    if (typed) { patch.name = r.name; patch.entryId = r.entryId; }
+    if (putSeg(id, patch, 'Saved the cut' + (typed ? ' and the name ' + r.name : '') + '.', dropper(id, r.sent), '[data-cxa="save"][data-id="' + sidOf[id] + '"]')) sgSent[id] = r.sent;
+  }
+  // The owner's added stretches that were split off this one.
+  var kidsOf = function (id) { var k = []; S.forEach(function (x, kid) { if (x && x.virtual && x.fromSeg === id) k.push(x); }); return k; };
+  function autoCut(id) {
+    var d = sgDraft[id], c = choice(id), s = S.get(id) || {}, kid = kidsOf(id).filter(function (x) { return x.start < num(s.end) && x.end > num(s.start); })[0];
+    if (!canCut(id)) return;
+    if (kid) return cxErr(id, 'Part of this stretch was split off into its own card (' + clock1(kid.start) + ' to ' + clock1(kid.end) + '). The auto cut would cover it twice: remove that card first, or move this end by hand.');
+    if (d) { delete d.from; delete d.to; if (!Object.keys(d).length) delete sgDraft[id]; }
+    cxErr(id, '');
+    if (num(c.from) != null || num(c.to) != null) { if (!putSeg(id, { from: null, to: null }, s.added ? 'Back to where you added it.' : 'Back to the auto cut.')) cxSync(id); }
+    else { cxSync(id); say(s.added ? 'This is where you added it.' : 'This is the auto cut.'); }
+  }
+  // A new stretch id for a video: its clip id, "-u" and the next free number, never one given out before in this visit.
+  function newId(clipId) {
+    var n = 0, pre = String(clipId) + '-u', bump = function (k) { if (k.indexOf(pre) === 0) { var m = /^(\d+)$/.exec(k.slice(pre.length)); if (m) n = Math.max(n, +m[1]); } };
+    S.forEach(function (x, k) { bump(k); }); E.forEach(function (x, k) { if (k.indexOf('add.') === 0 || k.indexOf('seg.') === 0) bump(k.slice(4)); }); issued.forEach(bump);
+    var id = pre + ('0' + (n + 1)).slice(-2); issued.add(id); return id;
+  }
+  // What a stretch that is gone leaves behind: typed text, errors, open sections, the editor. A new stretch with the same id must start clean.
+  function forget(ids) {
+    ids.forEach(function (id) {
+      [sgDraft, sgErr, cutOpen, sgSent, sgAgain, cxArm, rvDraft, rvOpen].forEach(function (m) { delete m[id]; });
+      delete cxLoop[String(id).replace(/[^A-Za-z0-9-]/g, '-')]; keep.delete(id); keepNew.delete(id); topKeep.delete(id);
+      if (cutEd === id) cutEd = null;
+    });
+  }
+  // Writes an added stretch. The new card opens with the editor on it, its video at the place the stretch begins. o: { kind: 'add' or 'split', at, msg, fail(message), done() }.
+  function addStretch(src, srcId, a, b, o) {
+    if (!canEdit() || cxBusy) return false;
+    var nid = newId(src.clipId), key = addKey(nid), now = new Date().toISOString();
+    var body = { kind: 'add', segId: nid, clipId: String(src.clipId), folder: src.folder != null ? String(src.folder) : null, file: src.file != null ? String(src.file) : null, clipDur: clipLen(src), start: round1(a), end: round1(b), fromSeg: srcId, createdAt: now, updatedAt: now };
+    cxBusy = o.kind; renew(srcId);
+    write(function () { return db.doc('items/' + key).set(body); }).then(function () {
+      cxBusy = ''; E.set(key, body); mergeSegs(); keep.add(nid); keepNew.add(nid); cutOpen[nid] = true;
+      var prev = cutEd; cutEd = nid; if (prev && S.has(prev)) reset(prev); cxStart = { sid: sidOf[nid], t: o.at };
+      if (o.done) o.done();
+      draw();
+      var card = $('sgc-' + sidOf[nid]);
+      say(o.msg + (card ? '' : ' Its card is hidden by the search or the folder you picked.'));
+      if (card) { card.scrollIntoView({ block: 'center' }); focusSel('[data-pp="cx-' + sidOf[nid] + '"]'); }
+    }, function (e) {
+      cxBusy = ''; var m = dbMsg(e);
+      if (o.fail) o.fail(m); else cxErr(srcId, m);
+      if (refused(e)) draw(); else renew(srcId);
+    });
+    return true;
+  }
+  // A split is two writes, made in an order that never leaves two stretches over the same seconds: first the stretch is shortened, and only once that has landed is the second part written. If that fails, the stretch gets its end back.
+  function splitAt(id, t) {
+    var s = S.get(id), r = cutRange(id), c = choice(id), v, prevTo = num(c.to), end;
+    if (!s || !real(t)) return;
+    if (!canCut(id)) return cxErr(id, cxBusy ? 'Wait a moment: a stretch is being added or split.' : 'Wait for the save on this card to finish, then split again.');
+    if (stOf(s) !== 'ready') return cxErr(id, 'This stretch has a loop already. Split works only on a stretch with no loop yet.');
+    if (cutBad(id)) return cxErr(id, cutBad(id) + ' Fix the cut first, then split.');
+    if (!real(r[0]) || !real(r[1]) || !(t > r[0] + 0.5 && t < r[1] - 0.5)) return cxErr(id, 'Put the play mark inside the cut, at least half a second from either end, then press Split here.');
+    v = round1(t); end = r[1];
+    var d = sgDraft[id]; if (d) { delete d.to; if (!Object.keys(d).length) delete sgDraft[id]; }
+    var ok = putSeg(id, { to: v }, 'Splitting at ' + clock1(v) + '…', function () {
+      cxHold = id;
+      var went = addStretch(s, id, v, end, { kind: 'split', at: v, msg: 'Split at ' + clock1(v) + '. The second part is a new card below this one.',
+        done: function () { cxHold = null; },
+        fail: function (m) { cxHold = null; if (!putSeg(id, { to: prevTo }, 'The split did not go through (' + m + ') The stretch runs to ' + clock1(end) + ' again.')) cxErr(id, 'The split did not go through. The stretch now ends at ' + clock1(v) + ': press Auto cut or move the end to give it back.'); } });
+      if (!went) { cxHold = null; putSeg(id, { to: prevTo }, 'The split did not go through. Try again.'); }
+    });
+    if (!ok) cxErr(id, 'Wait for the save on this card to finish, then split again.');
+  }
+  function addAt(id, t) {
+    var s = S.get(id), dur = clipLen(s);
+    if (!s || !dur || !real(t)) return;
+    if (!canEdit() || cxBusy) return cxErr(id, 'Wait a moment: a stretch is being added or split.');
+    var a = round1(Math.max(0, Math.min(dur - 1, t))), b = round1(Math.min(dur, a + 8));
+    addStretch(s, id, a, b, { kind: 'add', at: a, msg: 'Added a stretch from ' + clock1(a) + ' to ' + clock1(b) + '. Move its ends, then name it.' });
+  }
+  // An added stretch with no loop can be taken away again, with whatever was typed or saved for it. It takes two taps; a part that was split off goes back to the stretch it came from.
+  function removeAdded(id) {
+    var s = S.get(id) || {}, key = addKey(id), sk = sgKey(id), sid = sidOf[id];
+    if (!s.virtual || stOf(s) !== 'ready' || choice(id).queued || cxBusy || sgBusy.has(id)) return;
+    if (!(cxArm[id] > Date.now())) {
+      cxArm[id] = Date.now() + 4000; reset(id); renew(id); focusSel('[data-cxa="del"][data-id="' + sid + '"]'); say('Tap Remove again to take this stretch away.');
+      setTimeout(function () { if (cxArm[id] && cxArm[id] <= Date.now()) { delete cxArm[id]; if (S.has(id)) { reset(id); renew(id); } } }, 4100);
+      return;
+    }
+    delete cxArm[id];
+    cxBusy = 'del'; renew(id);
+    write(function () { return db.doc('items/' + key).delete(); }).then(function () {
+      return E.has(sk) ? write(function () { return db.doc('items/' + sk).delete(); }) : null;
+    }).then(function () {
+      cxBusy = ''; cxQuiet = Date.now() + 700; E.delete(key); E.delete(sk); forget(mergeSegs().concat([id]));
+      var src = s.fromSeg && S.has(s.fromSeg) ? s.fromSeg : null, sc = src ? choice(src) : null, ss = src ? S.get(src) : null, back = false;
+      if (src && num(sc.to) != null && Math.abs(sc.to - s.start) < 0.05 && stOf(ss) === 'ready') {
+        var auto = num(ss.end), to = auto != null && Math.abs(auto - s.end) < 0.05 ? null : s.end;
+        back = putSeg(src, { to: to }, 'Removed. The stretch it was split from runs to ' + clock1(s.end) + ' again.');
+      }
+      draw();
+      if (!back) say('Removed the stretch you added.');
+      if (src && $('sgc-' + sidOf[src])) focusSel('[data-cutsum="' + sidOf[src] + '"]');
+    }, function (e) { cxBusy = ''; mergeSegs(); draw(); say(dbMsg(e)); refused(e); });
+  }
+  var cxPlay = function (v) { var p = v.play(); if (p && p.catch) p.catch(function () {}); };
+  var cxSeek = function (v, t) { var d = isFinite(v.duration) && v.duration > 0 ? v.duration : Infinity; try { v.currentTime = Math.max(0, Math.min(d - 0.05, t)); } catch (x) {} };
+  // Moves the play mark and the time on the bar with the video. "Play the cut" goes back to the start of the cut (as it stands now) when it reaches the end.
+  function cxTick(v) {
+    var sid = v.dataset.cxv, id = idOf[sid], s = S.get(id), dur = clipLen(s), bar = document.querySelector('[data-cxbar="' + sid + '"]'), t = v.currentTime, n, L;
+    if (!bar || !dur) return;
+    if (cxLoop[sid] && id && !v.paused) { L = cutRange(id); if (real(L[0]) && real(L[1]) && L[1] > L[0] + 0.1 && (t >= L[1] - 0.03 || t < L[0] - 0.3)) { cxSeek(v, L[0]); t = L[0]; } }
+    bar.style.setProperty('--t', pc(t, dur));
+    if ((n = document.querySelector('[data-cxnow="' + sid + '"]'))) n.textContent = clock1(t);
+  }
+  var cxRaf = 0;
+  function cxRun() { cancelAnimationFrame(cxRaf); var v = document.querySelector('#out video[data-cxv]'); if (!v || v.paused) return; cxTick(v); cxRaf = requestAnimationFrame(cxRun); }
+  function cxClick(b) {
+    var act = b.dataset.cxa, sid = b.dataset.id, id, v, t;
+    if (!act) return false;
+    id = sid != null ? idOf[sid] : null;
+    if (!id || !S.has(id)) { goneMsg(); return true; }
+    if (act === 'open') { var prev = cutEd, r0 = cutRange(id); cutEd = id; cutOpen[id] = true; cxStart = { sid: sid, t: real(r0[0]) ? r0[0] : 0 }; if (prev && prev !== id && S.has(prev)) reset(prev); reset(id); draw(); focusSel('[data-pp="cx-' + sid + '"]'); return true; }
+    if (act === 'del') { removeAdded(id); return true; }
+    if (act === 'save') { saveCut(id); return true; }
+    if (act === 'auto') { autoCut(id); return true; }
+    v = cxVideo(sid); if (!v) return true;
+    t = v.currentTime;
+    if (act === 'step') { v.pause(); delete cxLoop[sid]; cxSeek(v, t + Number(b.dataset.v)); cxTick(v); }
+    else if (act === 'from' || act === 'to') setCut(id, act, t, true);
+    else if (act === 'play') { var bad = cutBad(id), r = cutRange(id); if (bad) cxErr(id, bad + ' Fix the cut first.'); else if (real(r[0]) && real(r[1])) { cxErr(id, ''); cxLoop[sid] = true; cxSeek(v, r[0]); cxPlay(v); } }
+    else if (act === 'split') splitAt(id, t);
+    else if (act === 'add') addAt(id, t);
+    return true;
+  }
+  function toggleRetry(id) {
+    var on = segStatus(id) !== 'redo', nm = segName(id);
+    if (!nm) return;
+    pin(id);
+    putSeg(id, { verdict: on ? 'redo' : null, queued: true }, on ? nm + ' goes out again with the next Generate.' : 'Retry cancelled.');
+  }
+  function setVerdict(id, v, note) {
+    var own = segName(id), guess = guessOf(S.get(id)), nm = own || guess || 'the loop', sid = sidOf[id], patch = { verdict: v };
+    if (v === 'approved' && !own && !guess) return;
+    // No name of yours yet: Claude's name is saved with the answer, so Approve and Redo work without a trip to RAW FOOTAGE.
+    if (!own && guess && (v === 'approved' || v === 'redo')) { patch.name = guess.slice(0, 80); patch.queued = true; }
+    if (v === 'redo') { patch.queued = true; patch.note = String(note == null ? choice(id).note || '' : note).trim().slice(0, 300); }
+    pin(id);
+    // The answered card keeps its place, and "Change my answer" lands where Approve was (and Approve where "Change my answer" was). For a moment after the save, the button that now sits on that spot takes no press, so a double tap cannot undo what the first tap did.
+    putSeg(id, patch, v === 'approved' ? 'Approved ' + nm + '.' : v === 'rejected' ? 'Rejected ' + nm + '.' : v === 'redo' ? 'Asked for a redo of ' + nm + '.' : 'Answer cleared.', function () { delete rvOpen[id]; delete rvDraft[id]; quiet[id] = { rv: v ? 'clear' : 'approved', until: Date.now() + 700 }; }, '[data-rv="' + (v ? 'clear' : 'approved') + '"][data-id="' + sid + '"]');
+  }
+  function setCap(v) {
+    var n = Math.round(Number(v));
+    if (!isFinite(n) || v === '') n = cap;
+    cap = Math.min(1000, Math.max(10, n)); capText = null;
+    try { localStorage.setItem(CAPKEY, String(cap)); } catch (x) {}
+    var el = $('gen-cap'); if (el && el.value !== String(cap)) el.value = cap;
+    if (D) { T = tally(); genUpdate(); }
+  }
+  var whereText = function (id) { var s = S.get(id) || {}; return String(s.file || s.clipId || 'a video') + ', ' + rangeText(s).split(' · ')[0]; };
+  // The page cannot start a render. Generate writes the list down for Claude to run, with the credit limit to stop at.
+  function generate() {
+    if (!canEdit() || genBusy) return;
+    var el = $('gen-cap'); if (el) setCap(el.value);
+    var ids = tally().pend; if (!ids.length) return;
+    // A queued card with text typed but not saved would be made under its old name. Say which, and take the owner there.
+    var typed = ids.filter(dirty), card;
+    if (typed.length) {
+      genErr = 'Save what you typed on ' + whereText(typed[0]) + ' first' + (typed.length > 1 ? ', and on ' + (typed.length - 1) + ' more' : '') + '. It would be made with the old name or cut.';
+      typed.forEach(function (id) { sgErr[id] = 'Not saved yet. Press Save name, then Generate.'; });
+      draw();
+      if ((card = $('sgc-' + sidOf[typed[0]]))) { card.scrollIntoView({ block: 'center' }); focusSel('[data-sgsave="' + sidOf[typed[0]] + '"]'); }
+      return;
+    }
+    var body = { kind: 'control', requestedAt: new Date().toISOString(), count: ids.length, cap: cap, ids: ids };
+    var done = function () { refresh(); var a = document.activeElement; if (!a || a === document.body) focusSel('#gen-go'); };
+    genBusy = 'go'; genErr = ''; refresh();
+    write(function () { return db.doc('items/control.queue').set(body); }).then(function () {
+      E.set('control.queue', body); genBusy = ''; say('Queued ' + ids.length + '. Tell Claude: run the queue.'); done();
+    }, function (e) { genBusy = ''; genErr = dbMsg(e); if (refused(e)) draw(); done(); });
+  }
+  // Several stretches at once, one write after the other. The cards are drawn once, when the batch ends; the button counts along meanwhile.
+  function bulk(kind, ids, patchOf, msg, last) {
+    if (!canEdit() || genBusy) return;
+    var i = 0, btn = '#gen-' + kind;
+    var step = function () {
+      bulkAt = i; if (tab === 'raw') genUpdate();
+      if (i >= ids.length) return last ? last() : Promise.resolve();
+      var id = ids[i++], key = sgKey(id), body;
+      if (!S.has(id)) return step();
+      body = segBody(id, patchOf(id));
+      return write(function () { return db.doc('items/' + key).set(body); }).then(function () { E.set(key, body); return step(); });
+    };
+    var done = function () {
+      Object.keys(sgErr).forEach(function (k) { if (sgErr[k] === BUSYMSG) delete sgErr[k]; });
+      if (segField()) soft(); else draw();
+      var a = document.activeElement; if (!a || a === document.body) focusSel(btn);
+    };
+    genBusy = kind; genErr = ''; bulkN = ids.length; bulkAt = 0; soft();
+    Promise.resolve().then(step).then(function () { genBusy = ''; say(msg); done(); }, function (e) { genBusy = ''; genErr = dbMsg(e); refused(e); done(); });
+  }
+  function queueAll() { var ids = tally().open; if (ids.length) bulk('all', ids, function () { return { queued: true }; }, 'Ticked ' + count(ids.length, 'named exercise', 'named exercises') + '. Press Generate when you are ready.'); }
+  // Names every unnamed exercise stretch with Claude's guess, where Claude is fairly sure and nothing else was typed on the card.
+  function acceptNames() {
+    var ids = tally().guess;
+    if (!ids.length) return;
+    bulk('acc', ids, function (id) {
+      var s = S.get(id), g = guessOf(s), e = entryFor(g, s), d = sgDraft[id];
+      if (d && d.name != null) { delete d.name; if (!Object.keys(d).length) delete sgDraft[id]; }
+      return { name: (e && lower(e.name) === lower(g) ? e.name : g).slice(0, 80), entryId: e ? e.id : null };
+    }, 'Named ' + count(ids.length, 'exercise', 'exercises') + ' with Claude\'s guess. Tick the ones to make, or press Queue all named.');
+  }
+  function clearQueue() {
+    var ids = tally().pend, had = !!doc('control.queue');
+    if (!ids.length && !had) return;
+    bulk('clear', ids, function (id) { return segStatus(id) === 'redo' ? { verdict: null } : { queued: false }; }, 'Queue cleared.', function () {
+      return had ? write(function () { return db.doc('items/control.queue').delete(); }).then(function () { E.delete('control.queue'); }) : Promise.resolve();
+    });
+  }
+  var goneMsg = function () { draw(); say('That stretch is no longer in the footage.'); };
+  function segClick(b) {
+    var d = b.dataset, id = d.id != null ? idOf[d.id] : null;
+    if (!d.sg && !d.rv) return false;
+    if (!id || !S.has(id)) { goneMsg(); return true; }
+    if (d.rv && quiet[id] && quiet[id].rv === d.rv && quiet[id].until > Date.now()) return true;
+    if (d.sg === 'skip') toggleSkip(id);
+    else if (d.sg === 'retry') toggleRetry(id);
+    else if (d.sg === 'review') {
+      try { location.hash = 'review'; } catch (x) {}
+      go('review');
+      var card = $('sgc-' + d.id), first = card && card.querySelector('.acts button');
+      if (card) card.scrollIntoView({ block: 'center' });
+      if (first) first.focus({ preventScroll: true });
+    }
+    else if (d.rv === 'redo') { rvOpen[id] = true; draw(); var n = $('rv-note-' + d.id); if (n) n.focus(); }
+    else if (d.rv === 'cancel') { delete rvOpen[id]; delete rvDraft[id]; draw(); focusSel('[data-rv="redo"][data-id="' + d.id + '"]'); }
+    else if (d.rv === 'clear') setVerdict(id, null);
+    else if (d.rv === 'approved' || d.rv === 'rejected') setVerdict(id, d.rv);
+    return true;
+  }
+  function copyList() {
+    var area = $('copyarea');
+    if (!copyText) { say('Nothing to copy.'); return; }
+    var fallback = function () { area.innerHTML = '<label class="small muted" for="copybox">Select all and copy:</label><textarea class="copybox" readonly id="copybox">' + esc(copyText) + '</textarea><div class="acts"><button type="button" class="btn" data-copydone>Done</button></div>'; var t = $('copybox'); if (t) { t.focus(); t.select(); try { document.execCommand('copy'); } catch (x) {} } say('Select the text and copy it.'); };
+    try { navigator.clipboard.writeText(copyText).then(function () { say('List copied.'); var b = $('copy'); if (b) { b.textContent = 'Copied'; setTimeout(function () { var c = $('copy'); if (c) c.textContent = 'Copy this list'; }, 1600); } }, fallback); } catch (x) { fallback(); }
+  }
+  function toTop() { var r = $('tabs').getBoundingClientRect(); if (r.top < 0) window.scrollTo(0, window.pageYOffset + r.top - 8); }
+  function go(t) { if (edit && edit.busy) return; if (t === tab) return; qOf[tab] = q; tab = t; q = qOf[t] || ''; group = 'all'; justSaved.clear(); keep.clear(); keepNew.clear(); topKeep.clear(); rvKeep = bare(); accSeen = false; if (t === 'raw') fillNames(); draw(); toTop(); }
+
+  // ---- events ----
+  $('tabs').addEventListener('click', function (e) { var b = e.target.closest('button[data-tab]'); if (!b || (edit && edit.busy)) return; try { location.hash = b.dataset.tab; } catch (x) {} go(b.dataset.tab); });
+  $('state').addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('button[data-gotab]'); if (!b || (edit && edit.busy)) return; try { location.hash = b.dataset.gotab; } catch (x) {} go(b.dataset.gotab); });
+  $('bar').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.sort) sort = b.dataset.sort; else if (b.dataset.show) { show = b.dataset.show; justSaved.clear(); }
+    else if (b.dataset.kind) kinds[b.dataset.kind] = !(kinds[b.dataset.kind] !== false);
+    else if (b.dataset.rshow) { rshow = b.dataset.rshow; keep.clear(); topKeep.clear(); }
+    else if (b.id === 'gen-go') return generate(); else if (b.id === 'gen-all') return queueAll(); else if (b.id === 'gen-acc') return acceptNames(); else if (b.id === 'gen-clear') return clearQueue();
+    else if (b.id === 'copy') return copyList(); else return;
+    draw();
+  });
+  $('bar').addEventListener('input', function (e) {
+    if (e.target.id === 'gen-cap') { capText = e.target.value; return; }
+    if (e.target.id !== 'f-q') return;
+    q = e.target.value; qOf[tab] = q; clearTimeout(qTimer); qTimer = setTimeout(function () { draw(true); }, 150);
+  });
+  $('bar').addEventListener('change', function (e) {
+    if (e.target.id === 'f-group') { group = e.target.value; draw(); }
+    else if (e.target.id === 'f-folder') { rfolder = e.target.value; keep.clear(); topKeep.clear(); draw(); }
+    else if (e.target.id === 'gen-cap') setCap(e.target.value);
+  });
+  $('bar').addEventListener('toggle', function (e) { if (e.target.id === 'more') moreOpen = e.target.open; }, true);
+  $('out').addEventListener('click', function (e) {
+    if (Date.now() < cxQuiet && e.target.closest && e.target.closest('button, label, input, summary')) { e.preventDefault(); return; }
+    var sm = e.target.closest && e.target.closest('summary[data-cutsum]'), sid0, id0;
+    // Opening CUT THE VIDEO on a card moves the editor there (after the section has opened).
+    if (sm && (id0 = idOf[sid0 = sm.dataset.cutsum]) && !sm.parentNode.open && proxyOf(S.get(id0)) && cutEd !== id0) {
+      var prev0 = cutEd, r00 = cutRange(id0); cutEd = id0; cxStart = { sid: sid0, t: real(r00[0]) ? r00[0] : 0 }; if (prev0 && S.has(prev0)) reset(prev0); reset(id0);
+      setTimeout(function () { cutOpen[id0] = true; draw(); }, 0);
+    }
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.dup) { dupOn = !dupOn; keep.clear(); draw(); focusSel('[data-dup="toggle"]'); return; }
+    if (b.dataset.pp && b.dataset.pp.indexOf('cx-') === 0) delete cxLoop[b.dataset.pp.slice(3)];
+    if (cxClick(b)) return;
+    if (segClick(b)) return;
+    if (b.dataset.pp !== undefined) {
+      var v = b.parentNode.querySelector('video');
+      if (!v.getAttribute('src')) v.src = v.dataset.src;
+      if (v.paused) { delete v.dataset.userPaused; var p = v.play(); if (p && p.catch) p.catch(function () {}); } else { v.dataset.userPaused = '1'; v.pause(); }
+    }
+    else if (b.dataset.edit) startEdit(b.dataset.edit, b.dataset.key, { id: b.dataset.id, slug: b.dataset.slug }, '[data-edit="' + b.dataset.edit + '"][data-key="' + b.dataset.key + '"]');
+    else if (b.dataset.src && edit && !edit.busy && !edit.up) { pull(); edit.d.source = b.dataset.src; edit.err = ''; draw(); }
+    else if ('cancel' in b.dataset && edit && !edit.busy) closeEdit(true);
+    else if ('keep' in b.dataset && edit) { edit.confirm = false; draw(); }
+    else if ('remove' in b.dataset && edit && !edit.busy && !edit.up) remove();
+    else if ('copydone' in b.dataset) { $('copyarea').innerHTML = ''; var c = $('copy'); if (c) c.focus(); }
+    else if (b.dataset.kind) { kinds[b.dataset.kind] = true; draw(); }
+    else if (b.dataset.sqpick) {
+      var inp = $('sq-' + b.dataset.sqpick); if (!inp || inp.disabled) return;
+      inp.value = b.dataset.name; drafts[b.dataset.sqpick] = b.dataset.name;
+      [].forEach.call(b.parentNode.querySelectorAll('.chip'), function (c) { c.setAttribute('aria-pressed', String(c === b)); });
+      var er = $('sqerr-' + b.dataset.sqpick); if (er) er.textContent = '';
+    }
+  });
+  $('out').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var fd = e.target.dataset, sg = idOf[fd.sgform || fd.rvform || ''];
+    // A card left on screen after Claude removed its stretch: say so and take it away.
+    if ((fd.sgform || fd.rvform) && (!sg || !S.has(sg))) return goneMsg();
+    if (fd.sgform) return saveSeg(sg);
+    if (fd.rvform) { var rn = $('rv-note-' + fd.rvform); setVerdict(sg, 'redo', rn ? rn.value : ''); return; }
+    if (fd.sqform) return saveSquat(fd.sqform);
+    if (edit && !edit.busy && !edit.up && !edit.confirm) save();
+  });
+  $('out').addEventListener('input', function (e) {
+    var id = e.target.id || '', m, rid;
+    if (id.indexOf('sq-') === 0) {
+      var slug = id.slice(3); drafts[slug] = e.target.value;
+      [].forEach.call(e.target.form.querySelectorAll('.chip'), function (c) { c.setAttribute('aria-pressed', String(c.dataset.name === e.target.value.trim())); });
+      var er = $('sqerr-' + slug); if (er) er.textContent = '';
+    } else if ((m = /^sg-(name|from|to|note)-(.+)$/.exec(id)) && (rid = idOf[m[2]])) {
+      // Typed text is kept here so a redraw or a snapshot cannot lose it.
+      (sgDraft[rid] = sgDraft[rid] || {})[m[1]] = e.target.value;
+      delete sgErr[rid]; var se = $('sgerr-' + m[2]); if (se) se.textContent = '';
+      var hint = m[1] === 'name' && $('sg-hint-' + m[2]); if (hint) hint.textContent = hintText(e.target.value, S.get(rid));
+      if (m[1] === 'from' || m[1] === 'to') cxSync(rid);
+      // The tick box is on as soon as there is a name to save with it.
+      var qb = m[1] === 'name' && $('sg-q-' + m[2]), qh = $('sg-qh-' + m[2]), named = !!e.target.value.trim();
+      if (qb && !sgBusy.has(rid)) { var sp = !!choice(rid).split; qb.disabled = sp || (!named && !qb.checked); qb.parentNode.classList.toggle('off', qb.disabled); if (qh) qh.hidden = !sp && (named || qb.checked); }
+    } else if ((m = /^rv-note-(.+)$/.exec(id)) && (rid = idOf[m[1]])) rvDraft[rid] = e.target.value;
+  });
+  $('out').addEventListener('change', function (e) {
+    var d = e.target.dataset || {};
+    if (e.target.id === 'ed-file') upload(e.target.files && e.target.files[0]);
+    else if (d.approve) setApproved(d.approve, e.target.checked);
+    else if (d.sgq) { if (idOf[d.sgq]) setQueued(idOf[d.sgq], e.target.checked); else goneMsg(); }
+    else if (d.sgsplit) { if (idOf[d.sgsplit]) setSplit(idOf[d.sgsplit], e.target.checked); else goneMsg(); }
+    else if (d.sghold) { if (idOf[d.sghold]) setHold(idOf[d.sghold], e.target.checked); else goneMsg(); }
+  });
+  $('out').addEventListener('keydown', function (e) {
+    var hd = e.target.dataset && e.target.dataset.cxh, hid = hd ? idOf[e.target.dataset.id] : null;
+    if (hd && hid) {
+      var k = e.key, big = e.shiftKey || k === 'PageUp' || k === 'PageDown', r0 = cutRange(hid), now = hd === 'from' ? r0[0] : r0[1], to = null, dur0 = clipLen(S.get(hid));
+      if (k === 'ArrowLeft' || k === 'ArrowDown' || k === 'PageDown') to = now - (big ? 1 : 0.1);
+      else if (k === 'ArrowRight' || k === 'ArrowUp' || k === 'PageUp') to = now + (big ? 1 : 0.1);
+      else if (k === 'Home') to = 0; else if (k === 'End') to = dur0 || now;
+      if (to == null || !real(now)) return;
+      e.preventDefault();
+      var got = setCut(hid, hd, to), v0 = cxVideo(e.target.dataset.id);
+      if (got !== false && v0) { v0.pause(); delete cxLoop[e.target.dataset.id]; cxSeek(v0, got); cxTick(v0); }
+      return;
+    }
+    if (e.key !== 'Escape') return;
+    var rf = e.target.closest ? e.target.closest('form[data-rvform]') : null, cancel = rf && rf.querySelector('[data-rv="cancel"]');
+    if (cancel && !cancel.disabled) { e.preventDefault(); cancel.click(); }
+    else if (edit && !edit.busy && !edit.up) { e.preventDefault(); closeEdit(true); }
+  });
+  // Media events do not bubble, so listen in the capture phase to keep the play indicator right.
+  ['play', 'pause'].forEach(function (n) { $('out').addEventListener(n, function (e) { var st = e.target.parentNode; if (st && st.classList && st.classList.contains('stage')) st.classList.toggle('paused', e.target.paused); if (n === 'pause') settle(); }, true); });
+  ['timeupdate', 'seeked', 'loadedmetadata'].forEach(function (n) { $('out').addEventListener(n, function (e) {
+    var v = e.target; if (!v.dataset || !v.dataset.cxv) return;
+    if (n === 'loadedmetadata' && cxStart && cxStart.sid === v.dataset.cxv) { var t0 = cxStart.t; cxStart = null; if (t0 > 0) cxSeek(v, t0); }
+    cxTick(v);
+  }, true); });
+  $('out').addEventListener('play', function (e) { if (e.target.dataset && e.target.dataset.cxv) cxRun(); }, true);
+  // The bar. A tap only moves the play mark (on a handle: to that end). A drag that starts on or near a handle moves that end once the finger has moved sideways, keeping its distance from the handle (no jump); when both handles are under the finger, the nearer one, or if they are as near, the direction of the first move decides (left: the start, right: the end). Elsewhere a sideways drag scrubs. An up or down swipe scrolls the page and changes nothing.
+  $('out').addEventListener('pointerdown', function (e) {
+    var bar = e.target.closest ? e.target.closest('[data-cxbar]') : null;
+    if (!bar || (e.button != null && e.button > 0)) return;
+    var sid = bar.dataset.cxbar, id = idOf[sid], v = cxVideo(sid), dur = clipLen(S.get(id));
+    if (!id || !v || !dur) return;
+    var rect = bar.getBoundingClientRect(), r = cutRange(id), x = function (t) { return rect.left + t / dur * rect.width; }, cand = [];
+    if (canCut(id) && real(r[0]) && real(r[1])) { var da = Math.abs(e.clientX - x(r[0])), db2 = Math.abs(e.clientX - x(r[1])); if (da <= 18) cand.push(['from', da]); if (db2 <= 18) cand.push(['to', db2]); }
+    var d0 = sgDraft[id] || {};
+    cxDrag = { sid: sid, id: id, v: v, dur: dur, rect: rect, bar: bar, pid: e.pointerId, x0: e.clientX, y0: e.clientY, cand: cand, which: null, off: 0, moved: false, on: e.target.dataset && e.target.dataset.cxh || null, before: { from: d0.from, to: d0.to } };
+    if (e.pointerType === 'mouse') e.preventDefault();
+  });
+  var cxAt = function (g, clientX) { return Math.max(0, Math.min(g.dur, (clientX - g.rect.left) / g.rect.width * g.dur)); };
+  function cxMove(clientX) {
+    var g = cxDrag; if (!g) return;
+    var t = Math.max(0, Math.min(g.dur, cxAt(g, clientX) + g.off)), got;
+    if (g.which) { got = setCut(g.id, g.which, t); if (got !== false) t = got; }
+    cxSeek(g.v, t); cxTick(g.v);
+  }
+  window.addEventListener('pointermove', function (e) {
+    var g = cxDrag; if (!g || e.pointerId !== g.pid) return;
+    var dx = e.clientX - g.x0, dy = e.clientY - g.y0;
+    if (!g.moved) {
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { cxDrag = null; return; }
+      if (Math.abs(dx) < 6) return;
+      g.moved = true;
+      if (g.cand.length === 2) g.which = Math.abs(g.cand[0][1] - g.cand[1][1]) > 6 ? (g.cand[0][1] < g.cand[1][1] ? g.cand[0][0] : g.cand[1][0]) : dx < 0 ? 'from' : 'to';
+      else if (g.cand.length === 1) g.which = g.cand[0][0];
+      if (g.which) { var r = cutRange(g.id); g.off = (g.which === 'from' ? r[0] : r[1]) - cxAt(g, g.x0); var hEl = g.bar.querySelector('[data-cxh="' + g.which + '"]'); if (hEl) hEl.focus({ preventScroll: true }); }
+      try { g.bar.setPointerCapture(g.pid); } catch (x2) {}
+      g.v.pause(); delete cxLoop[g.sid];
+    }
+    e.preventDefault(); cxMove(e.clientX);
+  }, { passive: false });
+  window.addEventListener('pointerup', function (e) {
+    var g = cxDrag; if (!g || e.pointerId !== g.pid) return;
+    cxDrag = null;
+    if (g.moved) return;
+    // A tap: the play mark goes where the finger was, or to the end of the cut that was tapped.
+    var r = cutRange(g.id), t = g.on && canCut(g.id) ? (g.on === 'from' ? r[0] : r[1]) : cxAt(g, g.x0);
+    g.v.pause(); delete cxLoop[g.sid]; cxSeek(g.v, t); cxTick(g.v);
+  });
+  // The browser took the touch for a scroll after a handle had moved: the handle goes back.
+  window.addEventListener('pointercancel', function (e) {
+    var g = cxDrag; if (!g || e.pointerId !== g.pid) return;
+    cxDrag = null;
+    if (g.moved && g.which) { var d = sgDraft[g.id] = sgDraft[g.id] || {}; ['from', 'to'].forEach(function (k) { if (g.before[k] == null) delete d[k]; else d[k] = g.before[k]; }); if (!Object.keys(d).length) delete sgDraft[g.id]; cxSync(g.id); }
+  });
+  // Neither do load and toggle. A strip or a preview tells its shape once it has loaded; an opened section stays open through redraws.
+  $('out').addEventListener('load', function (e) { var t = e.target, st = t.tagName === 'IMG' && t.closest ? t.closest('.strip') : null; if (st && !ar[st.dataset.ar]) shape(st.dataset.ar, t.naturalWidth / 8, t.naturalHeight); }, true);
+  $('out').addEventListener('loadedmetadata', function (e) { var st = e.target.parentNode; if (st && st.dataset && st.dataset.ar) shape(st.dataset.ar, e.target.videoWidth, e.target.videoHeight); }, true);
+  $('out').addEventListener('toggle', function (e) { var d = e.target.dataset || {}; if (!e.target.open && e.target.querySelectorAll) [].forEach.call(e.target.querySelectorAll('video[data-cxv]'), function (cv) { cv.pause(); delete cxLoop[cv.dataset.cxv]; }); if (d.cut) { if (idOf[d.cut]) cutOpen[idOf[d.cut]] = e.target.open; } else if (d.junk != null) junkOpen[d.junk] = e.target.open; }, true);
+  // A redraw held back while a field had the focus runs once the focus has left and no press is under way, so a tap on a button is never lost to it.
+  window.addEventListener('pointerdown', function () { down = true; }, true);
+  ['pointerup', 'pointercancel'].forEach(function (n) { window.addEventListener(n, function () { down = false; settle(); }, true); });
+  $('out').addEventListener('focusout', settle);
+  $('bar').addEventListener('focusout', settle);
+
+  function fromHash() { var h = (location.hash || '').slice(1) || 'submit'; if (TABS.some(function (t) { return t[0] === h; })) go(h); }
+  window.addEventListener('hashchange', fromHash);
+
+  fetch('board.json').then(function (r) { return r.json(); }).then(function (r) {
+    D = r; D.entries.forEach(function (e) { byId[e.id] = e; });
+    catalog();
+    fromHash(); draw();
+  }).catch(function () { $('out').innerHTML = '<p class="muted">The board did not load. Reload the page.</p>'; });
+
+  var use = function (name) { try { return window.claude && window.claude.use ? window.claude.use(name).catch(function () { return null; }) : Promise.resolve(null); } catch (x) { return Promise.resolve(null); } };
+  var onRaw = function () { return tab === 'raw' || tab === 'review'; };
+  // Saving has stopped: the footage cards lose their forms at once, even under a focused field, so nothing looks pressable that is not.
+  var died = function () { dead = true; if (!D) return; if (onRaw()) draw(); else renderState(); };
+  Promise.all([use('db'), use('assets')]).then(function (r) {
+    db = r[0]; assets = r[1]; known = true;
+    if (db) {
+      setTimeout(function () { if (synced && segSynced) return; slow = true; if (!D) return; if (!segSynced && onRaw()) draw(); else renderState(); }, 10000);
+      db.collection('items').limit(1000).onSnapshot(function (snap) {
+        var next = new Map(); snap.docs.forEach(function (d) { var x = d.data(); if (x) next.set(d.id, x); });
+        E = next; synced = true; slow = false;
+        if (segSynced) forget(mergeSegs());
+        if (!D) return;
+        if (($('ed') && edit) || (tab === 'squats' && Object.keys(drafts).length)) renderState(); else refresh();
+      }, died);
+      // The stretches Claude found in the raw footage. Only Claude writes these.
+      db.collection('segs').limit(1000).onSnapshot(function (snap) {
+        var next = new Map();
+        snap.docs.forEach(function (d) {
+          var x = d.data(); if (!x) return;
+          next.set(d.id, x);
+        });
+        S0 = next; mergeSegs(); segSynced = true;
+        // Text typed on a stretch that is gone, and its other odds and ends, must not land on a new stretch that gets the same id.
+        [sgDraft, rvDraft, rvOpen, sgErr, cutOpen, rvKeep, sgSent, sgAgain, cxLoop].forEach(function (m) { Object.keys(m).forEach(function (k) { if (!S.has(k) && !idOf[k]) delete m[k]; }); });
+        if (cutEd && !S.has(cutEd)) cutEd = null;
+        if (!D) return;
+        if (onRaw()) refresh();
+        else if (!($('ed') && edit)) { var f = focusDesc(); T = tally(); drawTabs(); if (f && /data-tab/.test(f.sel)) focusSel(f.sel); }
+      }, died);
+      // One document per video, from Claude's scan: its whole-video proxy for the cut editor. Optional: without it the cut is typed.
+      db.collection('clips').limit(1000).onSnapshot(function (snap) {
+        var next = new Map(); snap.docs.forEach(function (d) { var x = d.data(); if (x) next.set(String(d.id), x); });
+        C = next; clipSynced = true;
+        if (D && onRaw()) refresh();
+      }, function () { clipSynced = true; });
+    }
+    if (D) draw();
+  });
+})();
+</script>
+

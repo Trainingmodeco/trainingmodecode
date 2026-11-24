@@ -10,7 +10,6 @@ import { ChevronLeft, MessageSquare, Bell, Volume2, Globe } from 'lucide-react';
 import { C } from './Styles';
 import { ENCOURAGEMENT_FREQUENCIES, encouragementFrequency, describeEncouragement } from './data/coachEncouragement';
 import { CALL_STYLES, callStyleOf, formatCall } from './data/strikeNumbering';
-import SafeImage from './SafeImage';
 import AccountCard from './AccountCard';
 import { hasProEntitlement } from './data/entitlements';
 import { loadStats, getLevel, getStreak, getLevelProgress } from './data/userStats';
@@ -25,6 +24,12 @@ import { loadProfile } from './data/userProfile';
 import { sharesGhosts, removeMyPoolGhosts } from './data/ghostCloud';
 import LevelView from './LevelView';
 import VoiceCheck from './shared/VoiceCheck';
+import { retentionOn } from './data/retentionFlags';
+import { setWeekTarget, chosenWeekTarget, loadWeekStreak, saveGamePlanKeepingTarget, weekStreakCount } from './data/weekStreakStore';
+import WeekTargetRow from './retention/ui/WeekTargetRow';
+import { loadPower } from './data/powerStore';
+import { RustyPortraitImage } from './retention/ui/RustyLook';
+import BoardProfile, { BoardProfileRow } from './retention/ui/BoardProfile';
 
 
 function SectionLabel({ text }) {
@@ -324,9 +329,23 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
     setAudioSettingsState(next);
     saveAudioSettings(next);
   };
+  // Retention feature 1 (week streak switch): "Days per week" is the weekly
+  // target, 2 to 6, and a change starts next Monday.
+  const [weeksOn] = useState(() => retentionOn('weeks'));
   const [gamePlan, setGamePlanState] = useState(loadGamePlan);
   const updateGamePlan = (key, val) => {
-    setGamePlanState(saveGamePlan({ [key]: val }));
+    setGamePlanState(weeksOn ? saveGamePlanKeepingTarget({ [key]: val }) : saveGamePlan({ [key]: val }));
+  };
+  const [weekTarget, setWeekTargetState] = useState(() => (weeksOn ? { chosen: chosenWeekTarget(), week: loadWeekStreak() } : null));
+  // POWER (switch on): a RUSTY athlete's portrait shows the rusty look; the
+  // name, level and XP beside it stay as they are.
+  const [rusty] = useState(() => retentionOn('power') && loadPower().state === 'rusty');
+  // The world score board (switch `scores`): a SCORE BOARD row under the
+  // account card, opening its own page (name, country, LEAVE BOARDS).
+  const [scoresOn] = useState(() => retentionOn('scores'));
+  const pickWeekTarget = (n) => {
+    setGamePlanState(setWeekTarget(n));
+    setWeekTargetState({ chosen: chosenWeekTarget(), week: loadWeekStreak() });
   };
   const updateReminder = (key, val) => {
     const next = { ...reminderSettings, [key]: val };
@@ -368,7 +387,8 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
   if (profileView === 'overview') {
     const stats = loadStats();
     const lvl = getLevel(stats.xp);
-    const strk = getStreak(stats);
+    // With the week streak on, the streak tile is the week streak (the header's chip on Home).
+    const strk = weeksOn ? weekStreakCount(Date.now(), stats.sessions) : getStreak(stats);
     // The same count the Level page prints: award rows are not sessions.
     const sessionCount = trainingSessionCount(stats);
     const lp = getLevelProgress(stats.xp);
@@ -413,7 +433,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
               <div style={{ display: 'flex', gap: 12, padding: 10, alignItems: 'center' }}>
                 {/* The portrait opens the Level page; a small LEVEL › tag on it says so. */}
                 <button type="button" ref={portraitRef} onClick={() => setProfileView('level')} aria-label="View your level" style={{ position: 'relative', display: 'block', padding: 0, width: 72, height: 90, flexShrink: 0, borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(253,224,71,0.5)', boxShadow: '0 0 20px -6px rgba(253,224,71,.4)', background: 'none', cursor: 'pointer' }}>
-                  <SafeImage src={tierImage(tier.id, avSex)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%' }}/>
+                  <RustyPortraitImage src={tierImage(tier.id, avSex)} rusty={rusty} imgStyle={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 15%' }}/>
                   <span style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: '9px 0 3px', textAlign: 'center', font: "800 9px 'Orbitron',sans-serif", color: '#fde047', letterSpacing: '0.06em', background: 'linear-gradient(to top, rgba(8,1,15,0.92), transparent)' }}>LEVEL ›</span>
                 </button>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -432,8 +452,8 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
                   <div style={{ font: "600 8px 'Rajdhani',sans-serif", color: '#9a90b8', marginTop: 3 }}>{lp.current} / {lp.needed} XP to next</div>
                   {/* Streak · sessions · trophies — inside the card now. */}
                   <div style={{ display: 'flex', gap: 6, marginTop: 7 }}>
-                    {[{ v: `🔥${strk}`, label: 'STREAK', color: '#ff8a4a' }, { v: String(sessionCount), label: 'SESSIONS', color: '#fff' }, { v: String(tierIndexForLevel(lvl) + 1), label: 'TROPHIES', color: '#b06aff' }].map(s => (
-                      <div key={s.label} style={{ flex: 1, minWidth: 0, background: 'rgba(8,2,18,0.7)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 7, padding: '3px 2px', textAlign: 'center' }}>
+                    {[{ v: `🔥${strk}`, label: weeksOn ? 'WEEK STREAK' : 'STREAK', color: '#ff8a4a', week: weeksOn }, { v: String(sessionCount), label: 'SESSIONS', color: '#fff' }, { v: String(tierIndexForLevel(lvl) + 1), label: 'TROPHIES', color: '#b06aff' }].map(s => (
+                      <div key={s.label} data-retention={s.week ? 'profile-week-streak' : undefined} style={{ flex: 1, minWidth: 0, background: 'rgba(8,2,18,0.7)', border: '1px solid rgba(168,85,247,0.25)', borderRadius: 7, padding: '3px 2px', textAlign: 'center' }}>
                         <div style={{ font: "900 12px 'Orbitron',sans-serif", color: s.color, lineHeight: 1.2 }}>{s.v}</div>
                         <div style={{ font: "600 6px 'Orbitron',sans-serif", color: '#9a90b8', letterSpacing: '0.05em' }}>{s.label}</div>
                       </div>
@@ -460,6 +480,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
             {/* Links */}
             <div data-guide="pr-menu" style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
               <div data-guide="pr-google"><AccountCard/></div>
+              {scoresOn && <BoardProfileRow onOpen={() => setProfileView('board')}/>}
               {/* Training Mode PRO — prominent upsell / member entry */}
               {onPaywall && (
                 <button data-guide="pr-pro" onClick={onPaywall} style={{
@@ -533,11 +554,16 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
         stats={loadStats()}
         name={name}
         sex={sex}
+        rusty={rusty}
         onBack={() => { focusPortrait.current = true; setProfileView('overview'); }}
         onHome={onHome}
         onChangeAvatar={() => openEditor('level')}
       />
     );
+  }
+
+  if (profileView === 'board' && scoresOn) {
+    return <BoardProfile onBack={() => setProfileView('overview')}/>;
   }
 
   if (profileView === 'audio') {
@@ -926,19 +952,26 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
             Tell it the time you actually have — Today&apos;s Bout picks a session that fits.
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ background: 'rgba(10,0,20,0.6)', borderRadius: 8, padding: '10px 14px', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: C.muted, display: 'block', marginBottom: 6 }}>Days per week</span>
-              <div style={{ display: 'flex', gap: 5 }}>
-                {[2, 3, 4, 5, 6, 7].map(n => (
-                  <button key={n} onClick={() => updateGamePlan('daysPerWeek', n)} style={{
-                    flex: 1, padding: '5px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
-                    fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10,
-                    background: gamePlan.daysPerWeek === n ? '#2dd4bf' : 'rgba(255,255,255,0.06)',
-                    color: gamePlan.daysPerWeek === n ? '#041210' : C.muted,
-                  }}>{n}</button>
-                ))}
+            {weeksOn ? (
+              <WeekTargetRow
+                value={weekTarget.chosen} current={weekTarget.week.thisWeek.target} onPick={pickWeekTarget}
+                freezes={weekTarget.week.freezes} nextFreezeIn={weekTarget.week.nextFreezeIn}
+              />
+            ) : (
+              <div style={{ background: 'rgba(10,0,20,0.6)', borderRadius: 8, padding: '10px 14px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: C.muted, display: 'block', marginBottom: 6 }}>Days per week</span>
+                <div style={{ display: 'flex', gap: 5 }}>
+                  {[2, 3, 4, 5, 6, 7].map(n => (
+                    <button key={n} onClick={() => updateGamePlan('daysPerWeek', n)} style={{
+                      flex: 1, padding: '5px 0', borderRadius: 6, border: 'none', cursor: 'pointer',
+                      fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 10,
+                      background: gamePlan.daysPerWeek === n ? '#2dd4bf' : 'rgba(255,255,255,0.06)',
+                      color: gamePlan.daysPerWeek === n ? '#041210' : C.muted,
+                    }}>{n}</button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
             <div style={{ background: 'rgba(10,0,20,0.6)', borderRadius: 8, padding: '10px 14px', border: '1px solid rgba(255,255,255,0.06)' }}>
               <span style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11, color: C.muted, display: 'block', marginBottom: 6 }}>Minutes you can usually give</span>
               <div style={{ display: 'flex', gap: 5 }}>
@@ -967,7 +1000,9 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
             </div>
             {gamePlan.setup && (
               <div style={{ fontFamily: "'Rajdhani',sans-serif", fontSize: 10.5, fontWeight: 600, color: '#8fe8ac', lineHeight: 1.35 }}>
-                ✓ Game Plan active — {gamePlan.daysPerWeek} days/week, ~{gamePlan.sessionMinutes} min sessions. Rest days never break your combo.
+                {weeksOn
+                  ? `✓ Game Plan active — ${weekTarget.chosen} days/week, ~${gamePlan.sessionMinutes} min sessions. Rest days never break your streak.`
+                  : <>✓ Game Plan active — {gamePlan.daysPerWeek} days/week, ~{gamePlan.sessionMinutes} min sessions. Rest days never break your combo.</>}
               </div>
             )}
           </div>

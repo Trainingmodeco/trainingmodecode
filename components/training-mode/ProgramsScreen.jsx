@@ -7,11 +7,13 @@ import { HelpButton } from './shared/WorkoutHelpPanel';
 import ScreenGuide from './shared/ScreenGuide';
 import { SCREEN_GUIDES } from './shared/screenGuides';
 import { ChevronLeft, ChevronRight, Home, Play } from 'lucide-react';
-import { PROGRAMS, programDayIndex, loadCurrentProgram, startProgramDay, programMinutes } from './data/workoutPrograms';
+import { PROGRAMS, programDayIndex, loadCurrentProgram, startProgramDay, programMinutes, saveCurrentProgram } from './data/workoutPrograms';
 import { PLAN_PROGRAMS, planDayIndex, planDayMinutes, startPlanDay } from './data/workoutLibrary';
 import { quickMissionConfig } from './data/quickMissionConfig';
 import { isPro } from './data/entitlements';
 import BottomSheet from './shared/BottomSheet';
+import { retentionOn } from './data/retentionFlags';
+import ProgramDayCard from './fit-challenge/ProgramDayCard';
 
 // Programs — promoted from a sheet inside the Workout Builder to its own Fit
 // Mode destination (row 03 on the hub).
@@ -72,6 +74,8 @@ export default function ProgramsScreen({ onBack, onHome, onFightMode, onStart, o
   };
   const [equipment, setEquipment] = useState(loadEquip);
   const [current] = useState(() => loadCurrentProgram());
+  // The workout card (switch fitCard): the day's preview on the card.
+  const [fitCard] = useState(() => retentionOn('fitCard'));
 
   const pickEquipment = (id) => {
     setEquipment(id);
@@ -130,6 +134,9 @@ export default function ProgramsScreen({ onBack, onHome, onFightMode, onStart, o
             })}
           </div>
 
+          {fitCard ? (
+            <ProgramDayCard program={featured} current={!!current} equipment={equipment} onStart={(c) => { saveCurrentProgram(featured.id); onStart?.(c); }}/>
+          ) : (
           <section className="pg-hero" data-guide="pg-continue" style={{
             position: 'relative', flexShrink: 0, borderRadius: 16, overflow: 'hidden',
             border: '1px solid rgba(157,108,255,0.4)', background: '#0D0A18',
@@ -164,6 +171,7 @@ export default function ProgramsScreen({ onBack, onHome, onFightMode, onStart, o
               boxShadow: '0 0 24px rgba(242,190,69,0.3)',
             }}><Play size={16} fill="currentColor" strokeWidth={0}/>{current ? 'RESUME' : 'START'}</button>
           </section>
+          )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
             <span style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTED }}>Program library</span>

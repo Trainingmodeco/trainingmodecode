@@ -12,7 +12,7 @@
 //     30, 35, 38, 45, 60 and 75 (fitModeGenerator.js FOCUS_PARAMS and the
 //     difficulty tables, a timed move resting half). So every whole second of
 //     15-300 is a rest the player can say. restMax = ex.restSeconds || parseInt(ex.rest) || 60 (:143).
-//   · sets 1-8 (edit sheet and custom scheme; the generator deals 2-4); chain rounds
+//   · sets 1-8 (edit sheet and custom scheme; the generator deals 2-6); chain rounds
 //     2-5 for a circuit, a superset's rounds are the sets of its first move (1-8)
 //     (FitBuilderWorkout.jsx:938): so "Set s of T" and "Round r of R" for 1-8.
 //   · reps 1-60 (edit sheet; the custom scheme stops at 50); a hold is 10-180 s in

@@ -1,12 +1,24 @@
+import { useState } from 'react';
 import MissionComplete from './shared/MissionComplete';
 import { C } from './Styles';
 import { settleFightXp, fightSummaryCopy } from './data/fightSessionXp';
+import { retentionOn } from './data/retentionFlags';
+import { conceptSessionStars } from './data/pathNextUp';
+import { playStarTone } from './data/audioEngine';
+import StageStarsCard from './retention/ui/StageStarsCard';
+import { timerRetryKey } from './data/retrySafety';
+import { conceptStageBoss } from './data/nearMissStore';
+import ScoreBoardSlot from './retention/ui/ScoreBoardSlot';
 
 // Fight Focus / Combo Coach session complete — rendered by the shared
 // design-24f screen, with a round-by-round recap as the extra card.
 const GOLD = '#fde047';
 
-export default function SessionSummary({ discipline, rounds, cfg, completedRounds, integrityResult, fightStats, onAgain, onBack, onHome, extraActions = [] }) {
+// retry (retention feature 3): { token, onRetry, onLeave } — the same session
+// again and the way home, for the near-miss panel (MissionComplete).
+// board (the world score board, switch `scores`): App's finish for this
+// session ({ board, value, level, handle } or { reason }), or none.
+export default function SessionSummary({ discipline, rounds, cfg, completedRounds, integrityResult, fightStats, onAgain, onBack, onHome, extraActions = [], retry = null, board = null }) {
   const completed = typeof completedRounds === 'number' ? completedRounds : rounds.length;
   const totalPlanned = cfg.rounds || rounds.length;
   // Item 9 — the engine decides how this ended, not a round count. A session
@@ -27,6 +39,13 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
   });
   const stoppedEarly = verdict.outcome !== 'pass';
   const copy = fightSummaryCopy({ verdict, xp });
+  // Retention feature 2 (switch `path`): a concept saga stage run to the end
+  // and passed (valid, paid XP) gets a small stars row, the stage's stars as
+  // stored after this session.
+  const [conceptStars] = useState(() => (retentionOn('path') && cfg.conceptKind === 'arcade'
+    ? conceptSessionStars(cfg, { completed, total: totalPlanned, outcome: verdict.outcome, refused, xp })
+    : null));
+  const note = copy.note ? <div style={{ font: "600 10.5px 'Rajdhani',sans-serif", color: '#c9a6ff', textAlign: 'center' }}>{copy.note}</div> : null;
   const displayRounds = rounds.slice(0, completed);
   const totalMin = Math.round((completed * cfg.roundMin * 60 + Math.max(0, completed - 1) * cfg.restSec) / 60);
   // Just Train runs on the Fight Focus timer but is its own thing to the
@@ -128,14 +147,22 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
       integrityResult={copy.quiet ? undefined : integrityResult}
       stats={statRow}
       extra={recap}
-      summary={copy.note ? <div style={{ font: "600 10.5px 'Rajdhani',sans-serif", color: '#c9a6ff', textAlign: 'center' }}>{copy.note}</div> : null}
+      summary={conceptStars
+        ? <><StageStarsCard stars={conceptStars.stars} max={conceptStars.max} line={conceptStars.line} onLand={playStarTone}/>{note && <div style={{ marginTop: 6 }}>{note}</div>}</>
+        : note}
       failReason={verdict.response}
+      board={board ? <ScoreBoardSlot finish={board}/> : null}
       shareData={{ mode: modeName, completedCount: completed, totalCount: totalPlanned, difficulty: cfg.difficulty }}
+      nearMiss={retry ? {
+        key: timerRetryKey(cfg, discipline), token: retry.token,
+        unit: 'rounds', done: completed, total: totalPlanned, outcome: verdict.outcome,
+        boss: conceptStageBoss(cfg), onRetry: retry.onRetry, onLeave: retry.onLeave,
+      } : null}
       actions={[
-        { label: stoppedEarly ? 'RETRY' : 'TRAIN AGAIN', onClick: onAgain, kind: 'primary' },
+        { label: stoppedEarly ? 'RETRY' : 'TRAIN AGAIN', onClick: onAgain, kind: 'primary', role: 'retry' },
         ...extraActions,
         { label: 'CHANGE DISCIPLINE', onClick: onBack, kind: 'secondary' },
-        { label: 'BACK TO START', onClick: onHome, kind: 'ghost' },
+        { label: 'BACK TO START', onClick: onHome, kind: 'ghost', role: 'home' },
       ]}
     />
   );

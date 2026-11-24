@@ -472,6 +472,13 @@ export function playBeep() {
   playTone(1200, 0.12, 'sine', 0.6, null);
 }
 
+// Retention feature 2: one rising ping per star as the stars land on an end
+// screen (0, 1, 2 → three steps up).
+export function playStarTone(i = 0) {
+  const freq = [880, 1108.7, 1318.5][Math.max(0, Math.min(2, i))];
+  playTone(freq, 0.22, 'triangle', 0.5, null);
+}
+
 // LT-2 — riser sting under the "RUSH MODE — GO!" call. Synthesised rather than
 // shipped as an asset so it costs nothing in the bundle.
 export function playRiser() {
@@ -602,4 +609,62 @@ export function playExtraLife() {
   bus.gain.setValueAtTime(1, chordAt + 0.8);
   bus.gain.linearRampToValueAtTime(0.0001, chordAt + 1.1);
   duckAppAudio(1600);
+}
+
+// The Training Camp path's climb (the owner's suggestion, 2026-11-23): a short,
+// low, soft climb as the camp's path glides up to the current level (once per
+// open; none with reduced motion, see TrainingCampMap). The app has no sound
+// that fits (its cues are synthesised and bright: the riser is a 200 to 900 Hz
+// sawtooth), so nothing is made up here: this plays a recorded file once it is
+// in the app, `public/audio/camp-climb.mp3` (the brief is in
+// docs/retention/BUILD-NOTES.md). Until then it is silent: the file is looked
+// for once per visit, and a missing or unreadable one is not tried again. It
+// follows the master volume, as every cue does, and the sound-effects level;
+// at 0 it plays nothing. Returns true when it played.
+export const CAMP_CLIMB_SRC = '/audio/camp-climb.mp3';
+const CLIMB_LEVEL = 0.5;      // under the bells: a soft sound
+const CLIMB_LATE_MS = 350;    // a file that arrives later than this waits for the next open
+let climbBuffer = null;
+let climbState = 'idle';      // 'idle' | 'loading' | 'ready' | 'missing'
+function climbGain() {
+  const s = getSettings();
+  return Math.max(0, getCueGain() * (Number.isFinite(s.sfxVolume) ? s.sfxVolume : 1) * CLIMB_LEVEL);
+}
+function playClimbBuffer() {
+  const ctx = getCtx();
+  if (!ctx || !climbBuffer) return false;
+  const vol = climbGain();
+  if (!(vol > 0)) return false;
+  wakeCtx(ctx);
+  const source = ctx.createBufferSource();
+  const gain = ctx.createGain();
+  source.buffer = climbBuffer;
+  source.connect(gain);
+  gain.connect(cueOut() || ctx.destination);
+  gain.gain.value = vol;
+  source.start(0);
+  return true;
+}
+export function playCampClimb() {
+  if (!(climbGain() > 0)) return false;
+  if (climbState === 'ready') return playClimbBuffer();
+  if (climbState !== 'idle' || typeof fetch !== 'function') return false;
+  const ctx = getCtx();
+  if (!ctx) return false;
+  climbState = 'loading';
+  const asked = Date.now();
+  fetch(CAMP_CLIMB_SRC)
+    .then((r) => {
+      const type = (r.headers && r.headers.get && r.headers.get('content-type')) || '';
+      if (!r.ok || /text|html|json/i.test(type)) throw new Error('no climb sound');
+      return r.arrayBuffer();
+    })
+    .then((buf) => ctx.decodeAudioData(buf))
+    .then((decoded) => {
+      climbBuffer = decoded;
+      climbState = 'ready';
+      if (Date.now() - asked <= CLIMB_LATE_MS) playClimbBuffer();
+    })
+    .catch(() => { climbState = 'missing'; });
+  return false;
 }

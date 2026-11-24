@@ -15,13 +15,10 @@ export default function ScrollDownIndicator({ visible }) {
 
   if (!show) return null;
 
+  // Drawn in the middle of the shelf over the tab bar (ScreenRouter WithNav),
+  // never over the page itself.
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: 'calc(92px + env(safe-area-inset-bottom, 0px))',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      zIndex: 90,
+    <div data-ui="scroll-chevron" aria-hidden="true" style={{
       pointerEvents: 'none',
       display: 'flex',
       flexDirection: 'column',

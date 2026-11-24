@@ -1,0 +1,50 @@
+{
+  "about": "The owner's word where the board's own fields cannot carry it (read by factory/tools/approved.mjs): names and name-only redo approvals that are not on the board yet. The 8 renames of 2026-11-21 were written to the board that day (see applied), so this is empty again and the board stays the source of truth.",
+  "saidOn": "2026-11-21",
+  "said": "All generations reviewed. All redo are just change the name, not the gif animation: push.",
+  "approveRedo": [],
+  "names": {},
+  "appliedToBoardOn": "2026-11-21",
+  "applied": {
+    "names": {
+      "165c0f67a1-01": "High Pull-Ups",
+      "27f1b55145-02": "Elevator Kettlebell Swings",
+      "5908fe22e4-02": "Around the World Chin-Ups",
+      "e39bbb0d6b-01": "Hamstring Barbell Extension",
+      "c1dfff4c8f-03": "Overhead Shoulder Toss",
+      "97e01c0e94-w01": "Battle Rope to Slam",
+      "b5e3142d48-w01": "Cross Leg Crunches",
+      "0d04b696ef-01": "Dive Bombers"
+    },
+    "approveRedo": [
+      "165c0f67a1-01",
+      "27f1b55145-02",
+      "5908fe22e4-02",
+      "e39bbb0d6b-01",
+      "0d04b696ef-01"
+    ],
+    "nameSources": {
+      "165c0f67a1-01": "note: \"Change. Name to High pull up\"",
+      "27f1b55145-02": "note: \"Change name to elevator kettlebell swings\"",
+      "5908fe22e4-02": "note: \"Around the world chin ups\"",
+      "e39bbb0d6b-01": "note: \"Chain's name to hamstring barbell extension\" (read as: change the name to ...)",
+      "c1dfff4c8f-03": "note: \"News to change the name overhead shoulder toss\" (read as: need to change the name to ...)",
+      "97e01c0e94-w01": "note: \"Battle rope to slam\"",
+      "b5e3142d48-w01": "note: \"Criss legged crunches\" (wording kept, hyphen added: check it)",
+      "0d04b696ef-01": "note: \"Dive bombers\" on a redo (the owner said every redo is a name change only)"
+    }
+  },
+  "laterChange": {
+    "on": "2026-11-21",
+    "said": "change Criss-Legged Crunches to Cross Leg Crunches",
+    "segId": "b5e3142d48-w01"
+  },
+  "approveSkipReview": [
+    "fbc67f4d33-02",
+    "e644fda55e-03",
+    "8781ab0be9-02",
+    "8bbf857f9f-01"
+  ],
+  "skipReviewSaidOn": "2026-11-21",
+  "skipReviewSaid": "Five lat pull-down videos: \"Please name, queue, generate, skip review, I trust you.\" A loop counts as approved when its stretch is state done on the board and it passed the independent avatar check."
+}

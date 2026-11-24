@@ -492,6 +492,24 @@ export function settleGuidedXp(result) {
   if (!result?.completed && verdict.outcome === 'pass') verdict = { ...verdict, outcome: 'partial', response: STOPPED_RESPONSE, preset: OUTCOME_PRESET.partial };
   return { mode: 'guided', xp: xpForOutcome(verdict.outcome, base), base, outcome: verdict.outcome, verdict, workedSec: worked };
 }
+// GUIDED, a generated mission or a classic (no settle of its own): whether
+// the integrity check refused the run, by the verdict its complete screen
+// shows (QuickMissionComplete: VALIDATION FAILED, unpaid). Its row still banks
+// as it always has; the week streak switch reads this so such a run pays no
+// daily mission bonus and fills no training day.
+// Combat Conditioning's own verdict (CombatConditioningComplete): the screen
+// reads VALIDATION FAILED. Week streak switch: App marks that row unverified.
+export function combatRunRefused(result, difficulty) {
+  return resolveOutcome({
+    completed: result?.drillsCompleted, total: result?.totalDrills, difficulty, integrityResult: result?.integrityResult || null,
+  }).outcome === 'validation_failed';
+}
+export function guidedRunRefused(result) {
+  return resolveOutcome({
+    completed: result?.exercisesCompleted, total: result?.totalExercises, difficulty: result?.mission?.difficulty,
+    integrityResult: result?.integrityResult || null, advancedAs: 'hard',
+  }).outcome === 'validation_failed';
+}
 // GUIDED, until down: the same settle as SOLO's. Only I PUT IT DOWN (I'M
 // DONE) or the cap ends the run with a score (result.untilDown, from the
 // runner's endDown); a STOP / END is a quit with no score and pays nothing,

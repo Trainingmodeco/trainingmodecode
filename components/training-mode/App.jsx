@@ -6,7 +6,7 @@ import { stakesFor } from './data/xpStakes';
 import { pickXpBanner } from './data/xpBanners';
 import { settleFightXp } from './data/fightSessionXp';
 import { consumeLabCode } from './data/strikeLab';
-import { completeCampLevel, markCampComplete } from './data/campProgress';
+import { completeCampLevel, markCampComplete, loadCampProgress, isCampComplete } from './data/campProgress';
 import { campSessionState, markCampSessionDone } from './data/campSessions';
 import { campSessionXp } from './protocol/content';
 import { clearArcadeStage } from './data/arcadeCampaignProgress';
@@ -41,7 +41,7 @@ import { rememberSession, loadLastSession, programFor } from './data/lastSession
 import { startProgramDay, completeProgramDay } from './data/workoutPrograms';
 import { completePlanDay } from './data/workoutLibrary';
 import { qmV2Enabled } from './data/qmV2';
-import { settleSoloXp, settleGuidedXp, roundSplits, hasRoundTimer } from './data/missionSolo';
+import { settleSoloXp, settleGuidedXp, guidedRunRefused, combatRunRefused, roundSplits, hasRoundTimer } from './data/missionSolo';
 import { resolveQuickMissionRun, missionRunsAtYourPace, isGeneratedMission } from './data/soloFromGenerated';
 import { loadShelfPrefs } from './data/loadoutMissions';
 import PracticeInvite from './PracticeInvite';
@@ -56,6 +56,13 @@ import Comeback from './Comeback';
 import { maybeOfferChallenge, declineChallenge, settleChallenge, getActiveChallenge, hauntFromLocation, takeHaunt, unseenHaunt, markChallengeSeen, prefetchStranger } from './data/ghostChallenges';
 import { dueComeback, markComebackShown, remindComebackNextWeek } from './data/comeback';
 import { getLastBattle } from './data/ghostBattles';
+import { retentionOn } from './data/retentionFlags';
+import { cardRunDone, cardRowFields } from './data/fitCard';
+import { rememberCardRun } from './data/fitCardStore';
+import { dueRustyPopup } from './data/powerStore';
+import { settleTodaysBout, releaseBoutArm, holdBoutArm, resumeBoutArm } from './data/dailyMission';
+import { fightBoardStart, fightBoardFinish, missionBoardStart, missionBoardFinish } from './data/scoreBoardRules';
+import { startBoardRun, flushBoardQueue } from './data/scoreBoardCloud';
 
 // 2.10 — v2 campaign stars: completion-quality is the gate (you only earn stars
 // by fully + validly clearing), difficulty sets the count. FULL ARC gets +1 for
@@ -230,6 +237,31 @@ function stashPausedSession(snap) {
 }
 
 export default function App() {
+  // Retention feature 1 (weekly streak + daily mission), behind its switch.
+  const [weeksOn] = useState(() => retentionOn('weeks'));
+  // POWER, RUSTY and REVIVE (data/power), behind their own switch: the RUSTY
+  // pop-up takes a turn in the open's one-interstitial queue (goAfterSplash)
+  // and Home shows it (its REVIVE is Home's top START).
+  const [powerOn] = useState(() => retentionOn('power'));
+  // The world score board (switch `scores`): a ticket at START for a session
+  // that could go on a board, its score at FINISH (data/scoreBoardRules,
+  // data/scoreBoardCloud). Off: no ticket, no network call, nothing shown.
+  const [scoresOn] = useState(() => retentionOn('scores'));
+  const boardRunRef = useRef(null);
+  // A score that finished offline waits on the phone and goes up when the app
+  // opens or the phone comes back online (its ticket is good for 24 hours).
+  useEffect(() => {
+    if (!scoresOn || typeof window === 'undefined') return undefined;
+    flushBoardQueue();
+    const online = () => { flushBoardQueue(); };
+    window.addEventListener('online', online);
+    return () => window.removeEventListener('online', online);
+  }, [scoresOn]);
+  // The path + stars (switch `path`): a replayed Session 1 of a cleared split
+  // level ends on its own SESSION 1 COMPLETE screen (a run is S1 then S2).
+  const [pathOn] = useState(() => retentionOn('path'));
+  const [rustyTurn, setRustyTurn] = useState(false);
+  const rustyTurnRef = useRef(false); // the turn is out with Home (answered once)
   const [screen,   setScreen  ] = useState('start');
   const [disc,     setDisc    ] = useState('Boxing');
   const [cfg,      setCfg     ] = useState(null);
@@ -435,6 +467,24 @@ export default function App() {
     };
   }, [screen, disc, cfg, comboCfg, fitCfg, qmCfg, ccMission, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, cardioContext, ccResult, qmResult, session]);
 
+  // Today's Bout (week streak switch): its daily bonus is settled in ONE place,
+  // whatever route the card opened. Every session banks its row through
+  // data/userStats, which announces each write; the first session row after
+  // the card's START is the card's session (data/dailyMission settleTodaysBout).
+  // A cloud restore says so on its event: its rows are another device's.
+  useEffect(() => {
+    if (!weeksOn || typeof window === 'undefined') return undefined;
+    const onBank = (e) => { settleTodaysBout({ restored: !!e?.detail?.restored }); };
+    window.addEventListener('training-mode-stats-updated', onBank);
+    return () => window.removeEventListener('training-mode-stats-updated', onBank);
+  }, [weeksOn]);
+  // Back on Home with no session started from the card's START (none paused
+  // since), that START no longer counts.
+  useEffect(() => {
+    if (!weeksOn || screen !== 'home') return;
+    releaseBoutArm({ pausedAt: pausedSlots.map((p) => p?.timestamp) });
+  }, [weeksOn, screen, pausedSlots]);
+
   // The setup page's opening request is used once: leaving the page clears it.
   useEffect(() => { if (screen !== 'qm_setup') setQmEntry(null); }, [screen]);
 
@@ -444,13 +494,17 @@ export default function App() {
     stopVoiceSession();
     setPausedSlots(list => { const next = mergePaused(paused, list); savePausedSessions(next); return next; });
     activeSessionStateRef.current = null;
+    // Today's Bout: the card's session waits paused; until it is resumed, a
+    // session banked is another one's (data/dailyMission holdBoutArm).
+    if (weeksOn) holdBoutArm(paused.timestamp);
     return paused;
-  }, [buildSessionSnapshot]);
+  }, [buildSessionSnapshot, weeksOn]);
 
   // Resume one slot. It is promoted to the front first, so isResuming (which
   // reads slot 0) and the clear-on-arrival effect both see it.
   const resumeSlot = useCallback((ps) => {
     if (!ps) return;
+    if (weeksOn) resumeBoutArm(ps.timestamp);
     setPausedSlots(list => { const next = [ps, ...list.filter(x => x !== ps)]; savePausedSessions(next); return next; });
     setDisc(ps.disc);
     setCfg(ps.cfg);
@@ -470,7 +524,7 @@ export default function App() {
     if (ps.session) setSession(ps.session);
     setResumeData(ps.internalState || null);
     setScreen(ps.screen);
-  }, []);
+  }, [weeksOn]);
   const resumeSession = useCallback(() => resumeSlot(pausedSession), [resumeSlot, pausedSession]);
   const resumeAltSession = useCallback(() => resumeSlot(pausedAlt), [resumeSlot, pausedAlt]);
 
@@ -679,6 +733,8 @@ export default function App() {
   // questionnaire and from Profile → Replay intro guide, and nowhere else.
   const markTourDone = () => { safeSetItem(TOUR_KEY, 'true'); };
   const startFullIntro = () => { setScreen('home'); setPathTour('full_intro'); };
+  // With the week streak on, the tour's Home steps name TODAY'S BOUT and the week streak.
+  const tourSteps = pathTour === 'full_intro' && weeksOn ? SCREEN_GUIDES.full_intro_weeks : SCREEN_GUIDES[pathTour];
   // Practice Mode's welcome poster, for new learners, once — the last step
   // of first-run setup (after the walkthrough, so the two never overlap).
   const maybePracticeIntro = () => {
@@ -705,11 +761,48 @@ export default function App() {
   // reads "a paused slot for this screen" as "resume it", so a leftover slot
   // used to mount the new session paused: no warm-up, no count-in, no coach,
   // a RESUME button where the 3-2-1 should be (voice audit FIGHT-02).
+  // START: which board this session is for (or the one line why not), and a
+  // ticket asked for in the background. Kept with the session's own config
+  // object, so a different session (or one restored after a reload) never
+  // finishes with it.
+  const beginBoardRun = (kind, c, d) => {
+    boardRunRef.current = null;
+    if (!scoresOn || !c) return;
+    const start = kind === 'qm' ? missionBoardStart(c) : fightBoardStart({ mode: kind, cfg: c, discipline: d });
+    if (!start.board && !start.reason) return;
+    boardRunRef.current = { cfg: c, board: start.board, reason: start.reason, handle: start.board ? startBoardRun(start.board) : null };
+  };
+  // FINISH: what the end screen's board slot gets, or null (nothing shown).
+  // `finished`: the session ran to the end and passed; `score(board)` → { value, reason }.
+  const finishBoardRun = (c, { finished, score }) => {
+    const run = boardRunRef.current;
+    boardRunRef.current = null;
+    if (!scoresOn || !run || run.cfg !== c || !finished) return null;
+    if (!run.board) return run.reason ? { reason: run.reason } : null;
+    const fin = score(run.board);
+    if (fin.value == null) return fin.reason ? { board: run.board, reason: fin.reason } : null;
+    return { board: run.board, value: fin.value, level: getLevel(loadStats().xp), handle: run.handle };
+  };
+
   const freshStart = (dest) => {
     dropPausedFor(screen);
     if (dest && dest !== screen) dropPausedFor(dest);
     setResumeData(null);
     activeSessionStateRef.current = null;
+  };
+
+  // The open's one-interstitial queue after the RUSTY pop-up's turn: a ghost
+  // challenge offer, a new concept drop, a comeback, the weekly lesson.
+  const openQueueRest = () => {
+    const offer = maybeOfferChallenge(loadProfile()?.discipline || 'Boxing');
+    if (offer) { setGhostView({ view: 'challenge', challenge: offer }); return; }
+    // A new concept drop, once per drop per phone.
+    const drop = dueConceptPopup();
+    if (drop) { markConceptPopupSeen(drop.concept.id); setConceptPopup(drop); trackEvent('concept_popup', { concept: drop.concept.id }); return; }
+    const cb = dueComeback();
+    if (cb) { markComebackShown(cb.view); setComeback(cb); return; }
+    // The weekly practice reminder, at most once a week, on opening the app.
+    if (shouldShowWeekly(loadProfile())) { markWeeklyShown(); setPracticeInvite('weekly'); }
   };
 
   const actions = {
@@ -734,7 +827,11 @@ export default function App() {
     // starting filter and level (Build Workout's MAX OUT); nothing of it is saved. A click event handed in by a button is not an entry.
     goQuickMissionSetup: (entry) => {
       const str = (v) => (typeof v === 'string' ? v : undefined);
-      setQmEntry(entry && entry.openLibrary === true ? { openLibrary: true, loadout: str(entry.loadout), theme: str(entry.theme), level: str(entry.level) } : null);
+      setQmEntry(entry && entry.openLibrary === true ? { openLibrary: true, loadout: str(entry.loadout), theme: str(entry.theme), level: str(entry.level) }
+        // The workout card (switch fitCard): YOUR WORKOUTS on Progress puts a kept run back on
+        // the card; the card's results' NEW CHALLENGE opens it on a new deal.
+        : entry && (typeof entry.cardRunId === 'string' || entry.newDeal === true) ? { cardRunId: str(entry.cardRunId), newDeal: entry.newDeal === true }
+          : null);
       setScreen('qm_setup');
     },
     // Every Quick Mission start comes through here, so the GUIDED / AT YOUR PACE
@@ -757,6 +854,7 @@ export default function App() {
         ...(c?.mode === 'solo' ? { solo: true } : {}),
         ...(!c?.mission || isGeneratedMission(c.mission) || c.mission.id === 'generated' ? { level: String(c?.difficulty || '').toUpperCase(), minutes: c?.duration } : {}),
       });
+      beginBoardRun('qm', c);
       freshStart('qm_active'); setQmCfg(c); setScreen('qm_active');
     },
     // The guided runner's brief offers AT YOUR PACE INSTEAD: the same mission,
@@ -777,6 +875,14 @@ export default function App() {
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen);
       setResumeData(null);
+      // A workout card run (switch fitCard): its card (the run's own, after an
+      // in-run SHUFFLE) adds scalar fields to the one session row, and the run
+      // is kept for YOUR WORKOUTS' repeat. The XP is settled exactly as before.
+      const card = result?.card || qmCfg?.card || null;
+      const cardDone = card ? cardRunDone(card, { ticks: result?.ticks, exercisesCompleted: result?.exercisesCompleted }) : null;
+      const cardId = card ? `card-${Date.now().toString(36)}` : null;
+      const cardFields = card ? cardRowFields(card, { ...cardDone, cardId }) : null;
+      if (card) rememberCardRun(cardId, card);
       if (result?.mode === 'solo') {
         // SOLO has no integrity session: the floor rule settles it (honor
         // system), and the screen shows exactly the XP banked here. v2
@@ -789,10 +895,12 @@ export default function App() {
           elapsedSec: result.elapsedSec, pausedSec: result.pausedSec, hiddenSec: result.hiddenSec,
           level: result.level, scaled: result.scaled, swaps: result.swaps, completed: result.completed,
           completedCount: result.exercisesCompleted, totalCount: result.totalSlots, splits,
+          ...(cardFields ? { cardFields } : {}),
         });
         if (xp > 0) tryCompleteDailyMission('quickMission');
         trackEvent('session_complete', { mode: 'quickMission', solo: true, mission: result.missionId, exercises: result.exercisesCompleted });
-        setQmResult({ ...result, xpEarned: xp, settle, rounds: splits });
+        const board = finishBoardRun(qmCfg, { finished: settle.outcome === 'pass', score: (b) => missionBoardFinish({ board: b, result: { ...result, settle } }) });
+        setQmResult({ ...result, xpEarned: xp, settle, rounds: splits, ...(card ? { card, cardDone, cardId } : {}), ...(board ? { board } : {}) });
       } else {
         // A v2 GUIDED run tags its row with the mission it ran.
         // An until-the-bell-is-down run (NO CONTINUES) also stores its score (sets + reps, and the time).
@@ -801,9 +909,14 @@ export default function App() {
         // pays the minutes worked, and the complete screen shows this same
         // number. A generated mission or a classic banks as before.
         const settle = result?.mission?.v2 === true ? settleGuidedXp(result) : null;
+        // Week streak switch: a generated mission or a classic the integrity check refused (its
+        // screen reads VALIDATION FAILED) banks as before, but marked unverified, so it fills no
+        // training day, and it pays no Today's Bout bonus (data/dailyMission reads the row).
+        const refused = weeksOn && !settle && guidedRunRefused(result);
         // A generated mission pays its minutes at its level's rate (the sets split it), the same figure the complete screen shows.
+        const rowMeta = settle && meta && settle.workedSec ? { ...meta, workedSec: settle.workedSec } : refused ? { ...(meta || {}), unverified: true } : meta;
         const xp = addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed,
-          settle && meta && settle.workedSec ? { ...meta, workedSec: settle.workedSec } : meta,
+          cardFields ? { ...(rowMeta || {}), ...cardFields } : rowMeta,
           settle ? settle.xp : quickMissionXp(result.exercisesCompleted, result.totalExercises, result.completed, result.mission));
         // A plan day only moves the rotation on once it is (mostly) done — quit
         // halfway and the same day is still up next.
@@ -811,7 +924,9 @@ export default function App() {
         // As in SOLO, a v2 run that pays nothing (a quit) does not complete the Mission of the Day.
         if (!settle || settle.xp > 0) tryCompleteDailyMission('quickMission');
         trackEvent('session_complete', { mode: 'quickMission', exercises: result.exercisesCompleted });
-        setQmResult(settle ? { ...result, xpEarned: xp, settle } : result);
+        // MAX OUT run guided goes on its board too (AT YOUR PACE above).
+        const board = settle ? finishBoardRun(qmCfg, { finished: settle.outcome === 'pass', score: (b) => missionBoardFinish({ board: b, result: { ...result, settle } }) }) : finishBoardRun(qmCfg, { finished: false });
+        setQmResult(card ? { ...result, xpEarned: xp, ...(settle ? { settle } : {}), card, cardDone, cardId, ...(board ? { board } : {}) } : settle ? { ...result, xpEarned: xp, settle, ...(board ? { board } : {}) } : result);
       }
       const addon = qmCfg?.cardioAddon;
       if (addon?.enabled) {
@@ -913,6 +1028,9 @@ export default function App() {
       setScreen('arcade_session');
     },
     goArcadeComplete: () => { endSessionFor(screen); setResumeData(null); activeSessionStateRef.current = null; setScreen('arcade_series'); },
+    // Retention feature 3 (near-miss): the classic clear screen's COME BACK FRESH
+    // TOMORROW / DONE FOR TODAY. The stage is over, so it ends like goArcadeComplete.
+    goArcadeDoneToday: () => { endSessionFor(screen); setResumeData(null); activeSessionStateRef.current = null; setScreen('home'); },
     goCombatCondActive: (config) => {
       rememberSession('cc', config);
       trackSessionStart('combatConditioning');
@@ -922,10 +1040,21 @@ export default function App() {
       setCcMission(mission);
       setScreen('cc_active');
     },
+    // Retention feature 3 (near-miss): RETRY on the end screen runs the same
+    // mission again (the drills it dealt, not a new deal from the setup).
+    retryCombatCond: () => {
+      if (!ccMission) return;
+      trackSessionStart('combatConditioning');
+      freshStart('cc_active');
+      setScreen('cc_active');
+    },
     goCombatCondComplete: (result) => {
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
-      addCombatConditioningSession(result.drillsCompleted, result.totalDrills, result.roundsCompleted, result.totalRounds, result.completed);
+      // Week streak switch: a session the integrity check refused (its screen reads VALIDATION FAILED)
+      // banks as before, but marked unverified: it fills no training day and pays no Today's Bout bonus.
+      const refusedCc = weeksOn && combatRunRefused(result, ccMission?.difficulty);
+      addCombatConditioningSession(result.drillsCompleted, result.totalDrills, result.roundsCompleted, result.totalRounds, result.completed, refusedCc ? { unverified: true } : undefined);
       if (result.cleanRoundXp && result.integrityResult?.awardXp !== false) addBonusXp(result.cleanRoundXp);
       tryCompleteDailyMission('combatConditioning');
       trackEvent('session_complete', { mode: 'combatConditioning', drills: result.drillsCompleted });
@@ -958,14 +1087,16 @@ export default function App() {
     // settings it ran with. A program starts its next day instead.
     // opts.adjust (ADJUST): open the setup without starting — only Cardio
     // would otherwise start by itself.
+    // opts.last: the session to run instead of the stored last one (Today's
+    // Bout, week streak switch, holds the one it picked for the whole day).
     replayLastSession: (opts) => {
-      const last = loadLastSession();
+      const last = (opts?.last?.kind && opts.last.cfg ? opts.last : null) || loadLastSession();
       if (!last) return false;
       const c = last.cfg;
       switch (last.kind) {
         case 'timer':
           if (last.disc) setDisc(last.disc);
-          actions.goTimer(c);
+          actions.goTimer(c, last.disc);
           // goTimer records with the discipline it closed over; the replay's
           // own discipline is the right one.
           rememberSession('timer', c, last.disc);
@@ -1012,7 +1143,9 @@ export default function App() {
     goCampSession: (ctx) => {
       trackSessionStart('trainingCamp', { level: ctx?.level, format: ctx?.format || 'single' });
       freshStart(ctx?.format === 'full' ? 'camp_full' : 'camp_session');
-      setCampCtx(ctx); setDisc(ctx.discipline);
+      // When the session started: the camp's third star on a split level asks
+      // for Session 2 four to eight hours after Session 1 (data/campStars).
+      setCampCtx({ ...ctx, startedAt: new Date().toISOString() }); setDisc(ctx.discipline);
       rememberSession('camp', { level: ctx.level, difficulty: ctx.difficulty, format: ctx.format || 'single', archetypeName: ctx.archetypeName || null }, ctx.discipline);
       // FULL CAMP runs both blocks in one sitting; cfg holds the skill block so
       // the warm-up wrapper still reads warmupMin.
@@ -1086,11 +1219,19 @@ export default function App() {
       // 2.8 — XP from the engine ruleset (active-min × difficulty × completion).
       // The anti-cheat gate is preserved: not awarded → no XP, no record.
       const diff = c?.difficulty || campCtx?.difficulty || 'normal';
+      // What the camp's stars read (data/campStars): which session, every
+      // round verified, rounds cut short, when it started. Recorded on every
+      // camp row from this build; it never changes the XP.
+      const campMeta = { camp: {
+        slot: split ? slot : 'one', verified: !!fullyValid,
+        cut: Number.isInteger(vs.cut) ? vs.cut : null, startedAt: campCtx?.startedAt || null,
+      } };
+      const wasCleared = level != null && (level < loadCampProgress() || isCampComplete());
       const xpEarned = awarded
         ? addCampSession(level, done, total, campSessionXp({
             difficulty: diff, roundMin: c?.roundMin ?? 2,
             doneRounds: done, totalRounds: total, valid: true,
-          }))
+          }), campMeta)
         : 0;
       let cleared;
       if (split) {
@@ -1105,7 +1246,10 @@ export default function App() {
       const titleWon = cleared && level === 12 && markCampComplete();
       trackEvent('session_complete', { mode: 'trainingCamp', level, slot: split ? slot : undefined, rounds: done });
       const staked = stagePlate(cleared || sessionValid, awarded, done, total, diff, xpEarned);
-      setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: done, total, xpEarned: staked.xp, plate: staked.plate, integrityResult, cleared, unlockedTo, split, slot, sessionValid, titleWon });
+      // A replayed Session 1 of a cleared split level (switch `path`): the run
+      // waits for its Session 2, so the screen says so instead of LEVEL CLEAR.
+      const replayS1 = pathOn && split && slot === 's1' && sessionValid && wasCleared;
+      setCampResult({ level, difficulty: campCtx?.difficulty, discipline: campCtx?.discipline, rounds: done, total, xpEarned: staked.xp, plate: staked.plate, integrityResult, cleared, unlockedTo, split, slot, sessionValid, titleWon, ...(replayS1 ? { replayS1: true } : {}) });
       routeAfterXp(beforeLevel, 'camp_complete');
     },
     goCampMap: () => setScreen('training_camp'),
@@ -1144,9 +1288,12 @@ export default function App() {
       const diff = campCtx?.difficulty || 'normal';
       const bothValid = s.valid && f.valid;
       let xpEarned = 0;
+      // The camp's stars (data/campStars): both blocks start with the sitting,
+      // so its Session 2 is never four to eight hours after its Session 1.
+      const fullMeta = (slot, b) => ({ camp: { slot, verified: !!b.valid, cut: Number.isInteger(b.cut) ? b.cut : null, startedAt: campCtx?.startedAt || null } });
       if (level != null) {
-        if (s.valid) { xpEarned += addCampSession(level, s.done, s.total, campSessionXp({ difficulty: diff, roundMin: campCtx?.cfgSkill?.roundMin ?? 2, doneRounds: s.done, totalRounds: s.total, valid: true, fullArc: bothValid })); markCampSessionDone(level, 's1'); }
-        if (f.valid) { xpEarned += addCampSession(level, f.done, f.total, campSessionXp({ difficulty: diff, roundMin: campCtx?.cfgFit?.roundMin ?? 2, doneRounds: f.done, totalRounds: f.total, valid: true, fullArc: bothValid })); markCampSessionDone(level, 's2'); }
+        if (s.valid) { xpEarned += addCampSession(level, s.done, s.total, campSessionXp({ difficulty: diff, roundMin: campCtx?.cfgSkill?.roundMin ?? 2, doneRounds: s.done, totalRounds: s.total, valid: true, fullArc: bothValid }), fullMeta('s1', s)); markCampSessionDone(level, 's1'); }
+        if (f.valid) { xpEarned += addCampSession(level, f.done, f.total, campSessionXp({ difficulty: diff, roundMin: campCtx?.cfgFit?.roundMin ?? 2, doneRounds: f.done, totalRounds: f.total, valid: true, fullArc: bothValid }), fullMeta('s2', f)); markCampSessionDone(level, 's2'); }
       }
       const st = level != null ? campSessionState(level) : {};
       const cleared = !!(st.s1 && st.s2);
@@ -1165,7 +1312,7 @@ export default function App() {
     // once the concept page sees it in the run log (settleConceptRun).
     startConceptFit:   (c) => (c?.conceptRun ? actions.goCardioMode({ goal: c.goal, unit: c.unit }) : actions.goFitWorkout(c)),
     startConceptFight: (c, discipline) => { if (discipline) setDisc(discipline); actions.goTimer(c); },
-    goTimer:       (c) => { rememberSession('timer', c, disc); trackSessionStart(c?.mode === 'Just Train' ? 'justTrain' : 'fightFocus'); freshStart('timer'); setCfg(c); setScreen('timer'); },
+    goTimer:       (c, d) => { rememberSession('timer', c, disc); trackSessionStart(c?.mode === 'Just Train' ? 'justTrain' : 'fightFocus'); beginBoardRun(c?.mode === 'Just Train' ? 'jt' : 'ff', c, d || disc); freshStart('timer'); setCfg(c); setScreen('timer'); },
     goSummary:     (rounds, c, completed, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
@@ -1185,6 +1332,7 @@ export default function App() {
       // toward no trophy and no lifetime fight total.
       const unverified = verdict.outcome === 'validation_failed';
       addFightFocusSession(done, total, { justTrain, xp, unverified });
+      const board = finishBoardRun(c, { finished: verdict.outcome === 'pass' && done >= total, score: (b) => fightBoardFinish({ board: b, finished: true, fightStats: fs }) });
       // 1.4/1.5 — Fight Focus has no called combos, so any strike count comes
       // from the accelerometer (motion-verified thrown strikes) or is zero.
       if (!unverified) recordFightSession({ rounds: done, strikes: fs.motionUsed ? (fs.thrown || 0) : 0 });
@@ -1195,10 +1343,10 @@ export default function App() {
       const battle = c.ghost ? getLastBattle() : null;
       const challengeWin = battle?.ghost?.ghostId && battle.ghost.ghostId === c.ghost.ghostId
         ? settleChallenge('fight', c.ghost, battle.result?.outcome) : null;
-      setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed, rush: fs.rush || null, cleanRounds: fs.cleanRounds || 0, cleanRoundXp: fs.cleanRoundXp || 0, strongFinish: fs.strongFinish || null }, challengeWin });
+      setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed, rush: fs.rush || null, cleanRounds: fs.cleanRounds || 0, cleanRoundXp: fs.cleanRoundXp || 0, strongFinish: fs.strongFinish || null }, challengeWin, ...(board ? { board } : {}) });
       routeAfterXp(beforeLevel, 'summary');
     },
-    goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); trackSessionStart('comboCoach', c?.ownLevel ? { level: String(c.difficulty || '').toUpperCase(), own: c.ownLevel } : undefined); freshStart('combo_active'); setComboCfg(c); setScreen('combo_active'); },
+    goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); trackSessionStart('comboCoach', c?.ownLevel ? { level: String(c.difficulty || '').toUpperCase(), own: c.ownLevel } : undefined); beginBoardRun('cc', c, c?.discipline || disc); freshStart('combo_active'); setComboCfg(c); setScreen('combo_active'); },
     goComboEnd:    (roundsDone, totalRounds, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
@@ -1209,6 +1357,7 @@ export default function App() {
       const { xp, verdict } = settleFightXp({ completed: done, total, difficulty: comboCfg?.difficulty || 'Normal', integrityResult, mode: 'combo', bonusXp });
       const unverified = verdict.outcome === 'validation_failed';
       addComboCoachSession(done, total, { xp, unverified });
+      const board = finishBoardRun(comboCfg, { finished: verdict.outcome === 'pass' && done >= total, score: (b) => fightBoardFinish({ board: b, finished: true, fightStats: cs }) });
       // 1.5 — Combo Coach carries strike + streak tallies; roll them into the
       // lifetime totals and hand the session numbers to the summary screen.
       // 1.4 — when the accelerometer counted real thrown strikes, that number
@@ -1235,6 +1384,7 @@ export default function App() {
         sessionSource: 'comboCoach',
         integrityResult,
         fightStats: { strikes: cs.strikes || 0, peakStreak: cs.peakStreak || 0, thrown: cs.thrown || 0, motionUsed: !!cs.motionUsed, rush: cs.rush || null, cleanRounds: cs.cleanRounds || 0, cleanRoundXp: cs.cleanRoundXp || 0, strongFinish: cs.strongFinish || null },
+        ...(board ? { board } : {}),
       });
       routeAfterXp(beforeLevel, 'summary');
     },
@@ -1266,7 +1416,8 @@ export default function App() {
       // athlete back in it (and could pay its XP again).
       endSessionFor('cardio_finisher'); setResumeData(null); activeSessionStateRef.current = null;
       let hybridBonusXp = 0;
-      if (result?.completed && ctx?.mainCompleted) {
+      // The workout card's cool-down (BONUS TRAINING, switch fitCard) is bonus work: no hybrid bonus.
+      if (result?.completed && ctx?.mainCompleted && ctx?.addon?.bonus !== true) {
         const key = ctx.hybridBonusKey;
         let alreadyAwarded = false;
         try { alreadyAwarded = !!key && safeStorage()?.getItem(key) === 'true'; } catch { alreadyAwarded = false; }
@@ -1300,7 +1451,7 @@ export default function App() {
       setScreen(dest);
     },
     goPractice:    (d) => { if (d) setDisc(d); setScreen('practice'); },
-    // Practice, opened on the current lesson of the shared discipline.
+    // Practice, opened on the card of the next move of the shared discipline.
     goStartHere:   (d) => { if (d) setDisc(d); setScreen('practice_starthere'); },
     // The same, switching the shared discipline first (the Practice posters).
     goPracticeLesson: (d) => {
@@ -1337,15 +1488,11 @@ export default function App() {
       // friend's haunt, a ghost challenge, a comeback, the weekly lesson.
       const haunt = unseenHaunt();
       if (haunt) { markChallengeSeen(); setGhostView({ view: 'challenge', challenge: haunt }); return; }
-      const offer = maybeOfferChallenge(loadProfile()?.discipline || 'Boxing');
-      if (offer) { setGhostView({ view: 'challenge', challenge: offer }); return; }
-      // A new concept drop, once per drop per phone.
-      const drop = dueConceptPopup();
-      if (drop) { markConceptPopupSeen(drop.concept.id); setConceptPopup(drop); trackEvent('concept_popup', { concept: drop.concept.id }); return; }
-      const cb = dueComeback();
-      if (cb) { markComebackShown(cb.view); setComeback(cb); return; }
-      // The weekly practice reminder, at most once a week, on opening the app.
-      if (shouldShowWeekly(loadProfile())) { markWeeklyShown(); setPracticeInvite('weekly'); }
+      // Back after a month away, the fighter is RUSTY: Home's pop-up, once
+      // per rusty spell (it marks itself shown). Not under an inbound challenge.
+      // If Home cannot show it, the rest of the queue runs (onRustyDone).
+      if (powerOn && !pendingChallenge && !ghostView && dueRustyPopup()) { rustyTurnRef.current = true; setRustyTurn(true); return; }
+      openQueueRest();
     },
     completeOnboarding: ({ goal, experience, profile: onboardingProfile }) => {
       // A failed save (storage full or blocked) must not leave LET'S GO doing nothing: the athlete
@@ -1387,6 +1534,19 @@ export default function App() {
   for (const name of ['goSummary', 'goComboEnd', 'goFitComplete', 'goCombatCondComplete']) {
     actions[name] = bankOnce(bankedScreenRef, screen, actions[name]);
   }
+
+  // Any App-level pop-up up now: the RUSTY pop-up on Home never shows over one
+  // (a friend's haunt link can resolve a moment after the open's turn).
+  const appPopupOpen = !!(showParqGate || hauntIntro || ghostView || comeback || conceptPopup || practiceInvite || pathTour || pendingChallenge);
+  // Home answers the RUSTY turn once: shown, or not (a paused session or the
+  // guide in its way). Not shown, the turn passes down the queue, unless an
+  // App pop-up is already up. The ref makes a second answer a no-op.
+  const onRustyDone = (shown) => {
+    if (!rustyTurnRef.current) return;
+    rustyTurnRef.current = false;
+    setRustyTurn(false);
+    if (!shown && !appPopupOpen) openQueueRest();
+  };
 
   return (
     <>
@@ -1497,6 +1657,7 @@ export default function App() {
             profile={profile} updateProfile={updateProfile} levelUp={levelUp}
             pausedSession={pausedSession} onResume={resumeSession} onDiscardPaused={discardPausedSession}
             pausedAlt={pausedAlt} onResumeAlt={resumeAltSession} onDiscardAlt={discardAltSession}
+            rustyTurn={rustyTurn} onRustyDone={onRustyDone} appPopupOpen={appPopupOpen}
             reportSessionState={reportSessionState} resumeData={resumeData}
             actions={actions}
           />
@@ -1509,10 +1670,10 @@ export default function App() {
         )}
         {pathTour && (
           <ScreenGuide
-            steps={SCREEN_GUIDES[pathTour]}
+            steps={tourSteps}
             onClose={(finished) => closePathTour(finished || pathTourLastRef.current)}
             onStep={(i, cfg) => {
-              pathTourLastRef.current = i === SCREEN_GUIDES[pathTour].length - 1;
+              pathTourLastRef.current = i === tourSteps.length - 1;
               if (!cfg?.screen) return;
               // Ladder steps need a saga loaded before the screen can
               // render — walk into the first playable one.

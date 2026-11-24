@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback, lazy } from 'react';
+import { useRef, useState, useEffect, useMemo, lazy } from 'react';
 import { reportError } from './data/analytics';
 import SplashScreen from './SplashScreen';
 import XpVerdictPlate, { useVerdictFlash } from './shared/XpVerdictPlate';
@@ -18,6 +18,13 @@ import GhostVsScreen from './shared/GhostVsScreen';
 import GhostResultScreen from './shared/GhostResultScreen';
 import { getLastBattle, getMyBestGhost, getLastRecordedGhost } from './data/ghostBattles';
 import MissionComplete from './shared/MissionComplete';
+import { retentionOn } from './data/retentionFlags';
+import { openNextUp, arcadeEndStars, campSessionEndStars } from './data/pathNextUp';
+import StageStarsCard from './retention/ui/StageStarsCard';
+import { playStarTone } from './data/audioEngine';
+import { arcadeRetryKey, campRetryKey } from './data/retrySafety';
+import { arcadeStageBoss, requestCampRetry } from './data/nearMissStore';
+import { getSeriesById } from './data/trainingArcadeData';
 import CampTransitionCard from './shared/CampTransitionCard';
 import CampFitRunner from './CampFitRunner';
 import CampFitSetRunner from './CampFitSetRunner';
@@ -33,7 +40,10 @@ import FitBuilderSetup from './FitBuilderSetup';
 import { maxOutHandoff } from './data/loadoutMissions';
 import FitBuilderWorkout from './FitBuilderWorkout';
 import FitWorkoutComplete from './FitWorkoutComplete';
-import QuickMissionSetup from './QuickMissionSetup';
+import QuickMissionScreen from './fit-challenge/QuickMissionScreen';
+import FitCheckOffSolo from './fit-challenge/FitCheckOffSolo';
+import FitCardResults from './fit-challenge/FitCardResults';
+import { snapshotMission } from './data/fitCard';
 import QuickMissionActive from './QuickMissionActive';
 import QuickMissionSolo from './QuickMissionSolo';
 import QuickMissionComplete from './QuickMissionComplete';
@@ -61,39 +71,73 @@ const ArcadeSeriesIntroPage = lazy(() => import('./ArcadeSeriesIntroPage'));
 const ArcadeSeriesDetail = lazy(() => import('./ArcadeSeriesDetail'));
 const ArcadeSessionPlayer = lazy(() => import('./ArcadeSessionPlayer'));
 
-function useScrollIndicator(containerRef, children) {
-  const [showScroll, setShowScroll] = useState(false);
+// The row above the tab bar on a screen that scrolls: the BETA pill (fixed at
+// 72px, App's FeedbackChip) and the scroll chevron sit on it, and the page
+// scrolls under it as it does under the tab bar, so neither ever covers a card,
+// a button or text (owner, 2026-11-23). SHELF_FADE is its soft top edge; the
+// pill's top (96px up) is inside its solid part. SCROLL_PAD is the room the
+// page's last content keeps under it: clear of the shelf, scrolled to the end.
+const SHELF_H = 46;
+const SHELF_FADE = 6;
+const SCROLL_PAD = 118;
+// The BETA pill's top (72 + its 24px) and a gap: what a one-screen page keeps clear.
+const BETA_ROW_TOP = 102;
 
-  const check = useCallback(() => {
-    const root = containerRef.current;
-    if (!root) return;
-    // scrollHeight includes the bottom padding we reserve for the tab bar, so
-    // comparing it directly flagged every screen as scrollable and showed the
-    // chevron over nothing. Measure where the content actually ends instead.
-    const padBottom = parseFloat(getComputedStyle(root).paddingBottom) || 0;
-    const contentBottom = root.scrollHeight - padBottom;
-    const overflows = contentBottom > root.clientHeight + 12;
-    const nearBottom = root.scrollTop + root.clientHeight >= root.scrollHeight - 24;
-    setShowScroll(overflows && !nearBottom);
-  }, [containerRef]);
+// Where the page's last card ends on screen. A frame as tall as the screen
+// (PhoneFrame's 100dvh) is looked into, not taken as content; pieces placed
+// absolutely (art, embers) are decoration. Only boxes that tall are walked
+// into, so it touches a few dozen elements. `watch` is told each box measured,
+// so a card that grows later (a picture loading, the share card coming in)
+// moves the chevron too.
+function contentEnd(root, watch) {
+  let end = -Infinity;
+  const tall = root.clientHeight - 1;
+  const walk = (el) => {
+    for (const c of el.children) {
+      const cs = getComputedStyle(c);
+      if (cs.display === 'none' || cs.visibility === 'hidden' || cs.position === 'absolute' || cs.position === 'fixed') continue;
+      watch?.(c);
+      const r = c.getBoundingClientRect();
+      if (r.height <= 0) continue;
+      if (r.height >= tall) walk(c);
+      else end = Math.max(end, r.bottom);
+    }
+  };
+  walk(root);
+  return end;
+}
+
+function useScrollIndicator(containerRef, shelfRef, children) {
+  const [showScroll, setShowScroll] = useState(false);
 
   useEffect(() => {
     const root = containerRef.current;
-    if (!root) return;
+    if (!root) return undefined;
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => check()) : null;
+    const watched = new Set();
+    const watch = (el) => { if (ro && !watched.has(el)) { watched.add(el); ro.observe(el); } };
+    // More lies below while the page's last card still ends under the shelf
+    // (or, with none, past the bottom of the screen): once it is in view the
+    // chevron goes. (scrollHeight counts the tab bar's padding and the frame's
+    // empty height, so it cannot say where the cards end.)
+    function check() {
+      const shelf = shelfRef?.current;
+      const limit = shelf ? shelf.getBoundingClientRect().top : root.getBoundingClientRect().bottom;
+      setShowScroll(contentEnd(root, watch) > limit + 2);
+    }
     check();
     const timer = setTimeout(check, 300);
     root.addEventListener('scroll', check, { passive: true });
     window.addEventListener('resize', check, { passive: true });
-    const ro = new ResizeObserver(check);
-    ro.observe(root);
+    watch(root);
     return () => {
       clearTimeout(timer);
       root.removeEventListener('scroll', check);
       window.removeEventListener('resize', check);
-      ro.disconnect();
+      ro?.disconnect();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [check, children]);
+  }, [children]);
 
   return showScroll;
 }
@@ -129,7 +173,8 @@ function CampSessionRunner({ discipline, cfg, label, sub, detail, onEnd, fit, is
 
 function WithNav({ activeTab, onNavigate, pausedSession, onResume, onDiscardPaused, children, lock = false }) {
   const containerRef = useRef(null);
-  const showScroll = useScrollIndicator(containerRef, children);
+  const shelfRef = useRef(null);
+  const showScroll = useScrollIndicator(containerRef, shelfRef, children);
 
   // `lock` means "this screen sizes itself, don't scroll it" — right for a
   // fixed-layout session screen, wrong the moment the content genuinely does
@@ -194,21 +239,24 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, onDiscardPaus
           overflowX: 'hidden',
           WebkitOverflowScrolling: 'touch',
           overscrollBehaviorY: 'contain',
-          // Top edge of the resume pill (plus a small gap) while a session is
-          // paused. One-screen pages take max(their own clearance, this) as
-          // bottom padding, so the pill gets its own row instead of covering
-          // the last button. 0 when nothing is paused.
-          '--tm-resume-top': pausedSession ? '116px' : '0px',
+          // Top edge of the row above the tab bar (plus a small gap): the
+          // BETA pill's, and the resume pill's while a session is paused.
+          // One-screen pages take max(their own clearance, this) as bottom
+          // padding, so neither pill ever sits on their last card or button
+          // (owner, 2026-11-23: it was 0 with nothing paused, and the BETA
+          // pill covered the bottom of the Quick Mission and Build Workout
+          // pages, the camp ladder and the Fight hub on a short phone).
+          '--tm-resume-top': pausedSession ? '116px' : `${BETA_ROW_TOP}px`,
           // Beta TM-09 — when the resume pill floats over this screen, buy the
           // last rows of content enough clearance to scroll out from under it.
+          // The last content keeps clear of the tab bar and the shelf above it.
           paddingBottom: scrolls
-            ? (pausedSession ? 'calc(150px + env(safe-area-inset-bottom, 0px))' : 'calc(110px + env(safe-area-inset-bottom, 0px))')
+            ? (pausedSession ? 'calc(150px + env(safe-area-inset-bottom, 0px))' : `calc(${SCROLL_PAD}px + env(safe-area-inset-bottom, 0px))`)
             : 0,
         }}
       >
         {children}
       </div>
-      <ScrollDownIndicator visible={showScroll && scrolls} />
       <FloatingResumeButton pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} onDiscard={onDiscardPaused} />
       <div style={{
         position: 'fixed',
@@ -219,6 +267,24 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, onDiscardPaus
         maxWidth: 440,
         zIndex: 100,
       }}>
+        {/* The shelf (a screen that scrolls): the page passes under it as it
+            does under the tab bar; the BETA pill sits on its left, the scroll
+            chevron in its middle. A one-screen page has none: it keeps its
+            own clearance above the tab bar.
+            While a session is paused its RESUME pill takes the right of the
+            row, and it reaches past the middle (RESUME · FIGHT FOCUS runs
+            162..344 at 360 wide, RESUME · COMBAT CONDITIONING 107..344 at
+            360 and 177..414 at 430), so the chevron would sit under it. The
+            pill is what the row is for then: the chevron stays off. */}
+        {scrolls && (
+          <div ref={shelfRef} data-ui="nav-shelf" data-fade={SHELF_FADE} style={{
+            height: SHELF_H, boxSizing: 'border-box', paddingTop: SHELF_FADE,
+            background: `linear-gradient(to bottom, rgba(6,1,14,0) 0px, rgba(6,1,14,0.95) ${SHELF_FADE}px)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <ScrollDownIndicator visible={showScroll && !pausedSession} />
+          </div>
+        )}
         <BottomNav active={activeTab} onNavigate={onNavigate} />
       </div>
     </div>
@@ -233,7 +299,7 @@ function StagePlate({ plate }) {
   return <XpVerdictPlate flash={flash} />;
 }
 
-export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg, session, ghostLaunch, ccPreset, comboCfg, fitCfg, qmCfg, qmResult, qmEntry, ccMission, ccResult, cardioContext, cardioResult, cardioEntry, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, pausedAlt, onResumeAlt, onDiscardAlt, reportSessionState, resumeData, actions }) {
+export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg, session, ghostLaunch, ccPreset, comboCfg, fitCfg, qmCfg, qmResult, qmEntry, ccMission, ccResult, cardioContext, cardioResult, cardioEntry, arcadeSeries, arcadeStage, arcadeMode, arcadeOrder, arcadeSettings, campCtx, campResult, profile, updateProfile, levelUp, pausedSession, onResume, onDiscardPaused, pausedAlt, onResumeAlt, onDiscardAlt, rustyTurn, onRustyDone, appPopupOpen, reportSessionState, resumeData, actions }) {
   const { goHome, goProgress, goFightHub, goFitHub, goFitSetup, goPrograms, goCardioMode, goQuickMissionSetup, goQuickMissionActive, goQuickMissionAtPace, goQuickMissionComplete, goCombatCondSetup, goCombatCondActive, goCombatCondComplete, goProfile, goBetaFeedback, goPaywall, goGameLink, goSubscription, goSetup, goComboSetup, goJustTrain, goTimer, goSummary, goComboActive, goComboEnd, goFitWorkout, goFitComplete, goPractice, goStartHere, goStartDailyMission, goAfterSplash, completeOnboarding, startFeatureTour, skipOnboardingToHome, goTrainingArcade, goArcadeSeries, goArcadeDetail, goArcadeSession, goArcadeComplete, finishCardioFinisher, skipCardioFinisher, finishLevelUp, goNotifications, goTrainingCamp, goCampSession, goCampComplete, goCampMap, goCampFullComplete , goConcept, startConceptFit, startConceptFight, goTapes } = actions;
 
   const isResuming = pausedSession?.screen === screen;
@@ -245,6 +311,12 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
   const [ghostResultSeen, setGhostResultSeen] = useState(false);
   useEffect(() => { setVsAccepted(false); }, [cfg]);
   useEffect(() => { if (screen !== 'summary') setGhostResultSeen(false); }, [screen]);
+  // Retention feature 2 (switch `path`): an arcade v2 stage's end screen gets
+  // a small stars row when the stage has stars (as stored after the clear).
+  const [pathOn] = useState(() => retentionOn('path'));
+  const arcadeStars = useMemo(() => (pathOn && campResult?.arcade && campResult.cleared ? arcadeEndStars(campResult) : null), [pathOn, campResult]);
+  // Training Camp's own stars row (a valid session on a cleared level).
+  const campStars = useMemo(() => (pathOn && campResult && !campResult.arcade ? campSessionEndStars(campResult) : null), [pathOn, campResult]);
 
   const handleNavigate = (tab) => {
     if (tab === 'home') goHome();
@@ -269,7 +341,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
       // enough to scroll, and to inherit the previous screen's scroll position
       // with the header cut off. Lock still scrolls if a short phone needs it.
       <WithNav activeTab="home" onNavigate={handleNavigate} lock>
-        <HomeDashboard onOpenConcept={(tab) => goConcept(tab, null, 'home')} onHome={goHome} onFightMode={goFightHub} onFitMode={goFitHub} onJustTrain={goJustTrain} onPrograms={goPrograms} onStartQuickMission={goQuickMissionActive} onReplayLast={actions.replayLastSession} onProfile={goProfile} profile={profile} onPractice={goPractice} onFightFocus={goSetup} onQuickMission={goQuickMissionSetup} onFitSetup={goFitSetup} onComboCoach={goComboSetup} onStartHere={goStartHere} onStartDailyMission={goStartDailyMission} onCombatConditioning={goCombatCondSetup} onBetaFeedback={goBetaFeedback} onTrainingArcade={goTrainingArcade} onTrain={goFitHub} onOpenGhost={actions.openGhostChallenge} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} pausedAlt={pausedAlt} onResumeAlt={onResumeAlt} onDiscardAlt={onDiscardAlt}/>
+        <HomeDashboard onOpenConcept={(tab) => goConcept(tab, null, 'home')} onHome={goHome} onFightMode={goFightHub} onFitMode={goFitHub} onJustTrain={goJustTrain} onPrograms={goPrograms} onStartQuickMission={goQuickMissionActive} onReplayLast={actions.replayLastSession} onProfile={goProfile} profile={profile} onPractice={goPractice} onFightFocus={goSetup} onQuickMission={goQuickMissionSetup} onFitSetup={goFitSetup} onComboCoach={goComboSetup} onStartHere={goStartHere} onStartDailyMission={goStartDailyMission} onCombatConditioning={goCombatCondSetup} onBetaFeedback={goBetaFeedback} onTrainingArcade={goTrainingArcade} onTrain={goFitHub} onOpenGhost={actions.openGhostChallenge} onNextUp={(n) => openNextUp(n, { goArcadeDetail, goTrainingCamp })} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} pausedAlt={pausedAlt} onResumeAlt={onResumeAlt} onDiscardAlt={onDiscardAlt} rustyTurn={rustyTurn} onRustyDone={onRustyDone} appPopupOpen={appPopupOpen}/>
       </WithNav>
     );
   }
@@ -363,6 +435,17 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
       const aVerdict = resolveOutcome({
         completed: r.rounds, total: r.total, difficulty: r.difficulty, integrityResult: r.integrityResult,
       });
+      // Retention feature 3: the near-miss panel's facts and the same stage again
+      // (same saga, stage, path and difficulty) through the arcade's own start.
+      const a = campCtx?.arcade || null;
+      const aSeries = a ? (getSeriesById(a.seriesId) || (arcadeSeries?.id === a.seriesId ? arcadeSeries : null)) : null;
+      const aStage = aSeries?.stages?.find((st) => st.id === a.stageId) || null;
+      const aNearMiss = a ? {
+        key: arcadeRetryKey(a.seriesId, a.stageId), token: r, outcome: r.cleared ? 'pass' : aVerdict.outcome,
+        unit: 'rounds', done: r.rounds, total: r.total, boss: arcadeStageBoss(r.campaignId, a.stageId, aSeries),
+        onRetry: aSeries && aStage ? () => goArcadeSession(aSeries, aStage, a.path || 'fight', null, { difficulty: r.difficulty || 'normal', voiceCoach: true, sound: 'on' }) : null,
+        onLeave: goHome,
+      } : null;
       return (
         <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
           <MissionComplete
@@ -378,10 +461,12 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
             onHero={goTrainingArcade}
             integrityResult={r.integrityResult}
             stats={[{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }]}
+            summary={arcadeStars ? <StageStarsCard stars={arcadeStars.stars} max={arcadeStars.max} line={arcadeStars.line} onLand={playStarTone}/> : null}
             shareData={{ title: aTitle, subtitle: aSub, mode: 'Training Arcade' }}
+            nearMiss={aNearMiss}
             actions={[
               { label: 'BACK TO ARCADE', onClick: goArcadeComplete, kind: 'primary' },
-              { label: 'HOME', onClick: goHome, kind: 'ghost' },
+              { label: 'HOME', onClick: goHome, kind: 'ghost', role: 'home' },
             ]}
           />
           <StagePlate plate={r.plate} />
@@ -389,16 +474,19 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
       );
     }
     // Three outcomes: level cleared · one split mission done (level pending) ·
-    // stopped/invalid (GOOD EFFORT, nothing counted).
-    const missionDone = r.split && r.sessionValid && !r.cleared;
+    // stopped/invalid (GOOD EFFORT, nothing counted). A replayed Session 1 of a
+    // cleared level (switch `path`) reads as a mission done: its run waits for
+    // Session 2, so it is not "LEVEL n CLEAR".
+    const missionDone = r.split && r.sessionValid && (!r.cleared || !!r.replayS1);
+    const clearedShown = r.cleared && !r.replayS1;
     const slotNum = r.slot === 's2' ? 2 : 1;
     const kindLbl = r.slot === 's2' ? 'CONDITIONING' : 'SKILL';
     // Item 13b — winning L12 is not "level 12 clear", it is the end of the camp.
     const titleFightWon = r.level === 12 && r.cleared;
     const eyebrow = titleFightWon ? '🏆 TITLE FIGHT WON'
-      : r.cleared ? 'LEVEL CLEARED' : missionDone ? `SESSION ${slotNum} COMPLETE` : 'SESSION STOPPED';
+      : clearedShown ? 'LEVEL CLEARED' : missionDone ? `SESSION ${slotNum} COMPLETE` : 'SESSION STOPPED';
     const title = titleFightWon ? 'CAMP COMPLETE'
-      : r.cleared ? `LEVEL ${r.level} CLEAR` : missionDone ? `S${slotNum} · ${kindLbl} ✓` : 'GOOD EFFORT';
+      : clearedShown ? `LEVEL ${r.level} CLEAR` : missionDone ? `S${slotNum} · ${kindLbl} ✓` : 'GOOD EFFORT';
     const subtitle = titleFightWon
       ? `TRAINING CAMP · ${r.discipline} · ALL 12 LEVELS`
       : missionDone && slotNum === 1
@@ -407,6 +495,13 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     const cVerdict = resolveOutcome({
       completed: r.rounds, total: r.total, difficulty: r.difficulty, integrityResult: r.integrityResult,
     });
+    // Retention feature 3: RETRY goes back to the camp map on this level's card,
+    // so the readiness and gear checks run as on any start.
+    const cNearMiss = {
+      key: campRetryKey(r.discipline, r.level, r.slot), token: r, outcome: r.cleared || missionDone ? 'pass' : cVerdict.outcome,
+      unit: 'rounds', done: r.rounds, total: r.total, boss: r.level === 12 ? 'title' : false,
+      onRetry: () => { requestCampRetry(r.level); goCampMap(); }, onLeave: goHome,
+    };
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
         <MissionComplete
@@ -424,16 +519,18 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
             ? [{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }, { value: '12', label: 'LEVELS', highlight: true }]
             : [{ value: `${r.rounds}/${r.total}`, label: 'ROUNDS' }]}
           shareData={titleFightWon ? { mode: 'Training Camp', eyebrow: 'TITLE FIGHT WON', workoutName: 'CAMP COMPLETE', difficulty: r.difficulty } : undefined}
+          summary={campStars ? <StageStarsCard title="LEVEL STARS" stars={campStars.stars} max={campStars.max} line={campStars.line} onLand={playStarTone}/> : null}
+          nearMiss={cNearMiss}
           actions={titleFightWon
             ? [
                 { label: 'BACK TO CAMP', onClick: goCampMap, kind: 'primary' },
                 { label: 'HOME', onClick: goHome, kind: 'ghost' },
               ]
             : [
-                r.unlockedTo
+                r.unlockedTo && !r.replayS1
                   ? { label: `CONTINUE → L${r.unlockedTo}`, onClick: goCampMap, kind: 'primary' }
                   : { label: 'BACK TO CAMP', onClick: goCampMap, kind: 'primary' },
-                { label: 'HOME', onClick: goHome, kind: 'ghost' },
+                { label: 'HOME', onClick: goHome, kind: 'ghost', role: 'home' },
               ]}
         />
         <StagePlate plate={r.plate} />
@@ -441,8 +538,8 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     );
   }
   if (screen === 'start_here' || screen === 'practice_starthere' || screen === 'practice') {
-    // One screen (Simplify revamp): locked, the technique grid scrolls on
-    // its own. The Start Here entries open straight onto the current lesson.
+    // The Ladder: locked, its list of moves scrolls on its own. The Start
+    // Here entries open straight onto the next move's card.
     // Keyed so switching between the two entries remounts onto the right view.
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
@@ -548,9 +645,14 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
           completedRounds={session.completedRounds}
           integrityResult={session.integrityResult}
           fightStats={session.fightStats}
+          board={session.board || null}
           onAgain={handleRetry}
           onBack={goFightHub}
           onHome={goHome}
+          retry={{
+            token: session, onLeave: goHome,
+            onRetry: isCombo ? (comboCfg ? () => goComboActive(comboCfg) : null) : () => goTimer({ ...session.cfg }),
+          }}
         />
       </WithNav>
     );
@@ -631,14 +733,15 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     // or COMPLETE WORKOUT opened the summary with its top cut off.
     return (
       <WithNav key="fit_complete" activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
-        <FitWorkoutComplete cfg={fitCfg} completedCount={session?.exerciseCount || 0} totalCount={session?.totalCount || 0} cardioResult={cardioResult} onHome={goHome}/>
+        <FitWorkoutComplete cfg={fitCfg} completedCount={session?.exerciseCount || 0} totalCount={session?.totalCount || 0} cardioResult={cardioResult} onHome={goHome}
+          retry={{ token: session, onRetry: () => goFitWorkout(fitCfg), onLeave: goHome }}/>
       </WithNav>
     );
   }
   if (screen === 'qm_setup') {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <QuickMissionSetup entry={qmEntry} onBack={goFitHub} onFightMode={goFightHub} onStart={goQuickMissionActive} onCardioOnly={goCardioMode} onPaywall={goPaywall}/>
+        <QuickMissionScreen entry={qmEntry} onBack={goFitHub} onFightMode={goFightHub} onStart={goQuickMissionActive} onCardioOnly={goCardioMode} onPaywall={goPaywall}/>
       </WithNav>
     );
   }
@@ -647,17 +750,32 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     // unchanged. Routed on the cfg and the stash, never on the v2 flag: a SOLO
     // stash must come back into SOLO even if preview was turned off since
     // (QuickMissionActive would hang on a SOLO stash's phase).
-    const Runner = qmCfg.mode === 'solo' || resumeData?.kind === 'solo' ? QuickMissionSolo : QuickMissionActive;
+    // The workout card's CHECK-OFF (switch fitCard) is AT YOUR PACE with tick
+    // boxes: a cfg or a stash that says so. No other start ever carries it.
+    const checkOff = (qmCfg.mode === 'solo' && qmCfg.checkOff === true) || (resumeData?.kind === 'solo' && resumeData.checkOff === true);
+    const Runner = checkOff ? FitCheckOffSolo : qmCfg.mode === 'solo' || resumeData?.kind === 'solo' ? QuickMissionSolo : QuickMissionActive;
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
         <Runner missionCfg={qmCfg} profile={profile} onEnd={goQuickMissionComplete} onSwitchRun={goQuickMissionAtPace} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
       </WithNav>
     );
   }
+  if (screen === 'qm_complete' && qmResult?.card) {
+    // A workout card run (switch fitCard): its own results. REPEAT runs the
+    // card that ran (after an in-run SHUFFLE, the new one); NEW CHALLENGE opens
+    // the page on a new deal.
+    const again = () => goQuickMissionActive({ ...qmCfg, mission: snapshotMission(qmResult.card), card: { ...qmResult.card, startedAt: Date.now() }, mode: qmResult.mode === 'solo' ? 'solo' : 'guided', ...(qmResult.checkOff ? { checkOff: true } : {}) });
+    return (
+      <WithNav activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
+        <FitCardResults result={qmResult} onRepeat={again} onNew={() => goQuickMissionSetup({ newDeal: true })} onBack={goFitHub}/>
+      </WithNav>
+    );
+  }
   if (screen === 'qm_complete' && qmResult) {
     return (
       <WithNav activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
-        <QuickMissionComplete result={qmResult} cardioResult={cardioResult} onRetry={goQuickMissionSetup} onFitHub={goFitHub} onHome={goHome}/>
+        <QuickMissionComplete result={qmResult} cardioResult={cardioResult} onRetry={goQuickMissionSetup} onFitHub={goFitHub} onHome={goHome}
+          retry={{ token: qmResult, onRetry: qmCfg ? () => goQuickMissionActive(qmCfg.mission ? qmCfg : { ...qmCfg, mission: qmResult.mission }) : null, onLeave: goHome }}/>
       </WithNav>
     );
   }
@@ -680,14 +798,15 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
   if (screen === 'cc_complete' && ccMission && ccResult) {
     return (
       <WithNav activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
-        <CombatConditioningComplete mission={ccMission} result={ccResult} cardioResult={cardioResult} onNewMission={goCombatCondSetup} onFightHub={goFightHub} onHome={goHome}/>
+        <CombatConditioningComplete mission={ccMission} result={ccResult} cardioResult={cardioResult} onNewMission={goCombatCondSetup} onFightHub={goFightHub} onHome={goHome}
+          retry={{ token: ccResult, onRetry: actions.retryCombatCond, onLeave: goHome }}/>
       </WithNav>
     );
   }
   if (screen === 'progress') {
     return (
       <WithNav activeTab="progress" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused}>
-        <ProgressScreen onHome={goHome} profile={profile}/>
+        <ProgressScreen onHome={goHome} profile={profile} onOpenCardRun={(id) => goQuickMissionSetup({ cardRunId: id })}/>
       </WithNav>
     );
   }
@@ -770,7 +889,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
   if (screen === 'arcade_session' && arcadeSeries && arcadeStage) {
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate} pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} lock>
-        <ArcadeSessionPlayer series={arcadeSeries} stage={arcadeStage} selectedMode={arcadeMode} modeOrder={arcadeOrder} arcadeSettings={arcadeSettings} onHome={goHome} onComplete={goArcadeComplete} onExit={goArcadeComplete} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
+        <ArcadeSessionPlayer series={arcadeSeries} stage={arcadeStage} selectedMode={arcadeMode} modeOrder={arcadeOrder} arcadeSettings={arcadeSettings} onHome={goHome} onComplete={goArcadeComplete} onExit={goArcadeComplete} onDoneForToday={actions.goArcadeDoneToday} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
       </WithNav>
     );
   }

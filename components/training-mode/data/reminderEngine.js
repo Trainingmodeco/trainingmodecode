@@ -1,5 +1,7 @@
 import { loadStats, getStreak, getLevelProgress } from './userStats';
 import { getRandomMessage } from './notificationMessages';
+import { loadWeekStreak } from './weekStreakStore';
+import { streakAtStake, streakReminderCopy } from './weekStreak';
 
 const SETTINGS_KEY = 'tm_reminder_settings';
 
@@ -154,14 +156,20 @@ export function getNotificationPermissionStatus() {
   return Notification.permission;
 }
 
-export function getDashboardReminder() {
+// `weeks`: the week streak switch (data/retentionFlags) is on. The streak case
+// is then the week streak's (data/weekStreak streakAtStake): a streak is held
+// and this week still needs training days it can get; its line says how many,
+// with the streak ("9-week streak: 2 more days this week.").
+// Switch off: the old day streak, as before.
+export function getDashboardReminder({ weeks = false } = {}) {
   const settings = loadReminderSettings();
   const stats = loadStats();
 
   if (trainedToday(stats)) return null;
 
   const daysOff = getDaysInactive(stats);
-  const streak = getStreak(stats);
+  const atStake = weeks ? streakAtStake(loadWeekStreak(Date.now(), stats.sessions)) : null;
+  const streak = weeks ? (atStake?.streak ?? 0) : getStreak(stats);
   const { current: levelXp, needed: levelNeeded } = getLevelProgress(stats.xp);
   const levelPercent = Math.round((levelXp / levelNeeded) * 100);
 
@@ -197,7 +205,7 @@ export function getDashboardReminder() {
 
   if (!category) return null;
 
-  const message = getRandomMessage(category);
+  const message = weeks && category === 'streak' ? streakReminderCopy(atStake) : getRandomMessage(category);
   if (!message) return null;
 
   return { message, category, daysOff, streak, levelPercent, actionLabel, actionType };
