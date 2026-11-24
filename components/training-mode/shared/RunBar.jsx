@@ -127,3 +127,15 @@ export function keepInView(el) {
   if (r.top < top) scroller.scrollBy({ top: r.top - top });
   else if (r.bottom > bottom) scroller.scrollBy({ top: Math.min(r.bottom - bottom, r.top - top) });
 }
+
+// The same bar with one big button (WORKOUTS' START before the run), so the
+// button sits exactly where PAUSE / STOP will be.
+export function RunStartBar({ children }) {
+  return (
+    <div data-run-bar="true" style={{
+      position: 'fixed', ...fixedColumnBar, bottom: NAV_H, zIndex: 20, height: RUN_BAR_H + SHELF_H, boxSizing: 'border-box', padding: `8px 16px ${SHELF_H}px`,
+      display: 'grid', gridTemplateColumns: '1fr', gridTemplateRows: '54px',
+      background: 'linear-gradient(180deg, rgba(20,6,38,0.99) 0%, rgba(8,0,18,0.99) 60%)', borderTop: '1px solid rgba(242,190,69,0.22)', boxShadow: '0 -8px 18px rgba(0,0,0,0.45)',
+    }}>{children}</div>
+  );
+}

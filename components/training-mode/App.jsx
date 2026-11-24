@@ -101,8 +101,11 @@ const ACTIVE_SESSION_SCREENS = new Set([
 // cardio_mode is a setup screen most of the time and a session only while a
 // run is live. The run player reports { live: true } through onSessionState;
 // without it the screen is not stashed and the boot restore leaves it alone.
+// AT YOUR PACE's warm-up and WORKOUTS screen come before the clock: they
+// report { preRun: true } and leaving them leaves nothing to resume.
 function isSessionScreenLive(screen, internalState) {
   if (screen === 'cardio_mode') return !!internalState?.live;
+  if (screen === 'qm_active' && internalState?.preRun === true) return false;
   return true;
 }
 

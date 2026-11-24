@@ -756,7 +756,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
     const Runner = checkOff ? FitCheckOffSolo : qmCfg.mode === 'solo' || resumeData?.kind === 'solo' ? QuickMissionSolo : QuickMissionActive;
     return (
       <WithNav activeTab="train" onNavigate={handleNavigate}>
-        <Runner missionCfg={qmCfg} profile={profile} onEnd={goQuickMissionComplete} onSwitchRun={goQuickMissionAtPace} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
+        <Runner missionCfg={qmCfg} profile={profile} onEnd={goQuickMissionComplete} onBack={() => goQuickMissionSetup()} onSwitchRun={goQuickMissionAtPace} initialPaused={isResuming} onStateChange={reportSessionState} initialResumeData={resumeData}/>
       </WithNav>
     );
   }

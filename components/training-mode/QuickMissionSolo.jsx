@@ -1,12 +1,19 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ChevronLeft, Minus, Plus, Check, ArrowRightLeft } from 'lucide-react';
+import { ChevronLeft, Minus, Plus, Check, ArrowRightLeft, Info, Play } from 'lucide-react';
 import PhoneFrame from './PhoneFrame';
 import useWakeLock from './hooks/useWakeLock';
-import { stopVoiceSession } from './voiceCoach';
-import { playBell, playBeep, unlockAudio } from './data/audioEngine';
+import { stopVoiceSession, speakAsync, cancelSpeech, setVoiceGender, primeSpeech } from './voiceCoach';
+import { playBell, playBeep, unlockAudio, isVoiceMuted } from './data/audioEngine';
+import { getLoadedBank, planClips, planMs } from './data/voiceClips';
+import WarmupTimer from './shared/WarmupTimer';
+import VoiceMixer from './shared/VoiceMixer';
+import {
+  PACE_WARMUP, PACE_WARMUP_MIN, PACE_RUN, PACE_READY_SEC, workoutsLine, startLine, readySecFor, runVoiceCues,
+  warmupAdvice, GENERIC_WARMUP,
+} from './data/paceVoice';
 import MoveSwapSheet from './shared/MoveSwapSheet';
 import MaxRepsSheet from './shared/MaxRepsSheet';
-import RunBar, { runHead, keepInView, RUN_CSS, RUN_BAR_CLEAR, RunBackdrop, RunWatermark } from './shared/RunBar';
+import RunBar, { runHead, keepInView, RUN_CSS, RUN_BAR_CLEAR, RunBackdrop, RunWatermark, RunStartBar } from './shared/RunBar';
 import RunRing, { RING_COLORS } from './shared/RunRing';
 import TrainingCTA from './shared/TrainingCTA';
 import {
@@ -15,7 +22,7 @@ import {
 } from './shared/FitSetupKit';
 import { cardRows, swapMissionMove, gearProfile, formatLabelOf } from './data/loadoutMissions';
 import {
-  isFixedClock, missionClockSec, soloTimeline, segmentAt, repsPerRound, prefillScore,
+  isFixedClock, missionClockSec, soloTimeline, segmentAt, repsPerRound, prefillScore, paceTargets,
   totalSlots, soloExpectedSec, soloFloorSec, formatScore, soloRounds, repsThrough, heldOf,
   isUntilDown, repsPerSet, setBlock, downScore, downCopy, roundSplits, blockSplitsLine,
   closeSplits, roundRestSec, hasRoundTimer,
@@ -25,9 +32,20 @@ import { mmss, repCapFor } from './data/missionMoves';
 
 // Quick Mission · AT YOUR PACE (internally 'solo': the stored mode, the stash
 // kind and the file name keep that word). The whole workout on one screen with
-// one clock, at the athlete's own pace. No coach voice: the cues are bells and
-// beeps only. It runs a library mission, and today's generated mission through
-// data/soloFromGenerated.
+// one clock, at the athlete's own pace. It runs a library mission, and today's
+// generated mission through data/soloFromGenerated.
+//
+// A fresh start goes WARM-UP (5:00 on shared/WarmupTimer, SKIP to bypass; no
+// XP, no stats, not part of the clock) -> WORKOUTS (every move, SWAP before
+// the run, the notes behind "i", START) -> GET READY -> the run. Nothing is
+// reported for a stash until GET READY (the warm-up and WORKOUTS report
+// { preRun: true }, which App does not stash), so leaving them just leaves. A
+// restored stash goes straight back into the run, with no spoken start.
+//
+// The coach (data/paceVoice) is the quiet mode: a few fixed lines in the
+// warm-up and on WORKOUTS, the start under GET READY (what the buttons of this
+// format do), and rest / back to work, the last minute, pause, time. The bells
+// and beeps carry the rest. Timing never waits on speech.
 //
 // It is a race clock, so it keeps running when the screen locks or the app is
 // hidden (no useAutoPauseOnHidden); only PAUSE stops it. Time spent hidden is
@@ -45,7 +63,7 @@ import { mmss, repCapFor } from './data/missionMoves';
 // set. There is no score panel: the reps are already in.
 
 const RED_BORDER = 'rgba(239,68,68,0.5)';
-const READY_SEC = 5;
+const READY_SEC = PACE_READY_SEC;
 const TICK_MS = 250;
 // A cue whose moment passed more than this long ago is skipped, not replayed:
 // ticks are throttled while the page is hidden, and a pile of stale bells on
@@ -157,8 +175,10 @@ function startState(resume, mission) {
   const clock = (elapsedMs, pausedMs, hiddenMs, paused) => ({
     elapsedMs, pausedMs, hiddenMs, lastAt: null, pauseAt: paused ? now : null, hiddenAt: null, over: false, done: false,
   });
-  const fresh = { phase: 'ready', roundTaps: 0, blockTaps: blocks0, splits: [], setReps: [], finishSec: null, scoreDraft: null, clock: clock(0, 0, 0, false) };
-  if (resume?.kind !== 'solo' || resume.phase === 'ready') return fresh;
+  const fresh = { phase: 'warmup', roundTaps: 0, blockTaps: blocks0, splits: [], setReps: [], finishSec: null, scoreDraft: null, clock: clock(0, 0, 0, false) };
+  if (resume?.kind !== 'solo' || resume.preRun) return fresh;
+  // A stash from GET READY counts down again, quietly (no warm-up, no spoken start).
+  if (resume.phase === 'ready') return { ...fresh, phase: 'ready', quiet: true };
 
   const ms = (v) => (Number.isFinite(v) && v > 0 ? v : 0);
   const roundTaps = clampInt(resume.roundTaps, 0, 9999);
@@ -228,9 +248,25 @@ function ScoreStepper({ label, name, value, min = 0, max = 9999, onChange }) {
   );
 }
 
-export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, initialResumeData }) {
+export default function QuickMissionSolo({ missionCfg, profile, onEnd, onBack, onStateChange, initialResumeData }) {
   useWakeLock(true);
   useEffect(() => { unlockAudio(); }, []);
+
+  // The coach: the voice picked on the profile, on unless the cfg says no and
+  // not while the VOICE fader is at zero. Set before the first paint, so the
+  // warm-up's opening line is already in that voice.
+  const voiceOn = missionCfg?.voiceOn !== false;
+  const [gender] = useState(() => { const g = profile?.voiceCoach || 'FEMALE'; setVoiceGender(g); return String(g).toLowerCase(); });
+  const voiceLive = () => voiceOn && !isVoiceMuted();
+  const say = (line, opts) => { if (line && voiceLive()) speakAsync(line, opts).catch(() => {}); };
+  const sayRef = useRef(say);
+  sayRef.current = say;
+  // Leaving the screen stops the voice at once.
+  useEffect(() => {
+    if (voiceOn) primeSpeech().catch(() => {});
+    return () => stopVoiceSession();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // The mission as run. Swaps change it (the clock never stops for one), and
   // a resume brings back the swapped version.
@@ -241,6 +277,10 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   const [phase, setPhase] = useState(init.phase);
   const [elapsedMs, setElapsedMs] = useState(init.clock.elapsedMs);
   const [readyLeft, setReadyLeft] = useState(READY_SEC);
+  // GET READY's length this time: 5 s, or as long as the spoken start needs.
+  const [readySec, setReadySec] = useState(READY_SEC);
+  // A GET READY restored from a stash says nothing.
+  const quietStartRef = useRef(!!init.quiet);
   const [roundTaps, setRoundTaps] = useState(init.roundTaps);
   const [blockTaps, setBlockTaps] = useState(init.blockTaps);
   // ROUND taps as splits: { at: the clock in ms, block } (data/missionSolo roundSplits).
@@ -275,6 +315,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   const multiBlock = isMultiBlock(mission);
   const timeline = useMemo(() => soloTimeline(mission), [mission]);
   const cues = useMemo(() => soloCues(mission, timeline), [mission, timeline]);
+  const voiceCues = useMemo(() => runVoiceCues(mission), [mission]);
   const rows = useMemo(() => cardRows(mission, { gear }), [mission, gear]);
   const rpr = useMemo(() => repsPerRound(mission), [mission]);
   const clockSec = fixedClock ? missionClockSec(mission) : 0;
@@ -285,7 +326,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   // What the interval and the visibility listener read (they outlive renders).
   const liveRef = useRef(null);
   useEffect(() => {
-    liveRef.current = { mission, cues, phase, ticking, finishSec, roundTaps, blockTaps, splits, setReps, format, countUp, clockMs: clockSec * 1000, capMs: capSec * 1000 };
+    liveRef.current = { mission, cues, voiceCues, phase, ticking, finishSec, roundTaps, blockTaps, splits, setReps, format, countUp, clockMs: clockSec * 1000, capMs: capSec * 1000 };
   });
   const finishRef = useRef(null);
 
@@ -297,6 +338,8 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     playBell(3);
     setConfirmStop(false);
     setSwapKeyOpen(null);
+    // "Time." once the three bells have rung (never over them), unless the run was saved by then.
+    if (!isMaxReps(L.mission)) setTimeout(() => { if (!clockRef.current.done) sayRef.current(PACE_RUN.time); }, 2600);
     // MAX REPS: the cap ends the run with the sets already saved (no score panel,
     // no bonus: App settles it). The set in hand, and an open sheet, are not saved.
     if (isMaxReps(L.mission)) {
@@ -332,6 +375,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     c.elapsedMs = next;
     if (L.phase === 'running') {
       L.cues.forEach(q => { if (q.at > prev && q.at <= next && next - q.at < STALE_MS) playCue(q.kind); });
+      L.voiceCues.forEach(q => { if (q.at > prev && q.at <= next && next - q.at < STALE_MS) sayRef.current(q.say); });
     }
     setElapsedMs(next);
     if (end) { endRun(end); return true; }
@@ -368,13 +412,26 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   }, []);
 
   // GET READY 5…1: a beep at 3, 2 and 1, then the bell and the clock starts.
+  // With the voice on, the start is said first and GET READY lasts as long as
+  // it needs (its length from the recorded clips, never from the playing), so
+  // it ends before the beeps; the first beep cuts anything still talking.
   useEffect(() => {
     if (phase !== 'ready') return undefined;
     const t0 = Date.now();
-    let shown = READY_SEC;
-    setReadyLeft(READY_SEC);
+    let total = READY_SEC;
+    if (!quietStartRef.current && voiceLive()) {
+      const line = startLine(liveRef.current?.mission || mission);
+      const plan = planClips(getLoadedBank(gender), line);
+      total = readySecFor(plan ? planMs(plan) : null);
+      cancelSpeech();
+      say(line);
+    }
+    quietStartRef.current = false;
+    let shown = total;
+    setReadySec(total);
+    setReadyLeft(total);
     const id = setInterval(() => {
-      const left = READY_SEC - Math.floor((Date.now() - t0) / 1000);
+      const left = total - Math.floor((Date.now() - t0) / 1000);
       if (left <= 0) {
         clearInterval(id);
         playBell(1);
@@ -384,10 +441,20 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
       if (left !== shown) {
         shown = left;
         setReadyLeft(left);
-        if (left <= 3) playBeep();
+        if (left <= 3) {
+          if (left === 3) cancelSpeech();
+          playBeep();
+        }
       }
     }, 100);
     return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
+
+  // WORKOUTS opens with one line: at your pace, and swap before you start.
+  useEffect(() => {
+    if (phase === 'workouts') say(workoutsLine({ canSwap: !mission.atYourPace }));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
   // State for App's autosave and nav/hidden stash: every change, and four
@@ -395,6 +462,8 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
   useEffect(() => {
     const c = clockRef.current;
     if (typeof onStateChange !== 'function' || c.done) return;
+    // The warm-up and WORKOUTS are not a run yet: App stashes nothing for them.
+    if (phase === 'warmup' || phase === 'workouts') { onStateChange({ kind: 'solo', preRun: true, phase }); return; }
     const now = Date.now();
     onStateChange({
       kind: 'solo', phase, elapsedMs: Math.round(elapsedMs),
@@ -450,9 +519,13 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
       if (tick()) return;
       clockRef.current.pauseAt = Date.now();
       setPhase('paused');
+      cancelSpeech();
+      say(PACE_RUN.paused);
     } else if (phase === 'paused') {
       closePause();
       setPhase('running');
+      cancelSpeech();
+      say(PACE_RUN.resumed);
     }
   };
 
@@ -465,6 +538,8 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     setScoreDraft(finishDraft(mission, phase));
     setSwapKeyOpen(null);
     setPhase('score');
+    cancelSpeech();
+    say(PACE_RUN.done);
   };
   const handleNotYet = () => {
     const back = scoreDraft?.from === 'running' ? 'running' : 'paused';
@@ -483,6 +558,8 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     setSwapKeyOpen(null);
     setConfirmStop(false);
     setPhase('score');
+    cancelSpeech();
+    say(PACE_RUN.done);
   };
 
   // END in the STOP confirm. Past 95% of a fixed clock it counts as finished
@@ -674,7 +751,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
       ringSub = `ROUND ${Math.max(1, timeline.slice(0, idx).filter(x => x.kind === 'work').length)} OF ${works}`;
     } else if (multiBlock) ringSub = inRest ? `${mmss(totalLeft)} LEFT` : String(seg.label || '').replace(/\s*\/\s*/, ' OF ');
   }
-  if (phase === 'ready') ring = { time: String(readyLeft), pct: readyLeft / READY_SEC, color: RING_COLORS.ready, word: 'GET READY' };
+  if (phase === 'ready') ring = { time: String(readyLeft), pct: readyLeft / readySec, color: RING_COLORS.ready, word: 'GET READY' };
   else if (phase === 'paused') ring = { ...ring, word: 'PAUSED' };
   // Elapsed under a fixed clock (a count-up ring already is the elapsed time).
   const ringSub2 = !countUp && phase !== 'ready' ? `ELAPSED ${mmss(elapsedSec)}` : '';
@@ -731,6 +808,24 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     hero = { eyebrow: 'ONE ROUND', name: 'THE WHOLE LIST', dose: `${rows.length} MOVES`, next: 'TAP FINISH AT THE END' };
   }
 
+  // ── before the clock: the warm-up, then WORKOUTS ───────────────────────────
+  if (phase === 'warmup') {
+    const advice = warmupAdvice(mission);
+    return (
+      <WarmupTimer minutes={PACE_WARMUP_MIN} title="WARM-UP · AT YOUR PACE" intro={PACE_WARMUP.intro} lines={PACE_WARMUP}
+        note={{ title: advice ? 'THIS MISSION\'S WARM-UP' : 'WARM-UP IDEAS', text: advice || GENERIC_WARMUP }}
+        skipSolid skipLabel="SKIP WARM-UP" onDone={() => setPhase('workouts')} onSkip={() => setPhase('workouts')}/>
+    );
+  }
+  if (phase === 'workouts') {
+    return (
+      <WorkoutsScreen mission={mission} rows={rows} noSwap={!!mission.atYourPace}
+        onBack={() => { stopVoiceSession(); onBack?.(); }} onStart={() => setPhase('ready')}
+        onSwap={(r) => setSwapKeyOpen(r.swapKey)} onUndo={onUndo}
+        sheet={swapKeyOpen ? <MoveSwapSheet mission={mission} swapKey={swapKeyOpen} gear={gear} onPick={onPick} onClose={() => setSwapKeyOpen(null)}/> : null}/>
+    );
+  }
+
   return (
     <PhoneFrame useBrandBg>
       <style dangerouslySetInnerHTML={{ __html: fitKitCSS + RUN_CSS }}/>
@@ -748,7 +843,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
         {/* Top bar: back opens the STOP confirm; AT YOUR PACE · the format over the mission title. */}
         <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '44px 1fr 44px', alignItems: 'center' }}>
           <button type="button" className="fk-back" aria-label="Back" aria-disabled={canStop ? undefined : 'true'}
-            onClick={canStop ? () => setConfirmStop(true) : undefined}
+            onClick={canStop ? () => { cancelSpeech(); setConfirmStop(true); } : undefined}
             style={{ width: 44, height: 44, marginLeft: -12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: '#fff', cursor: canStop ? 'pointer' : 'default', opacity: canStop ? 1 : 0.45, padding: 0 }}>
             <ChevronLeft size={22}/>
           </button>
@@ -756,7 +851,8 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
             <div style={{ font: `700 11px ${HEAD}`, letterSpacing: '0.16em', color: GOLD, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>AT YOUR PACE · {strip}</div>
             <div style={{ font: `700 18px ${HEAD}`, letterSpacing: '0.06em', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textShadow: '0 0 12px rgba(181,123,255,0.45)' }}>{mission.title}</div>
           </div>
-          <span/>
+          {/* The coach's volume (the same mixer as the other timers), in the corner. */}
+          <span style={{ position: 'relative', height: 44 }}>{voiceOn && phase !== 'score' && <VoiceMixer top={5} right={-4}/>}</span>
         </div>
 
         {phase !== 'score' && (
@@ -844,7 +940,7 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
       </div>
 
       {/* PAUSE / STOP: fixed above the tab bar, so they are always in reach. */}
-      {phase !== 'score' && <RunBar paused={phase === 'paused'} pauseOff={phase === 'ready'} onPause={handlePauseToggle} onStop={() => setConfirmStop(true)}/>}
+      {phase !== 'score' && <RunBar paused={phase === 'paused'} pauseOff={phase === 'ready'} onPause={handlePauseToggle} onStop={() => { cancelSpeech(); setConfirmStop(true); }}/>}
 
       {swapKeyOpen && phase !== 'score' && (
         <MoveSwapSheet mission={mission} swapKey={swapKeyOpen} gear={gear} onPick={onPick} onClose={() => setSwapKeyOpen(null)}/>
@@ -909,7 +1005,8 @@ function RoundTimer({ word, buttonLabel, live, canUndo, onRound, onUndo }) {
 // accent bar), the ones done this round ticked and dimmed, the rest plain.
 // The swap arrows stay, quiet. A move's how-to note shows on the lit row (or
 // on every row of a circuit, where no single row is lit).
-function RunMoveRow({ row, index, lit, done, showNote, noSwap, onSwap, onUndo }) {
+// loudSwap (WORKOUTS, before the run): SWAP is a labelled button, not the quiet arrows.
+function RunMoveRow({ row, index, lit, done, showNote, noSwap, onSwap, onUndo, loudSwap = false }) {
   const showUndo = !!(row.undoable && onUndo);
   return (
     <li data-now={lit ? 'true' : undefined} style={{
@@ -938,7 +1035,13 @@ function RunMoveRow({ row, index, lit, done, showNote, noSwap, onSwap, onUndo })
           )}
         </span>
         <span style={{ flexShrink: 0, maxWidth: '38%', textAlign: 'right', font: `800 20px ${HEAD}`, lineHeight: 1.15, color: GOLD, fontVariantNumeric: 'tabular-nums' }}>{row.dose}</span>
-        {!noSwap && (
+        {!noSwap && loudSwap && row.canSwap && (
+          <button type="button" onClick={() => onSwap?.(row)} aria-label={`Swap ${row.name}`} style={{
+            height: 40, flexShrink: 0, padding: '0 9px', marginRight: 2, display: 'flex', alignItems: 'center', gap: 5, borderRadius: 10, cursor: 'pointer',
+            background: 'rgba(157,108,255,0.18)', border: '1.5px solid rgba(196,168,255,0.7)', color: '#fff', font: `700 12px ${HEAD}`, letterSpacing: '0.1em',
+          }}><ArrowRightLeft size={14} color={VIOLET_TEXT}/>SWAP</button>
+        )}
+        {!noSwap && (!loudSwap || !row.canSwap) && (
           <button type="button" onClick={row.canSwap ? () => onSwap?.(row) : undefined} disabled={!row.canSwap} aria-label={`Swap ${row.name}`} style={{
             width: 36, height: 44, flexShrink: 0, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'transparent', border: 'none', cursor: row.canSwap ? 'pointer' : 'default', opacity: 0.6,
@@ -1051,5 +1154,106 @@ function ScorePanel({ mission, draft, finishSec, rpr, splitLine, onDraft, onSave
       <GoldButton label="SAVE" height={56} onClick={onSave}/>
       {(draft?.end === 'finish' || draft?.end === 'down') && <GhostButton label="NOT YET" onClick={onNotYet}/>}
     </section>
+  );
+}
+
+// The format in one short line for WORKOUTS: 'EMOM · 21 MIN',
+// 'FOR TIME · 3 ROUNDS · CAP 20:00', 'AMRAP · 11 MIN · REST 1:00'.
+function formatSummary(mission) {
+  const label = formatLabelOf(mission) || 'AT YOUR PACE';
+  const parts = [label];
+  const countUp = mission.format === 'forTime' || isUntilDown(mission) || isMaxReps(mission);
+  if (countUp) {
+    const n = mission.rounds || 1;
+    if (!isUntilDown(mission) && n > 1) parts.push(`${n} ROUNDS`);
+    if (mission.capSec > 0) parts.push(`CAP ${mmss(mission.capSec)}`);
+  } else {
+    const clock = missionClockSec(mission);
+    if (clock > 0) parts.push(`${Math.round(clock / 60)} MIN`);
+    const rest = soloTimeline(mission).filter(sg => sg.kind === 'rest' && sg.sec >= 30).map(sg => sg.sec);
+    if (rest.length) parts.push(`REST ${mmss(Math.max(...rest))}`);
+  }
+  return parts.join(' · ');
+}
+
+// WORKOUTS (owner, 2026-11-24: "a screen that shows all the different
+// workouts"; "have the switch-out be there beforehand"): every move of the
+// mission in order, as bright as the run's rows, with SWAP and UNDO on each,
+// the notes that left the run screen behind "i", and a big gold START that
+// goes to GET READY. Back goes to the setup. Today's generated mission cannot
+// swap (noSwap: data/soloFromGenerated builds it from the generator's own
+// slots, which have no library alternatives).
+function WorkoutsScreen({ mission, rows, noSwap, onBack, onStart, onSwap, onUndo, sheet }) {
+  const [info, setInfo] = useState(false);
+  const pace = paceTargets(mission).filter(p => mission.pace?.[p.tier] != null);
+  const label = { font: `700 12px ${HEAD}`, letterSpacing: '0.16em', color: GOLD };
+  const body = { font: `500 15px ${BODY}`, color: '#E6E2F5', lineHeight: 1.45 };
+  return (
+    <PhoneFrame useBrandBg>
+      <style dangerouslySetInnerHTML={{ __html: fitKitCSS + RUN_CSS }}/>
+      <div data-pace-workouts="true" style={{
+        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 12,
+        padding: `0 16px ${RUN_BAR_CLEAR}px`, boxSizing: 'border-box',
+      }}>
+        <RunWatermark/>
+        <div data-run-head="true" style={{ ...runHead, gap: 6 }}>
+          <RunBackdrop tint={GOLD}/>
+          <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '44px 1fr 44px', alignItems: 'center' }}>
+            <button type="button" className="fk-back" aria-label="Back" onClick={onBack}
+              style={{ width: 44, height: 44, marginLeft: -12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 0 }}>
+              <ChevronLeft size={22}/>
+            </button>
+            <div style={{ minWidth: 0, textAlign: 'center' }}>
+              <div style={{ font: `700 11px ${HEAD}`, letterSpacing: '0.16em', color: GOLD, whiteSpace: 'nowrap' }}>AT YOUR PACE · WORKOUTS</div>
+              <div style={{ font: `700 20px ${HEAD}`, letterSpacing: '0.06em', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textShadow: '0 0 12px rgba(181,123,255,0.45)' }}>{mission.title}</div>
+            </div>
+            <button type="button" aria-label="About this workout" onClick={() => setInfo(true)} style={{
+              width: 40, height: 40, justifySelf: 'end', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(242,190,69,0.14)', border: `1.5px solid ${GOLD}`, color: GOLD, cursor: 'pointer', padding: 0,
+            }}><Info size={22}/></button>
+          </div>
+          <div data-pace-format="true" style={{ position: 'relative', font: `800 16px ${HEAD}`, letterSpacing: '0.1em', color: GOLD, textAlign: 'center', textShadow: '0 0 12px rgba(242,190,69,0.4)' }}>{formatSummary(mission)}</div>
+          <div style={{ position: 'relative', font: `700 15px ${BODY}`, color: '#EDE8FF', textAlign: 'center', lineHeight: 1.3 }}>
+            {noSwap ? 'Every move, in order. Tap START when you are ready.' : 'Swap any move now, before the clock starts.'}
+          </div>
+        </div>
+
+        <ol data-run-list="true" aria-label="The moves" style={{ margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {rows.map((row, i) => (
+            <RunMoveRow key={row.swapKey} row={row} index={i} lit={false} done={false} showNote={false} noSwap={noSwap} loudSwap onSwap={onSwap} onUndo={onUndo}/>
+          ))}
+        </ol>
+      </div>
+
+      <RunStartBar>
+        <TrainingCTA label="START" variant="gold" depth height={54} icon={<Play size={18} fill="currentColor" strokeWidth={0}/>} onClick={onStart}
+          style={{ fontSize: 19, letterSpacing: '0.18em', borderRadius: 14 }}/>
+      </RunStartBar>
+
+      {sheet}
+
+      {info && (
+        <Modal title="ABOUT THIS WORKOUT" onClose={() => setInfo(false)}>
+          <div data-pace-info="true" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {pace.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div style={label}>PACE TARGETS</div>
+                {pace.map(p => (
+                  <div key={p.tier} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, font: `700 15px ${HEAD}`, color: '#fff' }}>
+                    <span style={{ letterSpacing: '0.1em' }}>{p.label}</span><span style={{ color: GOLD, fontVariantNumeric: 'tabular-nums' }}>{p.text}</span>
+                  </div>
+                ))}
+                {mission.paceBasis && <div style={{ ...body, fontSize: 13, color: MUTED }}>{mission.paceBasis}</div>}
+              </div>
+            )}
+            {mission.load && <div><div style={label}>LOAD</div><div style={body}>{mission.load}</div></div>}
+            {mission.safety && <div><div style={label}>SAFETY</div><div style={body}>{mission.safety}</div></div>}
+            {mission.note && <div><div style={label}>NOTES</div><div style={body}>{mission.note}</div></div>}
+            {mission.tapHint && <div><div style={label}>THE BUTTONS</div><div style={body}>{mission.tapHint}</div></div>}
+            <div style={{ ...body, fontSize: 13, color: MUTED }}>Beeps play while the screen is on.</div>
+          </div>
+        </Modal>
+      )}
+    </PhoneFrame>
   );
 }
