@@ -543,12 +543,13 @@ change sits behind its feature's switch; with the switches off the screens, stor
   cue (`ScrollDownIndicator`, fixed above the tab bar while more lies below, gone at the bottom), and the BETA pill is
   fixed at the bottom left; whatever scrolls under them is covered for a moment (on the end screens, now often SHARE
   YOUR WIN). The same with the switches off. Hiding the chevron once the page's last card is in view, or a little
-  clearance above the BETA pill, would change every screen.
+  clearance above the BETA pill, would change every screen. *Fixed for everyone on the owner's answer (`q-oldui`, below).*
 - **The stage pop-up's star goals** (A7): "★ < 27:00" and the like, 8 px stars over 7 px times, on the ladder's pop-up,
   which the path opens as it is.
 - **The pop-up's "Best" time** (`ArcadeSeriesDetail` `fmtTime`) rounds the seconds, so a best of 17:59.6 would read
   "17:60" there; the clear screen and the path's sheet cut down to whole seconds.
 - **The recap on short phones**: the end screens drop the round recap and the beta link under 812 px tall (above).
+  *Fixed for everyone on the owner's answer (`q-oldui`, below): the recap shows; only the beta link stays hidden.*
 
 ### Checked
 
@@ -1242,3 +1243,138 @@ again). Until the file is added it is silent.
 3. **The climb sound file** (above): make or pick one, or drop the idea (the glide stays either way, or can go too).
 4. **The daily READINESS CHECK** before every camp session is unchanged. If the note on the health check meant that one
    too, say so: it holds the danger-symptom question, so the suggestion would be once a day rather than once a camp.
+
+## The owner's answers: retry clock, nothing done, old UI, Remind me (2026-11-23)
+
+The owner's answers on the preview board to four of the open questions. One section each.
+
+### The classic RETRY's clock (`q-retrytime`): "Fix it for everyone"
+
+- **What changed**: a RETRY on a classic Arcade stage (`ArcadeSessionPlayer`) now starts the clock again for
+  everyone, not only with the `nearMiss` switch on. Before, a retried run was timed from the first attempt's start,
+  so its time (and the stars and best time saved from it) counted the failed run's minutes.
+- **Where**: the clock is three pure helpers in `data/arcadeOutcome.js` (`stageClockStart`, `STAGE_CLOCK_RETRY`,
+  `stageElapsedSeconds`); `ArcadeSessionPlayer` uses them in the briefing's end, `handleRetryStage` (no switch
+  around it now) and the clear. A resumed session keeps the start it was given, as before.
+- **Test**: `test:nearmiss` (85, was 76): a first go stopped 11 minutes in, RETRY, a 20:30 clear reads 20:30 and
+  ★★★ (the old clock: 32:30 and ★); a resumed clock keeps its start; no clock, no time; and the player's RETRY resets
+  the clock with no switch around it.
+
+### A session ended with nothing done (`q-nothing`): "Show '3 rounds to go' there too"
+
+- **What changed** (switch `nearMiss`, so the owner's phone only): an end screen for a session ended with nothing done
+  now shows the near-miss panel with what was left: the quiet SESSION ENDED card (Fight Focus, Just Train, Combo,
+  a concept stage stopped before a round was done) reads WHAT'S LEFT · 3 ROUNDS TO GO, an empty bar, 0 OF 3 ROUNDS,
+  then RETRY and COME BACK FRESH TOMORROW, one size. The same rule reaches every end screen with a count (a Quick
+  Mission, Combat Conditioning, Build Workout, arcade v2 or camp stage, the classic overlay) when nothing was done.
+- **The rules kept**: such a session is still no try (`retrySafety.countsAsTry`): nothing is logged in
+  `tm_retry_log_v1` and it never counts toward the two goes at a stage or the three sessions a day. RETRY shows only
+  when `canRetryNow` allows it (not after a boss, the final stage, the title fight or MAX OUT, not after two real goes
+  today, not after three finished sessions today); otherwise the line says when to come back and DONE FOR TODAY is the
+  one button. A refused session (validation_failed) still shows no panel. With the switch off the card is as before.
+- **Where**: `data/nearMiss.js` (a count of 0 gives the line, always "to go", with `nothing: true`; a missing count
+  still gives none), `retention/ui/NearMissPanel.jsx` (WHAT'S LEFT instead of HOW CLOSE over an empty bar: it was not
+  close), the gallery (`retention/lookNearMiss.jsx`, "Ended with nothing done").
+- **Tests**: `test:nearmiss` 100 (was 85): the line for 0 done in every unit, never "short", a missing count gives
+  none, the SESSION ENDED settle (panel shown, no try, RETRY on a first go), ending with nothing done again and again
+  logs nothing, after two real goes no RETRY, a boss, MAX OUT, three sessions today, a refused one, the classic
+  overlay's benchmark with nothing tested.
+- **Preview**: `f3-ff-nothing` (a real Fight Focus ended in round 1, the two buttons checked to be one size),
+  `f3-ff-nothing-load` (the third session today: DONE FOR TODAY), `f3-ff-nothing-off` (switch off: the card as before).
+
+### Small things that were there before (`q-oldui`): "Fix them app-wide" (for everyone)
+
+- **(a) The scroll chevron and the BETA pill never cover the page.** On a screen that scrolls, a shelf now sits on top
+  of the tab bar (`ScreenRouter` WithNav, `data-ui="nav-shelf"`, 46 px with a 6 px soft top edge, the tab bar's own
+  fill): the page passes under it as it passes under the tab bar, the BETA pill sits on its left and the scroll
+  chevron in its middle (`ScrollDownIndicator` is drawn inside it, no longer fixed over the page). The page's last
+  content keeps 118 px under it (was 110), so scrolled to the end nothing is left under the shelf. The chevron shows
+  while the page's last card still ends under the shelf and goes once it is above it (`contentEnd` in `ScreenRouter`:
+  where the cards end, looking inside a frame as tall as the screen; it used to compare the scroll height, which
+  counts the tab bar's padding and the frame's empty height). It follows the cards as they settle (each card it
+  measures is watched for size), so it no longer misses an end screen whose share card or pictures come in after it
+  opens. One-screen pages (no shelf) keep the row above the tab bar clear:
+  `--tm-resume-top` is now 102 px with nothing paused (was 0; 116 while paused, as before), so every page that takes
+  `max(its clearance, --tm-resume-top)` ends above the BETA pill. That moved the Quick Mission and Build Workout pages,
+  the camp ladder, the Arcade carousel, the hubs, the setups, Programs, Profile and the Level page up by 0 to 30 px.
+  The BETA pill itself (`shared/FeedbackChip`) sits 2 px lower and is 2 px shorter (72 px up, 24 tall; was 74 and
+  26): with 108 px of clearance the Quick Mission's first page at 360x740 (ADVANCED with WEIGHTED gear) ran 4 px past
+  the screen and scrolled, which its smoke check forbids; at 102 it fits again.
+  The Fit setup pages (`FitSetupKit` `SetupPage`: Quick Mission, Build Workout, Cardio) scroll inside that clearance
+  now, with the hubs' fade on the lower edge while more lies below (they used to scroll the clearance too, so their
+  rows passed under the BETA pill while still).
+- **(b) The end-screen banner is the cards' width** (`MissionIntegrityBanner`: the `maxWidth: 360` is gone in both
+  branches, `boxSizing: border-box`). It lines up with the stats row on every phone.
+- **(c) The round recap shows on every phone height** (`MissionComplete` `mcCSS`: `.mc-extra` is no longer hidden under
+  812 px tall). The top padding and the badge still shrink on short phones, so it is the screen that scrolls, nothing
+  is squeezed. The GIVE BETA FEEDBACK link under the buttons stays hidden on short phones (the BETA pill is on every
+  screen). The same for the Build Workout end screen's SESSION SUMMARY chips.
+- **Preview** (`scripts/retention-preview.mjs`): `--sizes` (360x780, 390x844, 430x932 and a short 360x640), `owner:
+  false` (every switch off: what everyone sees), and three checks: `bottom` (the chevron and the BETA pill over no text,
+  button, picture or card, as a screen opens and scrolled to its end, `-end.png`; on a shelf, inside its solid part;
+  nothing left under the shelf at the end), `align` (the banner and the stats row share their edges), `same` (the
+  panel's two buttons one size). End screens, switches off: `o-end-ff-clear`, `o-end-ff-stopped`, `o-end-cc`,
+  `o-end-fit`; and 19 other screens with the bottom check (`o-home`, the two hubs, the Fight Focus, Combo, Just Train
+  and Combat Conditioning setups, Quick Mission, Build Workout, Cardio, Programs, Practice, the camp ladder, the
+  Arcade, a saga's ladder, Progress, Profile, the Level page, and a concept drop's page with its fixed START bar).
+
+### A Remind me tomorrow button (`q-remind`): "Add it with the notifications work"
+
+- No code. Recorded in `RETENTION-PLAN.md`, "The notifications pass: what it carries": when a retry is not safe, the
+  panel's buttons become REMIND ME TOMORROW and DONE FOR TODAY (one size, as the spec has it), one local reminder for
+  the next day for that same stage or session, only for someone who turned reminders on. The panel's comment and the
+  gallery's feature line now say it comes with the notifications pass.
+
+### Checked (2026-11-24)
+
+- `test:nearmiss` 100, `test:xp` 121, `test:missions` 217, `test:concepts` 180, `test:streak` 185, `test:path` 96,
+  `test:power` 89, `test:maxout` 103, `test:levels` 183; eslint on every changed file (one old warning in
+  `smoke-web.mjs`, line 461, from 2026-11-05); `tsc --noEmit`. No spoken line was added or changed (the panel is
+  silent), so the voice banks need nothing.
+- `build:web`, then the whole `smoke:web` on `dist`: 148 of 148, with the new "owner fixes" check (Combat
+  Conditioning's summary at 430x932: the banner on the stats row's edges, the pill on the shelf; Build Workout's
+  summary at 360x640: its chips shown, nothing under the pill, opened and scrolled to its end; the Quick Mission and
+  Build Workout pages and the Fight hub: nothing under the pill) and the Quick Mission's "the first page does not
+  scroll at 360x740" check, which the 108 px clearance had broken.
+- `retention-preview.mjs` on a fresh dev server: the end screens (`o-end-*`, `f3-ff-nothing*`, the near-miss end
+  screens, the week-strip, stars and revive end screens) and the 19 other `o-*` screens at 360x780, 390x844,
+  430x932 and 360x640, each as it opens and scrolled to its end; every other state at 360, 390 and 430. All fit.
+  Looked at the photos: the recap shows at 360x780 and 360x640 and the screen scrolls to it; the banner meets the
+  cards' edges at 430; the pill and chevron sit on the shelf, and at the end the last button is clear of it; the
+  nothing-done card reads WHAT'S LEFT · 3 ROUNDS TO GO with its two buttons one size (DONE FOR TODAY alone on the
+  third session of the day); with the switch off it is the quiet card as before.
+
+## Review fix: the RESUME pill and the scroll chevron (R1, 2026-11-24, for everyone)
+
+Found in review: with a session paused, on a page that scrolls, the RESUME pill (fixed on the right of the shelf,
+above it in z-order) reaches past the middle, where the scroll chevron sits, so the chevron was under the pill.
+RESUME · FIGHT FOCUS runs 162..344 at 360 wide, RESUME · QUICK MISSION 153..344, RESUME · COMBAT CONDITIONING
+107..344 at 360 and 177..414 at 430; the chevron is 165..195 at 360 and 200..230 at 430. No photo showed it (the only
+paused-session state was a pop-up over Home, where the pill does not show).
+
+- **The chevron stays off while the pill is on the row** (`ScreenRouter` WithNav: `ScrollDownIndicator visible={showScroll
+  && !pausedSession}`). Home passes no paused session (it has its own Continue card, no pill), so its chevron is as
+  before. Swiped away (the paused session dropped), the chevron comes back.
+- **The pill sits inside the shelf's solid part** (`FloatingResumeButton`: 69 px up, was 74). It is 35 px tall: at 74
+  its top 4 px stood in the shelf's 6 px soft edge, over the page passing under it (the new check found CHANGE
+  DISCIPLINE and GIVE BETA FEEDBACK there). It is now 5 px above the tab bar and on the BETA pill's line (2 px higher
+  at its centre). One-screen pages keep 116 px clear while a session is paused, so it is 12 px under their content.
+  It has `data-ui="resume-pill"` for the checks.
+- **Preview** (`scripts/retention-preview.mjs`): the `bottom` check now takes the RESUME pill with the chevron and the
+  BETA pill (none over a text, button, picture or card) and checks the three keep 4 px apart. New states, every switch
+  off: `o-paused-end-ff` (a Combat Conditioning circuit paused, then a Fight Focus run from its setup to MISSION
+  COMPLETE, which scrolls on every phone: the longest pill), `o-paused-trophies` (Progress, TROPHIES, with a Quick
+  Mission paused) and `o-paused-fight-hub` (a one-screen page with the pill). On the old code the first two failed at
+  360, 390 and 430 ("the RESUME pill and the scroll chevron touch"); now all fit.
+- **Smoke** (`scripts/smoke-web.mjs`, "owner fixes: a paused session's RESUME pill sits on the shelf, with no scroll
+  chevron under it"): Progress, TROPHIES at 360x780 with a circuit paused: the pill on the shelf's solid part and clear
+  of the BETA pill, no chevron; swiped away, the chevron comes back.
+- No spoken line changed.
+- **Checked**: eslint on the changed files (the one old warning in `smoke-web.mjs`, line 461), `tsc --noEmit`;
+  `build:web`, then the whole `smoke:web`: 149 of 149 (the new check with them). `retention-preview.mjs` on a fresh
+  dev server: the three `o-paused-*` states and every state with the bottom check (the `o-*` screens, the end screens
+  of features 1 to 4) at 360, 390 and 430, as each opens and scrolled to its end: all 37 fit. Looked at the photos:
+  no chevron with the pill on the row, the pill on the BETA pill's line inside the shelf, clear of TRAIN AGAIN and the
+  tab bar; at the end the last button is above the shelf. Not from this change and left as they were: the Fight
+  hub's one-line subtitles end in "…" at 360 (as with nothing paused), and TROPHIES' side-scrolling row of camp
+  achievements runs off the right edge by design (warnings only).

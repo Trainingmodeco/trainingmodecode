@@ -50,6 +50,37 @@ check('an invalid result reads invalid', O.arcadeOverlayOutcome({ invalid: true,
 check('a player\'s flags win: partial / hardFail / missionFailed', O.arcadeOverlayOutcome({ partial: true }).screen === 'partial'
   && O.arcadeOverlayOutcome({ hardFail: true }).screen === 'failed' && O.arcadeOverlayOutcome({ missionFailed: true, partial: true }).screen === 'failed');
 
+section('the classic RETRY\'s clock (for everyone, owner 2026-11-23)');
+{
+  const OPc = A.getSeriesById('one-punch-protocol');
+  const stg = OPc.stages[1]; // 3★ < 22:00, 2★ < 28:00, 1★ < 36:00
+  const t0 = at(2026, 11, 23, 9);
+  const min = 60 * 1000;
+  // First go: the briefing ends at 9:00, the athlete stops 11 minutes in.
+  let clock = O.stageClockStart(null, t0);
+  check('the first briefing starts the clock', clock === t0);
+  // RETRY, a new briefing at 9:12, a clear 20:30 later.
+  clock = O.STAGE_CLOCK_RETRY;
+  check('RETRY leaves no clock running', clock == null);
+  const t1 = t0 + 12 * min;
+  clock = O.stageClockStart(clock, t1);
+  const end = t1 + 20.5 * min;
+  const sec = O.stageElapsedSeconds(clock, end);
+  check('the retried run is timed from its own briefing: 20:30, not 32:30', sec === 1230, String(sec));
+  check('… so it earns its own stars (★★★ under 22:00)', A.getStarsForTime(stg, sec) === 3, String(A.getStarsForTime(stg, sec)));
+  const oldSec = O.stageElapsedSeconds(t0, end);
+  check('the old clock (from the first go) would have read 32:30 and ★', oldSec === 1950 && A.getStarsForTime(stg, oldSec) === 1, `${oldSec} ${A.getStarsForTime(stg, oldSec)}`);
+  check('a resumed session keeps the start it was given', O.stageClockStart(t0, t1) === t0);
+  check('no clock: no time (and no stars from it)', O.stageElapsedSeconds(null, end) === null);
+  // The player resets it on every RETRY, with or without the near-miss switch.
+  const src = (await import('node:fs')).readFileSync(new URL('../components/training-mode/ArcadeSessionPlayer.jsx', import.meta.url), 'utf8');
+  const retryBody = (src.match(/const handleRetryStage = useCallback\(\(\) => \{([\s\S]*?)\n {2}\}, \[/) || [])[1] || '';
+  check('ArcadeSessionPlayer: RETRY resets the clock with no switch around it',
+    /sessionStartedAtRef\.current = STAGE_CLOCK_RETRY;/.test(retryBody) && !/nearMissOn|retentionOn/.test(retryBody), retryBody.slice(0, 160));
+  check('… the briefing starts it through stageClockStart, the clear reads stageElapsedSeconds',
+    /sessionStartedAtRef\.current = stageClockStart\(sessionStartedAtRef\.current, Date\.now\(\)\)/.test(src) && /stageElapsedSeconds\(sessionStartedAtRef\.current, Date\.now\(\)\)/.test(src));
+}
+
 section('the gap from the counts');
 let m = N.nearMiss({ unit: 'rounds', done: 4, total: 5, outcome: 'partial' });
 check('4 of 5 rounds, stopped: "1 round to go"', m?.line === '1 round to go' && m.gap === 1, m?.line);
@@ -57,7 +88,15 @@ check('… bar 4 of 5, label "4 OF 5 ROUNDS"', m.value === 4 && m.max === 5 && m
 check('6 of 8 drills, failed: "2 drills short"', N.nearMiss({ unit: 'drills', done: 6, total: 8, outcome: 'fail' })?.line === '2 drills short');
 check('exercises, tasks, sets: their own words', N.nearMiss({ unit: 'exercises', done: 9, total: 12 })?.line === '3 exercises to go'
   && N.nearMiss({ unit: 'tasks', done: 2, total: 3 })?.line === '1 task to go' && N.nearMiss({ unit: 'sets', done: 3, total: 5 })?.line === '2 sets to go');
-check('nothing done is not a near miss', N.nearMiss({ unit: 'rounds', done: 0, total: 3, outcome: 'fail' }) === null);
+m = N.nearMiss({ unit: 'rounds', done: 0, total: 3, outcome: 'fail' });
+check('nothing done (owner: "show 3 rounds to go there too"): "3 rounds to go", never "short"', m?.line === '3 rounds to go' && m.gap === 3 && m.nothing === true, m?.line);
+check('… an empty bar, 0 of 3, label "0 OF 3 ROUNDS"', m.value === 0 && m.max === 3 && m.left === '0 OF 3 ROUNDS' && m.right === null);
+check('… stopped (partial) reads the same, every unit in its own words', N.nearMiss({ unit: 'rounds', done: 0, total: 3, outcome: 'partial' })?.line === '3 rounds to go'
+  && N.nearMiss({ unit: 'exercises', done: 0, total: 12, outcome: 'fail' })?.line === '12 exercises to go' && N.nearMiss({ unit: 'drills', done: 0, total: 1, outcome: 'fail' })?.line === '1 drill to go');
+check('… work done is not "nothing" (1 of 3 failed: "2 rounds short")', N.nearMiss({ unit: 'rounds', done: 1, total: 3, outcome: 'fail' })?.nothing === false && N.nearMiss({ unit: 'rounds', done: 1, total: 3, outcome: 'fail' })?.line === '2 rounds short');
+check('a missing count is not "nothing done": null, undefined, \'\' give no line', N.nearMiss({ unit: 'rounds', done: null, total: 3 }) === null
+  && N.nearMiss({ unit: 'rounds', done: undefined, total: 3 }) === null && N.nearMiss({ unit: 'rounds', done: '', total: 3 }) === null && N.nearMiss({ unit: 'rounds', done: -1, total: 3 }) === null);
+check('nothing of nothing (0 of 0): no line', N.nearMiss({ unit: 'rounds', done: 0, total: 0 }) === null);
 check('all done: no gap', N.nearMiss({ unit: 'rounds', done: 5, total: 5 }) === null && N.nearMiss({ unit: 'rounds', done: 6, total: 5 }) === null);
 check('no total, a made-up unit, NaN: no line (never invents a number)', N.nearMiss({ unit: 'rounds', done: 2 }) === null
   && N.nearMiss({ unit: 'reps', done: 92, total: 100 }) === null && N.nearMiss({ unit: 'rounds', done: 'x', total: 3 }) === null && N.nearMiss({}) === null);
@@ -180,6 +219,36 @@ check('the next honest partial is the first go: RETRY offered', rs.counts === tr
 const rz = S.settleNearMiss({ key: 'fight|zero', unit: 'rounds', done: 0, total: 3, outcome: 'fail', token: {} });
 S.noteAttempt(rz);
 check('a session ended with nothing done: not a try, nothing logged', rz.counts === false && R.triesOn(S.loadRetryLog(), 'fight|zero') === 0);
+
+section('a session ended with nothing done: the panel, still no try (owner 2026-11-23)');
+check('the SESSION ENDED card shows the panel: 3 ROUNDS TO GO, RETRY offered on a first go', rz.show === true && rz.miss?.line === '3 rounds to go'
+  && rz.gate.allowed === true && rz.gate.attemptsToday === 0, JSON.stringify({ show: rz.show, gate: rz.gate }));
+{
+  const zk = 'fight|zero2';
+  const z = () => S.settleNearMiss({ key: zk, unit: 'rounds', done: 0, total: 3, outcome: 'fail', token: {} });
+  for (let i = 0; i < 4; i++) S.noteAttempt(z());
+  check('ending with nothing done again and again logs no try: RETRY still offered', R.triesOn(S.loadRetryLog(), zk) === 0 && z().gate.allowed);
+  S.noteAttempt(S.settleNearMiss({ key: zk, unit: 'rounds', done: 2, total: 3, outcome: 'partial', token: {} }));
+  S.noteAttempt(S.settleNearMiss({ key: zk, unit: 'rounds', done: 1, total: 3, outcome: 'partial', token: {} }));
+  const after = z();
+  check('… but after two real goes at it today: no RETRY, "Two goes at this one today", the way out only', after.show && after.gate.allowed === false && after.gate.reason === 'attempts' && after.gate.attemptsToday === 2, JSON.stringify(after.gate));
+  check('… a boss stage ended with nothing done: no RETRY', S.settleNearMiss({ key: 'arcade|zboss', boss: 'boss', unit: 'rounds', done: 0, total: 6, outcome: 'fail', token: {} }).gate.reason === 'boss');
+  check('… MAX OUT with no set done: no RETRY', S.settleNearMiss({ key: 'qm|zmax', maxEffort: true, unit: 'sets', done: 0, total: 5, outcome: 'fail', token: {} }).gate.reason === 'max');
+  const zs = Array.from({ length: 3 }, (_, i) => ({ id: `z${i}`, type: 'Fight Focus', completedAt: today(0), completedCount: 3, totalCount: 3, xpEarned: 90 }));
+  setStats({ xp: 300, sessions: [...zs, { id: 'z-none', type: 'Fight Focus', completedAt: today(0), completedCount: 0, totalCount: 3, xpEarned: 0 }] });
+  const z3 = S.settleNearMiss({ key: 'fight|zload', unit: 'rounds', done: 0, total: 3, outcome: 'fail', token: {} });
+  check('… after three finished sessions today: no RETRY (the nothing-done row is not a session)', z3.gate.reason === 'load' && z3.gate.sessionsToday === 3, JSON.stringify(z3.gate));
+  setStats({ xp: 300, sessions: [{ id: 'z-only', type: 'Fight Focus', completedAt: today(0), completedCount: 0, totalCount: 3, xpEarned: 0 }] });
+  check('… a refused session with nothing done: no panel', S.settleNearMiss({ key: 'fight|zref', unit: 'rounds', done: 0, total: 3, outcome: 'validation_failed', token: {} }).show === false);
+  check('… a pass never shows it', N.showsNearMiss(N.nearMiss({ unit: 'rounds', done: 0, total: 3 }), 'pass') === false);
+}
+{
+  // The classic overlay: a benchmark (One Hundred's stage 1) ended before its first exercise was tested.
+  const OPz = A.getSeriesById('one-punch-protocol');
+  const cz = S.classicNearMiss(OPz, OPz.stages[0], { invalid: false, completedTasks: 0, totalTasks: 3 });
+  check('the classic overlay with nothing done: the panel (3 exercises to go), no try', cz.show && cz.counts === false && cz.miss.line === '3 exercises to go' && cz.miss.nothing, cz?.miss?.line);
+  check('… a classic result with no counts at all still shows none (never a made-up number)', S.classicNearMiss(OPz, OPz.stages[0], { invalid: false, partial: true }).show === false);
+}
 check('countsAsTry: a pass, a partial, a time clear and a count-less end count; refused or 0 done do not',
   R.countsAsTry({ outcome: 'pass', unit: 'rounds', done: 3 }) && R.countsAsTry({ outcome: 'partial', unit: 'exercises', done: 1 })
   && R.countsAsTry({ outcome: 'pass', unit: 'time' }) && R.countsAsTry({ outcome: 'partial' })

@@ -45,6 +45,17 @@ all features free.
 | January (public) | All of the above opens to everyone |
 | Next year, one batch per quarter | Squads (team workouts), weekly leagues, the season reward track, the notifications pass: each built owner-only first, then opened at its quarter |
 
+## The notifications pass: what it carries (the list so far)
+
+Nothing here is built; it waits for the notifications release after the App Store launch (opt-in, positive words).
+
+- **REMIND ME TOMORROW** on the near-miss panel (owner, 2026-11-23: "Add it with the notifications work"): when a retry
+  is not safe today (a boss, a second go, three sessions), the panel's two buttons become REMIND ME TOMORROW and DONE
+  FOR TODAY, the same size, as the spec has it; REMIND ME TOMORROW sets one local reminder for the next day, for that
+  same stage or session, and only for someone who turned reminders on. Until then the panel offers DONE FOR TODAY only.
+- **Streak at risk**: the last day the week's target can still be met (`docs/retention/BUILD-NOTES.md`, feature 1).
+- **POWER running low**, as the owner answers `q-alerts`.
+
 ## Visual rule for every new screen (owner, 2026-11-22)
 
 Everything fits its frame on a phone: no wording, design or frame cut off, nothing squeezed or crowded. Check every

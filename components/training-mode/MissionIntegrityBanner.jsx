@@ -80,8 +80,10 @@ export default function MissionIntegrityBanner({ integrityResult, onRetry, onHom
   const forensic = ['tooFast', 'suspicious', 'expired', 'idleTimeout'].includes(validityStatus);
   if (!forensic && !onRetry && !onHome) {
     return (
-      <div style={{
-        width: '100%', maxWidth: 360, borderRadius: 10,
+      // As wide as the cards under it on every phone (it stopped at 360px
+      // and fell short of them on a wide phone).
+      <div data-ui="integrity-banner" style={{
+        width: '100%', boxSizing: 'border-box', borderRadius: 10,
         background: `linear-gradient(135deg, rgba(10,0,20,0.9), ${banner.bgGlow})`,
         border: `1px solid ${banner.borderColor}`,
         padding: '8px 12px', marginBottom: 8,
@@ -101,8 +103,8 @@ export default function MissionIntegrityBanner({ integrityResult, onRetry, onHom
   }
 
   return (
-    <div style={{
-      width: '100%', maxWidth: 360, borderRadius: 12,
+    <div data-ui="integrity-banner" style={{
+      width: '100%', boxSizing: 'border-box', borderRadius: 12,
       background: `linear-gradient(135deg, rgba(10,0,20,0.9), ${banner.bgGlow})`,
       border: `1px solid ${banner.borderColor}`,
       padding: '11px 13px', marginBottom: 8,

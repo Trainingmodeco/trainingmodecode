@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback, useMemo, lazy } from 'react';
+import { useRef, useState, useEffect, useMemo, lazy } from 'react';
 import { reportError } from './data/analytics';
 import SplashScreen from './SplashScreen';
 import XpVerdictPlate, { useVerdictFlash } from './shared/XpVerdictPlate';
@@ -71,39 +71,73 @@ const ArcadeSeriesIntroPage = lazy(() => import('./ArcadeSeriesIntroPage'));
 const ArcadeSeriesDetail = lazy(() => import('./ArcadeSeriesDetail'));
 const ArcadeSessionPlayer = lazy(() => import('./ArcadeSessionPlayer'));
 
-function useScrollIndicator(containerRef, children) {
-  const [showScroll, setShowScroll] = useState(false);
+// The row above the tab bar on a screen that scrolls: the BETA pill (fixed at
+// 72px, App's FeedbackChip) and the scroll chevron sit on it, and the page
+// scrolls under it as it does under the tab bar, so neither ever covers a card,
+// a button or text (owner, 2026-11-23). SHELF_FADE is its soft top edge; the
+// pill's top (96px up) is inside its solid part. SCROLL_PAD is the room the
+// page's last content keeps under it: clear of the shelf, scrolled to the end.
+const SHELF_H = 46;
+const SHELF_FADE = 6;
+const SCROLL_PAD = 118;
+// The BETA pill's top (72 + its 24px) and a gap: what a one-screen page keeps clear.
+const BETA_ROW_TOP = 102;
 
-  const check = useCallback(() => {
-    const root = containerRef.current;
-    if (!root) return;
-    // scrollHeight includes the bottom padding we reserve for the tab bar, so
-    // comparing it directly flagged every screen as scrollable and showed the
-    // chevron over nothing. Measure where the content actually ends instead.
-    const padBottom = parseFloat(getComputedStyle(root).paddingBottom) || 0;
-    const contentBottom = root.scrollHeight - padBottom;
-    const overflows = contentBottom > root.clientHeight + 12;
-    const nearBottom = root.scrollTop + root.clientHeight >= root.scrollHeight - 24;
-    setShowScroll(overflows && !nearBottom);
-  }, [containerRef]);
+// Where the page's last card ends on screen. A frame as tall as the screen
+// (PhoneFrame's 100dvh) is looked into, not taken as content; pieces placed
+// absolutely (art, embers) are decoration. Only boxes that tall are walked
+// into, so it touches a few dozen elements. `watch` is told each box measured,
+// so a card that grows later (a picture loading, the share card coming in)
+// moves the chevron too.
+function contentEnd(root, watch) {
+  let end = -Infinity;
+  const tall = root.clientHeight - 1;
+  const walk = (el) => {
+    for (const c of el.children) {
+      const cs = getComputedStyle(c);
+      if (cs.display === 'none' || cs.visibility === 'hidden' || cs.position === 'absolute' || cs.position === 'fixed') continue;
+      watch?.(c);
+      const r = c.getBoundingClientRect();
+      if (r.height <= 0) continue;
+      if (r.height >= tall) walk(c);
+      else end = Math.max(end, r.bottom);
+    }
+  };
+  walk(root);
+  return end;
+}
+
+function useScrollIndicator(containerRef, shelfRef, children) {
+  const [showScroll, setShowScroll] = useState(false);
 
   useEffect(() => {
     const root = containerRef.current;
-    if (!root) return;
+    if (!root) return undefined;
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => check()) : null;
+    const watched = new Set();
+    const watch = (el) => { if (ro && !watched.has(el)) { watched.add(el); ro.observe(el); } };
+    // More lies below while the page's last card still ends under the shelf
+    // (or, with none, past the bottom of the screen): once it is in view the
+    // chevron goes. (scrollHeight counts the tab bar's padding and the frame's
+    // empty height, so it cannot say where the cards end.)
+    function check() {
+      const shelf = shelfRef?.current;
+      const limit = shelf ? shelf.getBoundingClientRect().top : root.getBoundingClientRect().bottom;
+      setShowScroll(contentEnd(root, watch) > limit + 2);
+    }
     check();
     const timer = setTimeout(check, 300);
     root.addEventListener('scroll', check, { passive: true });
     window.addEventListener('resize', check, { passive: true });
-    const ro = new ResizeObserver(check);
-    ro.observe(root);
+    watch(root);
     return () => {
       clearTimeout(timer);
       root.removeEventListener('scroll', check);
       window.removeEventListener('resize', check);
-      ro.disconnect();
+      ro?.disconnect();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [check, children]);
+  }, [children]);
 
   return showScroll;
 }
@@ -139,7 +173,8 @@ function CampSessionRunner({ discipline, cfg, label, sub, detail, onEnd, fit, is
 
 function WithNav({ activeTab, onNavigate, pausedSession, onResume, onDiscardPaused, children, lock = false }) {
   const containerRef = useRef(null);
-  const showScroll = useScrollIndicator(containerRef, children);
+  const shelfRef = useRef(null);
+  const showScroll = useScrollIndicator(containerRef, shelfRef, children);
 
   // `lock` means "this screen sizes itself, don't scroll it" — right for a
   // fixed-layout session screen, wrong the moment the content genuinely does
@@ -204,21 +239,24 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, onDiscardPaus
           overflowX: 'hidden',
           WebkitOverflowScrolling: 'touch',
           overscrollBehaviorY: 'contain',
-          // Top edge of the resume pill (plus a small gap) while a session is
-          // paused. One-screen pages take max(their own clearance, this) as
-          // bottom padding, so the pill gets its own row instead of covering
-          // the last button. 0 when nothing is paused.
-          '--tm-resume-top': pausedSession ? '116px' : '0px',
+          // Top edge of the row above the tab bar (plus a small gap): the
+          // BETA pill's, and the resume pill's while a session is paused.
+          // One-screen pages take max(their own clearance, this) as bottom
+          // padding, so neither pill ever sits on their last card or button
+          // (owner, 2026-11-23: it was 0 with nothing paused, and the BETA
+          // pill covered the bottom of the Quick Mission and Build Workout
+          // pages, the camp ladder and the Fight hub on a short phone).
+          '--tm-resume-top': pausedSession ? '116px' : `${BETA_ROW_TOP}px`,
           // Beta TM-09 — when the resume pill floats over this screen, buy the
           // last rows of content enough clearance to scroll out from under it.
+          // The last content keeps clear of the tab bar and the shelf above it.
           paddingBottom: scrolls
-            ? (pausedSession ? 'calc(150px + env(safe-area-inset-bottom, 0px))' : 'calc(110px + env(safe-area-inset-bottom, 0px))')
+            ? (pausedSession ? 'calc(150px + env(safe-area-inset-bottom, 0px))' : `calc(${SCROLL_PAD}px + env(safe-area-inset-bottom, 0px))`)
             : 0,
         }}
       >
         {children}
       </div>
-      <ScrollDownIndicator visible={showScroll && scrolls} />
       <FloatingResumeButton pausedSession={pausedSession} onResume={onResume} onDiscardPaused={onDiscardPaused} onDiscard={onDiscardPaused} />
       <div style={{
         position: 'fixed',
@@ -229,6 +267,24 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, onDiscardPaus
         maxWidth: 440,
         zIndex: 100,
       }}>
+        {/* The shelf (a screen that scrolls): the page passes under it as it
+            does under the tab bar; the BETA pill sits on its left, the scroll
+            chevron in its middle. A one-screen page has none: it keeps its
+            own clearance above the tab bar.
+            While a session is paused its RESUME pill takes the right of the
+            row, and it reaches past the middle (RESUME · FIGHT FOCUS runs
+            162..344 at 360 wide, RESUME · COMBAT CONDITIONING 107..344 at
+            360 and 177..414 at 430), so the chevron would sit under it. The
+            pill is what the row is for then: the chevron stays off. */}
+        {scrolls && (
+          <div ref={shelfRef} data-ui="nav-shelf" data-fade={SHELF_FADE} style={{
+            height: SHELF_H, boxSizing: 'border-box', paddingTop: SHELF_FADE,
+            background: `linear-gradient(to bottom, rgba(6,1,14,0) 0px, rgba(6,1,14,0.95) ${SHELF_FADE}px)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <ScrollDownIndicator visible={showScroll && !pausedSession} />
+          </div>
+        )}
         <BottomNav active={activeTab} onNavigate={onNavigate} />
       </div>
     </div>

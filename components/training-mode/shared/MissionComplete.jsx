@@ -37,12 +37,13 @@ const mcCSS = `
 .mc-top { padding: 64px 16px 0; }
 .mc-hero-badge { height: 160px; }
 /* Short phones can't hold the full stack above the tab bar with a big badge —
-   pull the top in, shrink the badge, and drop the expendable pieces (recap/
-   chips detail and the beta-feedback link) rather than make the athlete scroll. */
+   pull the top in and shrink the badge. The round recap (or the chips) shows
+   on every phone (owner, 2026-11-23): the screen scrolls to it. Only the
+   beta-feedback link is left out: the BETA pill is on every screen. */
 @media (max-height: 812px) {
   .mc-top { padding: 44px 16px 0; }
   .mc-hero-badge { height: 128px; }
-  .mc-extra, .mc-beta { display: none !important; }
+  .mc-beta { display: none !important; }
 }
 @media (max-height: 700px) {
   .mc-top { padding: 28px 16px 0; }
@@ -99,9 +100,9 @@ export default function MissionComplete({
   xp = 0,
   integrityResult,
   stats = [],               // [{ value, label, color, highlight }]
-  extra = null,             // optional ReactNode (recap / chips)
-  summary = null,           // optional ReactNode that always shows, even on a
-                            // short phone (Quick Mission SOLO's round splits)
+  extra = null,             // optional ReactNode (recap / chips), under the summary
+  summary = null,           // optional ReactNode right under the stats (Quick
+                            // Mission SOLO's round splits). Both show on every phone.
   cardioResult,
   shareData,
   heroImage,                // badge art for a completed session
@@ -161,8 +162,10 @@ export default function MissionComplete({
   const [rusty] = useState(() => powerOn && loadPower().state === 'rusty');
 
   // Retention feature 3 (near-miss switch): on a partial or failed end, how
-  // close it came and RETRY / COME BACK FRESH TOMORROW, under the stats. Worked
-  // out once; the session counts as one try at its stage or session today.
+  // close it came and RETRY / COME BACK FRESH TOMORROW, under the stats; on a
+  // session ended with nothing done (the quiet SESSION ENDED card), what was
+  // left. Worked out once; a finished, valid session counts as one try at its
+  // stage or session today (one with nothing done never does).
   // With the panel up, it is the screen's retry and its way home: the screen's
   // own retry and home buttons step aside and its main button goes quiet.
   const [nearMissOn] = useState(() => retentionOn('nearMiss'));
@@ -256,7 +259,7 @@ export default function MissionComplete({
           {/* XP + session stats, one row (LT-5). The XP hero card used to sit
               above the stat grid saying much the same thing; merged, it costs a
               third of the height. */}
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${1 + stats.length}, 1fr)`, gap: 7, marginBottom: 6, animation: 'mc-pop 0.5s ease both' }}>
+          <div data-ui="mc-stats" style={{ display: 'grid', gridTemplateColumns: `repeat(${1 + stats.length}, 1fr)`, gap: 7, marginBottom: 6, animation: 'mc-pop 0.5s ease both' }}>
             <div style={{ borderRadius: 10, border: `1px solid ${hexA(tone, 0.45)}`, background: `linear-gradient(135deg, ${hexA(tone, 0.14)}, rgba(8,2,18,0.6))`, padding: '8px 10px', textAlign: 'center' }}>
               <div style={{ font: "900 17px 'Orbitron',sans-serif", color: tone, textShadow: `0 0 14px ${hexA(tone, 0.5)}` }}>{unpaid ? '0' : `+${displayXp}`}</div>
               <div style={{ font: "600 7.5px 'Orbitron',sans-serif", color: v.eyebrowColor, letterSpacing: '0.08em', marginTop: 1 }}>{unpaid ? 'NO XP AWARDED' : 'XP EARNED'}</div>

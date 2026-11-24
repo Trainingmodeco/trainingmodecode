@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Play, X, Check } from 'lucide-react';
 import { HelpButton } from './WorkoutHelpPanel';
 import BottomSheet from './BottomSheet';
 import { loadStats, getLevel } from '../data/userStats';
+import { useScrollFade } from './hubScroll';
 
 // The Fit-side setup vocabulary from the Revamp design (FitMode / QuickMission
 // / BuildWorkout / Cardio .dc.html): one header, a chamfered segmented row,
@@ -252,15 +253,26 @@ export function CardioToggleCard({ on, summary, onToggle, onEdit, guide }) {
 }
 
 // Fit-side page frame: header + tabs slot + the body, no page scroll unless
-// the body needs it; clears the bottom nav.
+// the body needs it; clears the bottom nav and the row above it (the BETA
+// pill, the resume pill). The page scrolls INSIDE that clearance (owner,
+// 2026-11-23): it used to scroll the clearance too, so its rows passed under
+// the BETA pill while it was still. Its lower edge fades while more lies
+// below, as the hubs' stacks do.
 export function SetupPage({ children, scroll }) {
+  const { ref, fade } = useScrollFade(scroll ? 'scroll' : 'still');
   return (
-    <div className={scroll ? 'no-scrollbar' : undefined} style={{
+    <div style={{
       position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
-      height: '100dvh', boxSizing: 'border-box', overflow: scroll ? 'auto' : 'hidden',
+      height: '100dvh', boxSizing: 'border-box', overflow: 'hidden',
       paddingBottom: 'calc(max(84px, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom,0px))',
     }}>
-      {children}
+      <div ref={ref} className={scroll ? 'no-scrollbar' : undefined} style={{
+        flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
+        overflowY: scroll ? 'auto' : 'hidden', overflowX: 'hidden',
+        ...(scroll ? { WebkitMaskImage: fade, maskImage: fade } : null),
+      }}>
+        {children}
+      </div>
     </div>
   );
 }
