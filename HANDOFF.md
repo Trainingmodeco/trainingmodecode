@@ -90,6 +90,13 @@ and the app chat doesn't edit `TM Social Console/`.
   entry or lesson) first, then a shadowboxing clip of the same discipline
   titled for the move. Moves with neither show a GUIDE plate and READ ALOUD.
 
+### 2026-11-14 · console → app · Shadowboxing clips (`claude/console-handoff-2026-11-14-shadowboxing-2`)
+
+- **Delivered:** 125 clips as 172 entries in `public/static/practice/shadow/index.json` (Boxing 62, Kickboxing 47, Muay Thai 52, MMA 11), 720p muted H.264 with .webp posters, 57 MB. Assets only, in the format the app chat set out in this log (2026-11-14, app → console). An update: 1 of 251 files differs from what `app` had.
+- **Made locally** on the owner's PC by `TM Social Console/tools/shadow.mjs` (scan → label/trim/frame in the clip editor → build → handoff). Clips in two disciplines are one video with two entries (`<slug>--<discipline>` ids).
+- **Not linked** to Technique Library entries or lessons (no `videoUrl` changes).
+- **Note:** Notes only, at the owner's request. The spelling in two notes is corrected: Peek-a-boo Stance ("iron mike" is now "Iron Mike") and Philly Shell ("Make popular by Floyd Maywhether" is now "Made popular by Floyd Mayweather"). `index.json` is the only delivery file that changes; the 125 videos and posters are the ones merged in pull request 17.
+
 ### 2026-11-14 · console → app · Shadowboxing clips (`claude/console-handoff-2026-11-14-shadowboxing`)
 
 - **Delivered:** 125 clips as 172 entries in `public/static/practice/shadow/index.json` (Boxing 62, Kickboxing 47, Muay Thai 52, MMA 11), 720p muted H.264 with .webp posters, 57 MB. Assets only, per the format in the log entry below.
