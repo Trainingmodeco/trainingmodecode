@@ -580,6 +580,7 @@ export default function ScreenRouter({ conceptView, tapesFrom, screen, disc, cfg
           completedRounds={session.completedRounds}
           integrityResult={session.integrityResult}
           fightStats={session.fightStats}
+          board={session.board || null}
           onAgain={handleRetry}
           onBack={goFightHub}
           onHome={goHome}

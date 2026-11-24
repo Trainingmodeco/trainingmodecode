@@ -439,8 +439,11 @@ export function boardView({ board, reply, mine = null, submit = null, value = nu
   const line = me ? placeLine(rows, players)
     : newBest && mine?.place != null ? `#${mine.place.toLocaleString('en-US')} OF ${players.toLocaleString('en-US')} PLAYERS`
       : !newBest && value != null ? shortLine(rules, value, best) : null;
+  // The card's quiet line when this session did not beat the best on the board.
+  const note = !newBest && value != null && best != null && value !== best
+    ? `Today: ${formatScore(kind, value)}. Your best (${formatScore(kind, best)}) stays on the board.` : null;
   return {
-    id: board, ...title, kind, unit: w.unit, unitLong: w.long, rows, you, asOf,
+    id: board, ...title, kind, unit: w.unit, unitLong: w.long, rows, you, asOf, note,
     hero: value == null ? null : {
       value, newBest, first: !!submit?.first,
       ...(newBest && submit?.was != null ? { was: submit.was } : {}),

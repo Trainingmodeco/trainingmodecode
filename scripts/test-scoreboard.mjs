@@ -127,6 +127,7 @@ const busy = { players: 2310, rows: Array.from({ length: 10 }, (_, i) => ({ plac
 v = R.boardView({ board: 'qm:room_12:standard', reply: busy, mine: { value: 10025, level: 14, rank: 143, place: 143, players: 2310, next_value: 10027 }, submit: { status: 'not_best', best: 10025, place: 143, place_before: 143 }, value: 10018 });
 check('outside the top 10: my row pinned, #143 of 2,310, what the next place needs', v.you && v.you.place === 143 && v.you.of === 2310 && v.you.next === 'Next place: 3 more reps' && !v.you.ofLine, JSON.stringify(v.you));
 check('…YOUR SCORE says how far short of the best', v.hero.line === '7 REPS SHORT OF YOUR BEST' && v.hero.best === 10025 && !v.hero.newBest, JSON.stringify(v.hero));
+check('…and the card\'s quiet line says the best stays', v.note === 'Today: 10 + 18. Your best (10 + 25) stays on the board.', v.note);
 check('…a SCORE column, rounds + reps', v.unit === 'SCORE' && v.kind === 'roundsReps');
 // A new board where CPU rows sit above me and I am off the ten: the pinned row says my rank.
 v = R.boardView({ board: F, reply: { players: 2, rows: house.slice(0, 10).map((h, i) => ({ place: i + 1, name: h.name, level: h.level, value: h.value, cpu: true, you: false })) }, mine: { value: 250, level: 3, rank: 2, place: 13, players: 2, next_value: 297 }, submit: { status: 'new_best', first: true, place: 13 }, value: 250 });

@@ -8,6 +8,7 @@ import { playStarTone } from './data/audioEngine';
 import StageStarsCard from './retention/ui/StageStarsCard';
 import { timerRetryKey } from './data/retrySafety';
 import { conceptStageBoss } from './data/nearMissStore';
+import ScoreBoardSlot from './retention/ui/ScoreBoardSlot';
 
 // Fight Focus / Combo Coach session complete — rendered by the shared
 // design-24f screen, with a round-by-round recap as the extra card.
@@ -15,7 +16,9 @@ const GOLD = '#fde047';
 
 // retry (retention feature 3): { token, onRetry, onLeave } — the same session
 // again and the way home, for the near-miss panel (MissionComplete).
-export default function SessionSummary({ discipline, rounds, cfg, completedRounds, integrityResult, fightStats, onAgain, onBack, onHome, extraActions = [], retry = null }) {
+// board (the world score board, switch `scores`): App's finish for this
+// session ({ board, value, level, handle } or { reason }), or none.
+export default function SessionSummary({ discipline, rounds, cfg, completedRounds, integrityResult, fightStats, onAgain, onBack, onHome, extraActions = [], retry = null, board = null }) {
   const completed = typeof completedRounds === 'number' ? completedRounds : rounds.length;
   const totalPlanned = cfg.rounds || rounds.length;
   // Item 9 — the engine decides how this ended, not a round count. A session
@@ -148,6 +151,7 @@ export default function SessionSummary({ discipline, rounds, cfg, completedRound
         ? <><StageStarsCard stars={conceptStars.stars} max={conceptStars.max} line={conceptStars.line} onLand={playStarTone}/>{note && <div style={{ marginTop: 6 }}>{note}</div>}</>
         : note}
       failReason={verdict.response}
+      board={board ? <ScoreBoardSlot finish={board}/> : null}
       shareData={{ mode: modeName, completedCount: completed, totalCount: totalPlanned, difficulty: cfg.difficulty }}
       nearMiss={retry ? {
         key: timerRetryKey(cfg, discipline), token: retry.token,

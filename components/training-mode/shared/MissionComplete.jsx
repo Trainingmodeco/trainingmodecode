@@ -115,6 +115,9 @@ export default function MissionComplete({
   actions = [],             // [{ label, onClick, kind: 'primary'|'secondary'|'ghost', role?: 'retry'|'home' }]
   ctas = null,              // optional ReactNode drawn in place of the actions' buttons
                             // (the Fit looks' end screen, in the Fit kit's buttons)
+  board = null,             // the world score board (switch `scores`): the session's
+                            // board slot (retention/ui/ScoreBoardSlot), drawn under the
+                            // summary; App hands one only with the switch on
   nearMiss = null,          // retention feature 3 (switch `nearMiss`): this session's facts
                             // { key, token, unit, done, total, outcome, boss?, maxEffort?,
                             //   onRetry, onLeave, retryLabel? } (data/nearMissStore), or a
@@ -266,6 +269,7 @@ export default function MissionComplete({
             </div>
           )}
           {summary && <div style={{ marginBottom: 6 }}>{summary}</div>}
+          {board && <div style={{ marginBottom: 6 }}>{board}</div>}
           {extra && <div className="mc-extra" style={{ marginBottom: 6 }}>{extra}</div>}
 
           <CardioFinisherSummaryCard cardioResult={cardioResult}/>

@@ -29,6 +29,7 @@ import { setWeekTarget, chosenWeekTarget, loadWeekStreak, saveGamePlanKeepingTar
 import WeekTargetRow from './retention/ui/WeekTargetRow';
 import { loadPower } from './data/powerStore';
 import { RustyPortraitImage } from './retention/ui/RustyLook';
+import BoardProfile, { BoardProfileRow } from './retention/ui/BoardProfile';
 
 
 function SectionLabel({ text }) {
@@ -339,6 +340,9 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
   // POWER (switch on): a RUSTY athlete's portrait shows the rusty look; the
   // name, level and XP beside it stay as they are.
   const [rusty] = useState(() => retentionOn('power') && loadPower().state === 'rusty');
+  // The world score board (switch `scores`): a SCORE BOARD row under the
+  // account card, opening its own page (name, country, LEAVE BOARDS).
+  const [scoresOn] = useState(() => retentionOn('scores'));
   const pickWeekTarget = (n) => {
     setGamePlanState(setWeekTarget(n));
     setWeekTargetState({ chosen: chosenWeekTarget(), week: loadWeekStreak() });
@@ -475,6 +479,7 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
             {/* Links */}
             <div data-guide="pr-menu" style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
               <div data-guide="pr-google"><AccountCard/></div>
+              {scoresOn && <BoardProfileRow onOpen={() => setProfileView('board')}/>}
               {/* Training Mode PRO — prominent upsell / member entry */}
               {onPaywall && (
                 <button data-guide="pr-pro" onClick={onPaywall} style={{
@@ -554,6 +559,10 @@ export default function Profile({ onHome, onBack, onSave, profile, updateProfile
         onChangeAvatar={() => openEditor('level')}
       />
     );
+  }
+
+  if (profileView === 'board' && scoresOn) {
+    return <BoardProfile onBack={() => setProfileView('overview')}/>;
   }
 
   if (profileView === 'audio') {

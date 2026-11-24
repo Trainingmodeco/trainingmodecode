@@ -6,7 +6,9 @@ import { ARC } from './tokens';
 // Props only: the top 3, your row (your place, NEW BEST when it is one) and
 // VIEW BOARD. Your row says your place, so there is no line repeating it.
 //
-//   board:  { setting, kind, unit, rows, you } (the same object the full board takes)
+//   board:  { setting, kind, unit, rows, you, note? } (the same object the full
+//           board takes); `note`: one quiet line under the rows (a session that
+//           did not beat the best on the board: "Today: 899. Your best (939) stays on the board.")
 //   onView: VIEW BOARD
 export default function HighScoresCard({ board, onView }) {
   if (!board) return null;
@@ -21,6 +23,7 @@ export default function HighScoresCard({ board, onView }) {
       </div>
       <div style={{ height: 8 }}/>
       <ScoreBoard bare rows={rows} kind={board.kind} unit={board.unit} you={mine ? null : board.you} legend={false}/>
+      {board.note && <div data-sb-note style={{ padding: '6px 4px 0', textAlign: 'center', font: `600 12px ${ARC.body}`, color: '#cbc6e0', lineHeight: 1.35 }}>{board.note}</div>}
       <button type="button" className="rt-go" onClick={onView} style={{
         width: '100%', height: 40, marginTop: 8, border: '1px solid rgba(176,106,255,0.45)', borderRadius: 11, cursor: 'pointer',
         background: 'rgba(176,106,255,0.1)', color: '#c9a6ff', font: `800 12px ${ARC.head}`, letterSpacing: '0.08em',

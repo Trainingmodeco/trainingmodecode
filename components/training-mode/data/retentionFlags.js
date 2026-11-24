@@ -6,8 +6,11 @@
 //   path     — the path + stars
 //   nearMiss — near-miss retry
 //   power    — POWER, RUSTY and REVIVE (the fighter drains while away)
+//   scores   — the game-over world score board (tickets at START, the submit
+//              at FINISH, the end screen's HIGH SCORES card, Profile's row);
+//              off: no ticket, no network call, nothing new on any screen
 import { isOwnerPreview } from './concepts';
 
-const FOR_EVERYONE = { weeks: false, path: false, nearMiss: false, power: false };
+const FOR_EVERYONE = { weeks: false, path: false, nearMiss: false, power: false, scores: false };
 
 export const retentionOn = (key) => !!FOR_EVERYONE[key] || isOwnerPreview();
