@@ -267,14 +267,19 @@ function WithNav({ activeTab, onNavigate, pausedSession, onResume, onDiscardPaus
         {/* The shelf (a screen that scrolls): the page passes under it as it
             does under the tab bar; the BETA pill sits on its left, the scroll
             chevron in its middle. A one-screen page has none: it keeps its
-            own clearance above the tab bar. */}
+            own clearance above the tab bar.
+            While a session is paused its RESUME pill takes the right of the
+            row, and it reaches past the middle (RESUME · FIGHT FOCUS runs
+            162..344 at 360 wide, RESUME · COMBAT CONDITIONING 107..344 at
+            360 and 177..414 at 430), so the chevron would sit under it. The
+            pill is what the row is for then: the chevron stays off. */}
         {scrolls && (
           <div ref={shelfRef} data-ui="nav-shelf" data-fade={SHELF_FADE} style={{
             height: SHELF_H, boxSizing: 'border-box', paddingTop: SHELF_FADE,
             background: `linear-gradient(to bottom, rgba(6,1,14,0) 0px, rgba(6,1,14,0.95) ${SHELF_FADE}px)`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <ScrollDownIndicator visible={showScroll} />
+            <ScrollDownIndicator visible={showScroll && !pausedSession} />
           </div>
         )}
         <BottomNav active={activeTab} onNavigate={onNavigate} />

@@ -2519,6 +2519,50 @@ await check('owner fixes: the BETA pill and the chevron cover nothing; the end-s
     await fight(); await S(500); await rowClear('fight hub 360x640');
   } finally { await resizeTo(390, 844); }
 }, /FIGHT/);
+// A session paused (left by the tab bar) puts its RESUME pill on the right of the shelf, and the pill reaches past
+// the middle (RESUME · COMBAT CONDITIONING runs 107..344 at 360 wide), where the scroll chevron sat under it. While
+// the pill shows the chevron stays off, and the pill sits inside the shelf's solid part, clear of the BETA pill.
+// Swiped away (the session dropped), the chevron comes back: the page still has more below.
+const pausedRow = () => page.evaluate(() => {
+  const r = (el) => el && el.getBoundingClientRect();
+  const pill = r(document.querySelector('[data-ui="resume-pill"]'));
+  const beta = r(document.querySelector('button[aria-label="Report beta feedback"]'));
+  const shelfEl = document.querySelector('[data-ui="nav-shelf"]');
+  const shelf = r(shelfEl), fade = Number(shelfEl?.dataset.fade) || 0;
+  const sc = document.querySelector('.no-scrollbar');
+  return {
+    pill: pill && { left: pill.left, right: pill.right, top: pill.top, bottom: pill.bottom },
+    pillOnShelf: !!pill && !!shelf && pill.top >= shelf.top + fade - 1 && pill.bottom <= shelf.bottom + 1,
+    apart: !pill || !beta || beta.right + 4 <= pill.left,
+    chevron: !!document.querySelector('[data-ui="scroll-chevron"]'),
+    more: !!sc && sc.scrollHeight - sc.clientHeight > 200,
+  };
+});
+await check('owner fixes: a paused session\'s RESUME pill sits on the shelf, with no scroll chevron under it', async () => {
+  try {
+    await resizeTo(360, 780);
+    await home();
+    await page.evaluate(() => sessionStorage.setItem('__smoke_seed', JSON.stringify([{ screen: 'cc_active', disc: 'Boxing', cfg: {}, reason: 'nav', timestamp: Date.now() }])));
+    await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(180, 120); await S(1800);
+    await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
+    await btn(/^PROGRESS$/).click({ timeout: 4000 }); await S(1200);
+    await btn(/^TROPHIES$/).click({ timeout: 4000 }); await S(1500);
+    const g = await pausedRow();
+    if (!g.pill) throw new Error('no RESUME pill on Progress with a session paused');
+    if (!g.more) throw new Error('TROPHIES does not scroll at 360x780 (the check needs a page with more below)');
+    if (g.chevron) throw new Error('the scroll chevron shows while the RESUME pill is on the row');
+    if (!g.pillOnShelf) throw new Error(`the RESUME pill is not inside the shelf's solid part (${Math.round(g.pill.top)}..${Math.round(g.pill.bottom)})`);
+    if (!g.apart) throw new Error('the RESUME pill runs into the BETA pill');
+    // Swipe the pill away: the paused session goes, and with it the reason to keep the chevron off.
+    const y = (g.pill.top + g.pill.bottom) / 2, x = (g.pill.left + g.pill.right) / 2;
+    await page.mouse.move(x, y); await page.mouse.down();
+    for (let i = 1; i <= 8; i++) { await page.mouse.move(x - i * 25, y); await S(16); }
+    await page.mouse.up(); await S(1200);
+    const after = await pausedRow();
+    if (after.pill) throw new Error('the RESUME pill did not swipe away');
+    if (!after.chevron) throw new Error('the scroll chevron did not come back once the paused session was dropped');
+  } finally { await resizeTo(390, 844); }
+}, /TROPHIES/);
 // A page of the app in a fresh browser context (own storage, own user agent), for the storage notices.
 const inContext = async (name, ctxOpts, initScript, run) => {
   const c = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, ...ctxOpts });

@@ -310,6 +310,20 @@ async function finishFightFocus(page, w) {
   await page.clock.resume();
   await wait(page, 2500);
 }
+// Fight Focus from its setup (Fight hub, FIGHT FOCUS, START SESSION: its own
+// 3 rounds of 3 minutes) run to its end: for a state with a session paused,
+// where Home's card is that session's Continue.
+async function finishFightFocusFromSetup(page, w) {
+  await home(page, w);
+  await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await wait(page, 1200);
+  await page.locator('.fb', { hasText: 'FIGHT FOCUS' }).first().click({ timeout: 4000 }); await wait(page, 1500);
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 500);
+  await page.getByRole('button', { name: /START SESSION/ }).first().click({ timeout: 4000 });
+  await runClock(page, (t) => /YOUR PROGRESS/.test(t), { stepMs: 2000, max: 600 });
+  await page.clock.resume();
+  await wait(page, 2500);
+  if (!/MISSION COMPLETE/.test(await page.evaluate(() => document.body.innerText))) throw new Error('Fight Focus did not reach MISSION COMPLETE');
+}
 // Ended in round 1, before a round was done: the quiet SESSION ENDED card.
 async function endFightFocusAtOnce(page, w) {
   await home(page, w);
@@ -360,8 +374,9 @@ const scrollTo = (sel) => async (page) => { await page.locator(sel).first().scro
 //   inView?: [selectors] (whole inside the screen), oneLine?: [selectors] (text that never breaks in two),
 //   same?: [selectors] (every element of each the same width and height: the panel's two buttons),
 //   align?: [[selA, selB]] (the first A and the first B share their left and right edges: the banner and the cards),
-//   bottom?: true (the scroll chevron and the BETA pill over no text, button, picture or card, as
-//     the screen opens and again scrolled to its end, saved as <state>-<size>-end.png),
+//   bottom?: true (the scroll chevron, the BETA pill and a paused session's RESUME pill over no
+//     text, button, picture or card and 4 px apart, as the screen opens and again scrolled to
+//     its end, saved as <state>-<size>-end.png),
 //   owner?: false (the owner preview off: every retention switch off, what everyone sees),
 //   once?: true, clock?: true, after?(page), shot?: selector (photograph that element whole) }
 // `once`: open the screen once (at the first size) and resize for the others.
@@ -377,6 +392,8 @@ const POWER_APART = [['[data-retention="power"]', 'header[data-guide="home-level
 // round, which the end-screen states really run), and the bout held as done.
 const BOUT_LAST = { kind: 'timer', cfg: { difficulty: 'Normal', mode: 'Technical', rounds: 1, roundMin: 3, restSec: 60, voiceOn: true, rushMode: false, rushPattern: 'endRound', rushMix: 'explosive', encouragement: 'normal', warmupMin: 0, ghostChallengeId: null }, disc: 'Boxing', at: NOW_MS - DAY };
 const BOUT_LAST3 = { ...BOUT_LAST, cfg: { ...BOUT_LAST.cfg, rounds: 3 } };
+// A session left by the tab bar 10 minutes ago (the RESUME pill shows on every page but Home).
+const PAUSED = (screen, cfg = {}) => JSON.stringify([{ screen, disc: 'Boxing', cfg, reason: 'nav', timestamp: NOW_MS - 10 * 60 * 1000 }]);
 const BOUT_SEED = (rows, xp, last = BOUT_LAST) => () => ({ tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(rows, xp), tm_last_session_v1: JSON.stringify(last) });
 // POWER: a fighter who trained twice a week for a month (never on the week
 // target, so no 1UP news takes the notice slot), the last time `daysAgo` days
@@ -854,6 +871,37 @@ const STATES = [
     // cards off to the side) is printed as a warning, as on the other states.
     owner: false, bottom: true, seed: FF_SEED(0), open, check: ['[data-guide="nav-tabs"]'], expect,
   })),
+  // A session paused (left by the tab bar) while another page scrolls: its
+  // RESUME pill on the right of the shelf reaches past the middle, so the
+  // scroll chevron stays off; the BETA pill, the RESUME pill and (with nothing
+  // paused) the chevron each cover nothing and keep apart.
+  {
+    name: 'o-paused-end-ff',
+    note: 'For everyone (switches off): a Combat Conditioning circuit paused 10 minutes ago (left by the tab bar), then a Fight Focus run from its setup to the end: MISSION COMPLETE, a page that scrolls on every phone, with the longest RESUME pill (RESUME · COMBAT CONDITIONING, past the middle of the row at every width). No scroll chevron while the pill is on the row (it went under the pill); the BETA and RESUME pills over nothing and apart (-end: scrolled to its end).',
+    clock: true, once: true, owner: false, bottom: true,
+    seed: () => ({ ...FF_SEED(0)(), trainingModePausedSession: PAUSED('cc_active') }), open: finishFightFocusFromSetup,
+    check: ['body'], inView: ['[data-ui="resume-pill"]'], expect: /MISSION COMPLETE[\s\S]*YOUR PROGRESS[\s\S]*RESUME · COMBAT CONDITIONING/,
+  },
+  {
+    name: 'o-paused-trophies',
+    note: 'For everyone (switches off): Progress, TROPHIES (a page that scrolls on every phone) with a Quick Mission paused: RESUME · QUICK MISSION on the shelf, no scroll chevron under it, the BETA and RESUME pills over nothing and apart (-end: scrolled to its end).',
+    owner: false, bottom: true,
+    seed: () => ({ ...FF_SEED(0)(), trainingModePausedSession: PAUSED('qm_active') }),
+    open: async (page, w) => {
+      await home(page, w);
+      await page.getByRole('button', { name: /^PROGRESS$/ }).first().click({ timeout: 4000 }); await wait(page, 1200);
+      await page.getByRole('button', { name: /^TROPHIES$/ }).first().click({ timeout: 4000 }); await wait(page, 1500);
+    },
+    check: ['[data-guide="nav-tabs"]'], inView: ['[data-ui="resume-pill"]'], expect: /RESUME · QUICK MISSION/,
+  },
+  {
+    name: 'o-paused-fight-hub',
+    note: 'For everyone (switches off): the Fight hub (a one-screen page: no shelf, it keeps the row above the tab bar clear) with a Combat Conditioning circuit paused: the RESUME pill (5 px lower than before, as on the shelf) and the BETA pill over nothing and apart.',
+    owner: false, bottom: true,
+    seed: () => ({ ...FF_SEED(0)(), trainingModePausedSession: PAUSED('cc_active') }),
+    open: async (page, w) => { await home(page, w); await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await wait(page, 1500); },
+    check: ['[data-guide="nav-tabs"]'], inView: ['[data-ui="resume-pill"]'], expect: /FIGHT FOCUS[\s\S]*RESUME · COMBAT CONDITIONING/,
+  },
   {
     name: 'o-concept',
     note: 'A concept drop\'s page (owner preview: drops show only with it): its fixed START bar keeps above the shelf, the BETA pill and the chevron on the shelf.',
@@ -982,13 +1030,25 @@ function measure({ checkSelectors, apart, clear, inView = [], oneLine = [], same
     const ra = ea.getBoundingClientRect(), rb = eb.getBoundingClientRect();
     if (Math.abs(ra.left - rb.left) > 1 || Math.abs(ra.right - rb.right) > 1) fails.push(`not lined up: ${name(ea)} ${Math.round(ra.left)}..${Math.round(ra.right)} vs ${name(eb)} ${Math.round(rb.left)}..${Math.round(rb.right)}`);
   }
-  // The scroll chevron and the BETA pill (fixed over the page) cover no text,
-  // button, picture or card (a box with its own fill or border). On a screen
-  // that scrolls they sit on the shelf over the tab bar (the page passes under
-  // it, as under the tab bar): each must be inside its solid part. Scrolled to
-  // the end, nothing of the page is left under the shelf.
+  // The scroll chevron, the BETA pill and the RESUME pill (fixed over the
+  // page) cover no text, button, picture or card (a box with its own fill or
+  // border), and none touches another. On a screen that scrolls they sit on
+  // the shelf over the tab bar (the page passes under it, as under the tab
+  // bar): each must be inside its solid part. Scrolled to the end, nothing of
+  // the page is left under the shelf.
   if (bottom) {
-    const floaters = [...document.querySelectorAll('[data-ui="scroll-chevron"], button[aria-label="Report beta feedback"]')].filter(shown);
+    const floaters = [...document.querySelectorAll('[data-ui="scroll-chevron"], button[aria-label="Report beta feedback"], [data-ui="resume-pill"]')].filter(shown);
+    const floater = (f) => (f.dataset.ui === 'scroll-chevron' ? 'the scroll chevron' : f.dataset.ui === 'resume-pill' ? 'the RESUME pill' : 'the BETA pill');
+    // The row's pieces keep apart: at least 4 px between any two (the chevron
+    // in the middle went under a paused session's RESUME pill).
+    for (let i = 0; i < floaters.length; i++) {
+      for (let j = i + 1; j < floaters.length; j++) {
+        const a = floaters[i].getBoundingClientRect(), b = floaters[j].getBoundingClientRect();
+        if (a.left < b.right + 4 && b.left < a.right + 4 && a.top < b.bottom + 4 && b.top < a.bottom + 4) {
+          fails.push(`${floater(floaters[i])} and ${floater(floaters[j])} touch (${Math.round(a.left)}..${Math.round(a.right)} and ${Math.round(b.left)}..${Math.round(b.right)})`);
+        }
+      }
+    }
     const fixedChain = (el) => { for (let e = el; e && e !== document.body; e = e.parentElement) if (getComputedStyle(e).position === 'fixed') return true; return false; };
     const shelf = [...document.querySelectorAll('[data-ui="nav-shelf"]')].find(shown);
     const sr = shelf?.getBoundingClientRect();
@@ -1029,7 +1089,7 @@ function measure({ checkSelectors, apart, clear, inView = [], oneLine = [], same
         const kind = content(el);
         if (!kind) continue;
         if (kind === 'text' ? glyphs(el).some((g) => hit(cut(g, el))) : hit(cut(r, el))) {
-          fails.push(`${f.dataset.ui === 'scroll-chevron' ? 'the scroll chevron' : 'the BETA pill'} over a ${kind}: ${name(el)}`);
+          fails.push(`${floater(f)} over a ${kind}: ${name(el)}`);
         }
       }
     }

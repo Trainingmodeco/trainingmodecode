@@ -1006,3 +1006,38 @@ The owner's answers on the preview board to four of the open questions. One sect
   cards' edges at 430; the pill and chevron sit on the shelf, and at the end the last button is clear of it; the
   nothing-done card reads WHAT'S LEFT · 3 ROUNDS TO GO with its two buttons one size (DONE FOR TODAY alone on the
   third session of the day); with the switch off it is the quiet card as before.
+
+## Review fix: the RESUME pill and the scroll chevron (R1, 2026-11-24, for everyone)
+
+Found in review: with a session paused, on a page that scrolls, the RESUME pill (fixed on the right of the shelf,
+above it in z-order) reaches past the middle, where the scroll chevron sits, so the chevron was under the pill.
+RESUME · FIGHT FOCUS runs 162..344 at 360 wide, RESUME · QUICK MISSION 153..344, RESUME · COMBAT CONDITIONING
+107..344 at 360 and 177..414 at 430; the chevron is 165..195 at 360 and 200..230 at 430. No photo showed it (the only
+paused-session state was a pop-up over Home, where the pill does not show).
+
+- **The chevron stays off while the pill is on the row** (`ScreenRouter` WithNav: `ScrollDownIndicator visible={showScroll
+  && !pausedSession}`). Home passes no paused session (it has its own Continue card, no pill), so its chevron is as
+  before. Swiped away (the paused session dropped), the chevron comes back.
+- **The pill sits inside the shelf's solid part** (`FloatingResumeButton`: 69 px up, was 74). It is 35 px tall: at 74
+  its top 4 px stood in the shelf's 6 px soft edge, over the page passing under it (the new check found CHANGE
+  DISCIPLINE and GIVE BETA FEEDBACK there). It is now 5 px above the tab bar and on the BETA pill's line (2 px higher
+  at its centre). One-screen pages keep 116 px clear while a session is paused, so it is 12 px under their content.
+  It has `data-ui="resume-pill"` for the checks.
+- **Preview** (`scripts/retention-preview.mjs`): the `bottom` check now takes the RESUME pill with the chevron and the
+  BETA pill (none over a text, button, picture or card) and checks the three keep 4 px apart. New states, every switch
+  off: `o-paused-end-ff` (a Combat Conditioning circuit paused, then a Fight Focus run from its setup to MISSION
+  COMPLETE, which scrolls on every phone: the longest pill), `o-paused-trophies` (Progress, TROPHIES, with a Quick
+  Mission paused) and `o-paused-fight-hub` (a one-screen page with the pill). On the old code the first two failed at
+  360, 390 and 430 ("the RESUME pill and the scroll chevron touch"); now all fit.
+- **Smoke** (`scripts/smoke-web.mjs`, "owner fixes: a paused session's RESUME pill sits on the shelf, with no scroll
+  chevron under it"): Progress, TROPHIES at 360x780 with a circuit paused: the pill on the shelf's solid part and clear
+  of the BETA pill, no chevron; swiped away, the chevron comes back.
+- No spoken line changed.
+- **Checked**: eslint on the changed files (the one old warning in `smoke-web.mjs`, line 461), `tsc --noEmit`;
+  `build:web`, then the whole `smoke:web`: 149 of 149 (the new check with them). `retention-preview.mjs` on a fresh
+  dev server: the three `o-paused-*` states and every state with the bottom check (the `o-*` screens, the end screens
+  of features 1 to 4) at 360, 390 and 430, as each opens and scrolled to its end: all 37 fit. Looked at the photos:
+  no chevron with the pill on the row, the pill on the BETA pill's line inside the shelf, clear of TRAIN AGAIN and the
+  tab bar; at the end the last button is above the shelf. Not from this change and left as they were: the Fight
+  hub's one-line subtitles end in "…" at 360 (as with nothing paused), and TROPHIES' side-scrolling row of camp
+  achievements runs off the right edge by design (warnings only).
