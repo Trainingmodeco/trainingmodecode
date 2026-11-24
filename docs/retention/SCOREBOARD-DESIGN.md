@@ -1,9 +1,12 @@
-# The game-over score board: server design (for the owner, before building)
+# The game-over score board: server design (approved 2026-11-23, built 2026-11-24)
 
-Status: **looks only**. The screens are at `/score-looks` (one phone screen per state) and in the retention
-gallery, section 4 (`/retention-looks#f4`). Nothing in this file has been created on any server and no database
-has been touched. Per RETENTION-PLAN.md (owner, 2026-11-23) it is built for real only after the owner approves this
-design, behind its own switch, on for the owner's phone only, and opens to everyone with the rest in January.
+Status: **built, owner-only, the migration not yet applied.** The owner approved this design on 2026-11-23. It is
+built for real behind its own switch, `scores` (`data/retentionFlags.js`), off in `FOR_EVERYONE` and on only with the
+owner preview, so only the owner's phone sees it until January. The migration is in the repo
+(`supabase/migrations/20261123120000_create_score_boards.sql`) and has been run only on a local test database
+(PGlite); the live database has not been touched. Until it is applied, the switch on asks for a ticket, gets no
+answer it can use and shows no board (only the one-line reasons that need no server, such as a setting off the board). What was built, which boards, how to apply and roll back: **Built** at the end
+of this file. The looks are still at `/score-looks` and in the retention gallery, section 4.
 
 ## What it is
 
@@ -267,3 +270,149 @@ About two weeks of work, after the owner says yes to this design:
 | Screens: wire the looks' components, the opt-in, Profile (name, country, LEAVE BOARDS), offline and signed-out lines | 2 |
 | Name filter, reserved names, caps checked against real sessions, a short moderation guide | 1 to 2 |
 | Tests, phone previews at 360, 390 and 430, owner review | 1 to 2 |
+
+## Built (2026-11-24)
+
+### The pieces
+
+| Piece | Where |
+| --- | --- |
+| Migration: 8 tables, RLS on with no client policies, privileges revoked (the two identity sequences too), 8 client functions and 5 internal ones (security definer, `search_path = ''`, `auth.uid()` only, a lock on the athlete before any limit is counted), the hourly ticket and hold purge, and the generated rows (203 boards, the house names, the name filter's words) | `supabase/migrations/20261123120000_create_score_boards.sql` |
+| The boards' rules from the app's data (keys, more or less, unit, cap, `min_seconds`, the twelve house scores), each mode's board at START and score at FINISH, eligibility and the one-line reasons, the view the components draw | `components/training-mode/data/scoreBoardRules.js` |
+| The generator of the migration's rows (`--check`; `--out` for a later update) | `scripts/score-board-rules.mjs` (`npm run scoreboard:rules`) |
+| The client: tickets at START, the submit at FINISH, the opt-in, get_board and get_my_place, the profile calls, the offline queue | `components/training-mode/data/scoreBoardCloud.js` |
+| The end screen's slot (the line, the opt-in, the HIGH SCORES card, the GAME OVER board) and Profile's SCORE BOARD row and page | `retention/ui/ScoreBoardSlot.jsx`, `retention/ui/BoardProfile.jsx` |
+| Wiring (all behind `scores`) | `App.jsx` (goTimer, goSummary, goComboActive, goComboEnd, goQuickMissionActive, goQuickMissionComplete), `ScreenRouter.jsx`, `SessionSummary.jsx`, `QuickMissionComplete.jsx`, `shared/MissionComplete.jsx` (a `board` slot under the summary), `Profile.jsx` |
+| Tests | `npm run test:scoreboard` (125 checks, in `check:all`), `npm run test:scoreboard-sql` (200 checks on PGlite, see below), `npm run preview:scores` (photos of the real app) |
+
+### The boards (203, every one marked BETA)
+
+| Mode | Boards | Key | Score |
+| --- | --- | --- | --- |
+| Fight Focus | 24: 4 disciplines × 2 settings (3 × 3 or 5 × 3 min, 60 s rest) × Easy, Normal, Hard | `ff:boxing:3x3r60:normal` | strikes the phone counted |
+| Just Train | 16: 4 disciplines × the 4 built-in presets | `jt:boxing:bag6x3` | strikes counted |
+| Combo Coach | 64: 4 disciplines × 2 settings × MODE (Technical, Combo) × 4 levels, at the level's own cadence | `cc:boxing:3x3r60:combo:normal` | strikes counted |
+| Quick Mission at your pace | 84: 28 missions × 3 levels (for time, AMRAP, EMOM, intervals) | `qm:room_12:standard` | time with pauses added back; rounds × 1000 + reps; sets held; reps |
+| Max Out | 15: 5 missions × 3 levels, run guided or at your pace | `max:boss_rush:standard` | total reps |
+
+Caps: a fight board 200 strikes a minute of work; a for-time time no faster than SOLO's own floor (half the elite
+time); an AMRAP or intervals score no more reps than the clock holds at half the elite rep time (a loaded move keeps
+its set cap); an EMOM no more than its windows; Max Out every set at its move's cap and no more than the run's cap can
+hold. `min_seconds`: 90% of a fight setting's work (rests are not counted), SOLO's own floor for a mission. House
+ladders: the looks' strikes-a-minute table for fights (scaled by level), the mission's elite, standard and beginner
+paces for missions (rungs 1, 5 and 9, a lower rung 12).
+
+### Left out, and why
+
+- **Arcade stages.** The app cannot feed them yet: `completeStage` keeps one best time per stage for both sides, a
+  run has no id of its own, and a run resumed from a saved session restarts its clock. Building the per-side record
+  touches the arcade's saved progress and its several players (classic, v2, concept stages); it is its own step.
+- **The GPS run.** Its clock stops on PAUSE and neither the live run nor the saved run keeps a pause total, so a
+  board time could not count the pauses as this design requires. It needs the run player to keep that total first.
+- **Three SOLO missions**: NO CONTINUES and UPPER LOWER DIPS (until the bell is down: sets + reps against a hidden
+  backstop) and TOUCH THE SKY (rounds held, with a time). The design's SOLO scores are time, rounds + reps, sets held
+  and reps; these have none of them.
+- **A for-time run stopped by its cap** does not post (the board is for finishers). The design ranked it under every
+  finisher by its reps at the cap; one number per row cannot say both without a second column.
+- Generated Quick Missions, guided Quick Missions (other than Max Out), Workout Builder, Training Camp, Combat
+  Conditioning, Practice and Coach's Tapes: as the design says, no board.
+
+### Where it differs from the text above (each small, each easy to change)
+
+- **A ticket does not need a player row.** A signed-in athlete who has never been asked gets a ticket at START, so
+  JOIN at the end of that session posts it. `submit_score` is what needs the player row. After NOT NOW (or LEAVE
+  BOARDS) the app asks for no ticket until the athlete joins from Profile.
+- **The limits count scores taken.** 30 a day and 6 a board a day count accepted posts; refusals do not count (the
+  40 tickets a day already bound them), so an honest athlete is never locked out by a refusal.
+- **Flags only on a new best** (a score that is not a best is not stored).
+- **A first rename is allowed at once** (`name_changed_at` is empty on joining); after that, once a week.
+- **`board_house`** holds the house names and levels (gym gear, from `retention/scoreBoards.js`), and
+  **`get_board_profile()`** reads my own name and country for Profile.
+- **The full board shows when the answer comes within 4 s of the end screen** (always right after JOIN). A slower
+  answer only fills the card, which says NEW BEST; VIEW BOARD opens the full board.
+- **The card has one quiet line when today did not beat the best** ("Today: 899. Your best (939) stays on the board.").
+- **LEAVE BOARDS does not wash away moderation or the limits** (found in review, 2026-11-24). It still deletes the
+  player row and every score at once, but a hidden or blocked state and the week a rename waits move to
+  **`board_holds`** (service role only, kept only while in force, purged hourly once nothing in it is) and come back
+  if the athlete joins again; JOIN under a new name inside a rename's week is refused like a rename ("A name changes
+  once a week. You can join again on …"). The day's tickets (the 40, 30 and 6 limits) and the flags are not touched:
+  the purge takes tickets after 2 days, and the flags stay for a person to look at. Deleting the account takes all of it.
+- **One athlete's calls queue behind each other.** `join_boards`, `leave_boards`, `start_board_run` and
+  `submit_score` first take a transaction lock on the athlete (`board_lock`), so parallel calls cannot all pass the
+  same count.
+- **A hidden player is not told.** `get_my_place` answers only value, level, rank, place, players and next place,
+  and a hidden player still sees their own row and counts themself (no one else sees them).
+- **The phone's copies belong to one account.** The opt-in, the name and the boards' copies carry the user id;
+  another account signed in starts them afresh, and SIGN OUT clears them. A waiting score goes up only under the
+  account that started it.
+- **A score the server never answered waits.** Offline, signed out since START, an expired token, a busy or failing
+  server (401, 404, 408, 429, 5xx): the score stays on the phone for its ticket's 24 hours and goes up when the app
+  opens or comes back online. Any answer, a refusal too, ends it. Right after JOIN the athlete always hears back: the
+  board, or one line ("You're on the world board. This score tries again next time you open the app.", "…with this
+  score.", or "…This score did not go up.").
+
+### Applying the migration (the lead, after review)
+
+1. Read `supabase/migrations/20261123120000_create_score_boards.sql`. It creates only `board_*` tables and functions
+   and one cron job; it changes nothing that exists. `pg_cron` is already on (the haunt-code purge uses it).
+2. Apply it to the project like the other migrations (`supabase db push`, or the dashboard's SQL editor with the
+   file's whole text). It is safe to run twice.
+3. Check, in the SQL editor:
+   - `select count(*) from public.board_rules;` → 203
+   - `select has_function_privilege('anon', 'public.submit_score(uuid, int, text, int)', 'execute');` → false;
+     the same for `authenticated` → true; `public.get_board(text)` for `anon` → true
+   - `select has_table_privilege('authenticated', 'public.board_scores', 'select');` → false
+   - `select jobname, schedule from cron.job where jobname = 'purge-board-runs';` → `41 * * * *`
+   - the security advisor: no new warnings for the `board_*` tables (RLS on, no policies is intended).
+4. If the app's calls answer 404 right after, PostgREST has not reloaded its schema yet: `notify pgrst, 'reload schema';`.
+5. The owner's phone must be signed in (Profile, Google) for tickets; signed out, the end screen says so in one line.
+6. When missions or paces change later, write the new rows as a new migration (every row is an upsert):
+   `npm run -s scoreboard:rules -- --out supabase/migrations/<timestamp>_update_score_board_rules.sql`.
+   `npm run test:scoreboard` fails while the migration's generated block is behind the app's data (until it is applied,
+   regenerate the block in place with `npm run -s scoreboard:rules`).
+7. Moderation (service role, dashboard): `update public.board_players set hidden = true where display_name = '…';`,
+   `blocked_until = now() + interval '7 days'`, `delete from public.board_scores where id = …;`, words added to
+   `public.board_name_blocklist (word, exact)` in their filter key (lower case, a to z only), flags in
+   `public.board_flags`. A player who left the boards: their hold is in `public.board_holds` (to block or hide one
+   who is not joined, `insert into public.board_holds (user_id, hidden, blocked_until) values (…)`).
+
+### Rolling it back
+
+Nothing outside the score board depends on it. In the SQL editor:
+
+```sql
+select cron.unschedule('purge-board-runs');
+drop function if exists
+  public.submit_score(uuid, int, text, int), public.start_board_run(text), public.leave_boards(),
+  public.set_board_profile(text, text), public.join_boards(text, text), public.get_board_profile(),
+  public.get_my_place(text), public.get_board(text), public.purge_board_runs(),
+  public.board_place_of(text, uuid), public.board_name_problem(text, uuid), public.board_lock(uuid),
+  public.board_name_key(text);
+drop table if exists
+  public.board_holds, public.board_flags, public.board_runs, public.board_scores, public.board_players,
+  public.board_name_blocklist, public.board_house, public.board_rules;
+```
+
+The app needs no change for a rollback: with the functions gone, a ticket request gets no usable answer and the end
+screen shows no board. The switch is off for everyone already; to hide it on the owner's phone as well, have
+`retentionOn` return false for `scores` (`data/retentionFlags.js`).
+
+### The SQL tests
+
+`scripts/test-scoreboard-sql.mjs` applies the migration (twice) to PGlite, Postgres 17 in WebAssembly, in memory,
+with a stub `auth` schema (`auth.users`, `auth.uid()` reading the request's JWT subject), the roles `anon`,
+`authenticated` and `service_role`, Supabase's default privileges (so the revokes are what keeps clients out) and a
+stand-in `cron.schedule`. It proves: no client role reads or writes any table or draws from its sequences; who may
+call which function; every
+function has a fixed `search_path` and none a client calls takes a user id; a ticket only for a signed-in athlete; no
+post before joining, too early, over the cap, past 24 hours, with someone else's ticket, twice for one session, past
+the limits (6 a board, 30 a day, 40 tickets); only a better score replaces a best (more and less boards); flags; the
+name filter (shape, reserved house names and look-alikes, blocked words, taken ignoring case); the profile (country
+any time, a rename once a week); moderation (blocked, hidden); `get_board` against the app's own `composeBoard` at 3,
+5, 6 and 10 players and after a player hides or leaves, never an id or an email; `get_my_place`'s place, rank and next
+place (CPU above, a tie, from 5 players on); a hidden player not told (no flag, their own row and count); the lock on
+the athlete held by join, leave, a ticket and a submit (one key per athlete); `leave_boards` deleting the player row
+and every score while the day's tickets and the flags stay; LEAVE then JOIN keeping a block, a hidden state, the day's
+limits and the rename week, a plain LEAVE keeping no hold, and the purge dropping a hold once nothing is in force; an
+account deletion taking every row. PGlite is 27 MB, so it is not a dependency: install it once anywhere and run
+`PGLITE_DIR=<that folder> npm run -s test:scoreboard-sql` (the script's header says how). It is not in `check:all`.

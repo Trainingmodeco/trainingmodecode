@@ -16,19 +16,21 @@ import { loadStats } from './data/userStats';
 import { athleteStart } from './data/athleteLevel';
 import { COMBO_MIX } from './data/comboMix';
 import { FightBackdrop, FightHeader, FightDifficulty, FightToggle, fightTimerCSS } from './shared/FightTimerKit';
+import { COMBO_CADENCE_BY_DIFF, COMBO_DIFFICULTIES, COMBO_MODES } from './data/fightPresets';
 
 // Combo Coach setup — the Simplify revamp reskin (royal blue + gold, no
 // banner, one screen). What it starts is unchanged: same config, same runner.
 
 const GOLD = '#F2BE45';
 
-const DIFFICULTIES = ['Easy', 'Normal', 'Hard', 'Advanced'];
+const DIFFICULTIES = COMBO_DIFFICULTIES;
 // The design drops MODE's description line to keep the screen to one page;
 // the two words carry it and the ? guide explains the difference.
-const MODES = ['Technical', 'Combo'];
+const MODES = COMBO_MODES;
 // Picking a difficulty sets a default cadence (faster as it gets harder); the
-// user can still adjust the CADENCE stepper afterward.
-const CADENCE_BY_DIFF = { Easy: 4, Normal: 3.5, Hard: 3, Advanced: 2.5 };
+// user can still adjust the CADENCE stepper afterward (data/fightPresets,
+// shared with the score board's rules).
+const CADENCE_BY_DIFF = COMBO_CADENCE_BY_DIFF;
 // What each level deals, in a line. The numbers come from the mix table
 // (data/comboMix), the same one the coach deals from. A boxer's pool has no
 // kicks, so the lines that speak of hard kicks are for the other disciplines;

@@ -9,9 +9,12 @@
 //   fitCard  — the Fit WORKOUT CARD on Quick Mission, program days, YOUR
 //              WORKOUTS (docs/fit-challenge/BUILD-NOTES.md). Off: Fit Mode
 //              is exactly as before.
+//   scores   — the game-over world score board (tickets at START, the submit
+//              at FINISH, the end screen's HIGH SCORES card, Profile's row);
+//              off: no ticket, no network call, nothing new on any screen
 import { isOwnerPreview } from './concepts';
 
-const FOR_EVERYONE = { weeks: false, path: false, nearMiss: false, power: false, fitCard: false };
+const FOR_EVERYONE = { weeks: false, path: false, nearMiss: false, power: false, fitCard: false, scores: false };
 
 // `tm_preview_off` (a comma list of keys) holds one switch off inside the
 // owner preview: the smoke test keeps the old Quick Mission page under the

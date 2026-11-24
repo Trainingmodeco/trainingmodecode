@@ -5,14 +5,18 @@ import { ARC } from './tokens';
 // before the board. Nobody is listed by surprise. Props only:
 //
 //   name:     the display name to start from (the profile's name, or empty)
-//   country:  the two-letter code the phone reports (shown only if switched on)
+//   country:  the two-letter code the phone reports (shown only if switched
+//             on); null when the phone reports none: no switch at all
 //   onJoin({ name, showCountry }) / onLater: JOIN / NOT NOW
+//   busy:     JOIN was tapped and the server has not answered (JOIN waits)
+//   error:    one plain line under the name ("Pick another name.")
+//   laterLabel: NOT NOW's words (Profile's own ask says BACK)
 //
 // Others see the display name (up to 12 letters, numbers, spaces, dots,
 // dashes or underscores, checked by the server's name filter) and the level.
 // The country is the one place shown, two letters, and only once the athlete
 // turns it on: the body says so, so the switch never contradicts it.
-export default function BoardOptIn({ name: name0 = '', country = 'US', onJoin, onLater }) {
+export default function BoardOptIn({ name: name0 = '', country = 'US', onJoin, onLater, busy = false, error = null, laterLabel = 'NOT NOW' }) {
   const [name, setName] = useState(name0);
   const [showCountry, setShowCountry] = useState(false);
   const label = { font: `700 8px ${ARC.head}`, color: '#b06aff', letterSpacing: '0.16em' };
@@ -25,7 +29,7 @@ export default function BoardOptIn({ name: name0 = '', country = 'US', onJoin, o
       <div>
         <div style={label}>WORLD BOARD</div>
         <h2 style={{ margin: '4px 0 6px', font: `900 17px ${ARC.head}`, color: ARC.gold, letterSpacing: '0.04em', lineHeight: 1.25 }}>Put your best scores on the world board?</h2>
-        <p style={text}>Each mode keeps your best score on a world list, so you can see where you rank. Others see your display name and level. Never your email or photo. Your country only if you turn it on below.</p>
+        <p style={text}>Each mode keeps your best score on a world list, so you can see where you rank. Others see your display name and level. Never your email or photo.{country ? ' Your country only if you turn it on below.' : ''}</p>
       </div>
       <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <span style={label}>DISPLAY NAME</span>
@@ -38,8 +42,9 @@ export default function BoardOptIn({ name: name0 = '', country = 'US', onJoin, o
           }}
         />
         <span id="sb-name-note" style={{ font: `600 12px ${ARC.body}`, color: '#a9a3c4' }}>Everyone sees it. Up to 12 letters or numbers.</span>
+        {error && <span role="alert" data-sb-error style={{ font: `700 13px ${ARC.body}`, color: '#ffb25c', lineHeight: 1.3 }}>{error}</span>}
       </label>
-      <button type="button" role="switch" aria-checked={showCountry} onClick={() => setShowCountry((v) => !v)} style={{
+      {country && <button type="button" role="switch" aria-checked={showCountry} onClick={() => setShowCountry((v) => !v)} style={{
         display: 'flex', alignItems: 'center', gap: 12, minHeight: 44, padding: '0 12px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
         background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: '#e9e3f7',
       }}>
@@ -47,16 +52,16 @@ export default function BoardOptIn({ name: name0 = '', country = 'US', onJoin, o
         <span aria-hidden style={{ width: 42, height: 24, borderRadius: 12, flexShrink: 0, position: 'relative', background: showCountry ? ARC.gold : 'rgba(255,255,255,0.15)', transition: 'background .15s' }}>
           <span style={{ position: 'absolute', top: 3, left: showCountry ? 21 : 3, width: 18, height: 18, borderRadius: 9, background: showCountry ? '#140a00' : '#cbc6e0', transition: 'left .15s' }}/>
         </span>
-      </button>
+      </button>}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         <button type="button" className="rt-go" onClick={onLater} style={{
           height: 46, borderRadius: 11, cursor: 'pointer', background: 'transparent', border: '1px solid rgba(255,255,255,0.18)',
           color: '#cbc6e0', font: `800 12px ${ARC.head}`, letterSpacing: '0.08em',
-        }}>NOT NOW</button>
-        <button type="button" className="rt-go" onClick={() => onJoin?.({ name: name.trim(), showCountry })} disabled={!name.trim()} style={{
-          height: 46, borderRadius: 11, cursor: name.trim() ? 'pointer' : 'default', border: 'none', opacity: name.trim() ? 1 : 0.5,
+        }}>{laterLabel}</button>
+        <button type="button" className="rt-go" onClick={() => onJoin?.({ name: name.trim(), showCountry: !!country && showCountry })} disabled={!name.trim() || busy} aria-busy={busy || undefined} style={{
+          height: 46, borderRadius: 11, cursor: name.trim() && !busy ? 'pointer' : 'default', border: 'none', opacity: name.trim() && !busy ? 1 : 0.5,
           background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: `900 13px ${ARC.head}`, letterSpacing: '0.1em',
-        }}>JOIN</button>
+        }}>{busy ? 'JOINING…' : 'JOIN'}</button>
       </div>
       <p style={{ ...text, font: `600 12px ${ARC.body}`, color: '#a9a3c4', textAlign: 'center' }}>Leave any time in Profile. Your scores come off with you.</p>
     </div>

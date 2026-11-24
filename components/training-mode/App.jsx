@@ -61,6 +61,8 @@ import { cardRunDone, cardRowFields } from './data/fitCard';
 import { rememberCardRun } from './data/fitCardStore';
 import { dueRustyPopup } from './data/powerStore';
 import { settleTodaysBout, releaseBoutArm, holdBoutArm, resumeBoutArm } from './data/dailyMission';
+import { fightBoardStart, fightBoardFinish, missionBoardStart, missionBoardFinish } from './data/scoreBoardRules';
+import { startBoardRun, flushBoardQueue } from './data/scoreBoardCloud';
 
 // 2.10 — v2 campaign stars: completion-quality is the gate (you only earn stars
 // by fully + validly clearing), difficulty sets the count. FULL ARC gets +1 for
@@ -241,6 +243,20 @@ export default function App() {
   // pop-up takes a turn in the open's one-interstitial queue (goAfterSplash)
   // and Home shows it (its REVIVE is Home's top START).
   const [powerOn] = useState(() => retentionOn('power'));
+  // The world score board (switch `scores`): a ticket at START for a session
+  // that could go on a board, its score at FINISH (data/scoreBoardRules,
+  // data/scoreBoardCloud). Off: no ticket, no network call, nothing shown.
+  const [scoresOn] = useState(() => retentionOn('scores'));
+  const boardRunRef = useRef(null);
+  // A score that finished offline waits on the phone and goes up when the app
+  // opens or the phone comes back online (its ticket is good for 24 hours).
+  useEffect(() => {
+    if (!scoresOn || typeof window === 'undefined') return undefined;
+    flushBoardQueue();
+    const online = () => { flushBoardQueue(); };
+    window.addEventListener('online', online);
+    return () => window.removeEventListener('online', online);
+  }, [scoresOn]);
   const [rustyTurn, setRustyTurn] = useState(false);
   const rustyTurnRef = useRef(false); // the turn is out with Home (answered once)
   const [screen,   setScreen  ] = useState('start');
@@ -742,6 +758,29 @@ export default function App() {
   // reads "a paused slot for this screen" as "resume it", so a leftover slot
   // used to mount the new session paused: no warm-up, no count-in, no coach,
   // a RESUME button where the 3-2-1 should be (voice audit FIGHT-02).
+  // START: which board this session is for (or the one line why not), and a
+  // ticket asked for in the background. Kept with the session's own config
+  // object, so a different session (or one restored after a reload) never
+  // finishes with it.
+  const beginBoardRun = (kind, c, d) => {
+    boardRunRef.current = null;
+    if (!scoresOn || !c) return;
+    const start = kind === 'qm' ? missionBoardStart(c) : fightBoardStart({ mode: kind, cfg: c, discipline: d });
+    if (!start.board && !start.reason) return;
+    boardRunRef.current = { cfg: c, board: start.board, reason: start.reason, handle: start.board ? startBoardRun(start.board) : null };
+  };
+  // FINISH: what the end screen's board slot gets, or null (nothing shown).
+  // `finished`: the session ran to the end and passed; `score(board)` → { value, reason }.
+  const finishBoardRun = (c, { finished, score }) => {
+    const run = boardRunRef.current;
+    boardRunRef.current = null;
+    if (!scoresOn || !run || run.cfg !== c || !finished) return null;
+    if (!run.board) return run.reason ? { reason: run.reason } : null;
+    const fin = score(run.board);
+    if (fin.value == null) return fin.reason ? { board: run.board, reason: fin.reason } : null;
+    return { board: run.board, value: fin.value, level: getLevel(loadStats().xp), handle: run.handle };
+  };
+
   const freshStart = (dest) => {
     dropPausedFor(screen);
     if (dest && dest !== screen) dropPausedFor(dest);
@@ -812,6 +851,7 @@ export default function App() {
         ...(c?.mode === 'solo' ? { solo: true } : {}),
         ...(!c?.mission || isGeneratedMission(c.mission) || c.mission.id === 'generated' ? { level: String(c?.difficulty || '').toUpperCase(), minutes: c?.duration } : {}),
       });
+      beginBoardRun('qm', c);
       freshStart('qm_active'); setQmCfg(c); setScreen('qm_active');
     },
     // The guided runner's brief offers AT YOUR PACE INSTEAD: the same mission,
@@ -856,7 +896,8 @@ export default function App() {
         });
         if (xp > 0) tryCompleteDailyMission('quickMission');
         trackEvent('session_complete', { mode: 'quickMission', solo: true, mission: result.missionId, exercises: result.exercisesCompleted });
-        setQmResult({ ...result, xpEarned: xp, settle, rounds: splits, ...(card ? { card, cardDone, cardId } : {}) });
+        const board = finishBoardRun(qmCfg, { finished: settle.outcome === 'pass', score: (b) => missionBoardFinish({ board: b, result: { ...result, settle } }) });
+        setQmResult({ ...result, xpEarned: xp, settle, rounds: splits, ...(card ? { card, cardDone, cardId } : {}), ...(board ? { board } : {}) });
       } else {
         // A v2 GUIDED run tags its row with the mission it ran.
         // An until-the-bell-is-down run (NO CONTINUES) also stores its score (sets + reps, and the time).
@@ -880,7 +921,9 @@ export default function App() {
         // As in SOLO, a v2 run that pays nothing (a quit) does not complete the Mission of the Day.
         if (!settle || settle.xp > 0) tryCompleteDailyMission('quickMission');
         trackEvent('session_complete', { mode: 'quickMission', exercises: result.exercisesCompleted });
-        setQmResult(card ? { ...result, xpEarned: xp, ...(settle ? { settle } : {}), card, cardDone, cardId } : settle ? { ...result, xpEarned: xp, settle } : result);
+        // MAX OUT run guided goes on its board too (AT YOUR PACE above).
+        const board = settle ? finishBoardRun(qmCfg, { finished: settle.outcome === 'pass', score: (b) => missionBoardFinish({ board: b, result: { ...result, settle } }) }) : finishBoardRun(qmCfg, { finished: false });
+        setQmResult(card ? { ...result, xpEarned: xp, ...(settle ? { settle } : {}), card, cardDone, cardId, ...(board ? { board } : {}) } : settle ? { ...result, xpEarned: xp, settle, ...(board ? { board } : {}) } : result);
       }
       const addon = qmCfg?.cardioAddon;
       if (addon?.enabled) {
@@ -1050,7 +1093,7 @@ export default function App() {
       switch (last.kind) {
         case 'timer':
           if (last.disc) setDisc(last.disc);
-          actions.goTimer(c);
+          actions.goTimer(c, last.disc);
           // goTimer records with the discipline it closed over; the replay's
           // own discipline is the right one.
           rememberSession('timer', c, last.disc);
@@ -1250,7 +1293,7 @@ export default function App() {
     // once the concept page sees it in the run log (settleConceptRun).
     startConceptFit:   (c) => (c?.conceptRun ? actions.goCardioMode({ goal: c.goal, unit: c.unit }) : actions.goFitWorkout(c)),
     startConceptFight: (c, discipline) => { if (discipline) setDisc(discipline); actions.goTimer(c); },
-    goTimer:       (c) => { rememberSession('timer', c, disc); trackSessionStart(c?.mode === 'Just Train' ? 'justTrain' : 'fightFocus'); freshStart('timer'); setCfg(c); setScreen('timer'); },
+    goTimer:       (c, d) => { rememberSession('timer', c, disc); trackSessionStart(c?.mode === 'Just Train' ? 'justTrain' : 'fightFocus'); beginBoardRun(c?.mode === 'Just Train' ? 'jt' : 'ff', c, d || disc); freshStart('timer'); setCfg(c); setScreen('timer'); },
     goSummary:     (rounds, c, completed, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
@@ -1270,6 +1313,7 @@ export default function App() {
       // toward no trophy and no lifetime fight total.
       const unverified = verdict.outcome === 'validation_failed';
       addFightFocusSession(done, total, { justTrain, xp, unverified });
+      const board = finishBoardRun(c, { finished: verdict.outcome === 'pass' && done >= total, score: (b) => fightBoardFinish({ board: b, finished: true, fightStats: fs }) });
       // 1.4/1.5 — Fight Focus has no called combos, so any strike count comes
       // from the accelerometer (motion-verified thrown strikes) or is zero.
       if (!unverified) recordFightSession({ rounds: done, strikes: fs.motionUsed ? (fs.thrown || 0) : 0 });
@@ -1280,10 +1324,10 @@ export default function App() {
       const battle = c.ghost ? getLastBattle() : null;
       const challengeWin = battle?.ghost?.ghostId && battle.ghost.ghostId === c.ghost.ghostId
         ? settleChallenge('fight', c.ghost, battle.result?.outcome) : null;
-      setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed, rush: fs.rush || null, cleanRounds: fs.cleanRounds || 0, cleanRoundXp: fs.cleanRoundXp || 0, strongFinish: fs.strongFinish || null }, challengeWin });
+      setSession({ rounds, cfg: c, completedRounds: completed, sessionSource: 'fightFocus', integrityResult, fightStats: { thrown: fs.thrown || 0, motionUsed: !!fs.motionUsed, rush: fs.rush || null, cleanRounds: fs.cleanRounds || 0, cleanRoundXp: fs.cleanRoundXp || 0, strongFinish: fs.strongFinish || null }, challengeWin, ...(board ? { board } : {}) });
       routeAfterXp(beforeLevel, 'summary');
     },
-    goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); trackSessionStart('comboCoach', c?.ownLevel ? { level: String(c.difficulty || '').toUpperCase(), own: c.ownLevel } : undefined); freshStart('combo_active'); setComboCfg(c); setScreen('combo_active'); },
+    goComboActive: (c) => { rememberSession('combo', c, c?.discipline || disc); trackSessionStart('comboCoach', c?.ownLevel ? { level: String(c.difficulty || '').toUpperCase(), own: c.ownLevel } : undefined); beginBoardRun('cc', c, c?.discipline || disc); freshStart('combo_active'); setComboCfg(c); setScreen('combo_active'); },
     goComboEnd:    (roundsDone, totalRounds, integrityResult, fightSessionStats) => {
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen); setResumeData(null);
@@ -1294,6 +1338,7 @@ export default function App() {
       const { xp, verdict } = settleFightXp({ completed: done, total, difficulty: comboCfg?.difficulty || 'Normal', integrityResult, mode: 'combo', bonusXp });
       const unverified = verdict.outcome === 'validation_failed';
       addComboCoachSession(done, total, { xp, unverified });
+      const board = finishBoardRun(comboCfg, { finished: verdict.outcome === 'pass' && done >= total, score: (b) => fightBoardFinish({ board: b, finished: true, fightStats: cs }) });
       // 1.5 — Combo Coach carries strike + streak tallies; roll them into the
       // lifetime totals and hand the session numbers to the summary screen.
       // 1.4 — when the accelerometer counted real thrown strikes, that number
@@ -1320,6 +1365,7 @@ export default function App() {
         sessionSource: 'comboCoach',
         integrityResult,
         fightStats: { strikes: cs.strikes || 0, peakStreak: cs.peakStreak || 0, thrown: cs.thrown || 0, motionUsed: !!cs.motionUsed, rush: cs.rush || null, cleanRounds: cs.cleanRounds || 0, cleanRoundXp: cs.cleanRoundXp || 0, strongFinish: cs.strongFinish || null },
+        ...(board ? { board } : {}),
       });
       routeAfterXp(beforeLevel, 'summary');
     },

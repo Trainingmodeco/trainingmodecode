@@ -905,3 +905,96 @@ the header, the chip and Game Plan; `power` for the rest).
 5. **The rank always under the level** on Home's header (the review's calm fix): every athlete's header is now two
    short lines and the bar. Keep, or put the rank back beside the level where it fits (the header then moves by a line
    between athletes)?
+
+## The game-over world score board (switch `scores`), 2026-11-24
+
+The owner approved the server design on 2026-11-23 and asked for it built for real, visible only on the owner's
+phone until January. Built behind a new switch, `scores` (`data/retentionFlags.js`), off in `FOR_EVERYONE`, on only
+with the owner preview. The full record (the pieces, the 203 boards, the boards left out and why, where the build
+differs from the design, applying the migration, rolling it back, the SQL tests) is in `SCOREBOARD-DESIGN.md`,
+section **Built**.
+
+### What was built
+
+- **The migration** `supabase/migrations/20261123120000_create_score_boards.sql`: `board_players`, `board_scores`,
+  `board_rules`, `board_house`, `board_runs` (tickets), `board_name_blocklist`, `board_flags`; RLS on with no client
+  policies and every privilege revoked; `get_board` (anyone), `get_my_place`, `get_board_profile`, `join_boards`,
+  `set_board_profile`, `leave_boards`, `start_board_run`, `submit_score` (signed in), all security definer with a fixed
+  `search_path`, acting only on `auth.uid()`. House rows are built from `board_rules.house` when a board is read and are
+  never stored. Not applied anywhere but a local PGlite database.
+- **The rules from the app's data** (`data/scoreBoardRules.js`), written into the migration by
+  `scripts/score-board-rules.mjs`: 203 boards (Fight Focus 24, Just Train 16, Combo Coach 64, Quick Mission at your
+  pace 84, Max Out 15), every one BETA.
+- **The client** (`data/scoreBoardCloud.js`): a ticket in the background at START; at FINISH the opt-in (the first
+  time), the submit, the board and my place; signed out, offline at START or after NOT NOW, one plain line; offline at
+  FINISH, the score waits on the phone (24 hours) and the card shows the phone's last copy with this score in its
+  place; a server error hides the card. Nothing blocks or slows an end screen.
+- **The screens**: the end screen's board slot (`retention/ui/ScoreBoardSlot.jsx`) under the summary of Fight Focus,
+  Just Train, Combo Coach (`SessionSummary`) and Quick Mission (`QuickMissionComplete`): the opt-in over the end screen,
+  the HIGH SCORES card, the GAME OVER board when it is news, or one line. Profile: a SCORE BOARD row under the account
+  card and its page (`retention/ui/BoardProfile.jsx`: the name once a week, the country, LEAVE BOARDS). The looks'
+  components are reused as they are (`ScoreBoard`, `GameOverBoard`, `HighScoresCard`, `BoardOptIn`); `composeBoard`
+  and `placeLine` stay the one source of the merge and the wording (the server's merge is tested against them).
+- Small, shared: `retention/scoreFormat.js` (ORD, formatScore, no React), `data/fightPresets.js` (Just Train's
+  presets, Combo Coach's cadence per level: both setup screens read them, behaving as before).
+
+### Decisions (each easy to change)
+
+- **When the board is news** (a new best that lands in or moves up the top 10, or a first score on the board), the
+  full GAME OVER board opens over the end screen if the answer comes within 4 s, and always right after JOIN; CONTINUE
+  closes it. Later answers only fill the card (NEW BEST on the row; VIEW BOARD opens the board).
+- **A fight session posts** when every round is done, the integrity check passed, the phone counted strikes, and it
+  ran at a board setting with no Rush Mode and no ghost. **A mission posts** at your pace (Max Out guided too),
+  finished and passed, with its own moves (no swap, no gear default, not SCALED), inside the cap; a for-time time adds
+  back the paused seconds.
+- **The one-line reasons**, only on a finished session: "Board settings only: 3 × 3 or 5 × 3 min, 60 s rest." (Combo
+  Coach adds "the level's own cadence"; Just Train: "Board presets only: Bag, Pads, Spar or Tabata."), "Rush Mode and
+  ghost runs don't go on the board.", "Strike counting was off, so this one can't go on the board.", "Swapped or
+  scaled moves don't go on the board.", "Sign in on Profile to put your scores on the world board.", "Started
+  offline, so it can't go on the board.", "Join the world board on Profile to post your scores.", "Goes up when you
+  are back online.", "The board did not take this one." A stopped or failed session shows nothing. A concept stage,
+  a camp session and Today's generated mission are not board modes: nothing is said.
+- **The opt-in** starts from the profile's name (cut to the board's 12 characters), and offers the country the
+  phone's language settings carry (en-US: US); no region, no switch.
+- **The card** says "Today: 899. Your best (939) stays on the board." when this session did not beat the best that
+  stands (the board shows the best).
+- **Resumed sessions**: a session restored after a reload has no ticket (the app keeps it in memory), so it shows no
+  board.
+- New storage keys (not synced): `tm_score_board_v1` (joined / NOT NOW, the name), `tm_score_boards_cache_v1` (the
+  last copy of each board), `tm_score_board_queue_v1` (scores waiting to go up).
+
+### Checked
+
+- `npm run test:scoreboard` (99, in `check:all`): every board's key, rules and title; each mode's board at START and
+  score at FINISH and the reasons; caps; the view (place and rank, pinned row, next place, short of best, the card's
+  line); news; the offline copy; the client against a stubbed network (the opt-in before any post, JOIN posting the
+  same session, one post per session, offline at START and at FINISH, the queue, signed out with no call at all, a
+  server error, a refusal, NOT NOW and LEAVE BOARDS asking no more tickets, name and rename refusals); the switch; the
+  migration's generated rows matching the app's data.
+- `npm run test:scoreboard-sql` on PGlite (163): see `SCOREBOARD-DESIGN.md`.
+- `npm run preview:scores` against the dev server, a real 3 × 3 Fight Focus played on Playwright's clock with the
+  phone's motion played in, signed in with a stand-in session, every board call answered by `route()`: the opt-in,
+  JOIN and the first board, a new best, the end card, a busy board (#143 of 2,310: card and full board), started
+  offline, Profile's row, page and LEAVE BOARDS, and the switch off (no board call, the end screen as before). All
+  fit at 360 × 780, 390 × 844 and 430 × 932; every photo looked at. Fixed from the photos: the card's quiet line for a
+  score below the best; Profile's country switch balanced on two lines at 360.
+- `score-looks-preview.mjs` (the looks unchanged), `test:streak`, `test:path`, `test:nearmiss`, `test:power`,
+  `test:maxout`, `test:missions`, `test:voice`, `test:spoken`, `test:clips` (nothing spoken was added), eslint on every
+  changed file, `tsc`, `build:web`, and `smoke:web` for the fight and mission starts and ends, Max Out, Profile and the
+  Level page.
+
+### Not covered
+
+- The arcade stages and the GPS run (see `SCOREBOARD-DESIGN.md`: the app cannot feed them yet), three SOLO missions
+  whose score is none of the design's kinds, and for-time runs stopped by their cap.
+- The photos drive Fight Focus only; Quick Mission and Max Out reach the same slot through `QuickMissionComplete` and
+  are covered by the unit tests and the smoke runs (switch off), not photographed at their end screens.
+- The caps are first numbers (BETA): check them against real sessions before January.
+
+### Needs the owner's answer
+
+1. **The full board after a slow answer**: shown only if the server answers within 4 s of the end screen. Keep, or
+   always show it when it is news (it can then open a few seconds after the end screen)?
+2. **The off-setting line** ("Board settings only: …") shows on every finished fight session at another setting,
+   Today's Bout included. Keep, or say nothing there?
+3. **A for-time run stopped by its cap**: off the board for now. Add it under the finishers (a second number on the row)?

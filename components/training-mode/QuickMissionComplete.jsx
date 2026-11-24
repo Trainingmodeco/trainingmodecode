@@ -6,6 +6,7 @@ import { mmss } from './data/missionMoves';
 import { quickMissionXp } from './data/userStats';
 import { levelWord } from './data/quickMissionConfig';
 import { quickMissionRetryKey } from './data/retrySafety';
+import ScoreBoardSlot from './retention/ui/ScoreBoardSlot';
 
 // Quick Mission complete — rendered by the shared design-24f screen.
 const GOLD = '#fde047';
@@ -122,6 +123,7 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
         ? (result.score?.kind === 'totalReps' ? <MaxRepsRecap score={result.score} capSec={mission.capSec || 0} totalSec={result.elapsedSec || 0} message={result.settle?.credited > 0 ? result.settle?.message : null}/> : null)
         : recap ? <RoundSplits rounds={rounds} count={scoreCount(result, mission, rounds.length)} tag={roundTag} word={roundWord} one={roundOne} totalSec={result.elapsedSec || 0}/> : null}
       cardioResult={cardioResult}
+      board={result.board ? <ScoreBoardSlot finish={result.board}/> : null}
       shareData={{ mode: 'Quick Mission', completedCount: exercisesCompleted, totalCount: totalExercises }}
       actions={[
         { label: 'NEW MISSION', onClick: onRetry, kind: 'primary' },
