@@ -34,11 +34,11 @@ export default function TotalsStrip({ totals, guide }) {
       padding: '10px 8px 8px', display: 'flex', flexDirection: 'column', gap: 8,
     }}>
       <div aria-hidden="true" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr)', alignItems: 'start', gap: 4 }}>
-        <Cell value={repsPerRound} label="A round" plus={secondsPerRound ? `+ ${holdWord(secondsPerRound)} hold` : null}/>
+        <Cell value={repsPerRound} label="A round" plus={secondsPerRound ? `+ ${holdWord(secondsPerRound)} of holds` : null}/>
         <Op>×</Op>
         <Cell value={rounds} label="Rounds"/>
         <Op>=</Op>
-        <Cell value={totalReps} label="Total reps" plus={totalSeconds ? `+ ${holdWord(totalSeconds)} hold` : null} gold/>
+        <Cell value={totalReps} label="Total reps" plus={totalSeconds ? `+ ${holdWord(totalSeconds)} of holds` : null} gold/>
       </div>
       <div aria-hidden="true" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, paddingTop: 7, borderTop: '1px solid rgba(255,255,255,0.08)', font: `500 12px ${BODY}`, color: MUTED, textAlign: 'center' }}>
         <Timer size={14} color={GOLD} style={{ flexShrink: 0 }}/>

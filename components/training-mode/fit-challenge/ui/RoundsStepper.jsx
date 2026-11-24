@@ -45,7 +45,7 @@ export default function RoundsStepper({ totals, min = 1, max = 10, onStep, guide
         <span style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap', font: `500 12px ${BODY}`, lineHeight: 1.25, color: MUTED }}>
           <Timer size={13} color={GOLD} style={{ flexShrink: 0 }}/>
           <span style={{ color: '#fff', fontWeight: 600, whiteSpace: 'nowrap' }}>About {estMinutes} min</span>
-          {totalSeconds > 0 && <span style={{ color: VIOLET_TEXT, whiteSpace: 'nowrap' }}>+ {holdWord(totalSeconds)} hold</span>}
+          {totalSeconds > 0 && <span style={{ color: VIOLET_TEXT, whiteSpace: 'nowrap' }}>+ {holdWord(totalSeconds)} of holds</span>}
         </span>
         {note && <span style={{ font: `500 11px ${BODY}`, lineHeight: 1.3, color: MUTED }}>{note}</span>}
       </div>
