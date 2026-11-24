@@ -133,9 +133,31 @@ const GRAP_SEED = () => ({
   })),
   tm_last_session_v1: JSON.stringify({ kind: 'arcade', cfg: { seriesId: 'grappler-protocol', title: 'The Grappler', stageNumber: 3, mode: 'both', settings: { difficulty: 'normal', voiceCoach: true, sound: 'on' } }, disc: null, at: NOW_MS - DAY }),
 });
-// Training Camp: levels 1-4 cleared, level 5 current with S1 done.
+// Training Camp: levels 1-4 cleared, level 5 current with S1 done. The camp
+// rows (6 to 8 weeks back, before the week history) give the levels their
+// stars (data/campStars): level 1 every round to the bell (3), level 2 a
+// round cut short (2), level 3 cleared before stars were kept (1: its row has
+// no `camp`), level 4 Session 2 two and a half hours after Session 1 (2).
+const campRowAt = (weeksBack, dayIdx, hour, level, slot, { cut = 0, lenMin = 20, total = 6 } = {}) => {
+  const end = monday(weeksBack); end.setDate(end.getDate() + dayIdx); end.setHours(hour, 0, 0, 0);
+  const start = new Date(end.getTime() - lenMin * 60000);
+  return row(end, 'Training Camp', { completedCount: total, totalCount: total, xpEarned: 120, campLevel: level, ...(slot ? { camp: { slot, verified: true, cut, startedAt: start.toISOString() } } : {}) });
+};
+const CAMP_STAR_ROWS = () => [
+  campRowAt(8, 0, 9, 1, 'one'),
+  campRowAt(8, 2, 9, 2, 'one', { cut: 1 }),
+  campRowAt(7, 0, 9, 3, null),
+  campRowAt(6, 0, 9, 4, 's1'),
+  campRowAt(6, 0, 12, 4, 's2', { lenMin: 30 }),
+];
+// The camp seed with level 4's Session 1 replayed (every round to the bell)
+// on weekday `dayIdx` of this week at `hour` (the fixed clock is Thursday 10:00).
+const CAMP_S1_SEED = (dayIdx, hour) => () => ({
+  ...CAMP_SEED(),
+  tm_user_stats: stats([...CAMP_STAR_ROWS(), campRowAt(0, dayIdx, hour, 4, 's1'), ...history({ onTarget: 2, thisWeek: Math.min(1, todayIdx) })], 3000),
+});
 const CAMP_SEED = () => ({
-  tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats(history({ onTarget: 2, thisWeek: Math.min(1, todayIdx) }), 3000),
+  tm_user_profile: JSON.stringify(FIGHTER), tm_user_stats: stats([...CAMP_STAR_ROWS(), ...history({ onTarget: 2, thisWeek: Math.min(1, todayIdx) })], 3000),
   tm_camp_progress: '5', tm_camp_sessions: JSON.stringify({ 4: { s1: true, s2: true }, 5: { s1: true } }),
   tm_last_session_v1: JSON.stringify({ kind: 'camp', cfg: { level: 5, difficulty: 'normal', format: 'single', archetypeName: 'Pressure Fighter' }, disc: 'Boxing', at: NOW_MS - DAY }),
 });
@@ -153,6 +175,12 @@ async function nextUp(page, w) {
   await page.locator('[data-retention="next-up"] button.hm-go, button[data-retention="next-up"]').first().click({ timeout: 4000 });
   await wait(page, 2400);
 }
+// A cleared camp level's replay sheet → REPLAY → the level's own card.
+const openCampReplayCard = (level) => async (page, w) => {
+  await tapNode(`[aria-label^="Level ${level},"]`)(page, w);
+  await page.locator('[data-retention="replay-sheet"] button', { hasText: 'REPLAY' }).first().click({ timeout: 4000 });
+  await wait(page, 900);
+};
 const tapNode = (sel) => async (page, w) => {
   await continueLast(page, w);
   await page.locator(sel).first().click({ timeout: 4000 });
@@ -295,6 +323,41 @@ async function stopCampAndRetryParq(page, w) {
   await page.getByRole('button', { name: /✓ CONTINUE/ }).first().click({ timeout: 4000 });
   await wait(page, 2000);
 }
+
+// A cleared camp level replayed from the path for real, on a fake clock: its
+// replay sheet → REPLAY → the level's card (START SESSION n) → readiness →
+// gear → the warm-up skipped → every round to the bell → the end screen.
+async function replayCampLevel(page, w, level) {
+  await continueLast(page, w);
+  await page.locator(`[aria-label^="Level ${level},"]`).first().click({ timeout: 4000 }); await wait(page, 900);
+  await page.locator('[data-retention="replay-sheet"] button', { hasText: 'REPLAY' }).first().click({ timeout: 4000 }); await wait(page, 700);
+  await page.getByRole('button', { name: /▶ START/ }).first().click({ timeout: 4000 }); await wait(page, 800);
+  await page.getByRole('button', { name: /^NO$/ }).first().click({ timeout: 4000 });
+  await page.getByRole('button', { name: /CHECK IN/ }).first().click({ timeout: 4000 }); await wait(page, 800);
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 500);
+  await page.getByRole('button', { name: /CONTINUE/ }).first().click({ timeout: 4000 });
+  await runClock(page, (t) => /SKIP → START/.test(t), { max: 20 });
+  await page.getByRole('button', { name: /SKIP → START/ }).first().dispatchEvent('click', {}, { timeout: 4000 });
+  await runClock(page, (t) => /YOUR PROGRESS/.test(t), { stepMs: 2000, max: 900 });
+  await page.clock.resume();
+  await wait(page, 3000);
+}
+// The camp opened from Home after a long break: the RUSTY pop-up (POWER) is
+// put off with LATER first, then ADJUST opens the camp.
+async function campAfterBreak(page, w) {
+  await home(page, w);
+  if (await page.locator('[data-retention="rusty-card"]').count()) await rustyLater(page);
+  await page.getByRole('button', { name: /^ADJUST$/ }).first().click({ timeout: 4000 });
+  await wait(page, 2200);
+}
+// A camp athlete away `daysAgo` days, whose health check was taken 200 days
+// ago (anyYes: flagged a yes).
+const CAMP_BREAK_SEED = (daysAgo, anyYes = false) => () => ({
+  ...CAMP_SEED(),
+  tm_user_stats: stats([...CAMP_STAR_ROWS(), ...[3, 7, 10].map((k) => row(dayAgo(daysAgo + k))), row(dayAgo(daysAgo))], 3000),
+  tm_last_session_v1: JSON.stringify({ kind: 'camp', cfg: { level: 5, difficulty: 'normal', format: 'single', archetypeName: 'Pressure Fighter' }, disc: 'Boxing', at: dayAgo(daysAgo).getTime() }),
+  tm_camp_parq: JSON.stringify({ done: true, anyYes, ts: NOW_MS - 200 * DAY }),
+});
 
 const scrollTo = (sel) => async (page) => { await page.locator(sel).first().scrollIntoViewIfNeeded({ timeout: 4000 }); await page.evaluate((s) => document.querySelector(s)?.scrollIntoView({ block: 'center' }), sel); await wait(page, 400); };
 
@@ -729,15 +792,65 @@ const STATES = [
   },
   {
     name: 'f2-camp-path',
-    note: 'Training Camp as a path: levels 1-4 checked, level 5 current with S1 done, the title fight at the top.',
+    note: 'Training Camp as a path with its stars: level 1 three (every round to the bell), level 2 two (a round cut short), level 3 one (cleared before stars were kept), level 4 two; level 5 current with S1 done, the title fight at the top. Opening, the road climbs from level 1 to level 5 (with the climb sound once its file exists).',
     seed: CAMP_SEED, open: continueLast,
     check: ['[data-retention="path-map"]'], expect: /TRAINING CAMP · BOXING[\s\S]*START/,
+    stars: { 'Level 1,': '3 of 3', 'Level 2,': '2 of 3', 'Level 3,': '1 of 3', 'Level 4,': '2 of 3' },
   },
   {
     name: 'f2-camp-replay',
-    note: 'A cleared camp level\'s replay sheet: a check (camp has no stars yet), both sessions done.',
-    seed: CAMP_SEED, open: tapNode('[aria-label^="Level 4,"]'),
-    check: ['[data-retention="replay-sheet"]'], expect: /LEVEL 4 · [\s\S]*CLEARED[\s\S]*CONDITIONING/,
+    note: 'A cleared camp level\'s replay sheet: two stars (Session 2 came two and a half hours after Session 1) and what the third needs. Level 4 itself sits whole above the sheet (the owner: "make sure the model is not cut off in the bottom").',
+    seed: CAMP_SEED, open: tapNode('[aria-label^="Level 4,"]'), after: async (page) => { await wait(page, 900); },
+    check: ['[data-retention="replay-sheet"]'], expect: /LEVEL 4 · [\s\S]*CLEARED[\s\S]*CONDITIONING[\s\S]*Third star: Session 2 four to eight hours after Session 1, no round cut short\./,
+    clear: [['[data-retention="replay-sheet"]', '[aria-label^="Level 4,"]']],
+    inView: ['[aria-label^="Level 4,"]'], whole: [['[aria-label^="Level 4,"]', '[data-retention="path-map"]']],
+  },
+  {
+    name: 'f2-camp-replay-older',
+    note: 'A level cleared before camp stars were kept (its row cannot say how it went): one star, and what the second needs.',
+    seed: CAMP_SEED, open: tapNode('[aria-label^="Level 3,"]'), after: async (page) => { await wait(page, 900); },
+    check: ['[data-retention="replay-sheet"]'], expect: /LEVEL 3 · [\s\S]*CLEARED[\s\S]*Cleared before camp stars were kept\. Second star: every round done and verified\./,
+    clear: [['[data-retention="replay-sheet"]', '[aria-label^="Level 3,"]']], inView: ['[aria-label^="Level 3,"]'], whole: [['[aria-label^="Level 3,"]', '[data-retention="path-map"]']],
+  },
+  {
+    name: 'f2-camp-replay-start',
+    note: 'REPLAY on level 4 opens its own card; a replay runs as a run does, Session 1 first, and the card says so: "replay" (not "unlocks L5"), Session 1 UP NEXT, Session 2 PENDING, and "Replay: Session 1, then Session 2 four to eight hours later, for the stars." in place of "level clears at ✓✓".',
+    seed: CAMP_SEED, open: openCampReplayCard(4),
+    check: ['[data-retention="camp-card"]'], expect: /BASE[\s\S]*· replay[\s\S]*SESSION 1\s*▶ UP NEXT[\s\S]*SESSION 2\s*PENDING[\s\S]*Replay: Session 1, then Session 2 four to eight hours later, for the stars\.[\s\S]*START SESSION 1/,
+    absent: /unlocks L5|level clears|COMPLETE/,
+  },
+  {
+    name: 'f2-camp-replay-s2',
+    note: 'Level 4\'s Session 1 replayed two hours ago: REPLAY opens the card on Session 2 (Session 1 ✓ REPLAYED, Session 2 UP NEXT), and the line says Session 2 counts four to eight hours after Session 1.',
+    seed: CAMP_S1_SEED(todayIdx, 8), open: openCampReplayCard(4),
+    check: ['[data-retention="camp-card"]'], expect: /BASE[\s\S]*· replay[\s\S]*SESSION 1\s*✓ REPLAYED[\s\S]*SESSION 2\s*▶ UP NEXT[\s\S]*Replay: Session 2 four to eight hours after Session 1, for the stars\.[\s\S]*START SESSION 2/,
+    absent: /unlocks L5|level clears|COMPLETE/,
+  },
+  {
+    name: 'f2-camp-replay-lapsed',
+    note: 'Level 4\'s Session 1 replayed on Monday with no Session 2 since: more than eight hours have passed, so the run has lapsed. The sheet asks for the third star again (not "Session 1 replayed") and REPLAY opens Session 1, not a Session 2 that could earn two stars at most.',
+    seed: CAMP_S1_SEED(0, 9), open: async (page, w) => {
+      await tapNode('[aria-label^="Level 4,"]')(page, w);
+      const t = await page.locator('[data-retention="replay-sheet"]').first().innerText();
+      if (!/Third star: Session 2 four to eight hours after Session 1/.test(t) || /Session 1 replayed/.test(t)) throw new Error(`the sheet still counts on the lapsed Session 1: ${t}`);
+      await page.locator('[data-retention="replay-sheet"] button', { hasText: 'REPLAY' }).first().click({ timeout: 4000 }); await wait(page, 900);
+    },
+    check: ['[data-retention="camp-card"]'], expect: /BASE[\s\S]*SESSION 1\s*▶ UP NEXT[\s\S]*Replay: Session 1, then Session 2 four to eight hours later, for the stars\.[\s\S]*START SESSION 1/,
+    absent: /REPLAYED|START SESSION 2|unlocks L5|level clears/,
+  },
+  {
+    name: 'f2-camp-end-stars',
+    note: 'Level 2 (two stars) replayed for real on a fake clock, every round to the bell: the end screen\'s LEVEL STARS row, now three of three, landing.',
+    clock: true, once: true,
+    seed: CAMP_SEED, open: (page, w) => replayCampLevel(page, w, 2), after: scrollTo('[data-retention="stage-stars"]'),
+    check: ['[data-retention="stage-stars"]'], expect: /LEVEL 2 CLEAR[\s\S]*LEVEL STARS · 3 OF 3[\s\S]*All three stars\./,
+  },
+  {
+    name: 'f2-camp-end-s1',
+    note: 'Level 4\'s replay starts with Session 1 (fake clock, every round to the bell): its end screen says SESSION 1 COMPLETE (not LEVEL 4 CLEAR), and the stars row says when Session 2 counts for the third star.',
+    clock: true, once: true,
+    seed: CAMP_SEED, open: (page, w) => replayCampLevel(page, w, 4), after: scrollTo('[data-retention="stage-stars"]'),
+    check: ['[data-retention="stage-stars"]'], expect: /SESSION 1 COMPLETE[\s\S]*LEVEL STARS · 2 OF 3[\s\S]*Session 2 four to eight hours from now, no round cut short: all three stars\./, absent: /LEVEL 4 CLEAR/,
   },
   {
     name: 'f2-camp-next-up',
@@ -802,6 +915,24 @@ const STATES = [
     check: ['[data-retention="path-map"]'], expect: /VOLUME[\s\S]*START SESSION 1/, absent: /HEALTH CHECK/,
   },
   {
+    name: 'f3-camp-parq-break',
+    note: 'The health check after a long break: away 35 days (past the RUSTY line), the check taken long ago and nothing flagged. Opening the camp asks it again, saying why.',
+    seed: CAMP_BREAK_SEED(35), open: campAfterBreak,
+    check: ['div[style*="z-index: 60"]'], expect: /HEALTH CHECK[\s\S]*Welcome back\. After a long break, a quick check before you train again\./,
+  },
+  {
+    name: 'f3-camp-parq-recent',
+    note: 'Away 10 days, the check taken long ago: no health check (asked once at the start, and again only after a long break). The camp opens on its path.',
+    seed: CAMP_BREAK_SEED(10), open: campAfterBreak,
+    check: ['[data-retention="path-map"]'], expect: /TRAINING CAMP · BOXING/, absent: /HEALTH CHECK/,
+  },
+  {
+    name: 'f3-camp-parq-flagged',
+    note: 'Away 35 days, but the saved answers flagged a yes: as before, no new check, and the camp keeps its EASY RECOMMENDED advice and Easy default.',
+    seed: CAMP_BREAK_SEED(35, true), open: campAfterBreak,
+    check: ['[data-retention="path-map"]'], expect: /EASY RECOMMENDED/, absent: /HEALTH CHECK/,
+  },
+  {
     name: 'f3-gallery',
     note: 'The design gallery (/retention-looks), feature 3: the real panel and the real classic stage screens (third star, no replay today: the gap over the next stage with no come-back line, partial) with sample data.',
     seed: () => ({}),
@@ -819,7 +950,7 @@ const STATES = [
 
 // ── the checks ─────────────────────────────────────────────────────────────
 // Runs in the page. Returns { fails: [...], warns: [...] }.
-function measure({ checkSelectors, apart, clear, inView = [], oneLine = [] }) {
+function measure({ checkSelectors, apart, clear, inView = [], oneLine = [], whole = [] }) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const fails = [], warns = [];
@@ -897,6 +1028,13 @@ function measure({ checkSelectors, apart, clear, inView = [], oneLine = [] }) {
       if (r.top < -1 || r.left < -1 || r.bottom > vh + 1 || r.right > vw + 1) fails.push(`not all on screen: ${name(el)} (${Math.round(r.top)}..${Math.round(r.bottom)} of ${vh})`);
     }
   }
+  // Whole inside a box (a path's node inside the path's box, past its faded edges).
+  for (const [a, b] of whole) {
+    const ea = [...document.querySelectorAll(a)].find(shown), eb = [...document.querySelectorAll(b)].find(shown);
+    if (!ea || !eb) { fails.push(`${!ea ? a : b} is not on screen`); continue; }
+    const ra = ea.getBoundingClientRect(), rb = eb.getBoundingClientRect();
+    if (ra.top < rb.top + 20 || ra.bottom > rb.bottom - 1 || ra.left < rb.left - 1 || ra.right > rb.right + 1) fails.push(`not whole inside ${b}: ${name(ea)} (${Math.round(ra.top)}..${Math.round(ra.bottom)} of ${Math.round(rb.top)}..${Math.round(rb.bottom)})`);
+  }
   // A text kept on one line (a long rank name: it may sit under the level, but never breaks in two).
   for (const sel of oneLine) {
     const els = [...document.querySelectorAll(sel)].filter(shown);
@@ -927,7 +1065,12 @@ for (const st of STATES) {
     if (st.after) await st.after(page);
     await wait(page, 600);
     const t = await page.evaluate(() => document.body.innerText);
-    const res = await page.evaluate(measure, { checkSelectors: st.check || [], apart: st.apart || [], clear: st.clear || [], inView: st.inView || [], oneLine: st.oneLine || [] });
+    const res = await page.evaluate(measure, { checkSelectors: st.check || [], apart: st.apart || [], clear: st.clear || [], inView: st.inView || [], oneLine: st.oneLine || [], whole: st.whole || [] });
+    // Stars a node must say it holds (its aria-label: "Level 2, cleared, 2 of 3 stars").
+    for (const [pre, want] of Object.entries(st.stars || {})) {
+      const lab = await page.locator(`[aria-label^="${pre}"]`).first().getAttribute('aria-label', { timeout: 2000 }).catch(() => null);
+      if (!lab || !lab.includes(want)) res.fails.push(`${pre} should hold ${want} stars (it reads: ${lab})`);
+    }
     if (st.expect && !st.expect.test(t)) res.fails.unshift(`expected ${st.expect} on screen`);
     if (st.absent && st.absent.test(t)) res.fails.unshift(`not expected on screen: ${st.absent} (${t.match(st.absent)[0]})`);
     const file = path.join(OUT, `${st.name}-${w}.png`);

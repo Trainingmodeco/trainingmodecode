@@ -80,6 +80,9 @@ export default function CampFitRunner({ cfg, onEnd, initialPaused, onStateChange
   const [countdown, setCountdown] = useState(initialResumeData ? null : '3');
   const [done, setDone] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
+  // Rounds cut short with SKIP while the work still ran (the camp's third star
+  // asks for none; data/campStars). Reported with the result, kept on a restore.
+  const cutRef = useRef(Math.max(0, Math.floor(Number(initialResumeData?.cut)) || 0));
 
   // Floating mini-player (shared/miniPlayer): the round is the position. Reads
   // only consts declared above this line - see the trap in PROMPT MP-2.
@@ -117,7 +120,7 @@ export default function CampFitRunner({ cfg, onEnd, initialPaused, onStateChange
   // Report the clock upward so App.jsx can stash it. This is what makes the
   // block resumable at all — the snapshot is only as good as what it is told.
   useEffect(() => {
-    if (typeof onStateChange === 'function') onStateChange({ phase, roundIdx, remaining });
+    if (typeof onStateChange === 'function') onStateChange({ phase, roundIdx, remaining, cut: cutRef.current });
   }, [phase, roundIdx, remaining, onStateChange]);
 
   // Intro: 3-2-1-GO once, then round 1 runs. A restored session is already
@@ -187,7 +190,7 @@ export default function CampFitRunner({ cfg, onEnd, initialPaused, onStateChange
         setDone(true);
         const ir = integrity.finalize({});
         later(() => say(flavored ? packLine(packId, 'done') : 'Work done. Recover well.'), 300);
-        later(() => { stopVoiceSession({ graceful: true }); onEnd(rounds, cfg, total, ir); }, 1300); // the closing line runs on (voice audit FIT-05)
+        later(() => { stopVoiceSession({ graceful: true }); onEnd(rounds, cfg, total, ir, { cut: cutRef.current }); }, 1300); // the closing line runs on (voice audit FIT-05)
       } else {
         playBell(2);
         setPhase('rest');
@@ -222,6 +225,7 @@ export default function CampFitRunner({ cfg, onEnd, initialPaused, onStateChange
   const handleSkip = () => {
     cancelSpeech();
     beepRef.current = null;
+    if (phase === 'work' && remaining > 0) cutRef.current += 1;
     if (roundIdx + 1 < total) {
       integrity.completeUnit();
       integrity.startUnit('circuit');
@@ -231,7 +235,7 @@ export default function CampFitRunner({ cfg, onEnd, initialPaused, onStateChange
     } else {
       const ir = integrity.finalize({});
       stopVoiceSession();
-      onEnd(rounds, cfg, total, ir);
+      onEnd(rounds, cfg, total, ir, { cut: cutRef.current });
     }
   };
 
@@ -239,7 +243,7 @@ export default function CampFitRunner({ cfg, onEnd, initialPaused, onStateChange
     stopVoiceSession();
     const completed = Math.min(phase === 'rest' ? roundIdx + 1 : roundIdx, total);
     const ir = integrity.finalize({});
-    onEnd(rounds, cfg, completed, ir);
+    onEnd(rounds, cfg, completed, ir, { cut: cutRef.current });
   };
 
   const maxTime = phase === 'rest' ? restSecFor(roundIdx) : roundSecFor(roundIdx);

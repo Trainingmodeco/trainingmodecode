@@ -273,7 +273,7 @@ screens, storage writes and XP are the same as before (checked, below).
 - **Multi-path sagas start on NORMAL** (difficulty is not offered when a saga has paths), and Martial Monster's
   FULL ARC is not mapped, so it has 2 paths and 2 stars.
 
-### Proposed camp star rule (not built)
+### Proposed camp star rule (built 2026-11-23: the owner chose "Build the camp stars"; see "The owner's camp answers" at the end)
 
 Training Camp has no star, grade or best result stored. A proposal that rewards finishing well, not training harder
 than the readiness check advises:
@@ -1094,3 +1094,151 @@ on with the owner preview); with it off, the screens, storage, share card and re
   come-back reminder's day-streak case shows) and a fixed clock: Home, Profile, the Level page, Progress, a 1-round Fight
   Focus played to its end screen, the share card sheet (and the hash of the rendered card image), and storage after.
   The same DOM, the same card image and the same storage, apart from the new row's id and time.
+
+## The owner's camp answers (2026-11-23)
+
+From the preview board: `q-campstars` = **build**, and the notes on `f2-camp-replay`, `f3-camp-retry-parq` and
+`f2-camp-path`. Photos: `retention-preview.mjs` states `f2-camp-path`, `f2-camp-replay`, `f2-camp-replay-older`,
+`f2-camp-replay-start`, `f2-camp-end-stars`, `f2-camp-end-s1`, `f3-camp-parq-break`, `f3-camp-parq-recent`,
+`f3-camp-parq-flagged` (and the old `f3-camp-retry-parq` for the first time), and after the review
+`f2-camp-replay-s2` and `f2-camp-replay-lapsed`. Tests: `npm run test:camp` (`scripts/test-camp-stars.mjs`, 90 checks,
+in `check:all`).
+
+### 1. Camp stars (switch `path`)
+
+The owner chose the proposed rule. Built as `data/campStars.js`, a pure function of the session rows (recomputed each
+time, nothing stored but the rows):
+
+- ★ the level cleared (the camp's own record, `tm_camp_progress` / `tm_camp_complete`): every clear, old or new.
+- ★★ every round of the level done and verified (the end screen's "All rounds verified"), both sessions on a split level.
+- ★★★ done the camp's way: no round cut short (SKIP ROUND, or FINISH before the bell), and on a split level Session 2
+  started four to eight hours after Session 1 ended (the camp's "Leave 4-8 hours between missions"; 4:00 and 8:00 count).
+  A FULL CAMP sitting runs both blocks at once, so it tops out at ★★.
+- Best of the level's runs; a split run is a done Session 2 after the latest done Session 1 (each S1 pairs once).
+
+**What the rows record, and what was added.** A camp row had type, `campLevel`, done/total and its end time. It did not
+say which session it was, whether every round was verified, whether a round was cut short, or when the session
+started; and an arcade v2 stage banks the same row type with its stage number as `campLevel`, so an old row cannot
+even be told apart from an arcade stage. From this build each **camp** row carries
+`camp: { slot: 's1'|'s2'|'one', verified, cut, startedAt }` (App `goCampComplete` / `goCampFullComplete` through
+`userStats.addCampSession`'s new `meta`; arcade rows are unchanged). `cut` is counted by the round timer
+(`FightFocusTimer`, kept across a restore in its carry) and the conditioning runner (`CampFitRunner`, kept in its
+snapshot); `startedAt` is set when the camp session starts (`goCampSession`, kept with the paused session).
+**Older clears can only earn what their rows show: one star (the clear).** A replay can earn the rest.
+
+Where it shows (switch on): the camp path's cleared levels show their stars of 3 in place of the check (a cleared split
+level drops its S1/S2 pips: both are done); the replay sheet shows the best stars and one line for the next star
+("Third star: Session 2 four to eight hours after Session 1, no round cut short." · "Cleared before camp stars were
+kept. Second star: every round done and verified."); the camp end screen gets the sagas' small stars row,
+`LEVEL STARS · n OF 3`, landing with the star tones, on a valid session of a cleared level. The camp's ? guide has one
+more step, ★ LEVEL STARS (`SCREEN_GUIDES.training_camp_stars`). The gallery's camp card and a new camp replay card use
+the real components. Switch off: the check marks, the sheet's old line and the end screen as before.
+
+**Replays of a split level run as a run does (switch on).** Before, a cleared split level's card only offered
+SESSION 2 (both sessions were ticked), so a replay could never run Session 1 and the third star could never be earned.
+Now its START is SESSION 1, then SESSION 2 while that replayed Session 1 waits for it (`campReplaySlot`, from the
+rows). The replayed Session 1 ends on SESSION 1 COMPLETE · "S2 tonight — leave 4–8 h" (the first-time copy), not
+LEVEL n CLEAR, and its stars row says "Session 2 four to eight hours from now, no round cut short: all three stars."
+
+Plainly, for the owner: the camp already refuses to clear a level unless every round of its sessions was done and
+verified (since the camp first became playable), so **every clear from now on holds at least ★★**; ★ alone marks a
+clear made before this build. The title fight's "good form" is not measured anywhere (its cfg carries `formGated`,
+which nothing reads), so its third star asks what is recorded: every round to the bell.
+
+### 2. The replayed level stays whole above its sheet (f2-camp-replay)
+
+The owner's note: "make sure the model is not cut off in the bottom". There is no fighter art on that screen; what was
+cut at the bottom was the level's own node (at 430 px the "4" sat half under the sheet, at 360 px it was hidden). Now
+the sheet reports its height (`ReplaySheet` `onSize`) and the path keeps the tapped level, with its stars, whole above
+it (`PathMap` `reveal`: the road gets the sheet's height of room below and scrolls the node up, smoothly, at once with
+reduced motion). Camp only: the sagas' replay sheets were marked "Perfect" and are unchanged. The preview checks that
+the node is inside the path's box and clear of the sheet at 360, 390 and 430 (`whole`, `clear`).
+
+### 3. The health check: once at the start, and again after a long break (changes for everyone)
+
+The owner's note on `f3-camp-retry-parq`: "Just do once in the beginning or after a long hiatus". The PAR-Q (HEALTH
+CHECK, six yes/no questions) was already asked once only (the first camp entry, or in onboarding); that photo showed it
+because the preview state wipes the saved answers to show the first time. The change, small and for everyone since it
+is an existing flow: the camp now also asks it again after a long break (`parq.parqDue`): when both the last training
+day and the check itself are 30 or more days ago (the RUSTY line, `power.RUSTY_DAYS`; local calendar days, the week
+streak's training-day rule, so award rows do not count). The re-ask says why: "Welcome back. After a long break, a
+quick check before you train again." **Safety first:** an athlete whose answers flagged a yes keeps exactly what they
+had: the EASY RECOMMENDED advice and the Easy default on every visit, never re-asked. The arcade and onboarding keep
+their one-time check. The daily READINESS CHECK (sleep, energy, soreness, stress, mood and the danger question, before
+every camp session) is a different sheet and is unchanged.
+
+### 4. A low climb sound on the camp path (f2-camp-path)
+
+The owner's suggestion: "add a low-end climb sound". The app's sound effects are Web Audio cues in
+`data/audioEngine.js` (the bell is the only file, `public/audio/boxing-bell-signals.mp3`; the beeps, riser, star tones,
+power-down and extra-life are synthesised), all following the master volume. None fits a low, soft climb (the riser is a
+bright 200 to 900 Hz sawtooth), so no audio was made up. Built: the camp path now climbs when the camp opens (the road
+starts at level 1 and glides up to the current level in 0.9 s, ease-out, once per open; a touch stops it; with reduced
+motion, or when the health check opens first, it opens on the current level as before, with no sound), and as it starts it calls the hook
+`audioEngine.playCampClimb()`, which plays `public/audio/camp-climb.mp3` once that file exists (master volume and the
+sound-effects level apply; at 0 it plays nothing; the file is looked for once per visit and a missing one is never tried
+again). Until the file is added it is silent.
+
+**The sound file needed** (drop it in and it plays, no code change):
+- Path: `public/audio/camp-climb.mp3`.
+- Length: 0.8 to 1.0 s (the glide is 0.9 s), with the sound's peak about two thirds in and a soft tail ending by 1.0 s.
+- Feel: low and soft, a rising swell rather than a melody: a low rumble or whoosh climbing about an octave (body
+  around 80 to 200 Hz, a little air on top), soft attack with no click, no bell or chime. It sits under the coach
+  and the bells (played at half the bell's level).
+- Format: mp3, mono, 44.1 or 48 kHz, 128 kbps; peak at -3 dBFS, no silence at the start.
+
+### Decisions (each easy to change)
+
+- **The camp facts are recorded on every camp row from now on, for everyone** (not behind the switch), so the stars at
+  launch reflect the clears made between now and then. They are extra fields on the row and change nothing anyone sees
+  or earns; putting them behind the switch is one condition in `App.goCampComplete`.
+- **A FULL CAMP sitting tops out at ★★** (the camp asks for four to eight hours between the sessions).
+- **The replay order on a cleared split level** (Session 1, then Session 2) and the replayed Session 1's own end screen
+  are behind the switch.
+- **The climb glide** is new motion on a screen the owner called "Perfect": it shows the climb the sound goes with. It
+  plays once per open; with reduced motion there is none.
+
+### Checked
+
+- `test:camp` 76 (the rule per level kind, the 4 h and 8 h edges, cut rounds, unverified and stopped sessions, FULL
+  CAMP, older rows and arcade rows ignored, best run, the replay order, the lines, the path's nodes, the end screen's row
+  from the real stores, the row a camp session banks, the timer's carry, the guide, the health check's first time, break,
+  recent check, flagged yes, award rows and local days), `test:path` 96, `test:xp` 121, `test:nearmiss` 76,
+  `test:streak` 185, `test:power` 89, `test:missions` 217, `test:levels` 183, `test:concepts` 180, `test:voice`,
+  `test:spoken` 155, `voice:coverage` (0 missing: no new spoken line; the stars are tones), `check-guides`, eslint on
+  every changed file, `tsc`.
+- `retention-preview.mjs` at 360, 390 and 430 on port 8083: the states above fit (no overflow, no cut text), and each
+  photo was looked at.
+
+### Review fixes (2026-11-23)
+
+- **A replayed Session 1 waits eight hours, no longer** (B1). Before, a replayed Session 1 with no Session 2 after it
+  stayed "waiting" for good: every later REPLAY of that level opened Session 2, even weeks later, when Session 2 could
+  only earn two stars, and a fresh run could not start until a Session 2 was done. Now `campStars.pendingSession1`
+  lets it lapse once more than eight hours (`S2_GAP_MAX_MS`) have passed since it ended (8:00 still counts), so a
+  replay opens Session 1 again. The same rule (`now`, default the clock) feeds `campReplaySlot` (the card's START),
+  `campLevelStars().pending` (the replay sheet's "Session 1 replayed: …" line, which falls back to the third star's
+  need) and the end screen's line (`pathNextUp.campSessionEndStars`). The stars themselves are unchanged (best run).
+- **The level card says what a replay runs** (B5). On a replay with the path on, the card read "unlocks L5", both
+  sessions ✓ COMPLETE, "level clears at ✓✓" and START SESSION 1. Now (`TrainingCampMap`, `campStars.campReplayCard`):
+  the subtitle ends "· replay" (any cleared level, single and title too); a split level's tiles show the replay's own
+  run (Session 1 ▶ UP NEXT and Session 2 PENDING, or Session 1 ✓ REPLAYED and Session 2 ▶ UP NEXT); and the line under
+  them reads "Replay: Session 1, then Session 2 four to eight hours later, for the stars." or "Replay: Session 2 four
+  to eight hours after Session 1, for the stars." (with FULL CAMP picked, in the rare case a cleared level has no
+  session ticks: "Replay: both blocks back-to-back, two stars at most."). Switch off, and the current level's card:
+  as before. The card now carries `data-retention="camp-card"` so the preview checks its text for cuts.
+- Photos: `f2-camp-replay-start` (Session 1 next), `f2-camp-replay-s2` (Session 1 replayed two hours ago),
+  `f2-camp-replay-lapsed` (Session 1 replayed on Monday: the sheet asks for the third star again, START SESSION 1), at
+  360, 390 and 430; `f2-camp-replay`, `-older`, `-path`, `-end-stars`, `-end-s1`, `-next-up` re-shot. Tests: `test:camp`
+  90 (the 8 h edge, weeks later, the sheet's and end screen's lines after a lapse, a new run after a lapse, the card's
+  tiles and lines). No spoken line changed.
+
+### Needs the owner's answer
+
+1. **★★ is in effect every new clear** (the camp only clears a level when every round was done and verified). Keep the
+   rule as chosen, or make ★★ "every round to the bell" and ★★★ the four-to-eight-hour gap (and the title fight's form,
+   once it is measured)?
+2. **Recording for everyone from now on** (above): keep, or only on the owner's phone until launch?
+3. **The climb sound file** (above): make or pick one, or drop the idea (the glide stays either way, or can go too).
+4. **The daily READINESS CHECK** before every camp session is unchanged. If the note on the health check meant that one
+   too, say so: it holds the danger-symptom question, so the suggestion would be once a day rather than once a camp.

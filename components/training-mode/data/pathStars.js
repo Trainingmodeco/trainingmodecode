@@ -8,7 +8,8 @@
 //   v2, several paths      one star per path available (FIT / FIGHT / BOTH)
 //   v2, one path           1 (a clear)
 //   concept saga           one star per arc cleared (FIT / FIGHT / BOTH)
-//   Training Camp          no star rule: a check mark on a cleared level
+//   Training Camp          3 per level (data/campStars, from the session rows);
+//                          without them (campPath with no `stars`), a check mark
 import { getStarTiersForStage } from './trainingArcadeData';
 
 export const PATH_LABEL = { fit: 'FIT', fight: 'FIGHT', both: 'BOTH' };
@@ -153,22 +154,36 @@ export function sagaPath(series, progress, stateOf) {
 }
 
 // Training Camp's path: the 12 levels, S1/S2 pips under the split ones, the
-// title fight (level 12) as the boss. No stars: a cleared level shows a check.
+// title fight (level 12) as the boss.
 //   levels: protocol camp-levels; current: the cursor 1..12; campDone: the
 //   title fight is won; sessions: tm_camp_sessions { [level]: { s1, s2 } }
-export function campPath({ levels = [], current = 1, campDone = false, sessions = {} }) {
+//   stars: { [level]: 1..3 } for the cleared levels (data/campStars
+//   campStarsMap). With it a cleared level shows its stars, out of 3 (its
+//   pips go: a cleared level has both sessions); without it, a check.
+export function campPath({ levels = [], current = 1, campDone = false, sessions = {}, stars = null }) {
+  let earned = 0;
   const nodes = [...levels].sort((a, b) => a.level - b.level).map((lv, i) => {
     const cleared = lv.level < current || (campDone && lv.level >= current);
     const state = cleared ? 'cleared' : lv.level === current ? 'current' : 'locked';
     const split = lv.session_pattern === 'split_or_full';
     const s = sessions?.[lv.level] || {};
+    if (stars) {
+      const n = cleared ? Math.max(1, Math.min(3, Math.round(Number(stars[lv.level]) || 1))) : 0;
+      earned += n;
+      return {
+        id: `camp-${lv.level}`, index: i, number: lv.level, title: lv.title || '', phase: lv.phase, phaseLabel: lv.phase_label,
+        state, boss: lv.phase === 'final_boss', stars: n, max: 3, check: false,
+        pips: split && !cleared ? { s1: !!s.s1, s2: !!s.s2 } : null,
+      };
+    }
     return {
       id: `camp-${lv.level}`, index: i, number: lv.level, title: lv.title || '', phase: lv.phase, phaseLabel: lv.phase_label,
       state, boss: lv.phase === 'final_boss', stars: null, max: 0, check: cleared,
       pips: split ? { s1: cleared || !!s.s1, s2: cleared || !!s.s2 } : null,
     };
   });
-  return { nodes, current: nodes.findIndex((n) => n.state === 'current'), earned: 0, total: 0, hasStars: false, allCleared: nodes.length > 0 && nodes.every((n) => n.state === 'cleared') };
+  const total = stars ? nodes.length * 3 : 0;
+  return { nodes, current: nodes.findIndex((n) => n.state === 'current'), earned, total, hasStars: !!stars, allCleared: nodes.length > 0 && nodes.every((n) => n.state === 'cleared') };
 }
 
 const titleCase = (s) => String(s || '').toLowerCase().replace(/(^|[\s(/-])([a-z])/g, (m, a, b) => a + b.toUpperCase());

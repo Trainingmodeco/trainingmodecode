@@ -192,6 +192,9 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
   const lastVerdictThrownRef = useRef(0);
   const pausesThisRoundRef = useRef(0);
   const cleanRoundsRef = useRef(carry.clean);
+  // Rounds cut short: SKIP ROUND or FINISH tapped while a round still ran (the
+  // camp's third star asks for none; data/campStars). A count, nothing more.
+  const cutRoundsRef = useRef(carry.cut);
   const verdictRoundStrikesRef = useRef([...carry.perRound]);
   const verdictRoundStartRef = useRef(carry.roundStart);
   // The restored round keeps the strike mark it started from; later rounds reset.
@@ -236,6 +239,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
     rush: rushSummary(rushTallyRef.current, verdictTier),
     cleanRounds: cleanRoundsRef.current, cleanRoundXp: cleanRoundXp(cleanRoundsRef.current),
     strongFinish: strongFinishRef.current,
+    cut: cutRoundsRef.current,
   });
 
   useEffect(() => {
@@ -244,7 +248,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
         phase, roundIdx, remaining, sessionElapsed, rounds: cfg.blockRounds?.length ? undefined : rounds,
         carry: {
           valid: integrity.validCount(), thrown: thrownRef.current, roundStart: verdictRoundStartRef.current,
-          clean: cleanRoundsRef.current, perRound: verdictRoundStrikesRef.current,
+          clean: cleanRoundsRef.current, perRound: verdictRoundStrikesRef.current, cut: cutRoundsRef.current,
         },
       });
     }
@@ -695,6 +699,7 @@ export default function FightFocusTimer({ discipline, cfg, onEnd, initialPaused,
 
   const handleNext = () => {
     cancelSpeech();
+    if (phase === 'round' && remaining > 0) cutRoundsRef.current += 1;
     roundVersion.current++;
     const actionResult = integrity.recordAction('next');
     if (actionResult.suspicious) {

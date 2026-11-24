@@ -19,9 +19,23 @@ import { ARC, RETENTION_CSS } from './tokens';
 //   unit:  the word on the current node ('STAGE' | 'LEVEL'); bossLabel: 'BOSS' | 'TITLE'
 //   nodeClass: a class on each node's button (the saga keeps its ladder's
 //          `ladder-node`, so what finds a stage node still finds it)
+//   climb: on open, the road glides up from the first node to the one it opens
+//          on (once; never with reduced motion), and onClimb() is called as it
+//          starts (the camp plays its climb sound there)
+//   reveal: { index, room } keeps node `index` (with its stars or pips) whole
+//          above the bottom `room` px of the box, where a sheet covers it (the
+//          camp's replay sheet): the road gets that much more room below and
+//          scrolls the node up into view
 
 const SIZE = PATH_SIZE;
 const FADE = 'linear-gradient(to bottom, transparent 0, #000 22px, #000 calc(100% - 22px), transparent 100%)';
+const FADE_PX = 22;
+const CLIMB_MS = 900;       // the glide up to the current node
+const CLIMB_MIN = 60;       // shorter than this, the road just opens there
+const REVEAL_PAD = 10;      // clear room around a revealed node
+const reducedMotion = () => {
+  try { return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
+};
 
 // The label under a node (its stars or its pips) sits on one solid backdrop.
 const LABEL_BG = '#0d0418';
@@ -99,10 +113,14 @@ function hintTop(pts, i, size, sizeOf, h, height) {
   return under;
 }
 
-export default function PathMap({ nodes = [], onPick, unit = 'STAGE', bossLabel = 'BOSS', focus, dim = false, nodeClass, hint = null, style }) {
+export default function PathMap({ nodes = [], onPick, unit = 'STAGE', bossLabel = 'BOSS', focus, dim = false, nodeClass, hint = null, climb = false, onClimb, reveal = null, style }) {
   const boxRef = useRef(null);
   const [width, setWidth] = useState(0);
   const scrolled = useRef(false);
+  // The glide under way (climb), stopped by a touch, a reveal or unmount.
+  const glideRef = useRef(null);
+  const stopGlide = () => { const g = glideRef.current; if (g) { cancelAnimationFrame(g.raf); clearTimeout(g.safety); glideRef.current = null; } };
+  useEffect(() => stopGlide, []);
   // Each label's real size (fonts differ by phone), so it can hang clear of
   // the road (pathLabelLeft). Measured before paint, again once fonts load.
   const labelEls = useRef([]);
@@ -153,19 +171,65 @@ export default function PathMap({ nodes = [], onPick, unit = 'STAGE', bossLabel 
   nodes.forEach((n, i) => { if (n.state === 'cleared') lastCleared = i; });
   const at = Number.isInteger(focus) && focus >= 0 ? focus : cur >= 0 ? cur : Math.max(0, lastCleared);
 
-  // Opens scrolled to that node, once its width is known.
+  // Opens scrolled to that node, once its width is known. With `climb`, the
+  // road first shows its foot and glides up to it (ease-out), once.
   useEffect(() => {
     const el = boxRef.current;
     if (!el || !width || scrolled.current || !pts[at]) return;
     scrolled.current = true;
-    el.scrollTop = Math.max(0, pts[at].y - el.clientHeight / 2);
-  }, [width, at, pts]);
+    const target = Math.min(Math.max(0, pts[at].y - el.clientHeight / 2), Math.max(0, el.scrollHeight - el.clientHeight));
+    const foot = Math.max(0, el.scrollHeight - el.clientHeight);
+    if (!climb || reducedMotion() || foot - target < CLIMB_MIN || typeof requestAnimationFrame !== 'function') {
+      el.scrollTop = target;
+      return;
+    }
+    el.scrollTop = foot;
+    const t0 = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    const g = { raf: 0, safety: 0 };
+    const step = (t) => {
+      const k = Math.min(1, Math.max(0, (t - t0) / CLIMB_MS));
+      el.scrollTop = foot + (target - foot) * (1 - (1 - k) ** 3);
+      if (k < 1) g.raf = requestAnimationFrame(step);
+      else stopGlide();
+    };
+    g.raf = requestAnimationFrame(step);
+    // A frame clock that stalls (a tab in the background) still lands there.
+    g.safety = setTimeout(() => { if (glideRef.current === g) { el.scrollTop = target; stopGlide(); } }, CLIMB_MS + 600);
+    glideRef.current = g;
+    const stop = () => stopGlide();
+    el.addEventListener('touchstart', stop, { passive: true, once: true });
+    el.addEventListener('wheel', stop, { passive: true, once: true });
+    onClimb?.();
+  }, [width, at, pts]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The road: dashed ahead, gold up to the current node (or the last cleared).
   const reach = cur >= 0 ? cur : lastCleared;
   const line = (list) => list.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
   const sizeOf = (i) => (nodes[i]?.boss ? SIZE.boss : nodes[i]?.state === 'current' ? SIZE.current : SIZE.node);
   const hintAt = hint && Number.isInteger(hint.index) && pts[hint.index] ? hint.index : -1;
+
+  // A revealed node (under a sheet): its whole node and label above the
+  // covered part, its top clear of the box's top fade; the road gets the
+  // covered room below it so the first node can rise that far too.
+  const revealAt = reveal && Number.isInteger(reveal.index) && pts[reveal.index] ? reveal.index : -1;
+  const room = revealAt >= 0 ? Math.max(0, Math.round(Number(reveal.room) || 0)) : 0;
+  const revealLabelH = revealAt >= 0 ? (labelSize[revealAt]?.h || 0) : 0;
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el || revealAt < 0 || !width) return;
+    stopGlide();
+    const p = pts[revealAt];
+    const size = sizeOf(revealAt);
+    const top = p.y - size / 2 - REVEAL_PAD;
+    const bottom = p.y + size / 2 + (revealLabelH ? PATH_LABEL_GAP + revealLabelH : 0) + REVEAL_PAD;
+    const visible = el.clientHeight - room;
+    let t = bottom - visible;
+    if (top - t < FADE_PX) t = top - FADE_PX;
+    t = Math.max(0, Math.min(t, el.scrollHeight - el.clientHeight));
+    if (Math.abs(el.scrollTop - t) < 2) return;
+    if (reducedMotion() || typeof el.scrollTo !== 'function') el.scrollTop = t;
+    else el.scrollTo({ top: t, behavior: 'smooth' });
+  }, [revealAt, room, revealLabelH, width]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div ref={boxRef} data-retention="path-map" className="no-scrollbar rt-anim" style={{
@@ -175,7 +239,7 @@ export default function PathMap({ nodes = [], onPick, unit = 'STAGE', bossLabel 
     }}>
       <style dangerouslySetInnerHTML={{ __html: RETENTION_CSS }}/>
       {width > 0 && (
-        <div style={{ position: 'relative', width: '100%', height, filter: dim ? 'brightness(0.45)' : 'none', transition: 'filter .2s ease' }}>
+        <div style={{ position: 'relative', width: '100%', height: height + room, filter: dim ? 'brightness(0.45)' : 'none', transition: 'filter .2s ease' }}>
           <svg width={width} height={height} aria-hidden style={{ position: 'absolute', left: 0, top: 0, pointerEvents: 'none' }}>
             <polyline points={line(pts)} fill="none" stroke="rgba(168,85,247,0.32)" strokeWidth="6" strokeDasharray="2 12" strokeLinecap="round"/>
             {reach > 0 && <polyline points={line(pts.slice(0, reach + 1))} fill="none" stroke="rgba(253,224,71,0.7)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>}

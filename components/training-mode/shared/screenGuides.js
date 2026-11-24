@@ -359,6 +359,18 @@ const withPower = (steps) => {
 SCREEN_GUIDES.home_power = withPower(SCREEN_GUIDES.home);
 SCREEN_GUIDES.home_weeks_power = withPower(SCREEN_GUIDES.home_weeks);
 
+// Training Camp with the path's stars (data/retentionFlags `path`): one
+// centred step after the belt's, the owner's star rule in plain words
+// (data/campStars). Switch off: the camp's guide as before.
+SCREEN_GUIDES.training_camp_stars = [
+  ...SCREEN_GUIDES.training_camp,
+  {
+    target: null,
+    title: '★ LEVEL STARS',
+    body: 'Each cleared level earns up to three stars. ★ for the clear. ★★ when every round is done and verified. ★★★ for doing it the camp\'s way: every round to the bell, none cut short, and on a two-a-day level Session 2 four to eight hours after Session 1. Tap a cleared level to see its stars and what the next one needs; a replay keeps your best.',
+  },
+];
+
 // Home's "?" for the switches that are on (each switch off: as before).
 export const homeGuide = ({ weeks = false, power = false } = {}) => (
   weeks ? (power ? SCREEN_GUIDES.home_weeks_power : SCREEN_GUIDES.home_weeks)

@@ -11,6 +11,8 @@ import { conceptSaga, conceptSagaProgress, retiredSagaIds } from './concepts/sag
 import { loadCampProgress, isCampComplete } from './campProgress';
 import { loadCampSessions } from './campSessions';
 import { campLevels } from '../protocol/content';
+import { loadStats } from './userStats';
+import { campLevelStars, campKind, campEndStars } from './campStars';
 
 const seriesFor = ({ seriesId, conceptId }) => {
   if (conceptId) return conceptSaga(conceptId);
@@ -82,4 +84,23 @@ function endStars(series, stage, entry) {
   const info = stageStars(series, stage, entry);
   if (!info.cleared || !info.max || info.stars == null) return null;
   return { stars: info.stars, max: info.max, line: endStarsLine(info) };
+}
+
+// The camp's end screen (camp_complete, not an arcade stage): the level's
+// stars from the session rows, banked just before this screen, for a valid
+// session on a cleared level (a first clear, or a replay). A replayed
+// Session 1 (`replayS1`) says when its Session 2 counts. null otherwise.
+// `now` dates the waiting Session 1 (campStars.pendingSession1's rule).
+export function campSessionEndStars(r, rows = loadStats().sessions, now = Date.now()) {
+  try {
+    if (!r || r.arcade || !r.sessionValid) return null;
+    const lv = campLevels.find((l) => l.level === r.level);
+    if (!lv) return null;
+    const current = loadCampProgress();
+    const campDone = isCampComplete();
+    const cleared = lv.level < current || (campDone && lv.level >= current);
+    if (!cleared) return null;
+    const info = campLevelStars({ level: lv.level, kind: campKind(lv), cleared, rows, now });
+    return campEndStars(info, { justS1: !!r.replayS1 });
+  } catch { return null; }
 }
