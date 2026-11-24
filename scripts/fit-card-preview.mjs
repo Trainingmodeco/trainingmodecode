@@ -323,6 +323,9 @@ const STATES = [
     open: (page, w) => generatedRun(page, w, { stop: 'workouts' }), check: ['[data-run-head]', '[data-run-bar]'], expect: /AT YOUR PACE · WORKOUTS[\s\S]*Tap START when you are ready[\s\S]*START/, absent: /SWAP/ },
   { name: 'pre-workouts-info', note: 'The "i" on FIRST BELL\'s WORKOUTS: pace targets, load, notes and the beeps line, all that left the run screen.', overlay: true, check: ['[role=dialog]'],
     open: async (page, w) => { await libraryRun(page, w, 'FIRST BELL', { stop: 'workouts' }); await tap(page, byName(page, /About this workout/)); }, expect: /ABOUT THIS WORKOUT[\s\S]*PACE TARGETS[\s\S]*ELITE[\s\S]*NOTES[\s\S]*Beeps play while the screen is on/ },
+  { name: 'pre-workouts-back', note: 'Back on FIRST BELL\'s WORKOUTS: the Quick Mission page with FIRST BELL still picked (not today\'s generated mission).',
+    open: async (page, w) => { await libraryRun(page, w, 'FIRST BELL', { stop: 'workouts' }); await tap(page, byName(page, /^Back$/)); await wait(page, 800); },
+    check: [], expect: /FIRST BELL[\s\S]*START/, absent: /AT YOUR PACE · WORKOUTS|NO-GEAR GRIND/ },
   { name: 'pace-checkoff', pace: true, expectNow: 'lit', note: 'CHECK-OFF: round 1 done and four ticks into round 2: the clock, the next move lit and PAUSE / STOP.',
     open: (page, w) => checkOff(page, w, { rounds: 1, more: 4 }), expect: /CHECK-OFF[\s\S]*ROUND 2 OF 3[\s\S]*SHUFFLE[\s\S]*STOP/ },
 ];

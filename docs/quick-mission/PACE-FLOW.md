@@ -19,7 +19,9 @@ the saved choice is AT YOUR PACE, now go:
    each move that can swap and UNDO on a swapped one. The round **i** opens ABOUT THIS WORKOUT: the pace targets
    (ELITE / STANDARD / BEGINNER and how they were set), the load, the safety line, the mission's notes and "Beeps
    play while the screen is on". The gold **START** sits where PAUSE / STOP will be. Back goes to the Quick Mission
-   page.
+   page with the same library mission still picked, at its level and with the swaps made here (today's generated
+   mission simply shows again). On the WORKOUTS screen each name keeps the row's whole width: its reps and SWAP sit
+   on the line under it, so a name like "Kettlebell Presses" is never split in the middle of a word on a small phone.
    - Today's generated mission has no SWAP here (it says "Every move, in order. Tap START when you are ready."):
      its moves come from the generator, not the library, so there is nothing to swap them for (the run screen never
      offered it either).
@@ -55,13 +57,13 @@ without it. PAUSE, STOP, leaving the screen and SKIP cut the voice at once.
 | … for time, a ladder (BURNOUT 21, CONTINUE? · BELL, OXYGEN DEBT) | "Tap round after each rung. Tap finish when you are done." | **no** |
 | … for time, one round (and a one-round generated mission) | "Tap finish when you are done." | **no** |
 | … until the bell is down (NO CONTINUES) | "Tap set after each set. Tap I put it down when the bell is down." | **no** |
-| … until down in rounds (UPPER LOWER DIPS) | "Tap round after each round. Tap I'm done when you are done." | **no** |
-| … max reps (BOSS RUSH and the other MAX OUTs) | "Tap done after each set." | **no** |
+| … until down in rounds (UPPER LOWER DIPS) | "Tap round after each round. Tap I'm done." | "Tap I'm done." yes, "Tap round after each round." no |
+| … max reps (BOSS RUSH and the other MAX OUTs) | "Tap done when the set is done." (the guided mission's own clip) | yes |
 | A rest of 30 s or more begins (1.8 s after its beeps) | "Rest." | yes |
 | Work starts after such a rest (1.8 s after the bell) | "Back to work." | only as two pieces ("back to" + "work"); a whole take is on the list |
 | Last minute of a capped run (after the warning beep), or of a one-block AMRAP of 3 min or more | "Last minute." | **no** |
 | PAUSE | "Paused." | yes |
-| RESUME | "Back to work." | as above |
+| RESUME (only when the clock is on work: a pause in a rest resumes in silence, since the ring still says REST) | "Back to work." | as above |
 | The clock or the cap runs out (after the three bells) | "Time." | yes |
 | FINISH, I PUT IT DOWN or I'M DONE | "Great work." | yes |
 
@@ -77,3 +79,6 @@ The mission's own warm-up advice is shown, not said: none of it is a recorded li
 `npm run -s test:spoken` and `npm run voice:coverage -- --strict` pass. The sweep that holds these lines is
 `scripts/sweeps/pace-voice.mjs` (every library mission at every level and today's generated mission over the
 setup's choices). Until the clips are recorded, the missing sentences fall back to the phone's speech engine.
+
+Voice off: a mission set to no voice is silent in the warm-up too (the beeps and the bell still play). "Time." after
+the final bells is dropped if the screen is left, or the phone is locked, before it is said.

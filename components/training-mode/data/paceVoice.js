@@ -34,10 +34,10 @@ export function workoutsLine({ canSwap = true } = {}) {
 // What to do on THIS screen for THIS format, naming the real buttons.
 export function howToLine(mission) {
   if (!mission) return '';
-  if (isMaxReps(mission)) return 'Tap done after each set.';
+  if (isMaxReps(mission)) return 'Tap done when the set is done.';
   if (isUntilDown(mission)) {
     return mission.downUnit === 'round'
-      ? "Tap round after each round. Tap I'm done when you are done."
+      ? "Tap round after each round. Tap I'm done."
       : 'Tap set after each set. Tap I put it down when the bell is down.';
   }
   const f = mission.format;

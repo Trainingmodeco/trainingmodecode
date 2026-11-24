@@ -1861,8 +1861,8 @@ const DR = await import('../components/training-mode/data/libraryDrop.js');
   check('pace voice: a ladder names its rungs', PV.howToLine(lib('burnout_21')) === 'Tap round after each rung. Tap finish when you are done.');
   check('pace voice: a one-round for-time run names FINISH only', PV.howToLine(lib('ko_sprint_30')) === 'Tap finish when you are done.');
   check('pace voice: until down names SET and I PUT IT DOWN', PV.howToLine(lib('no_continues')) === 'Tap set after each set. Tap I put it down when the bell is down.');
-  check('pace voice: until down in rounds names ROUND and I\'M DONE', PV.howToLine(lib('upper_lower_dips')) === "Tap round after each round. Tap I'm done when you are done.");
-  check('pace voice: max reps names DONE', PV.howToLine(lib('boss_rush')) === 'Tap done after each set.');
+  check('pace voice: until down in rounds names ROUND and I\'M DONE', PV.howToLine(lib('upper_lower_dips')) === "Tap round after each round. Tap I'm done.");
+  check('pace voice: max reps names DONE', PV.howToLine(lib('boss_rush')) === 'Tap done when the set is done.');
   check('pace voice: the start says it is starting, at your pace, then the buttons', PV.startLine(lib('best_of_3')) === 'Workout starting. At your own pace. Tap round after each round.');
   check('pace voice: GET READY is 5 s with no speech, longer for a long start, never past the cap',
     PV.readySecFor(null) === 5 && PV.readySecFor(0) === 5 && PV.readySecFor(1500) === 5 && PV.readySecFor(5200) === 9 && PV.readySecFor(60000) === PV.PACE_READY_MAX);

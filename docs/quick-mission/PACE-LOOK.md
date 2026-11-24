@@ -117,3 +117,5 @@ screens only, so those screens look exactly as before.
 
 New animation (the button shimmer, the RESUME glow, the ring's arc) stops for
 anyone whose phone asks for reduced motion.
+
+Small phones (320x568 and other screens 600 px tall or less): the ring, buttons and safety line shrink so the first move clears PAUSE / STOP; the move name stays 20 px.

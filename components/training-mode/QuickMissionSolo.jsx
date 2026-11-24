@@ -260,11 +260,12 @@ export default function QuickMissionSolo({ missionCfg, profile, onEnd, onBack, o
   const voiceLive = () => voiceOn && !isVoiceMuted();
   const say = (line, opts) => { if (line && voiceLive()) speakAsync(line, opts).catch(() => {}); };
   const sayRef = useRef(say);
+  const timeSayRef = useRef(null); // the pending "Time." after the final bells
   sayRef.current = say;
   // Leaving the screen stops the voice at once.
   useEffect(() => {
     if (voiceOn) primeSpeech().catch(() => {});
-    return () => stopVoiceSession();
+    return () => { clearTimeout(timeSayRef.current); stopVoiceSession(); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -339,7 +340,13 @@ export default function QuickMissionSolo({ missionCfg, profile, onEnd, onBack, o
     setConfirmStop(false);
     setSwapKeyOpen(null);
     // "Time." once the three bells have rung (never over them), unless the run was saved by then.
-    if (!isMaxReps(L.mission)) setTimeout(() => { if (!clockRef.current.done) sayRef.current(PACE_RUN.time); }, 2600);
+    if (!isMaxReps(L.mission)) {
+      clearTimeout(timeSayRef.current);
+      timeSayRef.current = setTimeout(() => {
+        timeSayRef.current = null;
+        if (!clockRef.current.done && !(typeof document !== 'undefined' && document.hidden)) sayRef.current(PACE_RUN.time);
+      }, 2600);
+    }
     // MAX REPS: the cap ends the run with the sets already saved (no score panel,
     // no bonus: App settles it). The set in hand, and an open sheet, are not saved.
     if (isMaxReps(L.mission)) {
@@ -525,7 +532,9 @@ export default function QuickMissionSolo({ missionCfg, profile, onEnd, onBack, o
       closePause();
       setPhase('running');
       cancelSpeech();
-      say(PACE_RUN.resumed);
+      // "Back to work." only when the clock is on work: a pause in a rest resumes in silence (the ring says REST).
+      const atNow = timeline.length ? segmentAt(timeline, Math.min(clockRef.current.elapsedMs / 1000, Math.max(0, clockSec - 0.001))) : null;
+      if (atNow?.segment?.kind !== 'rest') say(PACE_RUN.resumed);
     }
   };
 
@@ -814,13 +823,18 @@ export default function QuickMissionSolo({ missionCfg, profile, onEnd, onBack, o
     return (
       <WarmupTimer minutes={PACE_WARMUP_MIN} title="WARM-UP · AT YOUR PACE" intro={PACE_WARMUP.intro} lines={PACE_WARMUP}
         note={{ title: advice ? 'THIS MISSION\'S WARM-UP' : 'WARM-UP IDEAS', text: advice || GENERIC_WARMUP }}
-        skipSolid skipLabel="SKIP WARM-UP" onDone={() => setPhase('workouts')} onSkip={() => setPhase('workouts')}/>
+        skipSolid voice={voiceOn} skipLabel="SKIP WARM-UP" onDone={() => setPhase('workouts')} onSkip={() => setPhase('workouts')}/>
     );
   }
   if (phase === 'workouts') {
     return (
       <WorkoutsScreen mission={mission} rows={rows} noSwap={!!mission.atYourPace}
-        onBack={() => { stopVoiceSession(); onBack?.(); }} onStart={() => setPhase('ready')}
+        onBack={() => {
+          stopVoiceSession();
+          // A library mission goes back to the Quick Mission page with itself still picked, at its level and with the swaps made here.
+          const swaps = Object.fromEntries(rows.filter(r => r.undoable && r.swapKey && r.moveId).map(r => [r.swapKey, r.moveId]));
+          onBack?.(missionCfg?.v2 && typeof mission?.id === 'string' && !mission.atYourPace ? { reopen: { missionId: mission.id, level: mission.level, swaps } } : undefined);
+        }} onStart={() => setPhase('ready')}
         onSwap={(r) => setSwapKeyOpen(r.swapKey)} onUndo={onUndo}
         sheet={swapKeyOpen ? <MoveSwapSheet mission={mission} swapKey={swapKeyOpen} gear={gear} onPick={onPick} onClose={() => setSwapKeyOpen(null)}/> : null}/>
     );
@@ -869,7 +883,7 @@ export default function QuickMissionSolo({ missionCfg, profile, onEnd, onBack, o
               <div data-run-now="true" style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <div style={{ font: `700 13px ${HEAD}`, letterSpacing: '0.16em', color: hero.rest ? '#9CC0FF' : GOLD }}>{hero.eyebrow}</div>
                 <div className="sr-name" style={{
-                  fontFamily: HEAD, fontWeight: 700, lineHeight: 1.08, color: hero.rest ? '#9CC0FF' : '#fff', overflowWrap: 'anywhere',
+                  fontFamily: HEAD, fontWeight: 700, lineHeight: 1.08, color: hero.rest ? '#9CC0FF' : '#fff', overflowWrap: 'break-word',
                   display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', textShadow: '0 2px 10px rgba(0,0,0,0.6)',
                 }}>{hero.name}</div>
                 {hero.dose && (
@@ -1024,7 +1038,19 @@ function RunMoveRow({ row, index, lit, done, showNote, noSwap, onSwap, onUndo, l
         }}>{done ? <Check size={16} strokeWidth={3} color="#1A1204"/> : index + 1}</span>
         <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
           {row.prefix && <span style={{ font: `700 12px ${HEAD}`, letterSpacing: '0.1em', color: VIOLET_TEXT, whiteSpace: 'nowrap' }}>{row.prefix}</span>}
-          <span style={{ font: `700 20px ${HEAD}`, lineHeight: 1.15, color: '#fff', overflowWrap: 'anywhere' }}>{row.name}</span>
+          <span style={{ font: `700 20px ${HEAD}`, lineHeight: 1.15, color: '#fff', overflowWrap: 'break-word', wordBreak: 'normal', hyphens: 'manual' }}>{row.name}</span>
+          {/* WORKOUTS: the dose and SWAP sit on their own line under the name, so the name keeps the row's whole width (never split mid-word at 320-360 wide). */}
+          {loudSwap && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 2 }}>
+              <span style={{ flex: 1, minWidth: 0, font: `800 20px ${HEAD}`, lineHeight: 1.15, color: GOLD, fontVariantNumeric: 'tabular-nums' }}>{row.dose}</span>
+              {!noSwap && row.canSwap && (
+                <button type="button" onClick={() => onSwap?.(row)} aria-label={`Swap ${row.name}`} style={{
+                  height: 40, flexShrink: 0, padding: '0 10px', marginRight: 2, display: 'flex', alignItems: 'center', gap: 5, borderRadius: 10, cursor: 'pointer',
+                  background: 'rgba(157,108,255,0.18)', border: '1.5px solid rgba(196,168,255,0.7)', color: '#fff', font: `700 12px ${HEAD}`, letterSpacing: '0.1em',
+                }}><ArrowRightLeft size={14} color={VIOLET_TEXT}/>SWAP</button>
+              )}
+            </span>
+          )}
           {showUndo && (
             <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <span style={{ font: `700 10px ${HEAD}`, letterSpacing: '0.1em', padding: '2px 5px', borderRadius: 3, background: 'rgba(157,108,255,0.22)', color: VIOLET_TEXT }}>SWAPPED</span>
@@ -1034,14 +1060,8 @@ function RunMoveRow({ row, index, lit, done, showNote, noSwap, onSwap, onUndo, l
             </span>
           )}
         </span>
-        <span style={{ flexShrink: 0, maxWidth: '38%', textAlign: 'right', font: `800 20px ${HEAD}`, lineHeight: 1.15, color: GOLD, fontVariantNumeric: 'tabular-nums' }}>{row.dose}</span>
-        {!noSwap && loudSwap && row.canSwap && (
-          <button type="button" onClick={() => onSwap?.(row)} aria-label={`Swap ${row.name}`} style={{
-            height: 40, flexShrink: 0, padding: '0 9px', marginRight: 2, display: 'flex', alignItems: 'center', gap: 5, borderRadius: 10, cursor: 'pointer',
-            background: 'rgba(157,108,255,0.18)', border: '1.5px solid rgba(196,168,255,0.7)', color: '#fff', font: `700 12px ${HEAD}`, letterSpacing: '0.1em',
-          }}><ArrowRightLeft size={14} color={VIOLET_TEXT}/>SWAP</button>
-        )}
-        {!noSwap && (!loudSwap || !row.canSwap) && (
+        {!loudSwap && <span style={{ flexShrink: 0, maxWidth: '38%', textAlign: 'right', font: `800 20px ${HEAD}`, lineHeight: 1.15, color: GOLD, fontVariantNumeric: 'tabular-nums' }}>{row.dose}</span>}
+        {!noSwap && !loudSwap && (
           <button type="button" onClick={row.canSwap ? () => onSwap?.(row) : undefined} disabled={!row.canSwap} aria-label={`Swap ${row.name}`} style={{
             width: 36, height: 44, flexShrink: 0, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'transparent', border: 'none', cursor: row.canSwap ? 'pointer' : 'default', opacity: 0.6,

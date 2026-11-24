@@ -834,7 +834,10 @@ export default function App() {
         // The workout card (switch fitCard): YOUR WORKOUTS on Progress puts a kept run back on
         // the card; the card's results' NEW CHALLENGE opens it on a new deal.
         : entry && (typeof entry.cardRunId === 'string' || entry.newDeal === true) ? { cardRunId: str(entry.cardRunId), newDeal: entry.newDeal === true }
-          : null);
+          // AT YOUR PACE's WORKOUTS screen, Back: the page opens with that library mission still picked (level and swaps kept).
+          : entry && entry.reopen && typeof entry.reopen.missionId === 'string'
+            ? { reopen: { missionId: entry.reopen.missionId, level: str(entry.reopen.level), swaps: entry.reopen.swaps && typeof entry.reopen.swaps === 'object' ? { ...entry.reopen.swaps } : {} } }
+            : null);
       setScreen('qm_setup');
     },
     // Every Quick Mission start comes through here, so the GUIDED / AT YOUR PACE

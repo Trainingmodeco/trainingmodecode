@@ -66,7 +66,7 @@ function WarmupMiniFeed({ remaining, totalSec, name }) {
 export default function WarmupTimer({
   minutes = 5, title = 'WARM-UP', onDone, onSkip,
   suggestions, initialPick, onPick, skipLabel = 'SKIP → START', intro, miniPlayer = false,
-  lines = null, note = null, skipSolid = false,
+  lines = null, note = null, skipSolid = false, voice = true,
 }) {
   useWakeLock(true);
   const totalSec = Math.max(1, Math.round(minutes * 60));
@@ -89,11 +89,15 @@ export default function WarmupTimer({
   const pickCb = useRef(onPick);
   pickCb.current = onPick;
   const introRef = useRef(intro);
+  // voice={false} (a mission set to no voice): the warm-up keeps its beeps and bell but says nothing.
+  const voiceRef = useRef(voice);
+  voiceRef.current = voice;
+  const talk = (line, opts) => (voiceRef.current === false ? Promise.resolve() : speakAsync(line, opts));
 
   useEffect(() => {
     unlockAudio();
     primeSpeech()
-      .then(() => speakAsync(introRef.current || `Warm up. ${minutes} minute${minutes === 1 ? '' : 's'}. Stretch and get loose.`))
+      .then(() => talk(introRef.current || `Warm up. ${minutes} minute${minutes === 1 ? '' : 's'}. Stretch and get loose.`))
       .catch(() => {});
     // A warm-up that ran its course hands off while "Warm up complete. Here we
     // go." is still being said: let that line finish. A SKIP cuts it (below).
@@ -104,7 +108,7 @@ export default function WarmupTimer({
     if (idea.id === pickId) return;
     setPickId(idea.id);
     cancelSpeech();
-    speakAsync(idea.say || idea.label).catch(() => {});
+    talk(idea.say || idea.label).catch(() => {});
     pickCb.current?.(idea.id);
   };
 
@@ -119,14 +123,14 @@ export default function WarmupTimer({
     // Halfway nudge.
     if (!halfSpokenRef.current && remaining > 0 && remaining <= Math.floor(totalSec / 2)) {
       halfSpokenRef.current = true;
-      speakAsync(linesRef.current?.half || 'Halfway through the warm up. Keep moving.').catch(() => {});
+      talk(linesRef.current?.half || 'Halfway through the warm up. Keep moving.').catch(() => {});
     }
 
     // A line just before the last ten seconds (only when the caller gave one).
     const L = linesRef.current;
     if (L?.lastTen && !lastTenSpokenRef.current && remaining > 10 && remaining <= (L.lastTenAt || 12)) {
       lastTenSpokenRef.current = true;
-      speakAsync(L.lastTen, { dropIfBusy: true }).catch(() => {});
+      talk(L.lastTen, { dropIfBusy: true }).catch(() => {});
     }
 
     // Last 10s beeps.
@@ -138,7 +142,7 @@ export default function WarmupTimer({
     if (remaining === 0) {
       doneRef.current = true;
       playBell(1);
-      speakAsync(linesRef.current?.done || 'Warm up complete. Here we go.').catch(() => {});
+      talk(linesRef.current?.done || 'Warm up complete. Here we go.').catch(() => {});
       const t = setTimeout(() => doneCb.current?.(), 1200);
       return () => clearTimeout(t);
     }

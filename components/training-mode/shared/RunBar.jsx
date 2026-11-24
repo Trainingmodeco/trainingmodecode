@@ -49,6 +49,11 @@ export const RUN_CSS = `
 @media (max-width: 340px) {
   .sr-head { --sr-ring: 104px; --sr-name: 20px; --sr-dose: 22px; }
 }
+/* 320x568 and other short, narrow phones: a smaller ring and a tighter safety line so the first move clears the bar. */
+@media (max-height: 600px) {
+  .sr-head { --sr-btn: 46px; --sr-fin: 44px; --sr-down: 44px; --sr-ring: 96px; --sr-name: 20px; --sr-dose: 21px; }
+  .sr-safety { padding: 4px 8px !important; font-size: 12px !important; line-height: 1.25 !important; }
+}
 @media (prefers-reduced-motion: reduce) {
   .sr-head *, [data-run-bar] *, [data-run-list] * { animation: none !important; transition: none !important; }
 }
