@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { Play, Shuffle, SlidersHorizontal, ChevronRight, Zap, Timer, Activity, X } from 'lucide-react';
 import PhoneFrame from './PhoneFrame';
 import { sessionLabel } from './FloatingResumeButton';
@@ -94,6 +94,31 @@ function readTodaysBout({ at, stats, profile, pathOn }) {
   };
 }
 
+// The locked hub (owner, 2026-11-24: Home must fit one screen, never slide).
+// Every size is a clamp() of the screen's height: today's sizes on a tall
+// phone, smaller together on a short one. The art tiles give first (they are
+// the only blocks that shrink in the column), then the gaps, then the card's
+// padding and the gold button; text sizes hardly move. Written once in vh (a
+// browser without dvh) and again in dvh where it is supported.
+const lockCSS = (u) => `.hm-col {
+  height: 100${u};
+  --hm-top: clamp(8px, 1.6${u}, 14px);
+  --hm-gap: clamp(6px, calc(2.4${u} - 8px), 14px);
+  --hm-tap: clamp(40px, 7${u}, 44px);
+  --hm-card-min: clamp(128px, calc(22${u} - 10px), 176px);
+  --hm-card-pt: clamp(9px, 1.9${u}, 16px);
+  --hm-card-pb: clamp(10px, 2.1${u}, 18px);
+  --hm-card-gap: clamp(3px, 0.7${u}, 6px);
+  --hm-go-h: clamp(44px, 6.2${u}, 52px);
+  --hm-title: clamp(22px, 3.4${u}, 28px);
+  --hm-quick-h: clamp(var(--hm-tap), calc(10${u} - 24px), 64px);
+  --hm-drop-h: clamp(60px, calc(13${u} - 14px), 92px);
+  --hm-next-pad: clamp(2px, calc(2${u} - 7px), 10px);
+  --hm-next-min: clamp(46px, calc(4${u} + 30px), 64px);
+}`;
+// The lane above the tab bar belongs to the BETA pill (FitModeHub's rule).
+const BOTTOM_LANE = 'calc(max(96px, var(--tm-resume-top, 0px)) + env(safe-area-inset-bottom, 0px))';
+
 const homeCSS = `
 @keyframes hm-ghost { 0%, 100% { opacity: 0; transform: translateY(0) } 50% { opacity: 1; transform: translateY(-4px) } }
 .hm-ghost { animation: hm-ghost 3.2s ease-in-out infinite; transition: filter .2s; }
@@ -128,6 +153,51 @@ const homeCSS = `
 .hm-arcade:hover .hm-arcade-sub, .hm-arcade:active .hm-arcade-sub, .hm-arcade:focus-visible .hm-arcade-sub { max-height: 20px; opacity: 1; }
 @media (hover: none) { .hm-arcade .hm-arcade-title { opacity: .8; } }
 .hm-scan { position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px); }
+${lockCSS('vh')}
+@supports (height: 100dvh) { ${lockCSS('dvh')} }
+.hm-col { display: flex; flex-direction: column; box-sizing: border-box; overflow: hidden; position: relative; z-index: 10;
+  padding: var(--hm-top) 16px ${BOTTOM_LANE}; }
+.hm-stack { flex: 1; min-height: 0; overflow-x: hidden; overflow-y: auto; display: flex; flex-direction: column; gap: var(--hm-gap); }
+.hm-stack > * { flex-shrink: 0; }
+.hm-tap { height: var(--hm-tap); }
+.hm-tiles { flex: 0 4 auto !important; min-height: calc(50px + 44px + var(--hm-gap)); display: flex; flex-direction: column; gap: var(--hm-gap); }
+.hm-modes { flex: 1 1 150px; min-height: 50px; max-height: 150px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.hm-modes > button { height: auto !important; min-height: 0; }
+.hm-tiles > .hm-arcade { flex: 0 1 96px; min-height: 44px; }
+.hm-arcade-big { font-size: 26px; }
+.hm-quick { flex: 0 1 auto !important; display: flex; flex-direction: column; gap: 8px; min-height: var(--hm-tap); }
+.hm-quick-grid { flex: 1 1 var(--hm-quick-h); min-height: var(--hm-tap); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.hm-quick-head + .hm-quick-grid { min-height: var(--hm-tap); }
+.hm-drop { flex: 0 1 var(--hm-drop-h) !important; min-height: 60px; }
+.hm-under { display: flex; flex-direction: column; gap: var(--hm-gap); }
+/* No room for the icons above the Quick Access labels: the label alone. */
+@media (max-height: 759px) { .hm-quick-tile svg { display: none; } }
+/* Tighter steps, taken one at a time only while the hub still does not fit
+   (HomeDashboard's fit check): */
+/* 1. FIT, FIGHT and the ARCADE share one row of three tiles; the Quick Access
+   heading goes (its three tiles stay). */
+.hm-l1 .hm-tiles { flex-direction: row; flex-basis: 112px !important; min-height: 52px; }
+.hm-l1 .hm-tiles > .hm-modes { flex: 2 1 0; min-height: 0; max-height: none; gap: var(--hm-gap); }
+.hm-l1 .hm-tiles > .hm-arcade { flex: 1 1 0; min-height: 0; padding: 0 8px !important; gap: 4px !important; }
+.hm-l1 .hm-mode-label { font-size: 14px !important; line-height: 1.05 !important; }
+.hm-l1 .hm-arcade-big { font-size: 15px; }
+.hm-l1 .hm-arcade .hm-arcade-title:first-child { letter-spacing: .24em !important; font-size: 8px !important; }
+.hm-l1 .hm-arcade > svg { display: none; }
+.hm-l1 .hm-quick-head { display: none; }
+/* 2. A 1UP or POWER notice sits over the top of the card (never its START)
+   instead of pushing the hub down; NEXT UP gets slimmer. */
+.hm-l2 .hm-under { position: relative; z-index: 20; height: 0; }
+.hm-l2 { --hm-next-min: 46px; --hm-next-pad: 2px; }
+.hm-l2 .hm-next > span:first-of-type { width: 32px !important; height: 32px !important; }
+/* 3. The card at its tightest. */
+.hm-l3 { --hm-card-pt: 8px; --hm-card-pb: 8px; --hm-card-gap: 2px; --hm-title: 20px; --hm-gap: 5px; --hm-top: 6px; --hm-go-h: max(40px, var(--hm-tap)); }
+.hm-l3 [data-lock="pick"] { margin: calc(-1 * var(--hm-gap)) 0; }
+/* 4. NEXT UP and the drop side by side. */
+.hm-pair { display: contents; }
+.hm-l4 .hm-pair { display: flex; gap: var(--hm-gap); min-height: 60px; }
+.hm-l4 .hm-pair > * { flex: 1 1 0 !important; min-width: 0; height: auto !important; }
+.hm-l4 .hm-pair .hm-next { gap: 8px !important; padding-left: 8px !important; padding-right: 8px !important; }
+.hm-l4 .hm-pair .hm-next > span:last-child { display: none; }
 `;
 
 export default function HomeDashboard({
@@ -144,6 +214,9 @@ export default function HomeDashboard({
   const [powerOn] = useState(() => retentionOn('power'));
   const [stats, setStats] = useState(() => loadStats());
   const [helpOpen, setHelpOpen] = useState(false);
+  // How many tighter steps the locked hub needs to fit (0 = the roomy look).
+  const [fit, setFit] = useState(0);
+  const stackRef = useRef(null);
   const [surprise, setSurprise] = useState(null);
   const [last] = useState(() => loadLastSession());
   // Retention feature 2 (the path): NEXT UP, the last saga's current node or
@@ -435,7 +508,7 @@ export default function HomeDashboard({
   };
   const ghostButton = ghostCh ? (
     <button type="button" className="hm-ghost" data-guide="home-ghost" onClick={onOpenGhost} aria-label="Your ghost challenge" style={{
-      flexShrink: 0, background: 'none', border: 0, padding: 2, cursor: 'pointer', fontSize: 24, lineHeight: 1,
+      flexShrink: 0, background: 'none', border: 0, padding: 10, margin: -8, cursor: 'pointer', fontSize: 24, lineHeight: 1,
     }}>👻</button>
   ) : null;
 
@@ -472,18 +545,46 @@ export default function HomeDashboard({
       }
       : null;
 
+  // The fit check: while the column does not fit the screen, take the next
+  // tighter step (homeCSS: hm-l1..hm-l3). What is on the hub, or the screen's
+  // size, changing starts over from the roomiest look.
+  const fitKey = [!!underNotice, !!b, boutDone, !!pausedAlt, card.kind, !!card.next, !!nextUp, !!ghostCh, !!showPower, String(b?.title || card.title || '').length > 18].join();
+  const fitStart = useRef(fitKey);
+  if (fitStart.current !== fitKey) { fitStart.current = fitKey; if (fit) setFit(0); }
+  // Past the last step it still does not fit (a very large phone font):
+  // then, and only then, the column scrolls rather than hide anything.
+  const [tick, setTick] = useState(0);
+  const over = () => { const el = stackRef.current; return !!el && el.scrollHeight > el.clientHeight; };
+  const [stuck, setStuck] = useState(false);
+  useLayoutEffect(() => {
+    if (!over()) setStuck(false);
+    else if (fit < 4) setFit(fit + 1);
+    else setStuck(true);
+  }, [fit, fitKey, tick]);
+  useEffect(() => {
+    const el = stackRef.current;
+    if (!el) return undefined;
+    let w = window.innerWidth; let h = window.innerHeight;
+    const onResize = () => { if (window.innerWidth !== w || window.innerHeight !== h) { w = window.innerWidth; h = window.innerHeight; setFit(0); } };
+    // A picture or a font arriving late can still make it taller.
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => setTick((t) => t + 1)) : null;
+    for (const c of el.children) ro?.observe(c);
+    window.addEventListener('resize', onResize);
+    return () => { ro?.disconnect(); window.removeEventListener('resize', onResize); };
+  }, [fitKey]);
+
   return (
     <PhoneFrame useBrandBg>
       <style dangerouslySetInnerHTML={{ __html: homeCSS }}/>
 
-      <div style={{
-        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 14,
-        padding: '14px 16px 0', paddingBottom: 'calc(96px + env(safe-area-inset-bottom,0px))', boxSizing: 'border-box',
-      }}>
+      {/* Exactly one screen tall, like the Fit and Fight hubs. The stack can
+          only scroll as a last resort (a very large phone font). */}
+      <div className={`hm-col${fit >= 1 ? ' hm-l1' : ''}${fit >= 2 ? ' hm-l2' : ''}${fit >= 3 ? ' hm-l3' : ''}${fit >= 4 ? ' hm-l4' : ''}`}>
+      <div ref={stackRef} className="hm-stack no-scrollbar" style={{ overflowY: stuck ? 'auto' : 'hidden' }}>
         {/* Header: level, rank and streak. Profile lives on the tab bar. */}
         <HomeHeader
           level={level} tierName={tier?.name} levelXp={levelXp} levelNeeded={levelNeeded} xpPercent={xpPercent}
-          onHome={onHome} onHelp={() => setHelpOpen(true)} compact={weeksOn}
+          onHome={onHome} onHelp={() => setHelpOpen(true)} compact={weeksOn} helpSlop={6}
           chip={weeksOn ? (
             <WeekChip days={week.thisWeek.days} done={week.thisWeek.done} target={week.thisWeek.target} streak={week.streak} freezes={week.freezes}/>
           ) : (
@@ -495,7 +596,8 @@ export default function HomeDashboard({
           )}
         />
         {/* POWER below full (switch on): one slim line, part of the level block. */}
-        {showPower && <PowerLine pct={power.pct} state={power.state} style={{ marginTop: -6 }}/>}
+        {showPower && <PowerLine pct={power.pct} state={power.state} style={{ marginTop: 'calc(min(8px, var(--hm-gap)) - var(--hm-gap))' }}/>}
+        {underNotice && <div className="hm-under">
         {weekNotice && <NudgeToast solid icon={<OneUpMark/>} text={noticeCopy(weekNotice)} onClose={() => setWeekNotice(null)}/>}
         {!weekNotice && powerNotice && (
           <div data-retention="power-notice">
@@ -505,19 +607,23 @@ export default function HomeDashboard({
             />
           </div>
         )}
+        </div>}
 
         {/* The one thing to do. */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
           {/* The second paused session — one of each kind can wait. */}
           {pausedAlt && (
-            <div className="hm-tile" style={{
-              order: 2, display: 'flex', alignItems: 'center', gap: 10, height: 44, padding: '0 8px 0 14px',
+            <div className="hm-tile" data-lock="alt" style={{
+              order: 2, display: 'flex', alignItems: 'center', gap: 10, height: 'calc(var(--hm-tap) + 2px)', boxSizing: 'border-box', padding: '0 0 0 14px',
               borderRadius: 12, background: '#0E0B18', border: `1px solid ${sideOfScreen(pausedAlt.screen).accent}55`,
             }}>
               <span style={{ font: "600 10px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: sideOfScreen(pausedAlt.screen).accentText, flexShrink: 0 }}>Also paused</span>
               <span style={{ flex: 1, minWidth: 0, font: "700 14px 'Chakra Petch',sans-serif", color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sessionLabel(pausedAlt)}</span>
-              <button type="button" className="hm-quiet" onClick={onResumeAlt} style={{ height: 32, padding: '0 12px', borderRadius: 8, border: '1px solid rgba(242,190,69,0.5)', background: 'rgba(242,190,69,0.1)', color: '#F2BE45', cursor: 'pointer', font: "700 11px 'Chakra Petch',sans-serif", letterSpacing: '0.14em' }}>RESUME</button>
-              <button type="button" onClick={onDiscardAlt} aria-label="Discard this paused session" style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: 4, display: 'flex' }}><X size={14}/></button>
+              {/* Both taps take the row's whole height; the pill is the look. */}
+              <button type="button" className="hm-quiet" onClick={onResumeAlt} style={{ alignSelf: 'stretch', display: 'flex', alignItems: 'center', padding: 0, margin: '0 -4px 0 0', border: 'none', background: 'none', color: '#F2BE45', cursor: 'pointer' }}>
+                <span style={{ height: 32, display: 'flex', alignItems: 'center', padding: '0 12px', boxSizing: 'border-box', borderRadius: 8, border: '1px solid rgba(242,190,69,0.5)', background: 'rgba(242,190,69,0.1)', font: "700 11px 'Chakra Petch',sans-serif", letterSpacing: '0.14em' }}>RESUME</span>
+              </button>
+              <button type="button" onClick={onDiscardAlt} aria-label="Discard this paused session" style={{ alignSelf: 'stretch', width: 40, background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={14}/></button>
             </div>
           )}
           {b ? (
@@ -531,19 +637,19 @@ export default function HomeDashboard({
             />
           ) : (
           <section data-guide="home-continue" data-retention={card.next ? 'next-up' : undefined} style={{
-            position: 'relative', minHeight: 176, borderRadius: 16, overflow: 'hidden', display: 'flex', flexDirection: 'column',
+            position: 'relative', minHeight: 'var(--hm-card-min)', flexShrink: 0, borderRadius: 16, overflow: 'hidden', display: 'flex', flexDirection: 'column',
             border: '1px solid rgba(255,255,255,0.08)', background: '#0D0A18',
           }}>
             <SafeImage src={card.side.art} alt="" style={{ position: 'absolute', top: 0, right: 0, height: '100%', width: 'auto', maxWidth: 'none', opacity: 0.55, filter: card.side.filter }}/>
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(7,6,12,0.96) 0%, rgba(7,6,12,0.72) 58%, rgba(7,6,12,0.25) 100%)' }}/>
             <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 2, background: card.side.accent }}/>
-            <div style={{ position: 'relative', flex: 1, boxSizing: 'border-box', padding: '16px 18px 18px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ position: 'relative', flex: 1, boxSizing: 'border-box', padding: 'var(--hm-card-pt) 18px var(--hm-card-pb)', display: 'flex', flexDirection: 'column', gap: 'var(--hm-card-gap)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Play size={12} color="#F2BE45" fill="#F2BE45" strokeWidth={0}/>
                 <span style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: '#F2BE45' }}>{card.eyebrow}</span>
                 <span style={{ marginLeft: 'auto', font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: card.side.accentText }}>{card.side.label}</span>
                 {card.kind === 'paused' && (
-                  <button type="button" onClick={onDiscardPaused} aria-label="Discard paused session" style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: 2, display: 'flex' }}><X size={14}/></button>
+                  <button type="button" onClick={onDiscardPaused} aria-label="Discard paused session" style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: 15, margin: -13, display: 'flex' }}><X size={14}/></button>
                 )}
               </div>
               {/* Short titles at the design's 28px; longer picks ("Fight Focus —
@@ -553,14 +659,14 @@ export default function HomeDashboard({
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                 <h1 style={{
                   flex: '0 1 auto', minWidth: 0,
-                  margin: '2px 0 0', fontWeight: 700, fontSize: card.title.length > 18 ? 22 : 28, fontFamily: "'Chakra Petch',sans-serif", lineHeight: 1.08, color: '#fff',
+                  margin: '2px 0 0', fontWeight: 700, fontSize: card.title.length > 18 ? 'min(22px, var(--hm-title))' : 'var(--hm-title)', fontFamily: "'Chakra Petch',sans-serif", lineHeight: 1.08, color: '#fff',
                   display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
                 }}>{card.title}</h1>
                 {/* The design's 👻: fades in and out beside the title while a
                     ghost challenge is live, and opens it. */}
                 {ghostCh && (
                   <button type="button" className="hm-ghost" data-guide="home-ghost" onClick={onOpenGhost} aria-label="Your ghost challenge" style={{
-                    flexShrink: 0, background: 'none', border: 0, padding: 2, cursor: 'pointer', fontSize: 24, lineHeight: 1,
+                    flexShrink: 0, background: 'none', border: 0, padding: 10, margin: -8, cursor: 'pointer', fontSize: 24, lineHeight: 1,
                   }}>👻</button>
                 )}
               </div>
@@ -574,7 +680,7 @@ export default function HomeDashboard({
               {card.atPace && <div style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', color: '#F2BE45' }}>AT YOUR PACE</div>}
               <div style={{ flexGrow: 1 }}/>
               <button type="button" className="hm-go" onClick={card.onGo} aria-label={card.label} style={{
-                height: 52, borderRadius: 12, border: 'none', cursor: 'pointer',
+                height: 'var(--hm-go-h)', flexShrink: 0, borderRadius: 12, border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                 background: 'linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%)', color: '#1A1204',
                 font: "700 17px 'Chakra Petch',sans-serif", letterSpacing: '0.2em', boxShadow: '0 0 24px rgba(242,190,69,0.3)',
@@ -586,14 +692,14 @@ export default function HomeDashboard({
           {/* Shown only when they'd do something different from START: a
               paused session has nothing to surprise or adjust. */}
           {card.kind !== 'paused' && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 4px' }}>
+            <div data-lock="pick" style={{ display: 'flex', justifyContent: 'space-between', padding: '0 4px' }}>
               <button type="button" className="hm-quiet" onClick={surpriseMe} style={{
-                height: 40, display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none', cursor: 'pointer',
+                height: 'var(--hm-tap)', display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none', cursor: 'pointer',
                 color: MUTED, font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em',
               }}><Shuffle size={15}/>SURPRISE ME</button>
               {(b ? boutAdjust : card.onAdjust) && (
                 <button type="button" className="hm-quiet" onClick={b ? () => { armBout(); boutAdjust(); } : card.onAdjust} style={{
-                  height: 40, display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none', cursor: 'pointer',
+                  height: 'var(--hm-tap)', display: 'flex', alignItems: 'center', gap: 6, background: 'transparent', border: 'none', cursor: 'pointer',
                   color: MUTED, font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em',
                 }}><SlidersHorizontal size={15}/>ADJUST</button>
               )}
@@ -608,15 +714,21 @@ export default function HomeDashboard({
             stage's last run (Continue replays that stage's timer), and,
             under Today's Bout held from earlier in the day, a saga or the
             camp played since. */}
+        {/* NEXT UP and the drop: one under the other, or side by side at the
+            tightest step (homeCSS .hm-pair). */}
+        <div className="hm-pair">
         {pathOn && nextUp && (b ? b.kind === 'last' : card.kind === 'last' && !card.next) && (
-          <NextUpRow {...nextUpCopy(nextUp)} number={nextUp.number} boss={nextUp.boss} onGo={() => onNextUp?.(nextUp)}/>
+          <NextUpRow {...nextUpCopy(nextUp)} number={nextUp.number} boss={nextUp.boss} onGo={() => onNextUp?.(nextUp)} className="hm-next" style={{ minHeight: 'var(--hm-next-min)', paddingTop: 'var(--hm-next-pad)', paddingBottom: 'var(--hm-next-pad)' }}/>
         )}
 
         {/* The featured concept drop, when one is live. */}
-        <ConceptFeatureCard mode="home" onOpen={onOpenConcept} style={{ flexShrink: 0 }}/>
+        <ConceptFeatureCard mode="home" center onOpen={onOpenConcept} style={{ height: 'auto', minHeight: 60, flex: '0 1 var(--hm-drop-h)' }}/>
+        </div>
 
         {/* The two modes. Silhouettes until pointed at, then the art. */}
-        <div data-guide="home-modes" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12, flexShrink: 0 }}>
+        {/* The art tiles: the blocks that give height back on a shorter phone. */}
+        <div className="hm-tiles">
+        <div data-guide="home-modes" className="hm-modes">
           {[
             { key: 'fit', label: 'FIT MODE', color: '#D2BCFF', border: 'rgba(176,140,255,0.35)', sub: 'Strength, quick workouts & conditioning', go: onFitMode || onTrain },
             { key: 'fight', label: 'FIGHT MODE', color: '#8FB4FF', border: 'rgba(91,141,255,0.35)', sub: 'Combat skills, techniques & fight-ready conditioning', go: onFightMode },
@@ -630,7 +742,7 @@ export default function HomeDashboard({
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(8,6,16,0) 58%, rgba(8,6,16,.7) 80%, rgba(8,6,16,.92) 100%)' }}/>
               <div style={{ position: 'absolute', left: 10, right: 8, bottom: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ flex: 1, font: "700 17px 'Chakra Petch',sans-serif", lineHeight: 1, letterSpacing: '0.04em', color: m.color }}>{m.label}</span>
+                  <span className="hm-mode-label" style={{ flex: 1, font: "700 17px 'Chakra Petch',sans-serif", lineHeight: 1, letterSpacing: '0.04em', color: m.color }}>{m.label}</span>
                   <ChevronRight size={15} color="#E6E2F5"/>
                 </div>
                 <span className="msub" style={{ font: "600 7.5px 'Chakra Petch',sans-serif", lineHeight: 1.3, letterSpacing: '0.08em', color: '#D9D4EC', textTransform: 'uppercase', width: 140 }}>{m.sub}</span>
@@ -640,7 +752,7 @@ export default function HomeDashboard({
         </div>
 
         <button type="button" className="hm-arcade" data-guide="home-arcade" onClick={() => onTrainingArcade?.()} title="Training Arcade" style={{
-          position: 'relative', height: 96, flexShrink: 0, borderRadius: 14, overflow: 'hidden', padding: '0 14px', cursor: 'pointer', textAlign: 'left',
+          position: 'relative', borderRadius: 14, overflow: 'hidden', padding: '0 14px', cursor: 'pointer', textAlign: 'left',
           border: '1px solid rgba(242,190,69,0.35)', background: '#0B0718', display: 'flex', alignItems: 'center', gap: 12, width: '100%',
         }}>
           <SafeImage src="/static/revamp/arcade-banner.webp" alt="" style={{ position: 'absolute', top: 0, right: 0, height: '100%', width: 'auto', maxWidth: 'none' }}/>
@@ -649,27 +761,28 @@ export default function HomeDashboard({
           <span style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span className="hm-arcade-title" style={{ font: "700 9px 'Orbitron',sans-serif", letterSpacing: '0.42em', color: '#5FE3FF', textShadow: '0 0 8px rgba(95,227,255,.6)' }}>TRAINING</span>
             <span className="hm-arcade-title" style={{
-              font: "italic 900 26px 'Orbitron',sans-serif", lineHeight: 1, letterSpacing: '0.04em',
+              fontStyle: 'italic', fontWeight: 900, fontFamily: "'Orbitron',sans-serif", lineHeight: 1, letterSpacing: '0.04em',
               background: 'linear-gradient(180deg, #FFF6C8 0%, #FDE047 45%, #E0A21C 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
               filter: 'drop-shadow(0 0 10px rgba(253,224,71,.35)) drop-shadow(2px 2px 0 #4C1D95)',
-            }}>ARCADE</span>
+            }} data-big="1"><span className="hm-arcade-big">ARCADE</span></span>
             <span className="hm-arcade-sub" style={{ display: 'flex', alignItems: 'center', gap: 6, font: "700 10px 'Chakra Petch',sans-serif", letterSpacing: '0.18em', color: '#E6E2F5' }}>
               STAGES<span style={{ color: '#5FE3FF' }}>◆</span>BOSSES<span style={{ color: '#5FE3FF' }}>◆</span>XP
             </span>
           </span>
-          <ChevronRight size={22} color="#F2BE45" style={{ position: 'relative' }}/>
+          <ChevronRight size={22} color="#F2BE45" style={{ position: 'relative', flexShrink: 0 }}/>
         </button>
+        </div>
 
-        <div data-guide="home-quick" style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
-          <span style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTED }}>Quick access</span>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+        <div data-guide="home-quick" className="hm-quick">
+          <span className="hm-quick-head" style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTED }}>Quick access</span>
+          <div className="hm-quick-grid">
             {[
               { key: 'qm', label: 'QUICK MISSION', Icon: Zap, go: onQuickMission },
               { key: 'jt', label: 'JUST TRAIN', Icon: Timer, go: () => onJustTrain?.(disc) },
               { key: 'cc', label: 'COMBAT CONDITIONING', Icon: Activity, go: onCombatConditioning },
             ].map(t => (
-              <button key={t.key} type="button" className="hm-tile" onClick={t.go} style={{
-                height: 64, borderRadius: 14, background: '#0E0B18', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer',
+              <button key={t.key} type="button" className="hm-tile hm-quick-tile" onClick={t.go} style={{
+                borderRadius: 14, background: '#0E0B18', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 6px', color: '#fff',
               }}>
                 <t.Icon size={20} color={MUTED}/>
@@ -678,6 +791,7 @@ export default function HomeDashboard({
             ))}
           </div>
         </div>
+      </div>
       </div>
 
       {/* Nudges: one at a time, over the header, always dismissible. */}

@@ -12,7 +12,7 @@ import { HelpButton } from './WorkoutHelpPanel';
 // week to the next).
 const MUTED = '#A9A3C4';
 
-export default function HomeHeader({ level, tierName, levelXp, levelNeeded, xpPercent, chip, compact = false, onHome, onHelp }) {
+export default function HomeHeader({ level, tierName, levelXp, levelNeeded, xpPercent, chip, compact = false, onHome, onHelp, helpSlop = 0 }) {
   const gap = compact ? 7 : 12;
   // The secret ranks' two-word names (FIGHT ASCENDANT) set a size smaller, so
   // they keep one line in the level column beside the chip; they still wrap
@@ -20,7 +20,7 @@ export default function HomeHeader({ level, tierName, levelXp, levelNeeded, xpPe
   const longTier = String(tierName || '').length > 10;
   return (
     <header data-guide="home-level" style={{ display: 'flex', alignItems: 'center', gap }}>
-      <button type="button" onClick={onHome} aria-label="Training Mode" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}>
+      <button type="button" onClick={onHome} aria-label="Training Mode" style={{ background: 'none', border: 'none', padding: '5px 7px', margin: '-5px -7px', cursor: 'pointer', display: 'flex' }}>
         <SafeImage src="/static/logo-mark.png" alt="" style={{ width: 30, height: 34, objectFit: 'contain' }}/>
       </button>
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -31,7 +31,7 @@ export default function HomeHeader({ level, tierName, levelXp, levelNeeded, xpPe
           </div>
         ) : (
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-            <span style={{ font: "700 14px 'Chakra Petch',sans-serif", color: '#F2BE45', letterSpacing: '0.08em' }}>LV {level}</span>
+            <span style={{ font: "700 14px 'Chakra Petch',sans-serif", color: '#F2BE45', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>LV {level}</span>
             <span style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTED }}>{tierName}</span>
             <span style={{ marginLeft: 'auto', fontSize: 11, color: MUTED, whiteSpace: 'nowrap' }}>{levelXp.toLocaleString()} / {levelNeeded.toLocaleString()} XP</span>
           </div>
@@ -41,7 +41,7 @@ export default function HomeHeader({ level, tierName, levelXp, levelNeeded, xpPe
         </div>
       </div>
       {chip}
-      <HelpButton dataGuide="help-icon" onClick={onHelp}/>
+      <HelpButton dataGuide="help-icon" hitSlop={helpSlop} onClick={onHelp}/>
     </header>
   );
 }
