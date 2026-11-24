@@ -4,7 +4,7 @@ import PhoneFrame from '../../PhoneFrame';
 import BoardOptIn from './BoardOptIn';
 import { BoardLine, phoneCountry, startName } from './ScoreBoardSlot';
 import { ARC, RETENTION_CSS } from './tokens';
-import { fetchBoardProfile, joinBoards, setBoardProfile, leaveBoards, loadBoardState } from '../../data/scoreBoardCloud';
+import { fetchBoardProfile, joinBoards, setBoardProfile, leaveBoards, loadBoardState, boardStateNow, dayOf } from '../../data/scoreBoardCloud';
 
 // Profile's SCORE BOARD (switch `scores`): the row on the overview, and its
 // page: join, change the display name (once a week) or the country, LEAVE
@@ -15,9 +15,15 @@ const label = { font: `700 8px ${ARC.head}`, color: '#b06aff', letterSpacing: '0
 const body = { font: `600 14px ${ARC.body}`, color: '#e9e3f7', lineHeight: 1.4, margin: 0 };
 const card = { background: 'rgba(8,2,18,0.92)', border: '1px solid rgba(253,224,71,0.35)', borderRadius: 14, padding: 14, display: 'flex', flexDirection: 'column', gap: 12 };
 
-// The overview's row: the board name it shows is the phone's copy (no network).
+// The overview's row: the board name it shows is the phone's copy (no network),
+// and only the signed-in account's (signed out or another account: none).
 export function BoardProfileRow({ onOpen }) {
-  const [st] = useState(loadBoardState);
+  const [st, setSt] = useState(loadBoardState);
+  useEffect(() => {
+    let alive = true;
+    boardStateNow().then((s) => { if (alive) setSt(s); });
+    return () => { alive = false; };
+  }, []);
   const joined = st.optIn === 'joined' && st.name;
   return (
     <button type="button" data-retention="board-profile-row" onClick={onOpen} style={{
@@ -87,7 +93,7 @@ export default function BoardProfile({ onBack }) {
     const r = await setBoardProfile(nextName, country);
     setBusy(false);
     if (!r.ok) {
-      const when = r.renameAt ? new Date(r.renameAt).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }) : null;
+      const when = r.renameAt ? dayOf(r.renameAt) : null;
       setMsg(r.reason === 'too_soon' && when ? `You can change your name again on ${when}.` : r.line);
       return;
     }

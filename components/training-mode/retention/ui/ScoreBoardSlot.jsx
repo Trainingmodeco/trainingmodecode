@@ -58,7 +58,7 @@ export function BoardLine({ line }) {
   return (
     <div data-retention="board-line" style={{
       background: 'rgba(8,2,18,0.85)', border: '1px solid rgba(176,106,255,0.25)', borderRadius: 10, padding: '8px 12px',
-      font: `600 12px ${ARC.body}`, color: '#cbc6e0', lineHeight: 1.35, textAlign: 'center',
+      font: `600 12px ${ARC.body}`, color: '#cbc6e0', lineHeight: 1.35, textAlign: 'center', textWrap: 'balance',
     }}>{line}</div>
   );
 }

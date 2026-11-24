@@ -72,7 +72,7 @@ await db.exec(sql.replace(/^create extension if not exists pg_cron;$/m, '-- (pg_
 check('the migration applies twice without error', true);
 
 // ── helpers ──────────────────────────────────────────────────────────────────
-const U = Object.fromEntries('ABCDEFGHIJKLMN'.split('').map((c, i) => [c, `00000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`]));
+const U = Object.fromEntries('ABCDEFGHIJKLMNOPQRS'.split('').map((c, i) => [c, `00000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`]));
 for (const [k, id] of Object.entries(U)) await db.query('insert into auth.users (id, email) values ($1, $2)', [id, `${k.toLowerCase()}@example.com`]);
 let who = null;
 async function as(user) {
@@ -89,6 +89,20 @@ async function denied(text, params = []) {
 }
 async function admin(fn) { const prev = who; await as('admin'); const out = await fn(); if (prev && prev !== 'admin') await as(prev); return out; }
 const rpc = (fnCall, params) => one(`select ${fnCall} as r`, params);
+// A count that reads -1 when the query fails (a table the migration has not made yet).
+const countOr = (text, params) => admin(() => one(text, params)).catch(() => -1);
+const holdsOf = (user) => countOr('select count(*)::int from public.board_holds where user_id = $1', [U[user]]);
+// The advisory locks a call holds until its transaction ends (rolled back after).
+async function locksDuring(user, text, params = []) {
+  await as(user);
+  await db.exec('begin');
+  try {
+    await db.query(text, params);
+    return (await q("select ((classid::bigint << 32) | objid::bigint)::text as k from pg_locks where locktype = 'advisory' and objsubid = 1 and granted")).map((r) => r.k);
+  } finally {
+    await db.exec('rollback');
+  }
+}
 // A ticket started `ago` seconds back (the server's clock is real, so the test
 // moves the ticket instead of waiting).
 async function ticket(user, board, ago = 7200) {
@@ -109,7 +123,7 @@ const ffRules = boardRules(FF);
 const qmRules = boardRules(QM);
 
 // ── 1. nobody reads or writes a table directly ───────────────────────────────
-const TABLES = ['board_players', 'board_rules', 'board_house', 'board_scores', 'board_runs', 'board_name_blocklist', 'board_flags'];
+const TABLES = ['board_players', 'board_rules', 'board_house', 'board_scores', 'board_runs', 'board_name_blocklist', 'board_flags', 'board_holds'];
 for (const role of ['anon', 'A']) {
   await as(role);
   for (const t of TABLES) check(`${role === 'A' ? 'a signed-in user' : 'anon'} cannot read ${t}`, await denied(`select * from public.${t}`));
@@ -121,12 +135,24 @@ check('a user cannot rename a house row', await denied("update public.board_hous
 check('a user cannot update a player row', await denied("update public.board_players set level = 999"));
 check('a user cannot delete scores', await denied('delete from public.board_scores'));
 check('a user cannot edit the blocklist', await denied("insert into public.board_name_blocklist values ('zz', false)"));
+// The identity columns' sequences too: Supabase grants every new sequence to
+// the client roles by default, and a table's revoke does not reach them.
+const seqs = await admin(() => q("select c.oid::regclass::text as seq from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'S' and c.relname like 'board%' order by 1"));
+check('the board tables have their two sequences (scores, flags)', eq(seqs.map((r) => r.seq), ['board_flags_id_seq', 'board_scores_id_seq']), JSON.stringify(seqs));
+for (const { seq } of seqs) for (const role of ['anon', 'authenticated']) {
+  const any = await admin(() => one("select has_sequence_privilege($1, $2, 'usage') or has_sequence_privilege($1, $2, 'select') or has_sequence_privilege($1, $2, 'update')", [role, `public.${seq}`]));
+  check(`${role} has no use of ${seq}`, any === false);
+}
+await as('anon');
+check('anon cannot draw from a board sequence', await denied("select nextval('public.board_scores_id_seq')"));
+await as('A');
+check('a signed-in user cannot draw from a board sequence', await denied("select nextval('public.board_flags_id_seq')"));
 
 // ── 2. who may call what ─────────────────────────────────────────────────────
 const fnPriv = async (role, sig) => admin(() => one('select has_function_privilege($1, $2, \'execute\')', [role, sig]));
 const PUBLIC_FNS = { 'public.get_board(text)': ['anon', 'authenticated'] };
 const AUTH_FNS = ['public.get_my_place(text)', 'public.get_board_profile()', 'public.join_boards(text, text)', 'public.set_board_profile(text, text)', 'public.leave_boards()', 'public.start_board_run(text)', 'public.submit_score(uuid, int, text, int)'];
-const INTERNAL = ['public.board_name_key(text)', 'public.board_name_problem(text, uuid)', 'public.board_place_of(text, uuid)', 'public.purge_board_runs()'];
+const INTERNAL = ['public.board_name_key(text)', 'public.board_lock(uuid)', 'public.board_name_problem(text, uuid)', 'public.board_place_of(text, uuid)', 'public.purge_board_runs()'];
 for (const [sig, roles] of Object.entries(PUBLIC_FNS)) for (const r of ['anon', 'authenticated']) check(`${r} ${roles.includes(r) ? 'may' : 'may not'} call ${sig}`, (await fnPriv(r, sig)) === roles.includes(r));
 for (const sig of AUTH_FNS) {
   check(`authenticated may call ${sig}`, (await fnPriv('authenticated', sig)) === true);
@@ -134,9 +160,9 @@ for (const sig of AUTH_FNS) {
 }
 for (const sig of INTERNAL) for (const r of ['anon', 'authenticated']) check(`${r} may not call ${sig}`, (await fnPriv(r, sig)) === false);
 const defs = await admin(() => q("select p.proname, p.prosecdef, p.proconfig, pg_get_function_identity_arguments(p.oid) as args from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and (p.proname like '%board%' or p.proname in ('get_my_place', 'submit_score'))"));
-check('every board function has a fixed search_path', defs.length >= 12 && defs.every((d) => (d.proconfig || []).some((c) => /^search_path=/.test(c))), JSON.stringify(defs.map((d) => d.proname)));
-check('every function a client calls is security definer', defs.filter((d) => !['board_name_key'].includes(d.proname)).every((d) => d.prosecdef));
-check('no client function takes a user id (only the internal helpers do)', defs.filter((d) => /uuid/.test(d.args) && !/p_ticket/.test(d.args)).every((d) => ['board_name_problem', 'board_place_of'].includes(d.proname)), JSON.stringify(defs.map((d) => `${d.proname}(${d.args})`)));
+check('every board function has a fixed search_path', defs.length >= 13 && defs.every((d) => (d.proconfig || []).some((c) => /^search_path=/.test(c))), JSON.stringify(defs.map((d) => d.proname)));
+check('every function a client calls is security definer (the two plain helpers are called only from inside them)', defs.filter((d) => !['board_name_key', 'board_lock'].includes(d.proname)).every((d) => d.prosecdef));
+check('no client function takes a user id (only the internal helpers do)', defs.filter((d) => /uuid/.test(d.args) && !/p_ticket/.test(d.args)).every((d) => ['board_lock', 'board_name_problem', 'board_place_of'].includes(d.proname)), JSON.stringify(defs.map((d) => `${d.proname}(${d.args})`)));
 await as('anon');
 check('anon cannot ask for a ticket', await denied('select public.start_board_run($1)', [FF]));
 check('anon cannot post a score', await denied("select public.submit_score(gen_random_uuid(), 10, 'x', 1)"));
@@ -226,6 +252,19 @@ const rowsA = await admin(() => q('select count(*)::int as n, max(value) as v fr
 check('one best per player per board', rowsA[0].n === 1 && rowsA[0].v === 951);
 res = await post('B', FF, 868);
 check("a player's submit writes only their own row", res.status === 'new_best' && (await admin(() => one('select value from public.board_scores where user_id = $1', [U.A]))) === 951);
+// The limits are counted, then written: one athlete's calls must queue behind
+// each other, or parallel calls all read the same count and all pass. Each
+// call takes a lock on the athlete (held to the end of its transaction).
+const kStart = await locksDuring('A', 'select public.start_board_run($1)', [FF]);
+const kSubmit = await locksDuring('A', "select public.submit_score(gen_random_uuid(), 1, 'lock-check', 1)");
+const kOther = await locksDuring('B', 'select public.start_board_run($1)', [FF]);
+check('start_board_run holds a lock on the athlete until it commits (40 tickets a day cannot be raced past)', kStart.length === 1, JSON.stringify(kStart));
+check('…submit_score holds the same lock (30 a day, 6 a board, one answer a ticket)', kSubmit.length === 1 && kSubmit[0] === kStart[0], JSON.stringify(kSubmit));
+check("…another athlete's lock is another key (no one waits on a stranger)", kOther.length === 1 && kOther[0] !== kStart[0]);
+const kJoin = await locksDuring('A', 'select public.join_boards($1, null)', ['Rafa_K']);
+const kLeave = await locksDuring('A', 'select public.leave_boards()');
+check('…and join_boards and leave_boards take it too', kJoin.length === 1 && kJoin[0] === kStart[0] && kLeave.length === 1 && kLeave[0] === kStart[0]);
+check('…(the leave above was rolled back)', (await admin(() => one('select count(*)::int from public.board_players where user_id = $1', [U.A]))) === 1);
 
 // A time board ('less'): a time cannot be longer than the ticket's age, nor under the floor.
 await join('C', 'Dre', 'GB');
@@ -309,7 +348,7 @@ await as('G');
 let place = await rpc('public.get_my_place($1)', [F2]);
 check('get_my_place: place counts the CPU above, rank counts players only', place.place === 6 && place.rank === 3 && place.players === 3 && place.value === 812, JSON.stringify(place));
 check('…and the next place needs the row just above (a CPU at 864)', place.next_value === 864);
-check('…with no ids in it', noIds(place) && !('set_at' in place));
+check('…with no ids in it, and no moderation state', noIds(place) && !('set_at' in place) && !('hidden' in place), JSON.stringify(place));
 got = await compare('3 players, seen by one of them', 'G');
 check('…the viewer\'s own row is marked you, no one else\'s', got.rows.filter((r) => r.you).length === 1 && got.rows.find((r) => r.you).name === 'Ola');
 await addPlayer('H', 'Sam W', 640, 19, 'GB');
@@ -337,6 +376,14 @@ got = await compare('a hidden player is off the board');
 await as('F');
 place = await rpc('public.get_my_place($1)', [F2]);
 check('…and the one under them moves up to 1st', place.place === 1 && place.rank === 1 && place.next_value === null);
+await compare('a hidden player, seen by another player', 'F');
+// The hidden player is not told: their own answers read like anyone's.
+await as('E');
+const hiddenPlace = await rpc('public.get_my_place($1)', [F2]);
+check('a hidden player is not told they are hidden (no hidden flag in get_my_place)', !('hidden' in hiddenPlace), JSON.stringify(hiddenPlace));
+check('…their place reads like anyone\'s (1st, counting themself among the players)', hiddenPlace.place === 1 && hiddenPlace.rank === 1 && hiddenPlace.players === players.length + 1, JSON.stringify(hiddenPlace));
+const hiddenView = await rpc('public.get_board($1)', [F2]);
+check('…and they see their own row on the board, where no one else does', hiddenView.rows.some((r) => r.you && r.name === 'Kenji.T') && hiddenView.players === players.length + 1, JSON.stringify(hiddenView.rows.map((r) => r.name)));
 await admin(() => q('update public.board_players set hidden = false where user_id = $1', [U.E]));
 players.unshift({ key: 'E', name: 'Kenji.T', level: 31, value: 951, cc: 'JP' });
 
@@ -371,18 +418,71 @@ const before = await admin(() => q('select (select count(*)::int from public.boa
 res = await rpc('public.leave_boards()');
 const after = await admin(() => q('select (select count(*)::int from public.board_players where user_id = $1) as p, (select count(*)::int from public.board_scores where user_id = $1) as s, (select count(*)::int from public.board_runs where user_id = $1) as r, (select count(*)::int from public.board_flags where user_id = $1) as f', [U.G]));
 check('leave_boards answers with the scores taken off', res.ok === true && res.scores === before[0].s && before[0].s > 0 && before[0].r > 0);
-check('…and deletes the player row, every score, ticket and flag', eq(after[0], { p: 0, s: 0, r: 0, f: 0 }), JSON.stringify(after[0]));
+check("…and deletes the player row and every score; the day's tickets stay for the limits (the purge takes them after 2 days)", after[0].p === 0 && after[0].s === 0 && after[0].r === before[0].r, JSON.stringify(after[0]));
 players.splice(players.findIndex((p) => p.key === 'G'), 1);
 await compare('after a player leaves, the board closes up');
 await as('B');
 res = await rpc('public.leave_boards()');
-check('leaving also takes the flags of mine', (await admin(() => one('select count(*)::int from public.board_flags where user_id = $1', [U.B]))) === 0);
+check('leaving keeps the flags on my scores for a person to look at (service role only)', (await admin(() => one('select count(*)::int from public.board_flags where user_id = $1', [U.B]))) === 2);
 await as('B');
 res = await rpc('public.get_my_place($1)', [FF]);
 check('after leaving, get_my_place has no score of mine', res && res.value === undefined && typeof res.players === 'number');
-// Deleting the account does the same (the rows reference auth.users).
+// Deleting the account takes everything (the rows reference auth.users).
+await admin(() => q("insert into public.board_holds (user_id, hidden) values ($1, true)", [U.H])).catch(() => {});
 await admin(() => q('delete from auth.users where id = $1', [U.H]));
 check('deleting an account deletes its board rows', (await admin(() => one('select count(*)::int from public.board_players where user_id = $1', [U.H]))) === 0);
+check('…its tickets, flags and any hold too', (await countOr('select (select count(*) from public.board_runs where user_id = $1) + (select count(*) from public.board_flags where user_id = $1) + (select count(*) from public.board_holds where user_id = $1)', [U.H])) === 0);
+
+// ── 10. leaving does not wash away moderation, the limits or the rename week ─
+// A blocked, hidden player who leaves and joins again comes back as they left.
+await join('O', 'Mallory');
+await admin(() => q("update public.board_players set blocked_until = now() + interval '7 days', hidden = true, name_changed_at = now() where user_id = $1", [U.O]));
+await as('O');
+check('a blocked player gets no ticket', (await rpc('public.start_board_run($1)', [FF])) === null);
+res = await rpc('public.leave_boards()');
+check('a blocked, hidden player can still LEAVE (their scores come off)', res.ok === true && (await admin(() => one('select count(*)::int from public.board_players where user_id = $1', [U.O]))) === 0);
+await as('O');
+check('…off the boards, still no ticket while the block runs', (await rpc('public.start_board_run($1)', [FF])) === null);
+res = await join('O', 'Mallory');
+check('…and no JOIN under a fresh name inside the rename week', res.ok === false && res.reason === 'too_soon' && !!res.rename_at, JSON.stringify(res));
+await admin(() => q("update public.board_holds set name_changed_at = now() - interval '8 days' where user_id = $1", [U.O])).catch(() => {});
+res = await join('O', 'Mallory');
+const back = await admin(() => q('select hidden, blocked_until > now() as blocked from public.board_players where user_id = $1', [U.O]));
+check('after the week, JOIN again: still hidden and still blocked, as they left', res.ok === true && back[0]?.hidden === true && back[0]?.blocked === true, JSON.stringify(back[0]));
+await as('O');
+check('…so still no ticket', (await rpc('public.start_board_run($1)', [FF])) === null);
+check('…and the hold folds back into the player row (one place for it)', (await holdsOf('O')) === 0);
+await as('anon');
+check('…and still off every board', !(await rpc('public.get_board($1)', [FF])).rows.some((r) => r.name === 'Mallory'));
+// The day's limits are counted on tickets, which LEAVE does not take.
+await join('P', 'Pace.Q');
+await admin(() => q("insert into public.board_runs (user_id, board, started_at, used_at, result) select $1, $2, now() - interval '2 hours', now() - interval '1 hour', 'scored' from generate_series(1, 6)", [U.P, FF]));
+await as('P');
+await rpc('public.leave_boards()');
+await join('P', 'Pace.Q');
+res = await post('P', FF, 500);
+check("LEAVE and JOIN again do not reset the day's limits (the 7th score on a board is still refused)", res.status === 'refused' && res.reason === 'rate_limited', JSON.stringify(res));
+// A rename, then LEAVE, then JOIN under another name: the week still runs.
+await join('Q', 'Quill');
+await as('Q');
+res = await rpc('public.set_board_profile($1, $2)', ['Quill.2', null]);
+await as('Q');
+await rpc('public.leave_boards()');
+res = await join('Q', 'Quill.3');
+check('a rename, LEAVE, then JOIN as someone new: refused until a week after the rename', res.ok === false && res.reason === 'too_soon', JSON.stringify(res));
+// A plain LEAVE keeps nothing: no hold, and JOIN works at once.
+await join('R', 'Rook');
+await as('R');
+await rpc('public.leave_boards()');
+check('a plain LEAVE keeps no hold (nothing of theirs is in force)', (await holdsOf('R')) === 0);
+res = await join('R', 'Rook2');
+check('…and they can JOIN again at once', res.ok === true && res.name === 'Rook2');
+// The hourly purge drops a hold once nothing in it is in force; a hidden one stays for review.
+await admin(() => q("insert into public.board_holds (user_id, blocked_until) values ($1, now() - interval '1 hour')", [U.S])).catch(() => {});
+await admin(() => q("insert into public.board_holds (user_id, hidden) values ($1, true)", [U.N])).catch(() => {});
+await admin(() => one('select public.purge_board_runs()'));
+check('the purge drops a hold whose block ran out', (await holdsOf('S')) === 0);
+check('…and keeps a hidden one', (await holdsOf('N')) === 1);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 await db.close();

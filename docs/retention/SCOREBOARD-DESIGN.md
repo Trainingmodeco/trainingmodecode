@@ -277,13 +277,13 @@ About two weeks of work, after the owner says yes to this design:
 
 | Piece | Where |
 | --- | --- |
-| Migration: 7 tables, RLS on with no client policies, privileges revoked, 8 client functions and 4 internal ones (security definer, `search_path = ''`, `auth.uid()` only), the hourly ticket purge, and the generated rows (203 boards, the house names, the name filter's words) | `supabase/migrations/20261123120000_create_score_boards.sql` |
+| Migration: 8 tables, RLS on with no client policies, privileges revoked (the two identity sequences too), 8 client functions and 5 internal ones (security definer, `search_path = ''`, `auth.uid()` only, a lock on the athlete before any limit is counted), the hourly ticket and hold purge, and the generated rows (203 boards, the house names, the name filter's words) | `supabase/migrations/20261123120000_create_score_boards.sql` |
 | The boards' rules from the app's data (keys, more or less, unit, cap, `min_seconds`, the twelve house scores), each mode's board at START and score at FINISH, eligibility and the one-line reasons, the view the components draw | `components/training-mode/data/scoreBoardRules.js` |
 | The generator of the migration's rows (`--check`; `--out` for a later update) | `scripts/score-board-rules.mjs` (`npm run scoreboard:rules`) |
 | The client: tickets at START, the submit at FINISH, the opt-in, get_board and get_my_place, the profile calls, the offline queue | `components/training-mode/data/scoreBoardCloud.js` |
 | The end screen's slot (the line, the opt-in, the HIGH SCORES card, the GAME OVER board) and Profile's SCORE BOARD row and page | `retention/ui/ScoreBoardSlot.jsx`, `retention/ui/BoardProfile.jsx` |
 | Wiring (all behind `scores`) | `App.jsx` (goTimer, goSummary, goComboActive, goComboEnd, goQuickMissionActive, goQuickMissionComplete), `ScreenRouter.jsx`, `SessionSummary.jsx`, `QuickMissionComplete.jsx`, `shared/MissionComplete.jsx` (a `board` slot under the summary), `Profile.jsx` |
-| Tests | `npm run test:scoreboard` (99 checks, in `check:all`), `npm run test:scoreboard-sql` (163 checks on PGlite, see below), `npm run preview:scores` (photos of the real app) |
+| Tests | `npm run test:scoreboard` (125 checks, in `check:all`), `npm run test:scoreboard-sql` (200 checks on PGlite, see below), `npm run preview:scores` (photos of the real app) |
 
 ### The boards (203, every one marked BETA)
 
@@ -331,6 +331,25 @@ paces for missions (rungs 1, 5 and 9, a lower rung 12).
 - **The full board shows when the answer comes within 4 s of the end screen** (always right after JOIN). A slower
   answer only fills the card, which says NEW BEST; VIEW BOARD opens the full board.
 - **The card has one quiet line when today did not beat the best** ("Today: 899. Your best (939) stays on the board.").
+- **LEAVE BOARDS does not wash away moderation or the limits** (found in review, 2026-11-24). It still deletes the
+  player row and every score at once, but a hidden or blocked state and the week a rename waits move to
+  **`board_holds`** (service role only, kept only while in force, purged hourly once nothing in it is) and come back
+  if the athlete joins again; JOIN under a new name inside a rename's week is refused like a rename ("A name changes
+  once a week. You can join again on …"). The day's tickets (the 40, 30 and 6 limits) and the flags are not touched:
+  the purge takes tickets after 2 days, and the flags stay for a person to look at. Deleting the account takes all of it.
+- **One athlete's calls queue behind each other.** `join_boards`, `leave_boards`, `start_board_run` and
+  `submit_score` first take a transaction lock on the athlete (`board_lock`), so parallel calls cannot all pass the
+  same count.
+- **A hidden player is not told.** `get_my_place` answers only value, level, rank, place, players and next place,
+  and a hidden player still sees their own row and counts themself (no one else sees them).
+- **The phone's copies belong to one account.** The opt-in, the name and the boards' copies carry the user id;
+  another account signed in starts them afresh, and SIGN OUT clears them. A waiting score goes up only under the
+  account that started it.
+- **A score the server never answered waits.** Offline, signed out since START, an expired token, a busy or failing
+  server (401, 404, 408, 429, 5xx): the score stays on the phone for its ticket's 24 hours and goes up when the app
+  opens or comes back online. Any answer, a refusal too, ends it. Right after JOIN the athlete always hears back: the
+  board, or one line ("You're on the world board. This score tries again next time you open the app.", "…with this
+  score.", or "…This score did not go up.").
 
 ### Applying the migration (the lead, after review)
 
@@ -354,7 +373,8 @@ paces for missions (rungs 1, 5 and 9, a lower rung 12).
 7. Moderation (service role, dashboard): `update public.board_players set hidden = true where display_name = '…';`,
    `blocked_until = now() + interval '7 days'`, `delete from public.board_scores where id = …;`, words added to
    `public.board_name_blocklist (word, exact)` in their filter key (lower case, a to z only), flags in
-   `public.board_flags`.
+   `public.board_flags`. A player who left the boards: their hold is in `public.board_holds` (to block or hide one
+   who is not joined, `insert into public.board_holds (user_id, hidden, blocked_until) values (…)`).
 
 ### Rolling it back
 
@@ -366,9 +386,10 @@ drop function if exists
   public.submit_score(uuid, int, text, int), public.start_board_run(text), public.leave_boards(),
   public.set_board_profile(text, text), public.join_boards(text, text), public.get_board_profile(),
   public.get_my_place(text), public.get_board(text), public.purge_board_runs(),
-  public.board_place_of(text, uuid), public.board_name_problem(text, uuid), public.board_name_key(text);
+  public.board_place_of(text, uuid), public.board_name_problem(text, uuid), public.board_lock(uuid),
+  public.board_name_key(text);
 drop table if exists
-  public.board_flags, public.board_runs, public.board_scores, public.board_players,
+  public.board_holds, public.board_flags, public.board_runs, public.board_scores, public.board_players,
   public.board_name_blocklist, public.board_house, public.board_rules;
 ```
 
@@ -381,13 +402,17 @@ screen shows no board. The switch is off for everyone already; to hide it on the
 `scripts/test-scoreboard-sql.mjs` applies the migration (twice) to PGlite, Postgres 17 in WebAssembly, in memory,
 with a stub `auth` schema (`auth.users`, `auth.uid()` reading the request's JWT subject), the roles `anon`,
 `authenticated` and `service_role`, Supabase's default privileges (so the revokes are what keeps clients out) and a
-stand-in `cron.schedule`. It proves: no client role reads or writes any table; who may call which function; every
+stand-in `cron.schedule`. It proves: no client role reads or writes any table or draws from its sequences; who may
+call which function; every
 function has a fixed `search_path` and none a client calls takes a user id; a ticket only for a signed-in athlete; no
 post before joining, too early, over the cap, past 24 hours, with someone else's ticket, twice for one session, past
 the limits (6 a board, 30 a day, 40 tickets); only a better score replaces a best (more and less boards); flags; the
 name filter (shape, reserved house names and look-alikes, blocked words, taken ignoring case); the profile (country
 any time, a rename once a week); moderation (blocked, hidden); `get_board` against the app's own `composeBoard` at 3,
 5, 6 and 10 players and after a player hides or leaves, never an id or an email; `get_my_place`'s place, rank and next
-place (CPU above, a tie, from 5 players on); `leave_boards` deleting every row of the player's; an account deletion
-doing the same. PGlite is 27 MB, so it is not a dependency: install it once anywhere and run
+place (CPU above, a tie, from 5 players on); a hidden player not told (no flag, their own row and count); the lock on
+the athlete held by join, leave, a ticket and a submit (one key per athlete); `leave_boards` deleting the player row
+and every score while the day's tickets and the flags stay; LEAVE then JOIN keeping a block, a hidden state, the day's
+limits and the rename week, a plain LEAVE keeping no hold, and the purge dropping a hold once nothing is in force; an
+account deletion taking every row. PGlite is 27 MB, so it is not a dependency: install it once anywhere and run
 `PGLITE_DIR=<that folder> npm run -s test:scoreboard-sql` (the script's header says how). It is not in `check:all`.

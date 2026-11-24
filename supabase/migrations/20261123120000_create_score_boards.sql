@@ -17,6 +17,8 @@
 --   board_runs            start tickets: one per session, used once, 24 hours
 --   board_name_blocklist  reserved names and words no name may contain (service role)
 --   board_flags           accepted scores a person should look at (service role)
+--   board_holds           what LEAVE BOARDS cannot wash away: a hidden or blocked
+--                         player's moderation and a rename's week (service role)
 --
 -- Functions (who may call them)
 --   get_board(board)                     anon, authenticated: the ten rows, never an id
@@ -24,9 +26,13 @@
 --   get_board_profile()                  authenticated: my own name and country
 --   join_boards(name, country)           authenticated
 --   set_board_profile(name, country)     authenticated: a new name once a week
---   leave_boards()                       authenticated: deletes everything of mine
+--   leave_boards()                       authenticated: deletes my player row and every score
 --   start_board_run(board)               authenticated: a ticket at START
 --   submit_score(ticket, value, session_id, level)  authenticated: at FINISH
+--
+-- Every function that counts a limit and then writes (join, leave, a ticket, a
+-- score) first takes a lock on the athlete (board_lock), so one athlete's calls
+-- queue behind each other and parallel calls cannot all pass the same count.
 --
 -- Roll back: docs/retention/SCOREBOARD-DESIGN.md, "Applying and rolling
 -- back", has the exact script (unschedule the purge, drop the functions, drop
@@ -136,6 +142,22 @@ create table if not exists public.board_flags (
 comment on table public.board_flags is 'Accepted scores for a person to look at (near the cap, a big jump on a player''s own best). Service role only.';
 create index if not exists board_flags_created on public.board_flags (created_at desc);
 
+-- LEAVE BOARDS deletes the player row and every score, but it must not wash
+-- away moderation: a hidden or blocked player's state, and the week a rename
+-- waits, are held here while they are off the boards and put back if they join
+-- again (join_boards). Nothing else of theirs is kept, and a row goes once
+-- nothing in it is in force (the hourly purge). The day's tickets (the limits)
+-- and the flags stay in their own tables, which LEAVE does not touch.
+create table if not exists public.board_holds (
+  user_id         uuid primary key references auth.users (id) on delete cascade,
+  hidden          boolean not null default false,
+  blocked_until   timestamptz,
+  name_changed_at timestamptz,
+  left_at         timestamptz not null default now()
+);
+comment on table public.board_holds is
+  'Moderation and the rename week of players who left (LEAVE BOARDS), put back if they join again. Service role only; purged once nothing is in force.';
+
 -- ── Lock every table: RLS on, no client policies, no client privileges ──────
 alter table public.board_players        enable row level security;
 alter table public.board_rules          enable row level security;
@@ -144,8 +166,12 @@ alter table public.board_scores         enable row level security;
 alter table public.board_runs           enable row level security;
 alter table public.board_name_blocklist enable row level security;
 alter table public.board_flags          enable row level security;
+alter table public.board_holds          enable row level security;
 revoke all on table public.board_players, public.board_rules, public.board_house, public.board_scores,
-  public.board_runs, public.board_name_blocklist, public.board_flags from public, anon, authenticated;
+  public.board_runs, public.board_name_blocklist, public.board_flags, public.board_holds from public, anon, authenticated;
+-- The identity columns' sequences: Supabase's default privileges grant every
+-- new sequence to the client roles, and the table revoke does not reach them.
+revoke all on sequence public.board_scores_id_seq, public.board_flags_id_seq from public, anon, authenticated;
 
 -- ── Internal helpers (no client role may call them) ─────────────────────────
 -- The name filter's key: lower case, look-alikes mapped (0 o, 1 i, 3 e, 4 a,
@@ -157,6 +183,17 @@ immutable
 set search_path = ''
 as $$
   select pg_catalog.regexp_replace(pg_catalog.translate(pg_catalog.lower(coalesce(p, '')), '013457@$', 'oieastas'), '[^a-z]', '', 'g');
+$$;
+
+-- One athlete's calls queue behind each other: a transaction-scoped lock on the
+-- athlete (released at commit), taken before any limit is counted.
+create or replace function public.board_lock(p_uid uuid)
+returns void
+language sql
+volatile
+set search_path = ''
+as $$
+  select pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('board_user:' || p_uid::text, 0));
 $$;
 
 -- Why a display name cannot be used, or null: 'name_invalid' (the shape),
@@ -185,11 +222,13 @@ begin
 end;
 $$;
 
--- A player's place on a board, as get_board lays it out: their best, their
--- rank among the visible players, their place on the list (house rows above
--- them counted while the board has fewer than 5 players; from 5 on, house rows
--- sit only below the lowest real score), the player count, and the value of
--- the row just above them (what the next place needs). null: no score there.
+-- A player's place on a board, as get_board lays it out for them: their best,
+-- their rank among the visible players, their place on the list (house rows
+-- above them counted while the board has fewer than 5 players; from 5 on, house
+-- rows sit only below the lowest real score), the player count, and the value
+-- of the row just above them (what the next place needs). null: no score there.
+-- A hidden player is counted in their own answer, as get_board shows them their
+-- own row: nothing here tells them they are hidden.
 create or replace function public.board_place_of(p_board text, p_uid uuid)
 returns jsonb
 language plpgsql
@@ -203,7 +242,6 @@ declare
   my_rank    int;
   my_set     timestamptz;
   my_level   int;
-  my_hidden  boolean;
   n_players  int;
   n_above    int;
   cpu_above  int := 0;
@@ -212,8 +250,8 @@ declare
   h_rank     int;
   next_value int;
 begin
-  select s.value, s.rank_value, s.set_at, p.level, p.hidden
-    into my_value, my_rank, my_set, my_level, my_hidden
+  select s.value, s.rank_value, s.set_at, p.level
+    into my_value, my_rank, my_set, my_level
     from public.board_scores s join public.board_players p on p.user_id = s.user_id
    where s.board = p_board and s.period = 'all' and s.user_id = p_uid;
   if not found then
@@ -222,7 +260,7 @@ begin
   select * into r from public.board_rules where board = p_board;
   select count(*) into n_players
     from public.board_scores s join public.board_players p on p.user_id = s.user_id
-   where s.board = p_board and s.period = 'all' and not p.hidden;
+   where s.board = p_board and s.period = 'all' and (not p.hidden or s.user_id = p_uid);
   -- Players above me: a better score, or the same score set first.
   select count(*) into n_above
     from public.board_scores s join public.board_players p on p.user_id = s.user_id
@@ -249,7 +287,7 @@ begin
     next_value := p_value;
   end if;
   return jsonb_build_object(
-    'value', my_value, 'level', my_level, 'set_at', my_set, 'hidden', my_hidden,
+    'value', my_value, 'level', my_level, 'set_at', my_set,
     'rank', n_above + 1, 'place', n_above + cpu_above + 1, 'players', n_players, 'next_value', next_value);
 end;
 $$;
@@ -259,7 +297,8 @@ $$;
 -- score, CPU or not, my own row marked `you`. Never a user id or email. Fewer
 -- than 5 players: all twelve house scores are merged in and the best ten rows
 -- show; 5 or more: only house scores worse than the lowest real score. Ties:
--- whoever set it first; a house row under a player on the same score.
+-- whoever set it first; a house row under a player on the same score. A hidden
+-- player is off everyone's board but their own (they are not told).
 create or replace function public.get_board(p_board text)
 returns jsonb
 language plpgsql
@@ -280,13 +319,13 @@ begin
   end if;
   select count(*), max(s.rank_value) into n_players, lowest
     from public.board_scores s join public.board_players p on p.user_id = s.user_id
-   where s.board = p_board and s.period = 'all' and not p.hidden;
+   where s.board = p_board and s.period = 'all' and (not p.hidden or s.user_id = uid);
   with real_rows as (
     select p.display_name as name, p.country, p.level, s.value, s.rank_value, s.set_at, false as cpu,
            coalesce(s.user_id = uid, false) as you, 0::bigint as rung,
            row_number() over (order by s.rank_value, s.set_at) as rank
       from public.board_scores s join public.board_players p on p.user_id = s.user_id
-     where s.board = p_board and s.period = 'all' and not p.hidden
+     where s.board = p_board and s.period = 'all' and (not p.hidden or s.user_id = uid)
      order by s.rank_value, s.set_at
      limit 10
   ), house_rows as (
@@ -337,7 +376,9 @@ begin
     return jsonb_build_object('players', (select count(*) from public.board_scores s join public.board_players p on p.user_id = s.user_id
                                           where s.board = p_board and s.period = 'all' and not p.hidden));
   end if;
-  return res - 'set_at';
+  -- Only these: never the time it was set, never any moderation state.
+  return jsonb_build_object('value', res -> 'value', 'level', res -> 'level', 'rank', res -> 'rank', 'place', res -> 'place',
+                            'players', res -> 'players', 'next_value', res -> 'next_value');
 end;
 $$;
 
@@ -358,7 +399,10 @@ $$;
 -- Join with a display name (the filter: shape, reserved names, blocked words,
 -- taken) and, only if the athlete turned it on, a two-letter country.
 -- → {"ok": true, "name", "country"} or {"ok": false, "reason"}. Joining twice
--- is not an error: it answers with the name already there.
+-- is not an error: it answers with the name already there. Joining again after
+-- LEAVE BOARDS puts back what board_holds kept (hidden, blocked, silently), and
+-- a new name inside the week of a rename is refused like a rename
+-- ({"reason": "too_soon", "rename_at"}).
 create or replace function public.join_boards(p_name text, p_country text default null)
 returns jsonb
 language plpgsql
@@ -370,14 +414,20 @@ declare
   v_name  text := coalesce(p_name, '');
   v_cc    text := nullif(upper(btrim(coalesce(p_country, ''))), '');
   v_old   public.board_players%rowtype;
+  v_hold  public.board_holds%rowtype;
   problem text;
 begin
   if uid is null then
     raise exception 'sign in required' using errcode = '28000';
   end if;
+  perform public.board_lock(uid);
   select * into v_old from public.board_players where user_id = uid;
   if found then
     return jsonb_build_object('ok', true, 'name', v_old.display_name, 'country', v_old.country, 'already', true);
+  end if;
+  select * into v_hold from public.board_holds where user_id = uid;
+  if v_hold.name_changed_at > now() - interval '7 days' then
+    return jsonb_build_object('ok', false, 'reason', 'too_soon', 'rename_at', v_hold.name_changed_at + interval '7 days');
   end if;
   if v_cc is not null and v_cc !~ '^[A-Z]{2}$' then
     return jsonb_build_object('ok', false, 'reason', 'country_invalid');
@@ -386,7 +436,9 @@ begin
   if problem is not null then
     return jsonb_build_object('ok', false, 'reason', problem);
   end if;
-  insert into public.board_players (user_id, display_name, country) values (uid, v_name, v_cc);
+  insert into public.board_players (user_id, display_name, country, hidden, blocked_until, name_changed_at)
+  values (uid, v_name, v_cc, coalesce(v_hold.hidden, false), v_hold.blocked_until, v_hold.name_changed_at);
+  delete from public.board_holds where user_id = uid;
   return jsonb_build_object('ok', true, 'name', v_name, 'country', v_cc);
 exception when unique_violation then
   return jsonb_build_object('ok', false, 'reason', 'name_taken');
@@ -435,8 +487,12 @@ exception when unique_violation then
 end;
 $$;
 
--- LEAVE BOARDS: my player row, every score, every ticket and every flag of
--- mine, at once. Whoever was under me moves up on the next read.
+-- LEAVE BOARDS: my player row and every score of mine, at once. Whoever was
+-- under me moves up on the next read. What must outlast it stays: a hidden or
+-- blocked state and the week a rename waits go to board_holds (only while in
+-- force), and the day's tickets (the limits) and the flags (for a person to
+-- look at) are not touched; the hourly purge takes tickets after 2 days and
+-- holds once nothing in them is in force. Deleting the account takes them all.
 create or replace function public.leave_boards()
 returns jsonb
 language plpgsql
@@ -444,15 +500,28 @@ security definer
 set search_path = ''
 as $$
 declare
-  uid uuid := auth.uid();
-  n   int;
+  uid   uuid := auth.uid();
+  v_old public.board_players%rowtype;
+  n     int;
 begin
   if uid is null then
     raise exception 'sign in required' using errcode = '28000';
   end if;
+  perform public.board_lock(uid);
+  select * into v_old from public.board_players where user_id = uid;
+  if not found then
+    return jsonb_build_object('ok', true, 'scores', 0);
+  end if;
   select count(*) into n from public.board_scores where user_id = uid;
-  delete from public.board_flags where user_id = uid;
-  delete from public.board_runs where user_id = uid;
+  if v_old.hidden or v_old.blocked_until > now() or v_old.name_changed_at > now() - interval '7 days' then
+    insert into public.board_holds as h (user_id, hidden, blocked_until, name_changed_at)
+    values (uid, v_old.hidden, v_old.blocked_until, v_old.name_changed_at)
+    on conflict (user_id) do update set
+      hidden = h.hidden or excluded.hidden,
+      blocked_until = greatest(h.blocked_until, excluded.blocked_until),
+      name_changed_at = greatest(h.name_changed_at, excluded.name_changed_at),
+      left_at = now();
+  end if;
   delete from public.board_players where user_id = uid;  -- board_scores go with it (on delete cascade)
   return jsonb_build_object('ok', true, 'scores', n);
 end;
@@ -462,7 +531,7 @@ $$;
 -- A ticket for a session about to start, or null (no such board, blocked,
 -- or 40 tickets in the last 24 hours). Signed in; joining is not needed yet,
 -- so the very first session can post once the athlete joins at its end
--- (submit_score is what needs a player row).
+-- (submit_score is what needs a player row). A block held after LEAVE counts.
 create or replace function public.start_board_run(p_board text)
 returns uuid
 language plpgsql
@@ -479,7 +548,9 @@ begin
   if not exists (select 1 from public.board_rules where board = p_board) then
     return null;
   end if;
-  if exists (select 1 from public.board_players where user_id = uid and blocked_until > now()) then
+  perform public.board_lock(uid);
+  if exists (select 1 from public.board_players where user_id = uid and blocked_until > now())
+     or exists (select 1 from public.board_holds where user_id = uid and blocked_until > now()) then
     return null;
   end if;
   if (select count(*) from public.board_runs where user_id = uid and started_at > now() - interval '1 day') >= 40 then
@@ -522,11 +593,13 @@ begin
   if uid is null then
     raise exception 'sign in required' using errcode = '28000';
   end if;
+  perform public.board_lock(uid);
   select * into v_player from public.board_players where user_id = uid;
   if not found then
     return jsonb_build_object('status', 'refused', 'reason', 'not_joined');
   end if;
-  if v_player.blocked_until is not null and v_player.blocked_until > now() then
+  if (v_player.blocked_until is not null and v_player.blocked_until > now())
+     or exists (select 1 from public.board_holds where user_id = uid and blocked_until > now()) then
     return jsonb_build_object('status', 'refused', 'reason', 'blocked');
   end if;
   select * into t from public.board_runs where id = p_ticket and user_id = uid for update;
@@ -605,6 +678,8 @@ end;
 $$;
 
 -- Old tickets go: the rate limits look back one day, a ticket lives 24 hours.
+-- A hold goes once nothing in it is in force (not hidden, no block running, no
+-- rename inside the week). → the rows removed.
 create or replace function public.purge_board_runs()
 returns int
 language plpgsql
@@ -613,15 +688,22 @@ set search_path = ''
 as $$
 declare
   n int;
+  m int;
 begin
   delete from public.board_runs where started_at < now() - interval '2 days';
   get diagnostics n = row_count;
-  return n;
+  delete from public.board_holds
+   where not hidden
+     and (blocked_until is null or blocked_until <= now())
+     and (name_changed_at is null or name_changed_at <= now() - interval '7 days');
+  get diagnostics m = row_count;
+  return n + m;
 end;
 $$;
 
 -- ── Who may call what. Functions are executable by PUBLIC by default. ────────
 revoke all on function public.board_name_key(text) from public, anon, authenticated;
+revoke all on function public.board_lock(uuid) from public, anon, authenticated;
 revoke all on function public.board_name_problem(text, uuid) from public, anon, authenticated;
 revoke all on function public.board_place_of(text, uuid) from public, anon, authenticated;
 revoke all on function public.purge_board_runs() from public, anon, authenticated;

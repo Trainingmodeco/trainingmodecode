@@ -153,17 +153,21 @@ globalThis.fetch = async (url, init) => {
   const name = String(url).split('/rpc/')[1];
   calls.push({ name, body: JSON.parse(init.body || '{}'), auth: init.headers.Authorization || null });
   if (!online) throw new TypeError('Failed to fetch');
-  const r = typeof replies[name] === 'function' ? replies[name](JSON.parse(init.body || '{}')) : replies[name];
+  const r = await (typeof replies[name] === 'function' ? replies[name](JSON.parse(init.body || '{}')) : replies[name]);
   return { ok: r !== undefined && !(r && r.__status), status: r?.__status || 200, text: async () => JSON.stringify(r ?? null) };
 };
-// The signed-in athlete's token (GoTrue itself is not run here).
+// The signed-in athlete's token and user id (GoTrue itself is not run here).
 let signedIn = true;
-C.boardIo.getAccessToken = async () => (signedIn ? 'tok' : null);
+let account = 'user-1';
+C.boardIo.getAccessToken = async () => (signedIn ? `tok-${account}` : null);
+C.boardIo.getUserId = async () => (signedIn ? account : null);
 const signIn = (on) => { signedIn = on; };
+const QUEUE = 'tm_score_board_queue_v1';
+const queue = () => JSON.parse(ls.getItem(QUEUE) || '[]');
 
 replies = { start_board_run: 'tick-1', get_board_profile: null };
 let h = C.startBoardRun(F);
-check('START asks for a ticket for the board', (await h.ticket).ticket === 'tick-1' && calls.at(-1).name === 'start_board_run' && calls.at(-1).body.p_board === F && calls.at(-1).auth === 'Bearer tok');
+check('START asks for a ticket for the board', (await h.ticket).ticket === 'tick-1' && calls.at(-1).name === 'start_board_run' && calls.at(-1).body.p_board === F && calls.at(-1).auth === 'Bearer tok-user-1' && h.uid === 'user-1');
 let out = await C.finishBoardRun({ board: F, value: 812, level: 14, handle: h });
 check('first eligible finish, never asked: the opt-in, before anything is posted', out.kind === 'optin' && out.ticket === 'tick-1' && !calls.some((c) => c.name === 'submit_score'));
 replies.join_boards = { ok: true, name: 'Rafa_K', country: null };
@@ -189,7 +193,7 @@ await h.ticket;
 online = false;
 out = await C.finishBoardRun({ board: F, value: 905, level: 14, handle: h });
 check('offline at the finish: the cached board with this score, "Goes up when you are back online."', out.kind === 'card' && out.line === 'Goes up when you are back online.' && out.board.rows.find((r) => r.you).value === 905, JSON.stringify(out).slice(0, 200));
-check('…kept in the queue', JSON.parse(ls.getItem('tm_score_board_queue_v1')).length === 1);
+check('…kept in the queue, under the account that started it', queue().length === 1 && queue()[0].uid === 'user-1');
 online = true;
 const nSub = calls.filter((c) => c.name === 'submit_score').length;
 await C.flushBoardQueue();
@@ -213,6 +217,8 @@ replies.submit_score = { __status: 500 };
 h = C.startBoardRun(F);
 out = await C.finishBoardRun({ board: F, value: 800, level: 14, handle: h });
 check('a server error: nothing shown', out.kind === 'none');
+check('…and the score waits on the phone for another try', queue().length === 1 && queue()[0].sessionId === h.sessionId);
+ls.setItem(QUEUE, '[]');
 replies.submit_score = { status: 'refused', reason: 'too_early' };
 h = C.startBoardRun(F);
 out = await C.finishBoardRun({ board: F, value: 800, level: 14, handle: h });
@@ -227,7 +233,8 @@ const later = C.skipAfterAsk({ board: F, handle: h });
 check('NOT NOW: the line, and the phone remembers', out.kind === 'optin' && later.line === 'Join the world board on Profile to post your scores.' && C.loadBoardState().optIn === 'later');
 const n0 = calls.length;
 h = C.startBoardRun(F);
-check('after NOT NOW: no ticket asked at START', calls.length === n0 && (await h.ticket).status === 'later');
+const afterLater = (await h.ticket).status;
+check('after NOT NOW: no ticket asked at START', calls.length === n0 && afterLater === 'later');
 replies.leave_boards = { ok: true, scores: 3 };
 C.saveBoardState({ optIn: 'joined', name: 'Rafa_K' });
 const left = await C.leaveBoards();
@@ -238,6 +245,117 @@ check('a taken name: one plain line', !bad.ok && bad.line === 'That name is take
 replies.set_board_profile = { ok: false, reason: 'too_soon', rename_at: '2026-11-30T10:00:00Z' };
 const soon = await C.setBoardProfile('NewName', 'US');
 check('a second rename in a week: the reason and the day it opens', !soon.ok && soon.reason === 'too_soon' && soon.renameAt === '2026-11-30T10:00:00Z');
+replies.join_boards = { ok: false, reason: 'too_soon', rename_at: '2026-11-30T10:00:00Z' };
+const rejoin = await C.joinBoards('Other', null);
+check('JOIN again inside a rename\'s week (after LEAVE): the day it opens', !rejoin.ok && rejoin.line === 'A name changes once a week. You can join again on Monday, Nov 30.', rejoin.line);
+
+// ── the waiting scores (the offline queue) ───────────────────────────────────
+// One session that finished offline, waiting on the phone.
+async function queueOne(value) {
+  replies.start_board_run = `tick-${value}`;
+  const hh = C.startBoardRun(F);
+  await hh.ticket;
+  online = false;
+  await C.finishBoardRun({ board: F, value, level: 14, handle: hh });
+  online = true;
+  return hh;
+}
+C.saveBoardState({ optIn: 'joined', name: 'Rafa_K' });
+ls.setItem(QUEUE, '[]');
+const q1 = await queueOne(880);
+check('a waiting score', queue().length === 1 && queue()[0].sessionId === q1.sessionId);
+// A flush that fails keeps it: signed out (no call at all), an expired token, too many requests, a server error.
+signIn(false);
+let nCalls = calls.length;
+await C.flushBoardQueue();
+check('flush while signed out: the score waits, and nothing is called', queue().length === 1 && calls.length === nCalls);
+signIn(true);
+for (const status of [401, 404, 429, 500, 503]) {
+  replies.submit_score = { __status: status };
+  await C.flushBoardQueue();
+  check(`flush answered ${status}: the score waits for another try`, queue().length === 1);
+}
+replies.submit_score = { __status: 400 };
+await C.flushBoardQueue();
+check('flush answered 400 (a request the server will never take): it drops', queue().length === 0);
+await queueOne(881);
+replies.submit_score = { status: 'refused', reason: 'ticket_expired' };
+await C.flushBoardQueue();
+check('flush answered with a refusal: it drops (an answer is final)', queue().length === 0);
+// A score that finishes offline while a flush is out is not written over.
+const q2 = await queueOne(882);
+replies.start_board_run = 'tick-883';
+const h3 = C.startBoardRun(F);
+await h3.ticket;
+let release;
+const held = new Promise((res) => { release = res; });
+replies.submit_score = async () => { await held; return { status: 'new_best', first: false, best: 882, place: 4, rank: 2, players: 4, place_before: 5 }; };
+const sentQ2 = () => calls.filter((c) => c.name === 'submit_score' && c.body.p_session_id === q2.sessionId).length;
+const sentBefore = sentQ2();
+const flushing = C.flushBoardQueue();
+for (let i = 0; i < 50 && sentQ2() === sentBefore; i++) await new Promise((res) => setTimeout(res, 0));
+check('…(the flush is out with the first score)', sentQ2() === sentBefore + 1);
+online = false;
+await C.finishBoardRun({ board: F, value: 883, level: 14, handle: h3 });
+online = true;
+release();
+await flushing;
+check('a score queued while a flush was out stays (the flush sent the other)', queue().length === 1 && queue()[0].sessionId === h3.sessionId, JSON.stringify(queue().map((x) => x.value)));
+ls.setItem(QUEUE, '[]');
+
+// ── one account's copies ─────────────────────────────────────────────────────
+replies.submit_score = { status: 'not_best', best: 812, place: 6, rank: 3, players: 4, place_before: 6 };
+C.saveBoardState({ optIn: 'joined', name: 'Rafa_K' });
+replies.start_board_run = 'tick-885';
+h = C.startBoardRun(F);
+await C.finishBoardRun({ board: F, value: 700, level: 14, handle: h });
+await queueOne(884);
+check('the phone holds user-1\'s name, boards and a waiting score', C.loadBoardState().uid === 'user-1' && C.loadBoardState().name === 'Rafa_K' && Object.keys(JSON.parse(ls.getItem('tm_score_boards_cache_v1'))).length > 0 && queue().length === 1);
+account = 'user-2';
+const st2 = await C.boardStateNow();
+check('another account signed in: the old name and opt-in are not theirs', st2.optIn === null && st2.name === '' && C.loadBoardState().uid === 'user-2');
+check("…the old boards' copies (with user-1's place) are gone", ls.getItem('tm_score_boards_cache_v1') === '{}');
+nCalls = calls.filter((c) => c.name === 'submit_score').length;
+await C.flushBoardQueue();
+check("…user-1's waiting score is not sent under user-2", calls.filter((c) => c.name === 'submit_score').length === nCalls && queue().length === 1);
+account = 'user-1';
+await C.flushBoardQueue();
+check('…and goes up when user-1 is back', calls.filter((c) => c.name === 'submit_score').length === nCalls + 1 && queue().length === 0 && calls.at(-1).auth === 'Bearer tok-user-1');
+C.saveBoardState({ optIn: 'joined', name: 'Rafa_K' });
+C.clearBoardCopies();
+check('SIGN OUT clears the name, the opt-in and the boards\' copies', C.loadBoardState().optIn === null && C.loadBoardState().name === '' && ls.getItem('tm_score_boards_cache_v1') === null);
+signIn(false);
+check('signed out, the phone shows no one on the board', (await C.boardStateNow()).optIn === null);
+signIn(true);
+const acSrc = fs.readFileSync(path.join(root, 'components/training-mode/AccountCard.jsx'), 'utf8');
+check('AccountCard clears them on SIGN OUT and on a sign-out from elsewhere', /clearEntitlementCache\(\); clearBoardCopies\(\); signOut\(\);/.test(acSrc) && /if \(!u && event === 'SIGNED_OUT'\) clearBoardCopies\(\);/.test(acSrc));
+
+// ── JOIN, then the post does not go through: the athlete still hears back ───
+async function joinThen(submitReply, boardReply = reply) {
+  C.saveBoardState({ optIn: null });
+  replies.get_board_profile = null;
+  replies.start_board_run = 'tick-join';
+  replies.join_boards = { ok: true, name: 'Rafa_K', country: null };
+  const hj = C.startBoardRun(F);
+  const ask = await C.finishBoardRun({ board: F, value: 812, level: 14, handle: hj });
+  await C.joinBoards('Rafa_K', null);
+  replies.submit_score = submitReply;
+  replies.get_board = boardReply;
+  const done = await C.postAfterJoin({ board: F, value: 812, level: 14, handle: hj }, ask.ticket);
+  replies.get_board = reply;
+  return { ask, done, hj };
+}
+ls.setItem(QUEUE, '[]');
+let jt = await joinThen({ __status: 500 });
+check('JOIN, then a server error on the post: a line, not nothing', jt.ask.kind === 'optin' && jt.done.kind === 'line' && jt.done.line === "You're on the world board. This score tries again next time you open the app.", JSON.stringify(jt.done));
+check('…and the score waits on the phone for that try', queue().length === 1 && queue()[0].sessionId === jt.hj.sessionId);
+ls.setItem(QUEUE, '[]');
+jt = await joinThen({ status: 'refused', reason: 'too_early' });
+check('JOIN, then a refused post: on the board, this score did not go up', jt.done.kind === 'line' && jt.done.line === "You're on the world board. This score did not go up." && queue().length === 0);
+jt = await joinThen({ status: 'new_best', first: true, best: 812, place: 6, rank: 3, players: 4, place_before: null }, { __status: 503 });
+check('JOIN, the post taken but the board not readable: on the board with this score', jt.done.kind === 'line' && jt.done.line === "You're on the world board with this score.");
+jt = await joinThen({ status: 'new_best', first: true, best: 812, place: 6, rank: 3, players: 4, place_before: null });
+check('JOIN, all well: the card (and the full board)', jt.done.kind === 'card' && jt.done.news);
 
 // ── the switch ───────────────────────────────────────────────────────────────
 const { retentionOn } = await import('../components/training-mode/data/retentionFlags.js');

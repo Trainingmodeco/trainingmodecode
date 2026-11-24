@@ -47,7 +47,8 @@ const SESSION = {
   access_token: 'preview-token', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(NOW_MS / 1000) + 30 * 86400, refresh_token: 'preview-refresh',
   user: { id: '00000000-0000-4000-8000-000000000001', aud: 'authenticated', role: 'authenticated', email: 'athlete@example.com', user_metadata: { full_name: 'Sample Athlete' } },
 };
-const seed = ({ preview = true, signedIn = true, joined = false, optIn = null } = {}) => ({
+// The phone's board state carries the account it belongs to (another one's is not shown).
+const seed = ({ preview = true, signedIn = true, joined = false, optIn = null, uid = SESSION.user.id } = {}) => ({
   trainingModeOnboardingComplete: 'true',
   trainingModeTourComplete: 'true',
   ...(preview ? { tm_owner_preview: '1' } : {}),
@@ -59,7 +60,7 @@ const seed = ({ preview = true, signedIn = true, joined = false, optIn = null } 
   tm_last_session_v1: JSON.stringify(FF_LAST),
   tm_motion_granted: 'true',
   ...(signedIn ? { 'sb-adtxjmqshckhmyziehpv-auth-token': JSON.stringify(SESSION) } : {}),
-  ...(joined ? { tm_score_board_v1: JSON.stringify({ optIn: 'joined', name: 'Rafa_K', country: 'US' }) } : optIn ? { tm_score_board_v1: JSON.stringify({ optIn }) } : {}),
+  ...(joined ? { tm_score_board_v1: JSON.stringify({ uid, optIn: 'joined', name: 'Rafa_K', country: 'US' }) } : optIn ? { tm_score_board_v1: JSON.stringify({ uid, optIn }) } : {}),
 });
 
 // ── the server's answers ─────────────────────────────────────────────────────
@@ -118,6 +119,7 @@ function stub(state) {
       if (name === 'get_board_profile') return json(plan?.profile ? { name: 'Rafa_K', country: 'US', level: 14, joined_at: NOW.toISOString(), rename_at: null } : state.joinedProfile ? { name: 'Rafa_K', country: 'US', level: 14, joined_at: NOW.toISOString(), rename_at: null } : null);
       if (name === 'join_boards') return json({ ok: true, name: body.p_name, country: body.p_country || null });
       if (name === 'set_board_profile') return json({ ok: true, name: body.p_name, country: body.p_country || null });
+      if (name === 'submit_score' && state.submitStatus) return route.fulfill({ status: state.submitStatus, contentType: 'application/json', body: '{"message":"server error"}' });
       if (name === 'submit_score') {
         posted.value = body.p_value;
         console.log(`     the session posted ${body.p_value} strikes`);
@@ -211,6 +213,13 @@ const STATES = [
     check: ['[data-retention="game-over"]'], expect: /HIGH SCORES[\s\S]*YOUR SCORE[\s\S]*NEW\s*BEST[\s\S]*FIRST|HIGH SCORES[\s\S]*YOUR SCORE[\s\S]*NEW\s*BEST/,
   },
   {
+    name: 'optin-join-retry', note: "JOIN on the opt-in, but the server errs on the post: the overlay closes on a line that says they are on the board and the score tries again (it waits on the phone).",
+    seed: seed(), server: SERVER.first, submitStatus: 500,
+    open: async (page, w) => { await playSession(page, w); await page.getByRole('button', { name: /^JOIN$/ }).first().click({ timeout: 4000 }); await wait(page, 2500); },
+    after: scrollTo('[data-retention="board-line"]'),
+    check: ['[data-retention="board-line"]'], expect: /You're on the world board\. This score tries again next time you open the app\./, absent: /◈ GAME OVER ◈|Put your best scores on the world board\?/,
+  },
+  {
     name: 'new-best', note: 'Joined; a new best that moves up two places: the full board opens straight away, NEW BEST, WAS, the place and the rank.',
     seed: seed({ joined: true }), server: SERVER.newBest, open: playSession, overlay: true,
     check: ['[data-retention="game-over"]'], expect: /◈ GAME OVER ◈[\s\S]*HIGH SCORES[\s\S]*BETA[\s\S]*YOUR SCORE[\s\S]*STRIKES ✓[\s\S]*PLACE · \d+(ST|ND|RD|TH) OF 4 PLAYERS[\s\S]*NEW\s*BEST[\s\S]*WAS[\s\S]*CONTINUE/,
@@ -242,6 +251,13 @@ const STATES = [
     open: async (page, w) => { await home(page, w); await page.getByRole('button', { name: /^PROFILE$/ }).first().click({ timeout: 4000 }); await wait(page, 1800); },
     after: scrollTo('[data-retention="board-profile-row"]'),
     check: ['[data-retention="board-profile-row"]'], expect: /SCORE BOARD[\s\S]*On the world board as Rafa_K/,
+  },
+  {
+    name: 'profile-row-other', note: "Profile after another account used the phone: that account's board name is not shown (the row reads as not on the board until this account joins or its page is opened).",
+    seed: seed({ joined: true, uid: '00000000-0000-4000-8000-0000000000ff' }), server: SERVER.notBest,
+    open: async (page, w) => { await home(page, w); await page.getByRole('button', { name: /^PROFILE$/ }).first().click({ timeout: 4000 }); await wait(page, 1800); },
+    after: scrollTo('[data-retention="board-profile-row"]'),
+    check: ['[data-retention="board-profile-row"]'], expect: /SCORE BOARD[\s\S]*Not on the world board/, absent: /On the world board as Rafa_K/,
   },
   {
     name: 'profile-page', note: "Profile's SCORE BOARD page: the display name (once a week), the country switch, LEAVE BOARDS.",

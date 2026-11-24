@@ -62,6 +62,10 @@ export const BOARD_LINES = {
   later: 'Join the world board on Profile to post your scores.',
   queued: 'Goes up when you are back online.',
   refused: 'The board did not take this one.',
+  // Right after JOIN on the end screen, when the board itself cannot show.
+  joinedPosted: "You're on the world board with this score.",
+  joinedRetry: "You're on the world board. This score tries again next time you open the app.",
+  joinedNotPosted: "You're on the world board. This score did not go up.",
 };
 
 // What each unit is called on a board, and the word for one of it.
