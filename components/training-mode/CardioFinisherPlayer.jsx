@@ -43,7 +43,9 @@ export default function CardioFinisherPlayer({ addon, sourceMode, onComplete, on
       notes: result.notes || '',
       completed,
     });
-    const { xpEarned } = logCardioSession(session, { awardXp: true });
+    // The workout card's cool-down (BONUS TRAINING, switch fitCard) is bonus
+    // work: logged as cardio, never paid.
+    const { xpEarned } = logCardioSession(session, { awardXp: addon.bonus !== true });
     onComplete({
       completed,
       cardioType: addon.cardioType,
@@ -83,7 +85,7 @@ export default function CardioFinisherPlayer({ addon, sourceMode, onComplete, on
         </div>
 
         <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 8, color: NEON, letterSpacing: '0.2em', marginBottom: 6 }}>
-          CARDIO FINISHER · UP NEXT
+          {addon.coolDown === true ? 'COOL-DOWN · UP NEXT' : 'CARDIO FINISHER · UP NEXT'}
         </div>
         <h1 style={{
           fontFamily: "'Orbitron',sans-serif", fontWeight: 900, color: C.text,

@@ -118,10 +118,16 @@ export function saveCurrentProgram(id) {
 // becomes the current program, but the split does NOT advance here: quitting
 // halfway would skip the day. completeProgramDay moves it on at the finish.
 // Uses the program's own scheme so a split always trains what it advertises.
-export function startProgramDay(p, { equipment = 'Bodyweight', difficulty = 'Normal' } = {}) {
+export function startProgramDay(p, opts = {}) {
+  saveCurrentProgram(p.id);
+  return programDayConfig(p, opts);
+}
+
+// The config of a program's next day, without making it the current program
+// (the workout card's day preview reads it before START).
+export function programDayConfig(p, { equipment = 'Bodyweight', difficulty = 'Normal' } = {}) {
   const idx = programDayIndex(p);
   const day = p.days[idx];
-  saveCurrentProgram(p.id);
   return {
     muscleGroups: day.chips.flatMap(id => CHIP_GROUPS[id] || []),
     equipment, difficulty, focus: 'Strength', duration: p.duration,

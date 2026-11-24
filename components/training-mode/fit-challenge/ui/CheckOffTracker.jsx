@@ -81,7 +81,9 @@ function RoundLine({ n, work, time, done }) {
 export default function CheckOffTracker({ moves, ticks, roundTimes = [], onTick }) {
   const p = tickProgress(moves, ticks);
   const per = roundTotals(moves);
-  const work = `${per.reps} reps${per.seconds ? ` + ${holdWord(per.seconds)}` : ''}`;
+  // A folded round's work: its reps (a hold's seconds would read as a time
+  // beside the round's own time, so they stay in the open round's rows).
+  const work = per.reps ? `${per.reps} reps` : `${holdWord(per.seconds)} hold`;
   const current = p.currentRound ? p.currentRound - 1 : -1;
   const row = current >= 0 ? ticks[current] : null;
   const nextIdx = row ? row.findIndex((v) => !v) : -1;

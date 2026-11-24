@@ -243,6 +243,23 @@ export const SCREEN_GUIDES = {
     { target: 'qm-library', title: 'MISSION LIBRARY', body: 'Ready-made workouts: new missions for no gear, one bell or one bar, and classics like Murph. LOADOUT and THEME narrow the list. MAX OUT: max reps on each move, then switch. Tap one to see it on top, then START, or PUT ON CARD to bring it here. START follows your GUIDED or AT YOUR PACE pick; a YOUR PACE ONLY tag means that is the only way to run it.' },
   ],
 
+  // Quick Mission with the workout card (switch fitCard, fit-challenge/FitCardSetup).
+  quick_mission_card: [
+    { target: null, title: '⏱️ QUICK MISSION', body: 'A quick workout without the planning. Set your gear and time, then START. Build Workout is for the specifics.' },
+    { target: 'fc-card', title: 'THE WORKOUT CARD', body: "What START runs. It opens on a fresh, balanced deal each day: pushing, pulling, legs, core and arms. A workout from CHOOSE or YOUR WORKOUTS has a ‹ TODAY to come back." },
+    { target: 'fc-deal', title: 'SHUFFLE · CHOOSE', body: 'SHUFFLE deals new moves at the same level, gear and rounds. CHOOSE opens the library: FULL BODY WARRIOR, your saved workouts and the ready-made missions, by body part. SURPRISE ME sits at its foot.' },
+    { target: 'fc-rounds', title: 'ROUNDS', body: 'The rounds and reps are built for your time. Want more? + adds a round of the same moves and − takes one off; the totals, the time and the XP follow.' },
+    { target: 'fc-expand', title: 'SEE ALL', body: 'Opens the card where it is: every move with its swap, the BALANCED line, ADJUST and the PULL-UP BAR switch. SHOW LESS folds it back.' },
+    { target: 'fc-adjust', title: 'ADJUST · PULL-UP BAR', body: 'Level, focus and run mode. No pull-up bar? Switch it off and every bar move gets a stand-in with the same reps. Rows marked "table or low bar" need a sturdy table.' },
+    { target: 'fc-how', title: 'GUIDED OR AT YOUR PACE', body: 'GUIDED: the coach calls every move and keeps time. AT YOUR PACE: just the moves and a timer, with beeps and no coach voice. Your pick is kept for next time.' },
+    { target: 'fc-checkoff', title: 'CHECK-OFF', body: 'At your pace, tick each move as you go; a round counts when all its moves are ticked. Off, you tap ROUND after each round. Your choice is kept.' },
+    { target: 'fc-start', title: 'START', body: 'Runs exactly the workout on the card. The XP is paid once, when it ends.' },
+    { target: 'fc-gear', title: 'GEAR', body: 'Bodyweight needs nothing. Weighted uses dumbbells or a kettlebell; hybrid mixes both. A weighted set ends when you tap DONE.' },
+    { target: 'fc-time', title: 'TIME', body: '5 to 60 minutes. The moves, reps and rounds are built to fit the time you have; the card changes as you slide.' },
+    { target: 'fc-bonus', title: 'BONUS TRAINING', body: 'Optional extras, never in your totals or XP. Tick CARDIO COOL-DOWN and your workout goes straight into an easy 10-minute walk when it ends.' },
+    { target: 'fc-workouts', title: 'YOUR WORKOUTS', body: 'Every workout you have finished, in every mode. Tap a card workout to put it back on the card.' },
+  ],
+
   combat_conditioning_setup: [
     { target: null, title: '🔥 COMBAT CONDITIONING', body: 'This screen builds a fight-pace circuit — explosive, athletic conditioning that trains your gas tank.' },
     { target: 'ccs-discipline', title: 'DISCIPLINE', body: 'Your fight base — drills lean toward the striking style you pick. It is the same choice as on the Fight Mode hub.' },

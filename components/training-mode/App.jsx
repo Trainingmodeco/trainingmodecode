@@ -57,6 +57,8 @@ import { maybeOfferChallenge, declineChallenge, settleChallenge, getActiveChalle
 import { dueComeback, markComebackShown, remindComebackNextWeek } from './data/comeback';
 import { getLastBattle } from './data/ghostBattles';
 import { retentionOn } from './data/retentionFlags';
+import { cardRunDone, cardRowFields } from './data/fitCard';
+import { rememberCardRun } from './data/fitCardStore';
 import { dueRustyPopup } from './data/powerStore';
 import { settleTodaysBout, releaseBoutArm, holdBoutArm, resumeBoutArm } from './data/dailyMission';
 
@@ -783,7 +785,11 @@ export default function App() {
     // starting filter and level (Build Workout's MAX OUT); nothing of it is saved. A click event handed in by a button is not an entry.
     goQuickMissionSetup: (entry) => {
       const str = (v) => (typeof v === 'string' ? v : undefined);
-      setQmEntry(entry && entry.openLibrary === true ? { openLibrary: true, loadout: str(entry.loadout), theme: str(entry.theme), level: str(entry.level) } : null);
+      setQmEntry(entry && entry.openLibrary === true ? { openLibrary: true, loadout: str(entry.loadout), theme: str(entry.theme), level: str(entry.level) }
+        // The workout card (switch fitCard): YOUR WORKOUTS on Progress puts a kept run back on
+        // the card; the card's results' NEW CHALLENGE opens it on a new deal.
+        : entry && (typeof entry.cardRunId === 'string' || entry.newDeal === true) ? { cardRunId: str(entry.cardRunId), newDeal: entry.newDeal === true }
+          : null);
       setScreen('qm_setup');
     },
     // Every Quick Mission start comes through here, so the GUIDED / AT YOUR PACE
@@ -826,6 +832,14 @@ export default function App() {
       const beforeLevel = getLevel(loadStats().xp);
       endSessionFor(screen);
       setResumeData(null);
+      // A workout card run (switch fitCard): its card (the run's own, after an
+      // in-run SHUFFLE) adds scalar fields to the one session row, and the run
+      // is kept for YOUR WORKOUTS' repeat. The XP is settled exactly as before.
+      const card = result?.card || qmCfg?.card || null;
+      const cardDone = card ? cardRunDone(card, { ticks: result?.ticks, exercisesCompleted: result?.exercisesCompleted }) : null;
+      const cardId = card ? `card-${Date.now().toString(36)}` : null;
+      const cardFields = card ? cardRowFields(card, { ...cardDone, cardId }) : null;
+      if (card) rememberCardRun(cardId, card);
       if (result?.mode === 'solo') {
         // SOLO has no integrity session: the floor rule settles it (honor
         // system), and the screen shows exactly the XP banked here. v2
@@ -838,10 +852,11 @@ export default function App() {
           elapsedSec: result.elapsedSec, pausedSec: result.pausedSec, hiddenSec: result.hiddenSec,
           level: result.level, scaled: result.scaled, swaps: result.swaps, completed: result.completed,
           completedCount: result.exercisesCompleted, totalCount: result.totalSlots, splits,
+          ...(cardFields ? { cardFields } : {}),
         });
         if (xp > 0) tryCompleteDailyMission('quickMission');
         trackEvent('session_complete', { mode: 'quickMission', solo: true, mission: result.missionId, exercises: result.exercisesCompleted });
-        setQmResult({ ...result, xpEarned: xp, settle, rounds: splits });
+        setQmResult({ ...result, xpEarned: xp, settle, rounds: splits, ...(card ? { card, cardDone, cardId } : {}) });
       } else {
         // A v2 GUIDED run tags its row with the mission it ran.
         // An until-the-bell-is-down run (NO CONTINUES) also stores its score (sets + reps, and the time).
@@ -855,8 +870,9 @@ export default function App() {
         // training day, and it pays no Today's Bout bonus (data/dailyMission reads the row).
         const refused = weeksOn && !settle && guidedRunRefused(result);
         // A generated mission pays its minutes at its level's rate (the sets split it), the same figure the complete screen shows.
+        const rowMeta = settle && meta && settle.workedSec ? { ...meta, workedSec: settle.workedSec } : refused ? { ...(meta || {}), unverified: true } : meta;
         const xp = addQuickMissionSession(result.exercisesCompleted, result.totalExercises, result.completed,
-          settle && meta && settle.workedSec ? { ...meta, workedSec: settle.workedSec } : refused ? { ...(meta || {}), unverified: true } : meta,
+          cardFields ? { ...(rowMeta || {}), ...cardFields } : rowMeta,
           settle ? settle.xp : quickMissionXp(result.exercisesCompleted, result.totalExercises, result.completed, result.mission));
         // A plan day only moves the rotation on once it is (mostly) done — quit
         // halfway and the same day is still up next.
@@ -864,7 +880,7 @@ export default function App() {
         // As in SOLO, a v2 run that pays nothing (a quit) does not complete the Mission of the Day.
         if (!settle || settle.xp > 0) tryCompleteDailyMission('quickMission');
         trackEvent('session_complete', { mode: 'quickMission', exercises: result.exercisesCompleted });
-        setQmResult(settle ? { ...result, xpEarned: xp, settle } : result);
+        setQmResult(card ? { ...result, xpEarned: xp, ...(settle ? { settle } : {}), card, cardDone, cardId } : settle ? { ...result, xpEarned: xp, settle } : result);
       }
       const addon = qmCfg?.cardioAddon;
       if (addon?.enabled) {
@@ -1335,7 +1351,8 @@ export default function App() {
       // athlete back in it (and could pay its XP again).
       endSessionFor('cardio_finisher'); setResumeData(null); activeSessionStateRef.current = null;
       let hybridBonusXp = 0;
-      if (result?.completed && ctx?.mainCompleted) {
+      // The workout card's cool-down (BONUS TRAINING, switch fitCard) is bonus work: no hybrid bonus.
+      if (result?.completed && ctx?.mainCompleted && ctx?.addon?.bonus !== true) {
         const key = ctx.hybridBonusKey;
         let alreadyAwarded = false;
         try { alreadyAwarded = !!key && safeStorage()?.getItem(key) === 'true'; } catch { alreadyAwarded = false; }

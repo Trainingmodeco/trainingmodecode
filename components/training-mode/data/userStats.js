@@ -229,6 +229,9 @@ export function addQuickMissionSoloSession(m) {
     // The round timer's splits ({ n, atSec, lapSec, block }), when the
     // mission has one (data/missionSolo roundSplits).
     ...(Array.isArray(m.splits) ? { splits: m.splits.map(r => ({ n: r.n, atSec: r.atSec, lapSec: r.lapSec, block: r.block })) } : {}),
+    // A workout card run (switch fitCard): its title, rounds and reps, all
+    // scalars (data/fitCard cardRowFields), for YOUR WORKOUTS.
+    ...(m.cardFields && typeof m.cardFields === 'object' ? m.cardFields : {}),
   });
   saveStats(stats);
   return xpEarned;

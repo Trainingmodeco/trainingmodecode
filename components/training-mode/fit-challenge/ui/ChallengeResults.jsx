@@ -20,7 +20,7 @@ import { mmss } from '../../data/challengeTotals';
 // and SAVE WORKOUT side by side, so the screen holds two rows, not three.
 const GOLD = '#fde047';
 
-function Recap({ pct, ticked, cells, splits, totalSec, saved }) {
+function Recap({ pct, ticked, cells, splits, totalSec, saved, doneWord = 'ticked', note }) {
   const box = { background: 'rgba(8,2,18,0.88)', border: '1px solid rgba(253,224,71,0.3)', borderRadius: 10, padding: '8px 10px' };
   const line = { font: "600 11px 'Rajdhani',sans-serif", color: '#e9e3f7', lineHeight: 1.4, fontVariantNumeric: 'tabular-nums' };
   return (
@@ -31,8 +31,9 @@ function Recap({ pct, ticked, cells, splits, totalSec, saved }) {
       <div style={{ height: 5, borderRadius: 99, background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginBottom: 6 }}>
         <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg,#f59e0b,#fde047)' }}/>
       </div>
-      <div style={line}>{ticked} of {cells} moves ticked</div>
-      <div style={line}>{splits.map((s, i) => `R${i + 1} ${mmss(s)}`).join(' · ')}</div>
+      <div style={line}>{ticked} of {cells} moves {doneWord}</div>
+      {splits.length > 0 && <div style={line}>{splits.map((s, i) => `R${i + 1} ${mmss(s)}`).join(' · ')}</div>}
+      {note && <div style={{ ...line, color: '#9a90b8' }}>{note}</div>}
       {saved && <div role="status" style={{ ...line, color: GOLD }}>Saved. Find it in CHOOSE.</div>}
     </div>
   );
@@ -57,13 +58,19 @@ function Ctas({ onRepeat, onNew, onSave, saved }) {
   );
 }
 
+// Wired (fit-challenge/FitCardResults): `variant` / `eyebrow` / `failReason`
+// come from the run's own settle (a run under the too-fast floor reads
+// VALIDATION FAILED, as every AT YOUR PACE run does); `doneWord` says
+// "ticked" for CHECK-OFF and "done" otherwise; `note` adds a quiet line.
 export default function ChallengeResults({
   title, subtitle, rounds, totalRounds, reps, elapsedSec, pct, ticked, cells, splits = [], xp,
-  onRepeat, onNew, onSave, onBack, saved = false,
+  onRepeat, onNew, onSave, onBack, saved = false, variant, eyebrow, failReason, doneWord, note, timeLabel = 'TIME',
 }) {
   return (
     <MissionComplete
-      variant={pct >= 100 ? 'success' : 'partial'}
+      variant={variant || (pct >= 100 ? 'success' : 'partial')}
+      eyebrow={eyebrow}
+      failReason={failReason}
       title={title}
       subtitle={subtitle}
       accent={GOLD}
@@ -73,9 +80,9 @@ export default function ChallengeResults({
       stats={[
         { value: `${rounds}/${totalRounds}`, label: 'ROUNDS', color: GOLD },
         { value: String(reps), label: 'TOTAL REPS', color: '#fff' },
-        { value: mmss(elapsedSec), label: 'TIME', color: '#fff' },
+        { value: mmss(elapsedSec), label: timeLabel, color: '#fff' },
       ]}
-      summary={<Recap pct={pct} ticked={ticked} cells={cells} splits={splits} totalSec={elapsedSec} saved={saved}/>}
+      summary={<Recap pct={pct} ticked={ticked} cells={cells} splits={splits} totalSec={elapsedSec} saved={saved} doneWord={doneWord} note={note}/>}
       ctas={<Ctas onRepeat={onRepeat} onNew={onNew} onSave={onSave} saved={saved}/>}
     />
   );

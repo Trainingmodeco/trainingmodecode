@@ -107,10 +107,83 @@ const CARDIO_FINISHER_POOL = [
   'Sprawls', 'Battle Ropes', 'Shuttle Runs', 'Bear Crawls',
 ];
 
+// ── the WORKOUT CARD's balanced deal (switch `fitCard`, data/retentionFlags) ──
+// With the card on, a Full Body mission is dealt by movement pattern instead
+// of by region, in this order, so any first n moves are as even as n allows
+// and the first eight are the balanced full-body circuit: 3 push, 2 pull,
+// legs, core and arms (data/challengeTotals FULL_BODY_RECIPE). The fit to the
+// minutes below is the same; only the deal changes. With the switch off no
+// caller passes `balanced`, and the deal is the one above, draw for draw.
+//
+// A move: { name, pattern, tier (1 easier, 2, 3 harder: the swap sheet's
+// EASIER / SIMILAR / HARDER), timed?, loaded?, bar? (a pull-up bar), table?
+// (a sturdy table or a low bar), noBar? (what it becomes without a bar) }.
+// A tier-3 move is never dealt at EASY. Every name has a plain clip in both
+// voices (QUICK_MISSION_POOL_NAMES, swept by test:spoken).
+export const BALANCED_ORDER = ['push', 'pull', 'legs', 'core', 'push', 'arms', 'pull', 'push', 'legs', 'core'];
+export const BALANCED_BODYWEIGHT = [
+  { name: 'Knee Push-Ups', pattern: 'push', tier: 1 },
+  { name: 'Push-Ups', pattern: 'push', tier: 2 },
+  { name: 'Pike Push-Ups', pattern: 'push', tier: 2 },
+  { name: 'Close Grip Push-Ups', pattern: 'push', tier: 2 },
+  { name: 'Hindu Push-Ups', pattern: 'push', tier: 2 },
+  { name: 'Diamond Push-Ups', pattern: 'push', tier: 3 },
+  { name: 'Decline Push-Ups', pattern: 'push', tier: 3 },
+  { name: 'Dive Bomber Push-Ups', pattern: 'push', tier: 3 },
+  { name: 'Reverse Snow Angels', pattern: 'pull', tier: 1 },
+  { name: 'Superman Pulls', pattern: 'pull', tier: 1 },
+  { name: 'Inverted Rows', pattern: 'pull', tier: 2, table: true },
+  { name: 'Wide Inverted Rows', pattern: 'pull', tier: 2, table: true },
+  { name: 'Chin-Ups', pattern: 'pull', tier: 3, bar: true, noBar: ['Superman Pulls', 'Reverse Snow Angels'] },
+  { name: 'Pull-Ups', pattern: 'pull', tier: 3, bar: true, noBar: ['Reverse Snow Angels', 'Superman Pulls'] },
+  { name: 'Glute Bridges', pattern: 'legs', tier: 1 },
+  { name: 'Air Squats', pattern: 'legs', tier: 1 },
+  { name: 'Reverse Lunges', pattern: 'legs', tier: 2 },
+  { name: 'Walking Lunges', pattern: 'legs', tier: 2 },
+  { name: 'Lateral Lunges', pattern: 'legs', tier: 2 },
+  { name: 'Step-Ups', pattern: 'legs', tier: 2 },
+  { name: 'Wall Sit', pattern: 'legs', tier: 2, timed: true },
+  { name: 'Jump Squats', pattern: 'legs', tier: 3 },
+  { name: 'Bicycle Crunches', pattern: 'core', tier: 1 },
+  { name: 'Sit-Ups', pattern: 'core', tier: 1 },
+  { name: 'Russian Twists', pattern: 'core', tier: 2 },
+  { name: 'Flutter Kicks', pattern: 'core', tier: 2 },
+  { name: 'Leg Raises', pattern: 'core', tier: 2 },
+  { name: 'Side Plank', pattern: 'core', tier: 2, timed: true },
+  { name: 'Hanging Knee Raises', pattern: 'core', tier: 3, bar: true, noBar: ['Leg Raises', 'Flutter Kicks'] },
+  { name: 'Hollow Body Hold', pattern: 'core', tier: 3, timed: true },
+  { name: 'Resistance Towel Curls', pattern: 'arms', tier: 1 },
+  { name: 'Isometric Towel Curls', pattern: 'arms', tier: 1, timed: true },
+  { name: 'Triceps Dips', pattern: 'arms', tier: 2 },
+];
+export const BALANCED_WEIGHTED = [
+  { name: 'Floor Press', pattern: 'push', tier: 1 },
+  { name: 'Dumbbell Press', pattern: 'push', tier: 2 },
+  { name: 'Shoulder Press', pattern: 'push', tier: 2 },
+  { name: 'Chest Flys', pattern: 'push', tier: 2 },
+  { name: 'Lateral Raises', pattern: 'push', tier: 1 },
+  { name: 'Dumbbell Rows', pattern: 'pull', tier: 2 },
+  { name: 'Bent-Over Rows', pattern: 'pull', tier: 2 },
+  { name: 'Goblet Squats', pattern: 'legs', tier: 1 },
+  { name: 'Weighted Lunges', pattern: 'legs', tier: 2 },
+  { name: 'Romanian Deadlifts', pattern: 'legs', tier: 2 },
+  { name: 'Front Squats', pattern: 'legs', tier: 3 },
+  { name: 'Weighted Sit-Ups', pattern: 'core', tier: 1 },
+  { name: 'Dumbbell Side Bends', pattern: 'core', tier: 1 },
+  { name: 'Weighted Russian Twists', pattern: 'core', tier: 2 },
+  { name: 'Farmer Carries', pattern: 'core', tier: 2, timed: true },
+  { name: 'Bicep Curls', pattern: 'arms', tier: 1 },
+  { name: 'Hammer Curls', pattern: 'arms', tier: 1 },
+  { name: 'Triceps Extensions', pattern: 'arms', tier: 2 },
+].map(m => ({ ...m, loaded: true }));
+
 // Every name a generated mission can say. The coach says a move by its name
 // (QuickMissionActive), so each needs a recording in both voices: test:spoken
 // sweeps this list (scripts/spoken-sweeps.mjs).
-export const QUICK_MISSION_POOL_NAMES = [...new Set([...HYBRID_POOL.map(m => m.name), ...CARDIO_FINISHER_POOL])];
+export const QUICK_MISSION_POOL_NAMES = [...new Set([
+  ...HYBRID_POOL.map(m => m.name), ...CARDIO_FINISHER_POOL,
+  ...BALANCED_BODYWEIGHT.map(m => m.name), ...BALANCED_WEIGHTED.map(m => m.name),
+])];
 
 export const DIFFICULTY_CONFIG = {
   Easy:     { repsMin: 6,  repsMax: 10, workMin: 20, workMax: 30, rest: 40 },
@@ -247,6 +320,43 @@ function pickMoves(workoutType, tag, count, rng) {
   return out;
 }
 
+// The card's balanced deal: one move per slot of BALANCED_ORDER, each pattern's
+// moves shuffled once, none twice. A hybrid takes a loaded move in the even
+// slots and a bodyweight one in the odd ones (and leaves out a bodyweight move
+// the loaded list has a version of, as pickMoves does). EASY never gets a
+// tier-3 move; HARD and ADVANCED take a tier-1 move only when the pattern has
+// nothing else left.
+function pickBalanced(workoutType, count, difficulty, rng) {
+  const easy = difficulty === 'Easy';
+  const hard = difficulty === 'Hard' || difficulty === 'Advanced';
+  const byPattern = (pool) => {
+    const out = {};
+    for (const p of ['push', 'pull', 'legs', 'core', 'arms']) {
+      const list = shuffle(pool.filter(m => m.pattern === p && !(easy && m.tier >= 3)), rng);
+      out[p] = hard ? [...list.filter(m => m.tier > 1), ...list.filter(m => m.tier <= 1)] : list;
+    }
+    return out;
+  };
+  const bw = byPattern(BALANCED_BODYWEIGHT);
+  const loaded = workoutType === 'Bodyweight' ? null : byPattern(BALANCED_WEIGHTED);
+  const used = new Set();
+  const out = [];
+  for (let i = 0; out.length < count && i < count * 3; i += 1) {
+    const pattern = BALANCED_ORDER[out.length % BALANCED_ORDER.length];
+    const firstLoaded = workoutType === 'Weighted' || (workoutType === 'Hybrid' && out.length % 2 === 0);
+    const sources = workoutType === 'Bodyweight' ? [bw] : workoutType === 'Weighted' ? [loaded] : firstLoaded ? [loaded, bw] : [bw, loaded];
+    let next = null;
+    for (const src of sources) {
+      next = src[pattern].find(m => !used.has(m.name) && !out.some(o => !!o.loaded !== !!m.loaded && (o.name.includes(m.name) || m.name.includes(o.name))));
+      if (next) break;
+    }
+    if (!next) break;
+    used.add(next.name);
+    out.push(next);
+  }
+  return out;
+}
+
 // The real guided run, in seconds (data/quickMissionTiming: the intro and GET
 // READY, every set and rest, no rest after the last set). What the card's
 // "about N min", the AT YOUR PACE target and the generator's fit all read.
@@ -299,6 +409,7 @@ const roundTo5 = (n) => Math.round(n / 5) * 5;
 
 export function generateQuickMission({
   workoutType = 'Bodyweight', duration = 10, difficulty = 'Normal', format = 'Auto', cardioFinisher = false, focus = 'Full Body', rng = Math.random,
+  balanced = false,
 } = {}) {
   const diffCfg = DIFFICULTY_CONFIG[difficulty] || DIFFICULTY_CONFIG.Normal;
   const loadCfg = LOADED_CONFIG[difficulty] || LOADED_CONFIG.Normal;
@@ -317,12 +428,16 @@ export function generateQuickMission({
     const ex = useTimed
       ? { name: move.name, mode: 'timed', work: rand(c.workMin, c.workMax, rng), rest: c.rest }
       : { name: move.name, mode: 'reps', reps: rand(c.repsMin, c.repsMax, rng), rest: c.rest };
-    return { ex: move.loaded ? { ...ex, isWeighted: true } : ex, table: c, loaded: !!move.loaded };
+    // The card's balanced deal: a bodyweight rep move is counted by the coach
+    // (data/quickMissionTiming isCadenceEligible), whatever its name.
+    const counted = balanced && move.pattern && !move.loaded && !useTimed ? { counted: true } : {};
+    return { ex: move.loaded ? { ...ex, isWeighted: true } : { ...ex, ...counted }, table: c, loaded: !!move.loaded };
   };
 
   // Deal ten, in a fixed order, whatever the minutes: the first moves and their
   // doses are the same at 8 minutes and at 9.
-  const dealt = pickMoves(workoutType, tag, DEAL, rng).map(build);
+  // The card (`balanced`) deals a Full Body mission by pattern (pickBalanced).
+  const dealt = (balanced && !tag ? pickBalanced(workoutType, DEAL, difficulty, rng) : pickMoves(workoutType, tag, DEAL, rng)).map(build);
 
   // The cardio finisher (two timed moves at the end of every round) is part of
   // the round, so it is part of the minutes.

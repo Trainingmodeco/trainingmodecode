@@ -10,6 +10,8 @@ import { loadStats, getLevel, getStreak } from './data/userStats';
 import { VISIBLE_TIERS, getCurrentTier, tierIndexForLevel } from './data/tiers';
 import { groupedAchievements, progressByKind, ACHIEVEMENTS_UPDATED } from './data/achievements';
 import RunHistory from './RunHistory';
+import { retentionOn } from './data/retentionFlags';
+import WorkoutsPage, { useWorkoutRows } from './fit-challenge/WorkoutsPage';
 
 // Progress · Overview — pixel match of design 23a:
 // PROGRESS header + OVERVIEW/TROPHIES toggle · rank card · XP-this-month trend ·
@@ -251,9 +253,14 @@ function AchievementsSection() {
   );
 }
 
-export default function ProgressScreen({ onHome, profile }) {
+export default function ProgressScreen({ onHome, profile, onOpenCardRun }) {
   const [stats, setStats] = useState(() => loadStats());
   const [tab, setTab] = useState('overview');
+  // YOUR WORKOUTS (switch fitCard): every mode's finished workouts, as a page
+  // of this screen; a kept card run goes back on the Quick Mission card.
+  const [fitCard] = useState(() => retentionOn('fitCard'));
+  const [workoutsOpen, setWorkoutsOpen] = useState(false);
+  const workoutRows = useWorkoutRows();
   const [detailOpen, setDetailOpen] = useState(false);
 
   useEffect(() => {
@@ -295,6 +302,10 @@ export default function ProgressScreen({ onHome, profile }) {
   const counts = { fight: 0, fit: 0, cardio: 0, arcade: 0 };
   sessions.forEach(s => { counts[category(s)] += 1; });
   const totalC = Math.max(1, sessions.length);
+
+  if (fitCard && workoutsOpen) {
+    return <WorkoutsPage rows={workoutRows} onBack={() => setWorkoutsOpen(false)} onOpen={(r) => onOpenCardRun?.(r.cardId)}/>;
+  }
 
   return (
     <PhoneFrame useBrandBg>
@@ -350,6 +361,24 @@ export default function ProgressScreen({ onHome, profile }) {
                 </svg>
                 <button onClick={() => setDetailOpen(true)} style={{ width: '100%', marginTop: 8, padding: '7px 0', borderRadius: 8, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(168,85,247,0.08)', color: '#c9a6ff', font: "700 8px 'Orbitron',sans-serif", letterSpacing: '0.1em', cursor: 'pointer' }}>FULL STATS · TRENDS &amp; BREAKDOWN ›</button>
               </Card>
+
+              {/* YOUR WORKOUTS (switch fitCard): the latest three, and the page. */}
+              {fitCard && (
+                <Card data-fc="progress-workouts">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+                    <span style={{ font: "700 9px 'Orbitron',sans-serif", color: '#c4a4d8', letterSpacing: '0.08em' }}>YOUR WORKOUTS</span>
+                    <span style={{ font: "700 9px 'Orbitron',sans-serif", color: '#fde047' }}>{workoutRows.length}</span>
+                  </div>
+                  {workoutRows.slice(0, 3).map(r => (
+                    <div key={r.id} style={{ display: 'flex', alignItems: 'baseline', gap: 8, padding: '5px 0', borderTop: '1px solid rgba(168,85,247,0.12)' }}>
+                      <span style={{ width: 44, flexShrink: 0, font: "700 9px 'Orbitron',sans-serif", color: '#9a90b8' }}>{r.dow} {r.day}</span>
+                      <span style={{ flex: 1, minWidth: 0, font: "700 11px 'Rajdhani',sans-serif", color: '#fff', letterSpacing: '0.04em', overflowWrap: 'anywhere' }}>{r.name}</span>
+                      <span style={{ flexShrink: 0, font: "700 10px 'Rajdhani',sans-serif", color: r.pct >= 100 ? '#fde047' : '#9a90b8' }}>{r.pct}%</span>
+                    </div>
+                  ))}
+                  <button onClick={() => setWorkoutsOpen(true)} style={{ width: '100%', minHeight: 44, marginTop: 6, borderRadius: 8, border: '1px solid rgba(168,85,247,0.3)', background: 'rgba(168,85,247,0.08)', color: '#c9a6ff', font: "700 9px 'Orbitron',sans-serif", letterSpacing: '0.1em', cursor: 'pointer' }}>ALL WORKOUTS ›</button>
+                </Card>
+              )}
 
               {/* Training split */}
               <Card>

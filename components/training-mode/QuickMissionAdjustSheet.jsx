@@ -32,7 +32,8 @@ import {
 // focus: { options, value, onPick } | null
 // how:   { value: 'guided' | 'solo' (shown as AT YOUR PACE), soloOnly, help, onPick } | null
 // notes: { lines: [[label, value]], scale, note } | null
-// cardio: { on, summary, onToggle, onEdit }
+// cardio: { on, summary, onToggle, onEdit } | null (the workout card: its
+//         cardio is BONUS TRAINING's cool-down, under the card)
 const CSS = `
 @keyframes qa-up { from { transform: translateY(24px); opacity: .4; } to { transform: none; opacity: 1; } }
 /* The five FOCUS chips on one row at 412px; a narrower phone wraps them. */
@@ -163,7 +164,7 @@ export default function QuickMissionAdjustSheet({ title, level, focus, how, note
               </div>
             )}
             {how && <HowRow how={how}/>}
-            <CardioToggleCard on={cardio.on} summary={cardio.summary} onToggle={cardio.onToggle} onEdit={cardio.onEdit}/>
+            {cardio && <CardioToggleCard on={cardio.on} summary={cardio.summary} onToggle={cardio.onToggle} onEdit={cardio.onEdit}/>}
             {notes && <NotesBlock notes={notes}/>}
           </div>
 
