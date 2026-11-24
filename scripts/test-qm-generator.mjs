@@ -475,11 +475,16 @@ check('31c seededRng is deterministic and spread over [0, 1)', (() => { const a 
   const chips = Object.keys(WP.CHIP_GROUPS);
   const subsets = [];
   for (let m = 1; m < 1 << chips.length; m++) subsets.push(chips.filter((_, i) => m & (1 << i)));
-  const build = (cfg) => { store.clear(); return BT.applySetScheme(G.generateFitModeWorkout(cfg), cfg.setScheme); };
+  // Every build in this section is dealt from a seed made of the pick's own
+  // name (`key`), so each run tests the same workouts. The generator draws
+  // from Math.random on the phone, and unseeded here it made check 40 fail
+  // about one run in forty, on a deal the next run did not repeat.
+  const build = (cfg, key) => { store.clear(); return BT.applySetScheme(G.generateFitModeWorkout({ ...cfg, rng: Q.seededRng(Q.seedFrom(key)) }), cfg.setScheme); };
+  const BUILDER_DEALS = 3; // per pick: 4 x 3 x 3 x 127 x 3 = 13.7k workouts
   const offAuto = [], gear = [], hardInEasy = [], empty = [];
-  for (const duration of WP.DURATIONS) for (const difficulty of ['Easy', 'Normal', 'Hard']) for (const equipment of TYPES) for (const sub of subsets) {
-    const w = build({ muscleGroups: sub.flatMap(c => WP.CHIP_GROUPS[c]), equipment, difficulty, focus: 'Strength', duration, addCardio: false, setScheme: null });
+  for (const duration of WP.DURATIONS) for (const difficulty of ['Easy', 'Normal', 'Hard']) for (const equipment of TYPES) for (const sub of subsets) for (let deal = 0; deal < BUILDER_DEALS; deal++) {
     const tag = `${duration} min ${difficulty} ${equipment} ${sub.join('+')}`;
+    const w = build({ muscleGroups: sub.flatMap(c => WP.CHIP_GROUPS[c]), equipment, difficulty, focus: 'Strength', duration, addCardio: false, setScheme: null }, `${tag}|${deal}`);
     if (!w.length) { empty.push(tag); continue; }
     const err = BT.builderWorkoutSeconds(w) / (duration * 60) - 1;
     if (Math.abs(err) > 0.15) offAuto.push(`${tag}: ${Math.round(err * 100)}%`);
@@ -490,7 +495,41 @@ check('31c seededRng is deterministic and spread over [0, 1)', (() => { const a 
     }
     if (w.length > G.MAX_EXERCISES) empty.push(`${tag}: ${w.length} rows`);
   }
-  check('40 every Builder pick (AUTO) runs within 15% of its DURATION, 15 to 60 min, every level, gear and muscle pick', offAuto.length === 0, `${offAuto.length} off: ${offAuto.slice(0, 4).join(' | ')}`);
+  check('40 every Builder pick (AUTO) runs within 15% of its DURATION, 15 to 60 min, every level, gear and muscle pick (three seeded deals each)', offAuto.length === 0, `${offAuto.length} off: ${offAuto.slice(0, 4).join(' | ')}`);
+
+  // The deals above are a sample, and the miss of 2026-11-15 was a rare one:
+  // five timed holds in eight rows, about one deal in 260 of its pick. A hold
+  // is the shortest row there is (30 s on, half the rest), and eight rows at
+  // the level's most sets were all the fit had to fill an hour with. So the
+  // fit is also checked with no deal at all, on the rows that leave it the
+  // least and the most room: the eight shortest and the eight longest the
+  // library holds for each level and gear, at the level's own dose.
+  const rowOf = (ex, difficulty, i = 0) => { const d = G.builderDose(ex, difficulty, 'Strength', i); return { name: ex.name, equipment: ex.equipment, ...d, rest: `${d.restSeconds}s` }; };
+  const fitErr = (pool, duration, difficulty) => BT.builderWorkoutSeconds(G.fitToDuration(pool, null, { duration, difficulty, setScheme: null })) / (duration * 60) - 1;
+  // What the generator may deal: its gear rule (check 41) and no Hard move at Easy (check 42).
+  const dealable = (equipment, difficulty) => FIT_MODE_EXERCISES.filter(ex => ex.active && !ex.cardioFinisher && !/^(Cable|Machine)$/.test(ex.equipment)
+    && (equipment === 'Hybrid' || (equipment === 'Bodyweight') === (ex.equipment === 'Bodyweight'))
+    && !(difficulty === 'Easy' && /^(Hard|Advanced)$/.test(ex.difficulty)));
+  const perSet = (row) => BT.builderSetSeconds(row, 2) + row.restSeconds; // a later set and the rest before it
+  const offEdge = [];
+  for (const difficulty of ['Easy', 'Normal', 'Hard']) for (const equipment of TYPES) {
+    const rows = dealable(equipment, difficulty).map(ex => rowOf(ex, difficulty)).sort((a, b) => perSet(a) - perSet(b));
+    for (const [what, pool] of [['shortest', rows.slice(0, G.MAX_EXERCISES)], ['longest', rows.slice(-G.MAX_EXERCISES).reverse()]]) for (const duration of WP.DURATIONS) {
+      const err = fitErr(pool, duration, difficulty);
+      if (!(pool.length === G.MAX_EXERCISES) || Math.abs(err) > 0.15) offEdge.push(`${duration} min ${difficulty} ${equipment}, the eight ${what} rows (${pool[0]?.name}, ...): ${Math.round(err * 100)}%`);
+    }
+  }
+  check('40b the fit fills every DURATION within 15% on the eight shortest and the eight longest rows a level and gear can be dealt (eight holds for an hour)', offEdge.length === 0, `${offEdge.length} off: ${offEdge.slice(0, 4).join(' | ')}`);
+  // The deal itself, row for row as it was dealt: five holds and three rep rows.
+  {
+    const names = ['Alt One Leg Wall Sit', 'Squats', 'Knee Plank Hold', 'Plank Hold', 'Glute Bridge Hold', 'Bench Dips (Feet Down)', 'Isometric Towel Curls', 'Bodyweight Good Mornings'];
+    const gone = names.filter(n => !byName.get(n));
+    const pool = names.filter(n => byName.get(n)).map((n, i) => rowOf(byName.get(n), 'Easy', i));
+    const holds = pool.filter(r => BT.builderSetKind(r).kind === 'hold').length;
+    const err = fitErr(pool, 60, 'Easy');
+    check('40c the deal that failed on 2026-11-15 fills its hour (60 min Easy Bodyweight ARMS+CORE+LEGS+GLUTES, five holds in eight rows)', gone.length === 0 && holds === 5 && Math.abs(err) <= 0.15,
+      `60 min Easy Bodyweight ARMS+CORE+LEGS+GLUTES: ${Math.round(err * 100)}%${gone.length ? `, not in the library: ${gone.join(', ')}` : ''}${holds === 5 ? '' : `, ${holds} holds`}`);
+  }
   check('41 a Builder workout keeps to its gear (no cable or machine, no loaded move at BODYWEIGHT)', gear.length === 0, gear.slice(0, 4).join(' | '));
   check('42 an Easy Builder workout never gets a Hard move', hardInEasy.length === 0, `${hardInEasy.length}: ${hardInEasy.slice(0, 4).join(' | ')}`);
   check('43 every Builder pick builds 1 to 8 rows', empty.length === 0, empty.slice(0, 4).join(' | '));
@@ -514,7 +553,7 @@ check('31c seededRng is deterministic and spread over [0, 1)', (() => { const a 
   const within = (min, want) => Math.abs(min - want) <= Math.max(0.15 * want, 0.5);
   for (const duration of WP.DURATIONS) for (const difficulty of ['Easy', 'Normal', 'Hard']) for (const equipment of TYPES) for (const setScheme of schemes) for (const sub of subsets.filter((_, i) => i % 5 === 0)) {
     const cfg = { muscleGroups: sub.flatMap(c => WP.CHIP_GROUPS[c]), equipment, difficulty, focus: 'Strength', duration, addCardio: false, setScheme };
-    const w = build(cfg);
+    const w = build(cfg, `${duration} ${difficulty} ${equipment} ${setScheme.id} ${sub.join('+')}`);
     const got = BT.builderWorkoutSeconds(w) / 60;
     const key = `${duration} ${equipment} ${setScheme.id}`, tag = G.builderPromisedLabel(cfg);
     const { lo, hi } = G.builderPromisedMinutes(cfg);
@@ -533,7 +572,7 @@ check('31c seededRng is deterministic and spread over [0, 1)', (() => { const a 
   const customOff = [];
   for (const duration of WP.DURATIONS) for (const s of customs) for (const sub of [['CHEST'], ['LEGS', 'GLUTES'], chips]) {
     const cfg = { muscleGroups: sub.flatMap(c => WP.CHIP_GROUPS[c]), equipment: 'Weighted', difficulty: 'Normal', focus: 'Strength', duration, addCardio: false, setScheme: { id: 'custom', ...s } };
-    const got = BT.builderWorkoutSeconds(build(cfg)) / 60, { lo } = G.builderPromisedMinutes(cfg);
+    const got = BT.builderWorkoutSeconds(build(cfg, `${duration} custom ${s.sets}x${s.reps}/${s.restSeconds} ${sub.join('+')}`)) / 60, { lo } = G.builderPromisedMinutes(cfg);
     if (!within(got, lo)) customOff.push(`${duration} ${s.sets}x${s.reps}/${s.restSeconds} ${sub.join('+')}: ${got.toFixed(1)} min, card ${G.builderPromisedLabel(cfg)}`);
   }
   check('44b a WEIGHTED custom scheme builds the minutes its card shows', customOff.length === 0 && G.builderPromisedLabel({ duration: 30, equipment: 'Bodyweight', setScheme: schemes[0] }) === '30 min' && G.builderPromisedLabel({ duration: 60, equipment: 'Weighted', setScheme: null }) === '60 min', customOff.slice(0, 4).join(' | '));
@@ -598,7 +637,8 @@ check('31c seededRng is deterministic and spread over [0, 1)', (() => { const a 
   for (const p of WP.PROGRAMS) for (let d = 0; d < p.days.length; d++) for (const equipment of TYPES) for (const difficulty of ['Easy', 'Normal', 'Hard']) for (let i = 0; i < 4; i++) {
     store.clear(); if (p.rotateKey) store.set(p.rotateKey, String(d));
     const cfg = WP.startProgramDay(p, { equipment, difficulty });
-    const err = BT.builderWorkoutSeconds(BT.applySetScheme(G.generateFitModeWorkout(cfg), cfg.setScheme)) / (WP.programMinutes(p, equipment) * 60) - 1;
+    const rng = Q.seededRng(Q.seedFrom(`${p.id} ${d} ${equipment} ${difficulty} ${i}`));
+    const err = BT.builderWorkoutSeconds(BT.applySetScheme(G.generateFitModeWorkout({ ...cfg, rng }), cfg.setScheme)) / (WP.programMinutes(p, equipment) * 60) - 1;
     if (Math.abs(err) > 0.15) offProg.push(`${p.id} ${p.days[d].label} ${equipment} ${difficulty}: ${Math.round(err * 100)}%`);
   }
   check('46 every program day builds within 15% of the minutes on its card', offProg.length === 0 && WP.PROGRAMS.every(p => !/min/.test(p.meta)) && WP.programMinutes(WP.PROGRAMS[0], 'Weighted') === 34 && WP.programMinutes(WP.PROGRAMS[0], 'Bodyweight') === 40, offProg.slice(0, 4).join(' | '));
