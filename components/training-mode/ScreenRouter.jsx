@@ -69,16 +69,16 @@ const ArcadeSeriesDetail = lazy(() => import('./ArcadeSeriesDetail'));
 const ArcadeSessionPlayer = lazy(() => import('./ArcadeSessionPlayer'));
 
 // The row above the tab bar on a screen that scrolls: the BETA pill (fixed at
-// 74px, App's FeedbackChip) and the scroll chevron sit on it, and the page
+// 72px, App's FeedbackChip) and the scroll chevron sit on it, and the page
 // scrolls under it as it does under the tab bar, so neither ever covers a card,
 // a button or text (owner, 2026-11-23). SHELF_FADE is its soft top edge; the
-// pill's top (100px up) is inside its solid part. SCROLL_PAD is the room the
+// pill's top (96px up) is inside its solid part. SCROLL_PAD is the room the
 // page's last content keeps under it: clear of the shelf, scrolled to the end.
 const SHELF_H = 46;
 const SHELF_FADE = 6;
 const SCROLL_PAD = 118;
-// The BETA pill's top (74 + its 26px) and a gap: what a one-screen page keeps clear.
-const BETA_ROW_TOP = 108;
+// The BETA pill's top (72 + its 24px) and a gap: what a one-screen page keeps clear.
+const BETA_ROW_TOP = 102;
 
 // Where the page's last card ends on screen. A frame as tall as the screen
 // (PhoneFrame's 100dvh) is looked into, not taken as content; pieces placed

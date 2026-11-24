@@ -37,11 +37,14 @@ export default function FeedbackChip({ screen }) {
         aria-label="Report beta feedback"
         style={{
           position: 'fixed',
-          bottom: 'calc(74px + env(safe-area-inset-bottom, 0px))',
+          // 72px up and 24px tall: the row above the tab bar that pages keep
+          // clear (ScreenRouter BETA_ROW_TOP) and the shelf it sits on when a
+          // page scrolls (owner, 2026-11-23: it covered the pages' last rows).
+          bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
           left: 'max(10px, calc((100vw - 440px) / 2 + 10px))',
           zIndex: 320,
           display: 'flex', alignItems: 'center', gap: 5,
-          padding: '6px 10px', borderRadius: 99, cursor: 'pointer',
+          padding: '5px 10px', borderRadius: 99, cursor: 'pointer',
           background: 'rgba(20,6,38,0.92)', border: '1px solid rgba(253,224,71,0.4)',
           boxShadow: '0 4px 14px -6px rgba(0,0,0,0.7)',
           backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',

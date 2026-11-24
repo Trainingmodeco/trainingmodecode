@@ -921,3 +921,65 @@ The owner's answers on the preview board to four of the open questions. One sect
 - **Test**: `test:nearmiss` (85, was 76): a first go stopped 11 minutes in, RETRY, a 20:30 clear reads 20:30 and
   ★★★ (the old clock: 32:30 and ★); a resumed clock keeps its start; no clock, no time; and the player's RETRY resets
   the clock with no switch around it.
+
+### A session ended with nothing done (`q-nothing`): "Show '3 rounds to go' there too"
+
+- **What changed** (switch `nearMiss`, so the owner's phone only): an end screen for a session ended with nothing done
+  now shows the near-miss panel with what was left: the quiet SESSION ENDED card (Fight Focus, Just Train, Combo,
+  a concept stage stopped before a round was done) reads WHAT'S LEFT · 3 ROUNDS TO GO, an empty bar, 0 OF 3 ROUNDS,
+  then RETRY and COME BACK FRESH TOMORROW, one size. The same rule reaches every end screen with a count (a Quick
+  Mission, Combat Conditioning, Build Workout, arcade v2 or camp stage, the classic overlay) when nothing was done.
+- **The rules kept**: such a session is still no try (`retrySafety.countsAsTry`): nothing is logged in
+  `tm_retry_log_v1` and it never counts toward the two goes at a stage or the three sessions a day. RETRY shows only
+  when `canRetryNow` allows it (not after a boss, the final stage, the title fight or MAX OUT, not after two real goes
+  today, not after three finished sessions today); otherwise the line says when to come back and DONE FOR TODAY is the
+  one button. A refused session (validation_failed) still shows no panel. With the switch off the card is as before.
+- **Where**: `data/nearMiss.js` (a count of 0 gives the line, always "to go", with `nothing: true`; a missing count
+  still gives none), `retention/ui/NearMissPanel.jsx` (WHAT'S LEFT instead of HOW CLOSE over an empty bar: it was not
+  close), the gallery (`retention/lookNearMiss.jsx`, "Ended with nothing done").
+- **Tests**: `test:nearmiss` 100 (was 85): the line for 0 done in every unit, never "short", a missing count gives
+  none, the SESSION ENDED settle (panel shown, no try, RETRY on a first go), ending with nothing done again and again
+  logs nothing, after two real goes no RETRY, a boss, MAX OUT, three sessions today, a refused one, the classic
+  overlay's benchmark with nothing tested.
+- **Preview**: `f3-ff-nothing` (a real Fight Focus ended in round 1, the two buttons checked to be one size),
+  `f3-ff-nothing-load` (the third session today: DONE FOR TODAY), `f3-ff-nothing-off` (switch off: the card as before).
+
+### Small things that were there before (`q-oldui`): "Fix them app-wide" (for everyone)
+
+- **(a) The scroll chevron and the BETA pill never cover the page.** On a screen that scrolls, a shelf now sits on top
+  of the tab bar (`ScreenRouter` WithNav, `data-ui="nav-shelf"`, 46 px with a 6 px soft top edge, the tab bar's own
+  fill): the page passes under it as it passes under the tab bar, the BETA pill sits on its left and the scroll
+  chevron in its middle (`ScrollDownIndicator` is drawn inside it, no longer fixed over the page). The page's last
+  content keeps 118 px under it (was 110), so scrolled to the end nothing is left under the shelf. The chevron shows
+  while the page's last card still ends under the shelf and goes once it is above it (`contentEnd` in `ScreenRouter`:
+  where the cards end, looking inside a frame as tall as the screen; it used to compare the scroll height, which
+  counts the tab bar's padding and the frame's empty height). It follows the cards as they settle (each card it
+  measures is watched for size), so it no longer misses an end screen whose share card or pictures come in after it
+  opens. One-screen pages (no shelf) keep the row above the tab bar clear:
+  `--tm-resume-top` is now 108 px with nothing paused (was 0; 116 while paused, as before), so every page that takes
+  `max(its clearance, --tm-resume-top)` ends above the BETA pill. That moved the Quick Mission and Build Workout pages,
+  the camp ladder, the Arcade carousel, the hubs, the setups, Programs, Profile and the Level page up by 0 to 36 px.
+  The Fit setup pages (`FitSetupKit` `SetupPage`: Quick Mission, Build Workout, Cardio) scroll inside that clearance
+  now, with the hubs' fade on the lower edge while more lies below (they used to scroll the clearance too, so their
+  rows passed under the BETA pill while still).
+- **(b) The end-screen banner is the cards' width** (`MissionIntegrityBanner`: the `maxWidth: 360` is gone in both
+  branches, `boxSizing: border-box`). It lines up with the stats row on every phone.
+- **(c) The round recap shows on every phone height** (`MissionComplete` `mcCSS`: `.mc-extra` is no longer hidden under
+  812 px tall). The top padding and the badge still shrink on short phones, so it is the screen that scrolls, nothing
+  is squeezed. The GIVE BETA FEEDBACK link under the buttons stays hidden on short phones (the BETA pill is on every
+  screen). The same for the Build Workout end screen's SESSION SUMMARY chips.
+- **Preview** (`scripts/retention-preview.mjs`): `--sizes` (360x780, 390x844, 430x932 and a short 360x640), `owner:
+  false` (every switch off: what everyone sees), and three checks: `bottom` (the chevron and the BETA pill over no text,
+  button, picture or card, as a screen opens and scrolled to its end, `-end.png`; on a shelf, inside its solid part;
+  nothing left under the shelf at the end), `align` (the banner and the stats row share their edges), `same` (the
+  panel's two buttons one size). End screens, switches off: `o-end-ff-clear`, `o-end-ff-stopped`, `o-end-cc`,
+  `o-end-fit`; and 19 other screens with the bottom check (`o-home`, the two hubs, the Fight Focus, Combo, Just Train
+  and Combat Conditioning setups, Quick Mission, Build Workout, Cardio, Programs, Practice, the camp ladder, the
+  Arcade, a saga's ladder, Progress, Profile, the Level page, and a concept drop's page with its fixed START bar).
+
+### A Remind me tomorrow button (`q-remind`): "Add it with the notifications work"
+
+- No code. Recorded in `RETENTION-PLAN.md`, "The notifications pass: what it carries": when a retry is not safe, the
+  panel's buttons become REMIND ME TOMORROW and DONE FOR TODAY (one size, as the spec has it), one local reminder for
+  the next day for that same stage or session, only for someone who turned reminders on. The panel's comment and the
+  gallery's feature line now say it comes with the notifications pass.

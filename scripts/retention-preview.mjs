@@ -3,8 +3,10 @@
 // phone sizes. Fails when anything overflows the viewport or any text is cut
 // off (the owner's visual rule, RETENTION-PLAN.md).
 //
-//   node scripts/retention-preview.mjs <out-dir> [--base http://localhost:8081] [--only <regex>]
+//   node scripts/retention-preview.mjs <out-dir> [--base http://localhost:8081] [--only <regex>] [--sizes 360x780,390x844,430x932,360x640]
 //
+// --sizes: the phone sizes (default 360x780, 390x844 and 430x932); a size off
+// the default list is saved as <state>-<w>x<h>.png.
 // Needs the dev server: CI=1 EXPO_NO_TELEMETRY=1 npx expo start --web --port 8081
 // (CI mode does not reload: restart it after an edit). Chrome: CHROME_PATH, or
 // Playwright's "chrome" channel, or /usr/bin/google-chrome.
@@ -30,14 +32,16 @@ import path from 'node:path';
 import { chromium } from 'playwright-core';
 
 const args = process.argv.slice(2);
-const OUT = args.find((a, i) => !a.startsWith('--') && !['--base', '--only'].includes(args[i - 1]));
+const OUT = args.find((a, i) => !a.startsWith('--') && !['--base', '--only', '--sizes'].includes(args[i - 1]));
 const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : null; };
 const BASE = (opt('--base') || 'http://localhost:8081').replace(/\/$/, '') + '/';
 const ONLY = opt('--only') ? new RegExp(opt('--only')) : null;
 if (!OUT) { console.error('usage: node scripts/retention-preview.mjs <out-dir> [--base URL] [--only regex]'); process.exit(2); }
 fs.mkdirSync(OUT, { recursive: true });
 
-const SIZES = [[360, 780], [390, 844], [430, 932]];
+const DEFAULT_SIZES = [[360, 780], [390, 844], [430, 932]];
+const SIZES = opt('--sizes') ? opt('--sizes').split(',').map((x) => x.split('x').map(Number)) : DEFAULT_SIZES;
+const sizeTag = ([w, h]) => (DEFAULT_SIZES.some(([dw, dh]) => dw === w && dh === h) ? `${w}` : `${w}x${h}`);
 
 // ── sample data ────────────────────────────────────────────────────────────
 const pad = (n) => String(n).padStart(2, '0');
@@ -296,12 +300,69 @@ async function stopCampAndRetryParq(page, w) {
   await wait(page, 2000);
 }
 
+// The same Fight Focus run to its end (3 rounds of 1 minute): MISSION COMPLETE,
+// its round recap, the integrity banner and the share card.
+async function finishFightFocus(page, w) {
+  await home(page, w);
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 500);
+  await page.locator('[data-guide="home-continue"] button.hm-go').first().click({ timeout: 4000 });
+  await runClock(page, (t) => /YOUR PROGRESS/.test(t), { max: 400 });
+  await page.clock.resume();
+  await wait(page, 2500);
+}
+// Ended in round 1, before a round was done: the quiet SESSION ENDED card.
+async function endFightFocusAtOnce(page, w) {
+  await home(page, w);
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 500);
+  await page.locator('[data-guide="home-continue"] button.hm-go').first().click({ timeout: 4000 });
+  await endTimer(page, 3 + 15);
+}
+// Combat Conditioning (GAS TANK) started and ended at once: its summary.
+async function endCombatConditioning(page, w) {
+  await home(page, w);
+  await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await wait(page, 1200);
+  await page.locator('.ft.cond').click({ timeout: 4000 }); await wait(page, 1500);
+  await page.locator('text=GAS TANK').first().click({ timeout: 4000 }); await wait(page, 600);
+  await page.getByRole('button', { name: /START CIRCUIT/ }).first().click({ timeout: 4000 }); await wait(page, 4000);
+  await page.locator('[data-guide="cca-stop"]').first().click({ timeout: 4000 }); await wait(page, 500);
+  await page.getByRole('button', { name: /^END SESSION$/ }).first().click({ timeout: 4000 }); await wait(page, 2500);
+  if (!/YOUR PROGRESS/.test(await page.evaluate(() => document.body.innerText))) throw new Error('Combat Conditioning did not reach its summary');
+}
+// Build Workout: one generated, all but two rows done (the live snapshot App
+// keeps, seeded back the way the app comes back after the phone killed it),
+// then FINISH WORKOUT → FINISH: the SESSION ENDED summary with its muscle chips.
+async function finishBuildWorkoutEarly(page, w) {
+  await home(page, w);
+  await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await wait(page, 1200);
+  await page.locator('[data-guide="fit-builder"]').click({ timeout: 4000 }); await wait(page, 1200);
+  await page.getByRole('button', { name: /GENERATE WORKOUT/ }).first().click({ timeout: 4000 }); await wait(page, 2000);
+  await page.evaluate(() => {
+    const slots = JSON.parse(localStorage.getItem('trainingModePausedSession') || '[]');
+    const snap = slots.find((x) => x.screen === 'fit_workout');
+    const st = snap.internalState;
+    const done = st.exercises.length - 2;
+    st.exercises.forEach((r, i) => { if (i < done) st.completed[r._uid] = true; });
+    Object.assign(st, { skipped: {}, chainRounds: {}, activeIdx: null });
+    Object.assign(snap, { reason: 'lifecycle', timestamp: Date.now() });
+    sessionStorage.setItem('__rp_seed', JSON.stringify([snap]));
+  });
+  await page.goto(BASE, { waitUntil: 'networkidle' }); await wait(page, 2500);
+  await page.getByRole('button', { name: /^FINISH WORKOUT$/ }).first().click({ timeout: 4000 }); await wait(page, 400);
+  await page.getByRole('alertdialog', { name: 'Finish workout' }).getByRole('button', { name: /^FINISH$/ }).click({ timeout: 4000 }); await wait(page, 3000);
+  if (!/SESSION ENDED/.test(await page.evaluate(() => document.body.innerText))) throw new Error('Build Workout did not reach its summary');
+}
+
 const scrollTo = (sel) => async (page) => { await page.locator(sel).first().scrollIntoViewIfNeeded({ timeout: 4000 }); await page.evaluate((s) => document.querySelector(s)?.scrollIntoView({ block: 'center' }), sel); await wait(page, 400); };
 
 // ── the states ─────────────────────────────────────────────────────────────
 // { name, note, seed(), open(page, w), check: [selectors], apart?: [[selA, selB]], expect: RegExp,
 //   absent?: RegExp (must not be on screen), clear?: [[selA, selB]] (no element of A over any of B),
 //   inView?: [selectors] (whole inside the screen), oneLine?: [selectors] (text that never breaks in two),
+//   same?: [selectors] (every element of each the same width and height: the panel's two buttons),
+//   align?: [[selA, selB]] (the first A and the first B share their left and right edges: the banner and the cards),
+//   bottom?: true (the scroll chevron and the BETA pill over no text, button, picture or card, as
+//     the screen opens and again scrolled to its end, saved as <state>-<size>-end.png),
+//   owner?: false (the owner preview off: every retention switch off, what everyone sees),
 //   once?: true, clock?: true, after?(page), shot?: selector (photograph that element whole) }
 // `once`: open the screen once (at the first size) and resize for the others.
 // `clock`: a state that drives the clock itself (pauses it, runs it on); every
@@ -452,14 +513,14 @@ const STATES = [
   {
     name: 'f1-end-day-kept',
     note: 'Today\'s Bout for real (fake clock) → its end screen: TRAINING DAY n OF 4 · STREAK KEPT, the new dot pops, TODAY\'S BOUT · +25 XP.',
-    clock: true, once: true,
+    clock: true, once: true, bottom: true,
     seed: () => BOUT_SEED(history({ onTarget: 9, thisWeek: Math.min(2, todayIdx) }), 6750)(),
     open: runDailyMission, after: scrollTo('[data-retention="week-moment"]'), check: ['[data-retention="week-moment"]'], expect: /TRAINING DAY[\s\S]*TODAY'S BOUT · \+25 XP/, absent: /DAILY MISSION/,
   },
   {
     name: 'f1-end-week-complete',
     note: 'Today\'s Bout lands the 4th day of the 4th week on target: WEEK COMPLETE, a 1UP earned, TODAY\'S BOUT · +25 XP.',
-    clock: true, once: true, needsDays: 3,
+    clock: true, once: true, bottom: true, needsDays: 3,
     seed: () => BOUT_SEED(history({ onTarget: 3, thisWeek: 3 }), 3300)(),
     open: runDailyMission, after: scrollTo('[data-retention="week-moment"]'), check: ['[data-retention="week-moment"]'], expect: /WEEK COMPLETE[\s\S]*1UP EARNED · YOU HOLD 2 OF 2[\s\S]*TODAY'S BOUT · \+25 XP/, absent: /DAILY MISSION|FREEZE|❄|REVIVED/,
   },
@@ -528,7 +589,7 @@ const STATES = [
   {
     name: 'f4-end-revived',
     note: 'REVIVE on the RUSTY pop-up for real (fake clock): TODAY\'S BOUT\'s START runs the 3-minute round, and its end screen says REVIVED · POWER 100% in YOUR PROGRESS (once), beside the week strip and the bout\'s +25 XP.',
-    clock: true, once: true,
+    clock: true, once: true, bottom: true,
     seed: () => POWER_SEED(34)(),
     open: reviveFromPopup, after: scrollTo('[data-retention="revive"]'),
     check: ['[data-retention="revive"]', '[data-retention="week-moment"]'],
@@ -650,35 +711,36 @@ const STATES = [
   {
     name: 'f2-end-v2-stars',
     note: 'A real v2 stage replayed from the path (fake clock): The Grappler stage 1 on FIGHT → the end screen\'s stars row, 2 of 3, landing.',
-    clock: true, once: true,
+    clock: true, once: true, bottom: true,
     seed: GRAP_SEED, open: replayV2Stage, after: scrollTo('[data-retention="stage-stars"]'),
     check: ['[data-retention="stage-stars"]'], expect: /STAGE STARS · 2 OF 3/,
   },
   {
     name: 'f3-ff-partial',
     note: 'A real Fight Focus stopped in round 2 (fake clock): the panel under the stats, 2 ROUNDS TO GO, RETRY and COME BACK FRESH TOMORROW the same size.',
-    clock: true, once: true,
+    clock: true, once: true, bottom: true,
     seed: FF_SEED(0), open: stopFightFocus, after: scrollTo('[data-retention="near-miss"]'),
-    check: ['[data-retention="near-miss"]'], expect: /2 ROUNDS TO GO[\s\S]*1 OF 3 ROUNDS[\s\S]*RETRY[\s\S]*COME BACK FRESH TOMORROW/i,
+    check: ['[data-retention="near-miss"]'], same: ['[data-retention="near-miss"] button'], align: [['[data-ui="integrity-banner"]', '[data-ui="mc-stats"]']],
+    expect: /2 ROUNDS TO GO[\s\S]*1 OF 3 ROUNDS[\s\S]*RETRY[\s\S]*COME BACK FRESH TOMORROW/i,
   },
   {
     name: 'f3-ff-load',
     note: 'The same stop as the third finished session today: no RETRY, the line says when to come back, DONE FOR TODAY.',
-    clock: true, once: true,
+    clock: true, once: true, bottom: true,
     seed: FF_SEED(2), open: stopFightFocus, after: scrollTo('[data-retention="near-miss"]'),
     check: ['[data-retention="near-miss"]'], expect: /Three sessions done today\. Come back fresh tomorrow\.[\s\S]*DONE FOR TODAY/i,
   },
   {
     name: 'f3-v2-partial',
     note: 'A real v2 stage (The Grappler stage 1 on FIGHT, from the path) stopped after its first round: the arcade end screen\'s panel.',
-    clock: true, once: true,
+    clock: true, once: true, bottom: true,
     seed: GRAP_SEED, open: stopV2Stage, after: scrollTo('[data-retention="near-miss"]'),
     check: ['[data-retention="near-miss"]'], expect: /TO GO[\s\S]*RETRY[\s\S]*COME BACK FRESH TOMORROW/i,
   },
   {
     name: 'f3-v2-second-go',
     note: 'The same v2 stage retried from its panel and stopped again: the second go today, no RETRY; "Two goes at this one today", DONE FOR TODAY.',
-    clock: true, once: true,
+    clock: true, once: true, bottom: true,
     seed: GRAP_SEED, open: stopV2StageTwice, after: scrollTo('[data-retention="near-miss"]'),
     check: ['[data-retention="near-miss"]'], expect: /Two goes at this one today\. Come back fresh tomorrow\.[\s\S]*DONE FOR TODAY/i,
   },
@@ -704,6 +766,106 @@ const STATES = [
     check: ['[data-retention="path-map"]'], expect: /VOLUME[\s\S]*START SESSION 1/, absent: /HEALTH CHECK/,
   },
   {
+    name: 'f3-ff-nothing',
+    note: 'A real Fight Focus ended in round 1, before a round was done (fake clock): the quiet SESSION ENDED card now shows what was left too, WHAT\'S LEFT · 3 ROUNDS TO GO, RETRY and COME BACK FRESH TOMORROW the same size. Still no try.',
+    clock: true, once: true, bottom: true,
+    seed: FF_SEED(0), open: endFightFocusAtOnce, after: scrollTo('[data-retention="near-miss"]'),
+    check: ['[data-retention="near-miss"]'], same: ['[data-retention="near-miss"] button'],
+    expect: /SESSION ENDED[\s\S]*ENDED EARLY[\s\S]*WHAT'S LEFT[\s\S]*3 ROUNDS TO GO[\s\S]*0 OF 3 ROUNDS[\s\S]*RETRY[\s\S]*COME BACK FRESH TOMORROW/, absent: /HOW CLOSE|ROUNDS SHORT/,
+  },
+  {
+    name: 'f3-ff-nothing-load',
+    note: 'The same nothing-done end after three finished sessions today: no RETRY, the line says when to come back, DONE FOR TODAY.',
+    clock: true, once: true, bottom: true,
+    seed: FF_SEED(3), open: endFightFocusAtOnce, after: scrollTo('[data-retention="near-miss"]'),
+    check: ['[data-retention="near-miss"]'],
+    expect: /SESSION ENDED[\s\S]*WHAT'S LEFT[\s\S]*3 ROUNDS TO GO[\s\S]*Three sessions done today\. Come back fresh tomorrow\.[\s\S]*DONE FOR TODAY/, absent: /\bRETRY\b/,
+  },
+  {
+    name: 'f3-ff-nothing-off',
+    note: 'Switch off (what everyone sees until launch): the same nothing-done end is the quiet SESSION ENDED card as before, no panel.',
+    clock: true, once: true, bottom: true, owner: false,
+    seed: FF_SEED(0), open: endFightFocusAtOnce,
+    check: ['body'], expect: /SESSION ENDED[\s\S]*ENDED EARLY[\s\S]*YOUR PROGRESS/, absent: /WHAT'S LEFT|HOW CLOSE|COME BACK FRESH/,
+  },
+  // ── the old UI fixed app-wide (for everyone): the end screens with every switch off ──
+  {
+    name: 'o-end-ff-clear',
+    note: 'For everyone (switches off): a real Fight Focus run to its end. The banner as wide as the cards, the round recap on every phone height, and the scroll chevron and BETA pill over nothing (as it opens, and scrolled to its end: -end).',
+    clock: true, once: true, owner: false, bottom: true,
+    seed: FF_SEED(0), open: finishFightFocus,
+    check: ['body'], align: [['[data-ui="integrity-banner"]', '[data-ui="mc-stats"]']],
+    expect: /MISSION COMPLETE[\s\S]*ROUND RECAP[\s\S]*YOUR PROGRESS/,
+  },
+  {
+    name: 'o-end-ff-stopped',
+    note: 'For everyone: Fight Focus stopped in round 2: GOOD EFFORT, the PARTIAL COMPLETION banner as wide as the cards, its 1-round recap.',
+    clock: true, once: true, owner: false, bottom: true,
+    seed: FF_SEED(0), open: stopFightFocus,
+    check: ['body'], align: [['[data-ui="integrity-banner"]', '[data-ui="mc-stats"]']],
+    expect: /PARTIAL COMPLETION[\s\S]*ROUND RECAP[\s\S]*YOUR PROGRESS/, absent: /HOW CLOSE/,
+  },
+  {
+    name: 'o-end-cc',
+    note: 'For everyone: Combat Conditioning ended at once: its summary.',
+    once: true, owner: false, bottom: true,
+    seed: FF_SEED(0), open: endCombatConditioning,
+    check: ['body'], expect: /YOUR PROGRESS[\s\S]*RETURN HOME/,
+  },
+  {
+    name: 'o-end-fit',
+    note: 'For everyone: Build Workout finished with two exercises left: SESSION ENDED with its SESSION SUMMARY chips (dropped under 812 px tall before, shown now).',
+    once: true, owner: false, bottom: true,
+    seed: FF_SEED(0), open: finishBuildWorkoutEarly,
+    check: ['body'], expect: /SESSION ENDED[\s\S]*SESSION SUMMARY[\s\S]*YOUR PROGRESS/,
+  },
+  // Other screens, for everyone: the BETA pill (and, where the page scrolls,
+  // the chevron on its shelf) over no text, button, picture or card.
+  ...[
+    ['o-home', 'Home', async (page, w) => { await home(page, w); }, /FIT MODE/],
+    ['o-fight-hub', 'the Fight hub', async (page, w) => { await home(page, w); await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await wait(page, 1500); }, /FIGHT FOCUS/],
+    ['o-fit-hub', 'the Fit hub', async (page, w) => { await home(page, w); await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await wait(page, 1500); }, /Quick Mission/i],
+    ['o-ff-setup', 'Fight Focus setup', async (page, w) => { await home(page, w); await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await wait(page, 1200); await page.locator('.fb', { hasText: 'FIGHT FOCUS' }).first().click({ timeout: 4000 }); await wait(page, 1500); }, /START SESSION/],
+    ['o-combo-setup', 'Combo Coach setup', async (page, w) => { await home(page, w); await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await wait(page, 1200); await page.locator('.fb', { hasText: 'COMBO COACH' }).first().click({ timeout: 4000 }); await wait(page, 1500); }, /START COMBOS/],
+    ['o-cc-setup', 'Combat Conditioning setup', async (page, w) => { await home(page, w); await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await wait(page, 1200); await page.locator('.ft.cond').click({ timeout: 4000 }); await wait(page, 1500); }, /PICK A CIRCUIT/],
+    ['o-qm-setup', 'Quick Mission', async (page, w) => { await home(page, w); await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await wait(page, 1200); await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await wait(page, 1500); }, /START/],
+    ['o-builder-setup', 'Build Workout setup', async (page, w) => { await home(page, w); await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await wait(page, 1200); await page.locator('[data-guide="fit-builder"]').click({ timeout: 4000 }); await wait(page, 1500); }, /GENERATE WORKOUT/],
+    ['o-camp', 'the Training Camp map', async (page, w) => { await home(page, w); await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await wait(page, 1200); await page.locator('.fb', { hasText: 'TRAINING CAMP' }).first().click({ timeout: 4000 }); await wait(page, 2000); }, /TRAINING CAMP/],
+    ['o-arcade', 'the Training Arcade', async (page, w) => { await home(page, w); await page.locator('[data-guide="home-arcade"]').first().click({ timeout: 5000 }); await wait(page, 3000); }, /TRAINING ARCADE/],
+    ['o-jt-setup', 'Just Train setup', async (page, w) => { await home(page, w); await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await wait(page, 1200); await page.locator('.fb', { hasText: 'JUST TRAIN' }).first().click({ timeout: 4000 }); await wait(page, 1500); }, /START/],
+    ['o-practice', 'Practice', async (page, w) => { await home(page, w); await page.locator('button[aria-label="FIGHT MODE"]').click({ timeout: 5000 }); await wait(page, 1200); await page.locator('[data-guide="fh-practice"]').first().click({ timeout: 4000 }); await wait(page, 2000); }, /PRACTICE/],
+    ['o-programs', 'Programs', async (page, w) => { await home(page, w); await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await wait(page, 1200); await page.locator('[data-guide="fit-programs"]').click({ timeout: 4000 }); await wait(page, 1500); }, /PROGRAM/i],
+    ['o-cardio', 'Cardio setup', async (page, w) => { await home(page, w); await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await wait(page, 1200); await page.locator('[data-guide="fit-cardio"]').click({ timeout: 4000 }); await wait(page, 1800); }, /START/],
+    ['o-saga', 'a saga\'s ladder (the first playable saga)', async (page, w) => {
+      await home(page, w); await page.locator('[data-guide="home-arcade"]').first().click({ timeout: 5000 }); await wait(page, 2500);
+      let hit = false;
+      for (let i = 0; i < 8 && !hit; i++) {
+        hit = await page.evaluate(() => { const b = [...document.querySelectorAll('button,[role="button"]')].find((x) => /\bSTART\b[\s\S]*CLEARED/.test(x.innerText)); if (b) b.click(); return !!b; });
+        if (!hit) { await page.locator('button[aria-label="Next saga"]').click({ force: true, timeout: 3000 }); await wait(page, 900); }
+      }
+      await wait(page, 2500);
+    }, /STAGE|CLIMB/i],
+    ['o-level', 'the Level page', async (page, w) => { await home(page, w); await page.getByRole('button', { name: /^PROFILE$/ }).first().click({ timeout: 4000 }); await wait(page, 1200); await page.getByRole('button', { name: /View your level/ }).first().click({ timeout: 4000 }); await wait(page, 1500); }, /YOUR LEVEL/i],
+    ['o-progress', 'Progress', async (page, w) => { await home(page, w); await page.getByRole('button', { name: /^PROGRESS$/ }).first().click({ timeout: 4000 }); await wait(page, 1500); }, /PROGRESS|XP/i],
+    ['o-profile', 'Profile', async (page, w) => { await home(page, w); await page.getByRole('button', { name: /^PROFILE$/ }).first().click({ timeout: 4000 }); await wait(page, 1500); }, /PROFILE/],
+  ].map(([name, what, open, expect]) => ({
+    name, note: `For everyone (switches off): ${what}. The BETA pill over nothing, and on a page that scrolls the chevron on the shelf over the tab bar (-end: scrolled to its end).`,
+    // The bottom check is the point here; text cut elsewhere (a carousel's
+    // cards off to the side) is printed as a warning, as on the other states.
+    owner: false, bottom: true, seed: FF_SEED(0), open, check: ['[data-guide="nav-tabs"]'], expect,
+  })),
+  {
+    name: 'o-concept',
+    note: 'A concept drop\'s page (owner preview: drops show only with it): its fixed START bar keeps above the shelf, the BETA pill and the chevron on the shelf.',
+    bottom: true, seed: FF_SEED(0),
+    open: async (page, w) => {
+      await page.goto(BASE, { waitUntil: 'networkidle' }); await wait(page, 1800);
+      await page.mouse.click(Math.round(w / 2), 120); await wait(page, 1800);
+      await page.getByRole('button', { name: /START THE REGIME/ }).first().click({ timeout: 5000 }); await wait(page, 1800);
+    },
+    check: ['[data-guide="nav-tabs"]'], expect: /WEEK 1 OF 4/,
+  },
+  {
     name: 'f3-gallery',
     note: 'The design gallery (/retention-looks), feature 3: the real panel and the real classic stage screens (third star, no replay today: the gap over the next stage with no come-back line, partial) with sample data.',
     seed: () => ({}),
@@ -721,7 +883,7 @@ const STATES = [
 
 // ── the checks ─────────────────────────────────────────────────────────────
 // Runs in the page. Returns { fails: [...], warns: [...] }.
-function measure({ checkSelectors, apart, clear, inView = [], oneLine = [] }) {
+function measure({ checkSelectors, apart, clear, inView = [], oneLine = [], same = [], align = [], bottom = false, atEnd = false }) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const fails = [], warns = [];
@@ -809,6 +971,69 @@ function measure({ checkSelectors, apart, clear, inView = [], oneLine = [] }) {
       if (tops.length && Math.max(...tops) - Math.min(...tops) > 4) fails.push(`breaks onto a second line: ${name(el)}`);
     }
   }
+  // One size for all (the near-miss panel's RETRY and its way out).
+  for (const sel of same) {
+    const rs = [...document.querySelectorAll(sel)].filter(shown).map((el) => el.getBoundingClientRect());
+    if (rs.length > 1 && rs.some((r) => Math.abs(r.width - rs[0].width) > 1 || Math.abs(r.height - rs[0].height) > 1)) fails.push(`not one size: ${sel} (${rs.map((r) => `${Math.round(r.width)}x${Math.round(r.height)}`).join(', ')})`);
+  }
+  for (const [a, b] of align) {
+    const ea = [...document.querySelectorAll(a)].find(shown), eb = [...document.querySelectorAll(b)].find(shown);
+    if (!ea || !eb) { fails.push(`${ea ? b : a} is not on screen`); continue; }
+    const ra = ea.getBoundingClientRect(), rb = eb.getBoundingClientRect();
+    if (Math.abs(ra.left - rb.left) > 1 || Math.abs(ra.right - rb.right) > 1) fails.push(`not lined up: ${name(ea)} ${Math.round(ra.left)}..${Math.round(ra.right)} vs ${name(eb)} ${Math.round(rb.left)}..${Math.round(rb.right)}`);
+  }
+  // The scroll chevron and the BETA pill (fixed over the page) cover no text,
+  // button, picture or card (a box with its own fill or border). On a screen
+  // that scrolls they sit on the shelf over the tab bar (the page passes under
+  // it, as under the tab bar): each must be inside its solid part. Scrolled to
+  // the end, nothing of the page is left under the shelf.
+  if (bottom) {
+    const floaters = [...document.querySelectorAll('[data-ui="scroll-chevron"], button[aria-label="Report beta feedback"]')].filter(shown);
+    const fixedChain = (el) => { for (let e = el; e && e !== document.body; e = e.parentElement) if (getComputedStyle(e).position === 'fixed') return true; return false; };
+    const shelf = [...document.querySelectorAll('[data-ui="nav-shelf"]')].find(shown);
+    const sr = shelf?.getBoundingClientRect();
+    const onShelf = (rf) => !!sr && rf.top >= sr.top + (Number(shelf.dataset.fade) || 0) - 1 && rf.bottom <= sr.bottom + 1 && rf.left >= sr.left - 1 && rf.right <= sr.right + 1;
+    const filled = (cs) => (cs.backgroundImage && cs.backgroundImage !== 'none') || !/rgba\(\d+, \d+, \d+, 0\)|transparent/.test(cs.backgroundColor) || (parseFloat(cs.borderTopWidth) > 0 && !/rgba\(\d+, \d+, \d+, 0\)|transparent/.test(cs.borderTopColor));
+    const quiet = (el) => { for (let e = el; e && e !== document.body; e = e.parentElement) if (e.getAttribute('aria-hidden') === 'true' || getComputedStyle(e).pointerEvents === 'none') return true; return false; };
+    const content = (el) => {
+      const cs = getComputedStyle(el), r = el.getBoundingClientRect();
+      return ownText(el) ? 'text' : el.tagName === 'BUTTON' ? 'button' : el.tagName === 'IMG' && r.width * r.height < 0.6 * vw * vh ? 'picture'
+        : filled(cs) && r.width * r.height < 0.6 * vw * vh ? 'card' : null;
+    };
+    if (sr && atEnd) {
+      for (const el of document.querySelectorAll('body *')) {
+        if (!shown(el) || shelf.contains(el) || fixedChain(el) || quiet(el)) continue;
+        const kind = content(el); if (!kind) continue;
+        let r = el.getBoundingClientRect();
+        for (const c of clippers(el)) { const cr = c.getBoundingClientRect(); r = { left: Math.max(r.left, cr.left), top: Math.max(r.top, cr.top), right: Math.min(r.right, cr.right), bottom: Math.min(r.bottom, cr.bottom) }; }
+        if (r.right > r.left && r.bottom > r.top && r.left < sr.right - 1 && sr.left < r.right - 1 && r.top < sr.bottom - 1 && sr.top < r.bottom - 1) fails.push(`a ${kind} left under the shelf at the end: ${name(el)}`);
+      }
+    }
+    for (const f of floaters) {
+      const rf = f.getBoundingClientRect();
+      if (onShelf(rf)) continue; // the page under it is hidden by the shelf
+      // Text by its glyphs (a centred line in a wide box is not under a pill
+      // at the side); buttons, pictures and cards by their boxes.
+      // Each by the part of it that shows: cut to the boxes that clip it (a
+      // row scrolled out of its list is not under the pill).
+      const glyphs = (el) => [...el.childNodes].filter((n) => n.nodeType === 3 && n.textContent.trim()).flatMap((n) => { const rg = document.createRange(); rg.selectNodeContents(n); return [...rg.getClientRects()]; });
+      const cut = (r, el) => {
+        let x = { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+        for (const c of clippers(el)) { const cr = c.getBoundingClientRect(); x = { left: Math.max(x.left, cr.left), top: Math.max(x.top, cr.top), right: Math.min(x.right, cr.right), bottom: Math.min(x.bottom, cr.bottom) }; }
+        return x;
+      };
+      const hit = (r) => r.left < rf.right - 1 && rf.left < r.right - 1 && r.top < rf.bottom - 1 && rf.top < r.bottom - 1 && r.right > r.left && r.bottom > r.top;
+      for (const el of document.querySelectorAll('body *')) {
+        if (!shown(el) || f.contains(el) || el.contains(f) || fixedChain(el) || quiet(el)) continue;
+        const r = el.getBoundingClientRect();
+        const kind = content(el);
+        if (!kind) continue;
+        if (kind === 'text' ? glyphs(el).some((g) => hit(cut(g, el))) : hit(cut(r, el))) {
+          fails.push(`${f.dataset.ui === 'scroll-chevron' ? 'the scroll chevron' : 'the BETA pill'} over a ${kind}: ${name(el)}`);
+        }
+      }
+    }
+  }
   return { fails: [...new Set(fails)], warns: [...new Set(warns)] };
 }
 
@@ -829,10 +1054,12 @@ for (const st of STATES) {
     if (st.after) await st.after(page);
     await wait(page, 600);
     const t = await page.evaluate(() => document.body.innerText);
-    const res = await page.evaluate(measure, { checkSelectors: st.check || [], apart: st.apart || [], clear: st.clear || [], inView: st.inView || [], oneLine: st.oneLine || [] });
+    const mOpts = { checkSelectors: st.check || [], apart: st.apart || [], clear: st.clear || [], inView: st.inView || [], oneLine: st.oneLine || [], same: st.same || [], align: st.align || [], bottom: !!st.bottom };
+    const res = await page.evaluate(measure, mOpts);
     if (st.expect && !st.expect.test(t)) res.fails.unshift(`expected ${st.expect} on screen`);
     if (st.absent && st.absent.test(t)) res.fails.unshift(`not expected on screen: ${st.absent} (${t.match(st.absent)[0]})`);
-    const file = path.join(OUT, `${st.name}-${w}.png`);
+    const tag = sizeTag([w, h]);
+    const file = path.join(OUT, `${st.name}-${tag}.png`);
     if (st.shot) {
       // A whole element taller than the screen: the app scrolls inside its own
       // box, so the window is made as tall as the element for the photo (in
@@ -845,11 +1072,21 @@ for (const st of STATES) {
       const cards = await page.locator(st.shot).first().evaluate((root) => [...root.querySelectorAll('section')]
         .map((el, i) => { const outer = el.parentElement?.closest('section'); return outer && root.contains(outer) ? -1 : i; }).filter((i) => i >= 0));
       for (let k = 0; k < cards.length; k++) {
-        const crop = path.join(OUT, `${st.name}-${w}-card${String(k + 1).padStart(2, '0')}.png`);
+        const crop = path.join(OUT, `${st.name}-${tag}-card${String(k + 1).padStart(2, '0')}.png`);
         await page.locator(`${st.shot} section`).nth(cards[k]).screenshot({ path: crop, scale: 'device' });
       }
       await page.setViewportSize({ width: w, height: h });
     } else await page.screenshot({ path: file });
+    if (st.bottom) {
+      // The same screen scrolled to its end: the last card clear of the BETA
+      // pill (and the chevron gone), then back to the top for the next size.
+      const scrollEnd = (top) => page.evaluate((t) => { for (const el of document.querySelectorAll('*')) { const cs = getComputedStyle(el); if ((cs.overflowY === 'auto' || cs.overflowY === 'scroll') && el.scrollHeight > el.clientHeight + 1) el.scrollTop = t ? 0 : el.scrollHeight; } }, top);
+      await scrollEnd(false); await wait(page, 1000);
+      const endRes = await page.evaluate(measure, { ...mOpts, atEnd: true });
+      res.fails.push(...endRes.fails.map((f) => `scrolled to the end: ${f}`));
+      await page.screenshot({ path: path.join(OUT, `${st.name}-${tag}-end.png`) });
+      await scrollEnd(true); await wait(page, 600);
+    }
     const ok = !res.fails.length;
     if (!ok) failures++;
     console.log(`${ok ? 'ok  ' : 'FAIL'} ${st.name} @${w}x${h}  → ${file}`);
@@ -860,8 +1097,13 @@ for (const st of STATES) {
   const contextFor = async ([w, h]) => {
     const ctx = await browser.newContext({ viewport: { width: w, height: h }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
     const seed = { ...BASE_KEYS, ...st.seed() };
+    if (st.owner === false) delete seed.tm_owner_preview;
     await ctx.addInitScript((s) => {
       try { Object.defineProperty(window, 'speechSynthesis', { value: undefined }); } catch { /* read-only */ }
+      try {
+        const snap = sessionStorage.getItem('__rp_seed');
+        if (snap) { sessionStorage.removeItem('__rp_seed'); localStorage.setItem('trainingModePausedSession', snap); }
+      } catch { /* no session storage */ }
       if (localStorage.getItem('__rp')) return;
       localStorage.clear();
       // The come-back reminder shares the slot over the header: dismissed for
