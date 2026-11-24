@@ -30,7 +30,7 @@ import { NoBarTag } from './ui/Tags';
 import WorkoutsPage, { WorkoutsRow, useWorkoutRows } from './WorkoutsPage';
 import {
   cardMission, cardTotals, cardBalance, cardSwapOptions, stepRounds, doseOf, gearNoteOf, snapshotOf,
-  daySeed, WARRIOR_TITLE, WARRIOR_ID, CARD_MIN_ROUNDS, CARD_MAX_ROUNDS, BONUS_ITEMS, coolDownAddon, cardMoveInfo,
+  daySeed, WARRIOR_TITLE, WARRIOR_ID, CARD_MIN_ROUNDS, CARD_MAX_ROUNDS, BONUS_ITEMS, coolDownAddon, cardMoveInfo, barAppliesTo,
 } from '../data/fitCard';
 import { checkOffOn, setCheckOff, loadSavedWorkouts, cardRunById } from '../data/fitCardStore';
 
@@ -342,6 +342,14 @@ export default function FitCardSetup({ entry, onBack, onFightMode, onStart, onPa
   }
   const onLibrary = !mission;
   const standIns = mission ? mission.exercises.filter((e) => e.noBarFor).length : 0;
+  // TIME is the input; the line opposite its label says why the card's time
+  // can differ from the slider's: rounds added or taken off with + / −, or
+  // whole rounds that land near the time (WARRIOR's fixed doses).
+  const handRounds = mission && rounds != null ? mission.rounds - mission.card.baseRounds : 0;
+  const cardMin = <b style={{ color: '#fff', fontWeight: 600 }}>about {totals?.estMinutes} min</b>;
+  const timeNote = onLibrary || source.kind === 'saved' ? 'for today’s deal'
+    : handRounds ? <>{handRounds > 0 ? '+' : '−'}{Math.abs(handRounds)} {Math.abs(handRounds) === 1 ? 'round' : 'rounds'} · {cardMin}</>
+      : totals && totals.estMinutes !== duration ? <>whole rounds · {cardMin}</> : 'rounds follow';
   const solo = runMode === 'solo';
   const runExtra = solo && !libCard?.soloOnly ? (
     <CheckOffRow on={checkOff} onToggle={() => { const v = !checkOff; setCheckOffState(v); setCheckOff(v); }}/>
@@ -399,7 +407,7 @@ export default function FitCardSetup({ entry, onBack, onFightMode, onStart, onPa
             onUndo={mission ? undoSwap : libCard ? (row) => setV2swaps((s) => { const n = { ...s }; delete n[row.swapKey]; return n; }) : null}
             balance={balance?.line || null} details={details}
             adjust={adjust ? { ...adjust } : null}
-            bar={mission && mission.workoutType !== 'Weighted' ? { on: bar, onToggle: toggleBar, summary: bar ? 'Bar moves stay in.' : standIns ? `${standIns} ${standIns === 1 ? 'stand-in' : 'stand-ins'}` : 'No bar moves' } : null}
+            bar={mission && barAppliesTo(source.kind) && mission.workoutType !== 'Weighted' ? { on: bar, onToggle: toggleBar, summary: bar ? 'Bar moves stay in.' : standIns ? `${standIns} ${standIns === 1 ? 'stand-in' : 'stand-ins'}` : 'No bar moves' } : null}
             runMode={runMode} onRunMode={pickMode} runOff={runOff} runHelp={runHelp} runExtra={runExtra}
             onStart={handleStart}
             open={open} onToggle={toggleOpen}
@@ -412,7 +420,7 @@ export default function FitCardSetup({ entry, onBack, onFightMode, onStart, onPa
             <GearRow value={onLibrary || source.kind === 'saved' ? null : workoutType} onPick={pickGear}/>
           </div>
           <div data-guide="fc-time" style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2 }}>
-            <Label right={<span style={{ font: `500 12px ${BODY}`, color: MUTED }}>{onLibrary || source.kind === 'saved' ? 'for today’s deal' : 'rounds follow'}</span>}>Time</Label>
+            <Label right={<span data-fc="time-note" style={{ font: `500 12px ${BODY}`, color: MUTED, whiteSpace: 'nowrap' }}>{timeNote}</span>}>Time</Label>
             <TimeSlider value={duration} dim={onLibrary || source.kind === 'saved'} onLive={followTime} onCommit={pickTime}/>
           </div>
 

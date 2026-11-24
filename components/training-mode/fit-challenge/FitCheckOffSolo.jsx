@@ -8,7 +8,7 @@ import { totalSlots } from '../data/missionSolo';
 import { soloFromGenerated } from '../data/soloFromGenerated';
 import { levelWord } from '../data/quickMissionConfig';
 import { emptyTicks, setTick, tickProgress } from '../data/challengeTotals';
-import { cardMission, snapshotOf, snapshotMission, daySeed, stepRounds, cardTotals, CARD_MIN_ROUNDS, CARD_MAX_ROUNDS } from '../data/fitCard';
+import { shuffleCard, snapshotOf, snapshotMission, stepRounds, cardTotals, CARD_MIN_ROUNDS, CARD_MAX_ROUNDS } from '../data/fitCard';
 import CheckOffRun from './ui/CheckOffRun';
 import DiscardConfirm from './ui/DiscardConfirm';
 import RoundsStepper from './ui/RoundsStepper';
@@ -178,16 +178,14 @@ export default function FitCheckOffSolo({ missionCfg, onEnd, onStateChange, init
     setTicks(emptyTicks(nextMission.rounds, nextMission.exercises.length));
     setAsk(null); setPhase('ready');
   };
-  // The card's generated mission behind this run (the card snapshot holds
-  // what a new deal needs: the page's level, gear, focus and minutes).
-  const genCfg = { format: 'Auto', cardioFinisher: false, ...(card?.gen || { workoutType: mission.workoutType, duration: mission.duration, difficulty: mission.difficulty, focus: mission.focus }) };
+  // The next deal for the card's own settings (the card snapshot holds what a
+  // new deal needs: the page's level, gear, focus and minutes), at this run's
+  // rounds; the card becomes the new deal's (data/fitCard shuffleCard).
   const doShuffle = () => {
-    const deal = card?.deal || { seed: daySeed(new Date()), shuffles: 0, bar: true };
-    const nextDeal = { ...deal, shuffles: (deal.shuffles || 0) + 1 };
-    const gen = cardMission(genCfg, { source: { kind: 'deal', seed: nextDeal.seed, shuffles: nextDeal.shuffles }, rounds: mission.rounds, bar: deal.bar !== false });
-    const solo = soloFromGenerated(gen);
+    const next = shuffleCard(card, { rounds: mission.rounds, fallback: mission });
+    const solo = soloFromGenerated(next.mission);
     if (!solo) return;
-    restart(solo, snapshotOf(gen, { ...card, kind: 'deal', deal: nextDeal }));
+    restart(solo, next.card);
   };
   const progress = p.ticked > 0;
   const shuffleTap = () => (progress ? setAsk({ kind: 'shuffle' }) : doShuffle());

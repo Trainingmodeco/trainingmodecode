@@ -210,6 +210,43 @@ section('no pull-up bar, and swaps: the clock and the XP never move');
   check('a swap changes one row (its name), keeps its dose and rest, the time and the XP', sw.exercises.filter((e, i) => e.name !== w.exercises[i].name).length === 1 && sw.exercises[2].reps === 8 && C.cardTotals(sw).estMinutes === C.cardTotals(w).estMinutes && C.cardWorkXp(sw) === C.cardWorkXp(w));
   const d = deal({ duration: 30 });
   check('a hold swaps only for a hold, reps for reps', d.exercises.every((e, i) => C.cardSwapOptions(d, i).every((o) => !!C.cardMoveInfo(o.name).timed === (e.mode === 'timed'))));
+  // The bar switch is a page key: it reshapes today's deal and WARRIOR, never
+  // a workout that was kept (saved, or a run from YOUR WORKOUTS).
+  const kept = C.snapshotOf(w);
+  const names = (m) => m.exercises.map((e) => e.name).join(',');
+  for (const from of [undefined, 'history']) {
+    const sv = C.cardMission(cfgOf(), { source: { kind: 'saved', snapshot: kept, ...(from ? { from } : {}) }, bar: false });
+    check(`a ${from ? 'repeat from YOUR WORKOUTS' : 'saved workout'} runs as kept with the bar switched off (Pull-Ups, Hanging Knee Raises stay; no stand-in)`, names(sv) === names(w) && sv.exercises.every((e) => !e.noBarFor) && sv.card.bar === true);
+  }
+  const keptNoBar = C.snapshotOf(nb);
+  check('a workout saved with the bar off keeps its stand-ins, with the bar on too', names(C.cardMission(cfgOf(), { source: { kind: 'saved', snapshot: keptNoBar }, bar: true })) === names(nb));
+  check('… while the bar switch still reshapes the deal and WARRIOR', C.barAppliesTo('deal') && C.barAppliesTo('warrior') && !C.barAppliesTo('saved') && names(nb) !== names(w));
+}
+
+section('SHUFFLE inside a CHECK-OFF run: the card becomes the new deal');
+{
+  // The card as START makes it (FitCardSetup handleStart), then SHUFFLE in the run.
+  const m0 = deal({}, { rounds: 4 });
+  const card0 = C.snapshotOf(m0, { kind: 'deal', startedAt: 123, deal: { seed: SEED, shuffles: 0, bar: true }, gen: { workoutType: 'Bodyweight', duration: 20, difficulty: 'Normal', focus: 'Full Body' } });
+  const s1 = C.shuffleCard(card0, { rounds: m0.rounds });
+  const names = (list) => list.map((e) => e.name).join(',');
+  check('the run gets new moves at the same rounds', names(s1.mission.exercises) !== names(m0.exercises) && s1.mission.rounds === 4);
+  check('the card carries the new moves, title and rounds (not the old ones)', names(s1.card.exercises) === names(s1.mission.exercises) && s1.card.title === s1.mission.title && s1.card.rounds === s1.mission.rounds, `${names(s1.card.exercises)} vs ${names(s1.mission.exercises)}`);
+  check('… with the deal moved on and what START added kept', s1.card.kind === 'deal' && s1.card.deal.shuffles === 1 && s1.card.deal.seed === SEED && s1.card.startedAt === 123 && s1.card.gen.duration === 20);
+  check('… the same deal the page\'s SHUFFLE would deal', names(s1.mission.exercises) === names(C.cardMission(cfgOf(), { source: { kind: 'deal', seed: SEED, shuffles: 1 }, rounds: 4 }).exercises));
+  const s2 = C.shuffleCard(s1.card, { rounds: s1.mission.rounds });
+  check('a second SHUFFLE deals on from there', s2.card.deal.shuffles === 2 && names(s2.card.exercises) === names(s2.mission.exercises));
+  const ticks = T.emptyTicks(s1.mission.rounds, s1.mission.exercises.length).map((r, i) => r.map(() => i === 0));
+  const done = C.cardRunDone(s1.card, { ticks });
+  check(`the reps banked are the new moves' (${done.repsDone} = one round of the new deal)`, done.repsDone === C.cardTotals(s1.mission).repsPerRound, `${done.repsDone} vs ${C.cardTotals(s1.mission).repsPerRound}`);
+  check('SAVE WORKOUT and REPEAT keep the shuffled workout', names(C.snapshotOf(s1.card).exercises) === names(s1.mission.exercises) && names(C.snapshotMission(s1.card).exercises) === names(s1.mission.exercises));
+  const nbCard = { ...card0, deal: { seed: SEED, shuffles: 0, bar: false } };
+  check('a card dealt with the bar off shuffles with the bar off', C.shuffleCard(nbCard, { rounds: 4 }).card.exercises.every((e) => !C.cardMoveInfo(e.name)?.bar));
+  check('snapshotOf: what it adds never replaces the mission\'s title, rounds or moves', (() => {
+    const sn = C.snapshotOf(m0, { title: 'OLD', rounds: 9, exercises: [], kind: 'deal' });
+    return sn.title === m0.title && sn.rounds === m0.rounds && sn.exercises.length === m0.exercises.length && sn.kind === 'deal';
+  })());
+  check('the run shuffles through shuffleCard', /const next = shuffleCard\(card, \{ rounds: mission\.rounds, fallback: mission \}\);/.test(code('fit-challenge/FitCheckOffSolo.jsx')) && /restart\(solo, next\.card\)/.test(code('fit-challenge/FitCheckOffSolo.jsx')));
 }
 
 section('the switch off: Fit Mode exactly as before');

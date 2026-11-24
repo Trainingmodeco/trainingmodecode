@@ -107,16 +107,19 @@ export function snapshotMission(s) {
 
 // What a card run keeps (YOUR WORKOUTS' repeat, SAVE WORKOUT): the moves as
 // they ran, with their doses and rests, and the rounds. No noBarFor: a saved
-// workout runs exactly what was on the card.
+// workout runs exactly what was on the card (cardMission never puts a saved
+// one through the bar switch). `extra` adds fields (kind, deal, gen,
+// startedAt) and never replaces the mission's own: the title, the rounds and
+// the moves are always the mission's.
 export function snapshotOf(mission, extra = {}) {
   return {
+    ...extra,
     title: mission.title, workoutType: mission.workoutType, difficulty: mission.difficulty, focus: mission.focus,
     rounds: mission.rounds,
     exercises: (mission.exercises || []).map((e) => ({
       name: e.name, mode: e.mode, ...(e.mode === 'timed' ? { work: e.work } : { reps: e.reps }), rest: e.rest,
       ...(e.isWeighted ? { isWeighted: true } : {}), ...(e.counted ? { counted: true } : {}),
     })),
-    ...extra,
   };
 }
 
@@ -149,14 +152,18 @@ export function applySwaps(exercises, swaps = {}) {
 // ── the card ────────────────────────────────────────────────────────────────
 // source: { kind: 'deal', seed, shuffles } | { kind: 'warrior' } | { kind: 'saved', snapshot, id? }
 // rounds: the rounds the athlete set with + / − (null: what the time made).
-// bar: the PULL-UP BAR switch. swaps: { [index]: name } on the dealt moves.
+// bar: the PULL-UP BAR switch, for today's deal and WARRIOR only: a saved or
+// repeated workout runs exactly as it was kept (a bar move in it swaps out by
+// hand, NO GEAR). swaps: { [index]: name } on the dealt moves.
+export const barAppliesTo = (kind) => kind === 'deal' || kind === 'warrior';
 export function cardMission(cfg, { source = { kind: 'deal', seed: 1, shuffles: 0 }, rounds = null, bar = true, swaps = {} } = {}) {
   let base;
   if (source.kind === 'warrior') base = warriorMission(cfg);
   else if (source.kind === 'saved') base = snapshotMission(source.snapshot);
   else base = generateQuickMission({ ...cfg, rng: seededRng(quickMissionSeed(source.seed, source.shuffles || 0, cfg.duration)), balanced: true });
   const baseRounds = base.rounds;
-  const exercises = applyBar(applySwaps(base.exercises, swaps), bar);
+  const swapped = applySwaps(base.exercises, swaps);
+  const exercises = barAppliesTo(source.kind) ? applyBar(swapped, bar) : swapped;
   const r = rounds == null ? baseRounds : clampR(rounds);
   const m = { ...base, exercises, rounds: r };
   // The minutes follow the rounds (and so does the XP). With the rounds the
@@ -164,8 +171,23 @@ export function cardMission(cfg, { source = { kind: 'deal', seed: 1, shuffles: 0
   return {
     ...m,
     duration: r === baseRounds && source.kind === 'deal' ? base.duration : missionMinutes(m),
-    card: { kind: source.kind, baseRounds, bar: !!bar },
+    card: { kind: source.kind, baseRounds, bar: barAppliesTo(source.kind) ? !!bar : true },
   };
+}
+
+// SHUFFLE inside a CHECK-OFF run: the next deal for the card's own settings
+// (its level, gear, focus and minutes: card.gen) at the run's rounds. The card
+// becomes the new deal's, its title, rounds and moves, so the results, the
+// reps banked, SAVE WORKOUT and REPEAT read what was run; what the card adds
+// (startedAt, gen) stays. `fallback` is the run's mission, for a card without gen.
+export function shuffleCard(card, { rounds, fallback = {}, now = new Date() } = {}) {
+  const deal = card?.deal || { seed: daySeed(now), shuffles: 0, bar: true };
+  const nextDeal = { ...deal, shuffles: (deal.shuffles || 0) + 1 };
+  const gen = card?.gen || { workoutType: fallback.workoutType, duration: fallback.duration, difficulty: fallback.difficulty, focus: fallback.focus };
+  const mission = cardMission({ format: 'Auto', cardioFinisher: false, ...gen }, {
+    source: { kind: 'deal', seed: nextDeal.seed, shuffles: nextDeal.shuffles }, rounds, bar: deal.bar !== false,
+  });
+  return { mission, card: snapshotOf(mission, { ...card, kind: 'deal', deal: nextDeal }) };
 }
 
 // The rounds after a + or a −.

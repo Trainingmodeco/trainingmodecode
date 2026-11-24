@@ -58,7 +58,8 @@ switch off" section: the generator deals draw for draw as before without `balanc
   it). **+** adds a round of the same list (every round of a generated mission runs the same moves),
   **−** takes one off (1 to 10). The minutes follow the rounds by the guided run's own timing model,
   and the XP follows the minutes (minutes × the level's rate + 30), so 5 rounds pays more than 2.
-  Touching TIME gives the rounds back to the time.
+  Touching TIME gives the rounds back to the time. TIME stays on the minutes asked; the line opposite
+  it says "+1 round · about 27 min" when the card runs longer or shorter than the slider.
 - **START on the first screen.** The card opens closed: SHUFFLE / CHOOSE, the rounds and the sum, the
   first moves (two on a phone under 800px tall), SEE ALL, GUIDED | AT YOUR PACE, START. The preview
   checks START ends above the tab bar at 360, 390 and 430 wide.
@@ -88,8 +89,8 @@ switch off" section: the generator deals draw for draw as before without `balanc
   easy 10-minute walk headed COOL-DOWN · UP NEXT. The rest are ticks for the visit. Bonus work pays
   nothing (the cool-down logs as cardio with no XP and no hybrid bonus) and is not on the results.
 - **Program days: the card is the day's preview.** The program's next day on the card (its day pips,
-  SHUFFLE THIS DAY, the builder's own sets × reps); START opens exactly that list in the Workout
-  Builder, which runs and pays it as before.
+  SHUFFLE THIS DAY, the builder's own sets × reps); START (RESUME once the program is under way) opens
+  exactly that list in the Workout Builder, which runs and pays it as before.
 - **YOUR WORKOUTS on the Quick Mission page and in Progress, for every mode.** One row a finished
   workout (any mode; the daily and hybrid bonuses are not workouts), newest first, with the last 7 days
   on top. A card run's row has its title, rounds and reps (scalars on its session row); a kept card run
@@ -120,13 +121,13 @@ week of workouts of several modes, two of them card runs), Monday 23 November 20
 360x780, 390x844 and 430x932, scale 2: the phone's first screen, and the whole page for the long ones
 (`-full`). It fails on sideways overflow, cut text, a missing word, START off the first screen, or a last
 line under the tab bar. States: card-closed, card-plus, card-open, card-shuffle, choose, warrior, swap,
-nobar, program, program-open, bonus, guided, checkoff, confirm, rounds, cooldown, results, saved,
+nobar, saved-nobar, program, program-open, bonus, guided, checkoff, confirm, rounds, cooldown, results, saved,
 workouts, workouts-repeat, progress, progress-workouts, and off-quick-mission, off-programs,
 off-progress (the switch off: as before).
 
 ## Tests
 
-`npm run test:challenge` (114 checks, now in `check:all`): the looks' arithmetic, the rounds from the
+`npm run test:challenge` (128 checks, now in `check:all`): the looks' arithmetic, the rounds from the
 time and the + button, the balanced deal and WARRIOR, the coach's count, the bar and swaps, the switch
 off, SAVE WORKOUT and YOUR WORKOUTS, the cool-down hand-off, END in the confirm box, XP paid once.
 
@@ -135,8 +136,25 @@ test:voice, test:clips, test:spoken, voice:coverage (and `--strict`), test:chall
 test:storage, practice-moves, streak, nearmiss, power, maxout, athlete, path, concepts,
 entitlements, audit:cc; tsc; eslint on the changed files; check-guides; lock-assets; build:web; the
 web smoke for Home, Fit hub, Quick Mission, Programs, Progress, Max Out and the owner's Quick Mission
-checks (with a new one for the card: SHUFFLE, CHOOSE, the rounds, + and START); the preview above (25
-states at 3 widths, all fit).
+checks (with a new one for the card: SHUFFLE, CHOOSE, the rounds, + and START); the preview above (26
+states at 3 widths, all fit, re-run after the review fixes).
+
+## Review fixes (2026-11-23)
+
+- **SHUFFLE inside a CHECK-OFF run** now makes the card the new deal's: its title, rounds and moves
+  (`fitCard.shuffleCard`; `snapshotOf` never lets what it adds replace the mission's own fields).
+  Before, the card kept the old moves, so the reps banked, the results, SAVE WORKOUT and REPEAT read the
+  pre-shuffle workout. `test:challenge` shuffles a card and checks the card, the reps, the save and
+  the repeat.
+- **PULL-UP BAR** reshapes only today's deal and WARRIOR. A saved workout or a run from YOUR WORKOUTS
+  runs exactly as kept (a workout saved with the bar off keeps its stand-ins), and its card has no bar
+  switch: a swap (NO GEAR) drops a bar move by hand.
+- **TIME after + / −**: the slider stays the input (20 MIN) and the line opposite TIME says why the
+  card's time differs: "+1 round · about 27 min"; WARRIOR, whose fixed doses land on whole rounds,
+  reads "whole rounds · about 22 min". Otherwise "rounds follow", as before.
+- **Program day**: the help line names its button ("The program’s sets and reps. RESUME opens the
+  list." when the day is under way, START otherwise).
+- The preview gained `saved-nobar` and checks the TIME line and the program wording.
 
 ## What needs the owner
 
