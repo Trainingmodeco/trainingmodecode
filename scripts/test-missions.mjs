@@ -1815,5 +1815,35 @@ check('level change drops a swap that no longer applies', build('quota_300', { l
   check('cap: more reps never pay less', [0, 0.25, 0.5, 0.75, 1].map(f => cap(Math.round(of * f)).xp).every((x, i, a) => i === 0 || x >= a[i - 1]));
 }
 
+// ── the library's + (the full workout dropped down under a row) ─────────────
+// Both lists (MissionLibrarySheet, the Fit card's CHOOSE) drop the same model
+// (data/libraryDrop): every move with its reps or time, the format, the rounds
+// and the gear.
+const DR = await import('../components/training-mode/data/libraryDrop.js');
+{
+  const drops = L.shelfEntries().map(e => [e, DR.libraryDrop(e)]);
+  const fact = (d, k) => d?.facts.find(([key]) => key === k)?.[1];
+  check('library +: every library entry drops down a workout (moves with doses, a format, the gear)',
+    drops.length > 40 && drops.every(([, d]) => d && d.moves.length > 0 && d.moves.every(m => m.name && !/undefined|NaN/.test(`${m.dose}${m.prefix}`)) && fact(d, 'FORMAT') && fact(d, 'GEAR')),
+    show(drops.filter(([, d]) => !d || !d.moves.length || !fact(d, 'FORMAT') || !fact(d, 'GEAR')).map(([e]) => e.id)));
+  const iron = DR.libraryDrop(L.shelfEntries().find(e => e.id === 'iron_clock_16'));
+  check('library +: IRON CLOCK 16 says EMOM, 4 rounds, its gear and its four lifts by the minute',
+    fact(iron, 'FORMAT') === 'EMOM' && fact(iron, 'ROUNDS') === '4 ROUNDS' && /BARBELL/.test(fact(iron, 'GEAR')) && /EMOM 16/.test(iron.summary)
+    && eq(iron.moves.map(m => [m.prefix, m.name, m.dose]), [['MIN 1', 'Deadlifts', '10'], ['MIN 2', 'Bent-Over Rows', '10'], ['MIN 3', 'Front Squats', '8'], ['MIN 4', 'Push Press', '8']]), show(iron));
+  const best = DR.libraryDrop(L.shelfEntries().find(e => e.id === 'best_of_3'));
+  check('library +: an AMRAP block says its rounds in words', fact(best, 'FORMAT') === 'AMRAP' && fact(best, 'ROUNDS') === '3 ROUNDS' && fact(best, 'GEAR') === 'NO GEAR' && best.moves.length === 3, show(best));
+  check('library +: a one-block AMRAP and a run until the bell is down are as many as you can',
+    fact(DR.libraryDrop(L.shelfEntries().find(e => e.id === 'room_12')), 'ROUNDS') === 'AS MANY AS YOU CAN' && fact(DR.libraryDrop(L.shelfEntries().find(e => e.id === 'no_continues')), 'ROUNDS') === 'AS MANY AS YOU CAN');
+  const strike = DR.classicDrop('strike_fitness_easy');
+  check('library +: a classic whose card is cut short ("+ 3 more") drops down every move, with its rounds',
+    strike.moves.length === 8 && !strike.moves.some(m => /^[+×]/.test(m.name)) && fact(strike, 'ROUNDS') === '2 ROUNDS' && fact(strike, 'FORMAT') === 'INTERVALS' && fact(strike, 'GEAR') === 'NO GEAR', show(strike));
+  const murph = DR.classicDrop('murph');
+  check('library +: MURPH keeps its whiteboard (both runs, 100 / 200 / 300) and its gear', murph.moves.length === 5 && murph.moves[1].dose === '100' && /PULL-UP BAR/.test(fact(murph, 'GEAR')) && fact(murph, 'ROUNDS') === undefined, show(murph));
+  check('library +: a card\'s own list (deal, WARRIOR, saved) drops down in the same shape',
+    eq(DR.exercisesDrop([{ name: 'Push-Ups', mode: 'reps', reps: 12 }, { name: 'Plank', mode: 'timed', work: 40 }], { rounds: 3, gear: 'Bodyweight' }),
+      { summary: '', facts: [['FORMAT', 'ROUNDS'], ['ROUNDS', '3 ROUNDS'], ['GEAR', 'BODYWEIGHT']], moves: [{ prefix: null, name: 'Push-Ups', dose: '12 reps', note: null }, { prefix: null, name: 'Plank', dose: '40s', note: null }] }));
+  check('library +: an unknown entry drops nothing', DR.libraryDrop(null) === null && DR.libraryDrop({ kind: 'v2', id: 'nope' }) === null && DR.libraryDrop({ kind: 'classic', id: 'nope' }) === null);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

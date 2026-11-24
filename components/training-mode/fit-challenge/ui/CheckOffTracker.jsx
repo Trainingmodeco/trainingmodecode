@@ -43,7 +43,7 @@ function TickBox({ on, next }) {
 function TickRow({ move, index, on, next, onTick }) {
   return (
     <li style={{ listStyle: 'none' }}>
-      <button type="button" role="checkbox" aria-checked={on ? 'true' : 'false'} aria-label={`${move.name}, ${doseWord(move)}`} onClick={onTick} style={{
+      <button type="button" role="checkbox" aria-checked={on ? 'true' : 'false'} aria-label={`${move.name}, ${doseWord(move)}`} data-now={next ? 'true' : undefined} onClick={onTick} style={{
         width: '100%', minHeight: 52, display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px', borderRadius: 8,
         boxSizing: 'border-box', border: 'none', cursor: 'pointer', textAlign: 'left',
         background: next ? 'rgba(242,190,69,0.08)' : 'transparent', boxShadow: next ? `inset 3px 0 0 ${GOLD}` : 'none',

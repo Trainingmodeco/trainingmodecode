@@ -2090,6 +2090,7 @@ const CLASSIC_FORMAT = {
   pushup_division: 'INTERVALS', abs_3_level: 'CIRCUIT', fitness_test: 'TEST', burpee_hell: 'INTERVALS',
   legendary_squat: 'CIRCUIT', hero_training: 'CIRCUIT', chaos_engine: 'CIRCUIT',
 };
+export const classicFormat = (id) => CLASSIC_FORMAT[id] || '';
 // "~16 MIN · BARBELL · EMOM" — a Mission Library row's second line: minutes
 // at `level` (the mission's default level when none is given), the loadout,
 // then the format.

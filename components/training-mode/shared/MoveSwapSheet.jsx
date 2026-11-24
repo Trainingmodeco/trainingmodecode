@@ -45,7 +45,7 @@ export function MoveRow({ row, index, onSwap, onUndo, highlight = false, noSwap 
   return (
     // The negative margin lets the highlight bar and tint sit just outside the
     // row's content, so lighting a row in SOLO never shifts its text.
-    <li style={{
+    <li data-now={highlight ? 'true' : undefined} style={{
       listStyle: 'none', margin: '0 -6px', padding: '0 6px', borderRadius: 4,
       background: highlight ? 'rgba(242,190,69,0.08)' : 'transparent',
       boxShadow: highlight ? `inset 3px 0 0 ${GOLD}` : 'none', transition: 'background .2s ease',

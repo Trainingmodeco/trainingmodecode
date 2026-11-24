@@ -28,7 +28,8 @@ hidden gallery at `/retention-looks` (code in `components/training-mode/retentio
   app-wide bits (the scroll arrow and BETA pill over content, the end-screen banner width, the round recap on shorter
   phones). Everything else new waits behind the switches.
 - **Two Quick Mission fixes go to everyone too (owner, 2026-11-24):** a + on every library workout that drops down
-  the full workout (one open at a time), and AT YOUR PACE fitting the screen with PAUSE always in reach.
+  the full workout (one open at a time), and AT YOUR PACE fitting the screen with PAUSE always in reach. Built
+  2026-11-24 (docs/HANDOFF-2026-11-24.md).
 - **Then the same, quarterly, next year:** each batch is built owner-only first, the owner reviews and edits, then it
   opens at its quarter: squads (team workouts), weekly leagues, the season reward track, the notifications pass
   (low-POWER alerts, "Remind me tomorrow").

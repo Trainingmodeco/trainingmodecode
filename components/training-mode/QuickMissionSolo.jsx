@@ -6,6 +6,7 @@ import { stopVoiceSession } from './voiceCoach';
 import { playBell, playBeep, unlockAudio } from './data/audioEngine';
 import MoveSwapSheet, { MoveRow } from './shared/MoveSwapSheet';
 import MaxRepsSheet from './shared/MaxRepsSheet';
+import RunBar, { runHead, keepInView, RUN_CSS, RUN_BAR_CLEAR } from './shared/RunBar';
 import {
   fitKitCSS, GoldButton, GhostButton, Label, Modal,
   HEAD, BODY, GOLD, MUTED, CARD, CARD_BORDER,
@@ -656,6 +657,13 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
     if (down) return !!nextBlock?.list?.some(st => st.swapKey === row.swapKey);
     return seg?.kind === 'work' ? row.swapKey === seg.swapKey || seg.stepKeys.includes(row.swapKey) : false;
   };
+  // The current move stays between the sticky head and the PAUSE / STOP bar:
+  // when it changes (the next minute, the next station) the page scrolls it back.
+  const listRef = useRef(null);
+  const nowIdx = rows.findIndex(highlightOf);
+  useEffect(() => {
+    if (nowIdx >= 0 && (phase === 'running' || phase === 'paused')) keepInView(listRef.current?.children?.[nowIdx]);
+  }, [nowIdx, phase]);
   const onPick = (moveId) => {
     const key = swapKeyOpen;
     setSwapKeyOpen(null);
@@ -671,11 +679,15 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
 
   return (
     <PhoneFrame useBrandBg>
-      <style dangerouslySetInnerHTML={{ __html: fitKitCSS }}/>
+      <style dangerouslySetInnerHTML={{ __html: fitKitCSS + RUN_CSS }}/>
       <div style={{
-        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 14,
-        padding: '10px 16px 24px', boxSizing: 'border-box', minHeight: '100dvh',
+        position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 12,
+        padding: `0 16px ${RUN_BAR_CLEAR}px`, boxSizing: 'border-box',
       }}>
+        {/* The head is sticky: the title, the clock and the buttons you tap
+            through the run stay on screen while the moves scroll under them.
+            PAUSE / STOP are the bar fixed above the tab bar (shared/RunBar). */}
+        <div data-run-head="true" className="sr-head" style={runHead}>
         {/* Top bar: back opens the STOP confirm; AT YOUR PACE over the mission title. */}
         <div style={{ display: 'grid', gridTemplateColumns: '44px 1fr 44px', alignItems: 'center' }}>
           <button type="button" className="fk-back" aria-label="Back" aria-disabled={canStop ? undefined : 'true'}
@@ -692,28 +704,21 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
 
         <div style={{ textAlign: 'center', font: `600 11px ${HEAD}`, letterSpacing: '0.14em', color: MUTED, marginTop: -8 }}>{strip}</div>
 
-        {phase === 'score' ? (
-          <ScorePanel
-            mission={mission} draft={scoreDraft} finishSec={finishSec} rpr={rpr}
-            splitLine={blockSplitsLine(panelRounds, { tag: down ? dc.tag : 'R' })}
-            onDraft={setScoreDraft} onSave={handleSave} onNotYet={handleNotYet}
-          />
-        ) : (
+        {phase !== 'score' && (
           <>
             {/* The clock */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '6px 0 2px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, padding: '2px 0 0' }}>
               {phase === 'ready' ? (
                 <>
                   <div style={{ font: `600 13px ${HEAD}`, letterSpacing: '0.16em', color: GOLD }}>GET READY</div>
-                  <div style={{ font: `700 64px ${HEAD}`, lineHeight: 1, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{readyLeft}</div>
+                  <div className="sr-clock" style={{ font: `700 56px ${HEAD}`, lineHeight: 1, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{readyLeft}</div>
                 </>
               ) : (
                 <>
-                  <div role="timer" style={{ font: `700 64px ${HEAD}`, lineHeight: 1, color: inRest ? '#C4A8FF' : '#fff', fontVariantNumeric: 'tabular-nums', opacity: phase === 'paused' ? 0.6 : 1 }}>{bigClock}</div>
-                  <div style={{ font: `600 12px ${HEAD}`, letterSpacing: '0.12em', color: MUTED, textAlign: 'center' }}>{subLine}</div>
+                  <div role="timer" className="sr-clock" style={{ font: `700 56px ${HEAD}`, lineHeight: 1, color: inRest ? '#C4A8FF' : '#fff', fontVariantNumeric: 'tabular-nums', opacity: phase === 'paused' ? 0.6 : 1 }}>{bigClock}</div>
+                  <div style={{ font: `600 12px ${HEAD}`, letterSpacing: '0.12em', color: MUTED, textAlign: 'center' }}>{subLine}{!countUp && <> · <span style={{ whiteSpace: 'nowrap' }}>ELAPSED {mmss(elapsedSec)}</span></>}</div>
                   {call && <div style={{ font: `700 28px ${HEAD}`, letterSpacing: '0.12em', color: GOLD, textTransform: 'uppercase', marginTop: 2 }}>{call}</div>}
                   {phase === 'paused' && <div style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.16em', color: GOLD }}>PAUSED</div>}
-                  {!countUp && <div style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.14em', color: MUTED }}>ELAPSED {mmss(elapsedSec)}</div>}
                 </>
               )}
             </div>
@@ -733,19 +738,19 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
               />
             )}
             {/* Today's mission at your pace: what the taps do. */}
-            {mission.atYourPace && mission.tapHint && <div style={{ ...muted11, marginTop: -6, textAlign: 'center' }}>{mission.tapHint}</div>}
+            {mission.atYourPace && mission.tapHint && <div className="sr-hint" style={{ ...muted11, marginTop: -4, textAlign: 'center' }}>{mission.tapHint}</div>}
             {/* NO CONTINUES: a bell in hand, so the SET tap is optional. */}
-            {showRounds && down && dc.tapHint && <div style={{ ...muted11, marginTop: -6 }}>{dc.tapHint}</div>}
+            {showRounds && down && dc.tapHint && <div className="sr-hint" style={{ ...muted11, marginTop: -4 }}>{dc.tapHint}</div>}
             {/* For time: FINISH right under the round timer, on screen without
                 a scroll (the clock runs until it is tapped). */}
-            {format === 'forTime' && <GoldButton label="FINISH" height={56} onClick={handleFinish} disabled={!tapsLive}/>}
+            {format === 'forTime' && <GoldButton label="FINISH" height={56} onClick={handleFinish} disabled={!tapsLive} style={{ height: 'var(--sr-fin)' }}/>}
 
             {/* Until down: the end of the run and the safety line sit right
                 under SET, on screen without a scroll. */}
             {down && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <button type="button" onClick={handleDown} disabled={!tapsLive} style={{
-                  height: 60, borderRadius: 14, width: '100%', cursor: tapsLive ? 'pointer' : 'default', opacity: tapsLive ? 1 : 0.45,
+                  height: 'var(--sr-down)', borderRadius: 14, width: '100%', cursor: tapsLive ? 'pointer' : 'default', opacity: tapsLive ? 1 : 0.45,
                   background: 'rgba(239,68,68,0.16)', border: '1.5px solid rgba(239,68,68,0.75)', color: '#fff',
                   font: `700 18px ${HEAD}`, letterSpacing: '0.16em',
                 }}>{dc.done}</button>
@@ -755,11 +760,22 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
 
             {/* MAX REPS: the safety card sits above the list, for the whole run. */}
             {maxReps && mission.safety && <SafetyLine text={mission.safety}/>}
+          </>
+        )}
+        </div>
 
+        {phase === 'score' ? (
+          <ScorePanel
+            mission={mission} draft={scoreDraft} finishSec={finishSec} rpr={rpr}
+            splitLine={blockSplitsLine(panelRounds, { tag: down ? dc.tag : 'R' })}
+            onDraft={setScoreDraft} onSave={handleSave} onNotYet={handleNotYet}
+          />
+        ) : (
+          <>
             {/* The moves. Swaps stay live for the whole run. */}
             <section style={cardBox}>
               {mission.missionLine && <div style={{ font: `600 11px ${HEAD}`, letterSpacing: '0.12em', color: MUTED, textTransform: 'uppercase', lineHeight: 1.35 }}>{mission.missionLine}</div>}
-              <ol style={{ margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <ol ref={listRef} data-run-list="true" style={{ margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {rows.map((row, i) => (
                   // MAX REPS: only the set in hand shows its stop line.
                   <MoveRow key={row.swapKey} row={maxReps && !highlightOf(row) ? { ...row, note: null } : row} index={i} highlight={highlightOf(row)} noSwap={!!mission.atYourPace}
@@ -785,14 +801,6 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
               {mission.paceBasis && <div style={muted11}>{mission.paceBasis}</div>}
               <div style={muted11}>Beeps play while the screen is on.</div>
             </section>
-
-            {/* Controls */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <GhostButton label={phase === 'paused' ? 'RESUME' : 'PAUSE'} onClick={handlePauseToggle} style={phase === 'ready' ? { opacity: 0.45, cursor: 'default' } : undefined}/>
-                <GhostButton label="STOP" onClick={() => setConfirmStop(true)} style={{ border: `1px solid ${RED_BORDER}` }}/>
-              </div>
-            </div>
           </>
         )}
 
@@ -803,6 +811,9 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
           </div>
         )}
       </div>
+
+      {/* PAUSE / STOP: fixed above the tab bar, so they are always in reach. */}
+      {phase !== 'score' && <RunBar paused={phase === 'paused'} pauseOff={phase === 'ready'} onPause={handlePauseToggle} onStop={() => setConfirmStop(true)}/>}
 
       {swapKeyOpen && phase !== 'score' && (
         <MoveSwapSheet mission={mission} swapKey={swapKeyOpen} gear={gear} onPick={onPick} onClose={() => setSwapKeyOpen(null)}/>
@@ -849,24 +860,24 @@ export default function QuickMissionSolo({ missionCfg, onEnd, onStateChange, ini
 function RoundTimer({ word, words, buttonLabel, current, count, total, thisSec, lastSec, restLeft = 0, line, live, canUndo, onRound, onUndo }) {
   const meta = [`LAST ${lastSec == null ? '—' : mmss(lastSec)}`, `${words} ${count}`, ...(total != null ? [`TOTAL ${total}`] : [])].join(' · ');
   return (
-    <div data-guide="qms-rounds" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div data-guide="qms-rounds" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-        <span style={{ font: `700 26px ${HEAD}`, letterSpacing: '0.08em', color: GOLD }}>{word} {current}</span>
+        <span style={{ font: `700 24px ${HEAD}`, letterSpacing: '0.08em', color: GOLD }}>{word} {current}</span>
         {restLeft > 0 ? (
-          <span role="timer" aria-label="Rest left" style={{ font: `700 24px ${HEAD}`, color: '#C4A8FF', fontVariantNumeric: 'tabular-nums' }}>REST {mmss(restLeft)}</span>
+          <span role="timer" aria-label="Rest left" style={{ font: `700 22px ${HEAD}`, color: '#C4A8FF', fontVariantNumeric: 'tabular-nums' }}>REST {mmss(restLeft)}</span>
         ) : (
-          <span aria-label={`This ${word.toLowerCase()}`} style={{ font: `700 24px ${HEAD}`, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{thisSec == null ? '' : mmss(thisSec)}</span>
+          <span aria-label={`This ${word.toLowerCase()}`} style={{ font: `700 22px ${HEAD}`, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{thisSec == null ? '' : mmss(thisSec)}</span>
         )}
       </div>
       <div style={{ font: `600 12px ${HEAD}`, letterSpacing: '0.12em', color: '#fff' }}>{meta}</div>
-      {line && <div style={{ font: `600 12px ${BODY}`, color: MUTED, lineHeight: 1.4, fontVariantNumeric: 'tabular-nums' }}>{line}</div>}
+      {line && <div className="sr-splits" style={{ font: `600 12px ${BODY}`, color: MUTED, lineHeight: 1.4, fontVariantNumeric: 'tabular-nums' }}>{line}</div>}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <button type="button" aria-label={`Undo ${word.toLowerCase()}`} onClick={onUndo} disabled={!canUndo} style={{
-          height: 56, minWidth: 84, flexShrink: 0, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 12px',
+          height: 'var(--sr-btn)', minWidth: 84, flexShrink: 0, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 12px',
           background: CARD, border: '1px solid rgba(255,255,255,0.14)', color: '#fff', font: `700 13px ${HEAD}`, letterSpacing: '0.12em',
           cursor: canUndo ? 'pointer' : 'default', opacity: canUndo ? 1 : 0.45,
         }}>UNDO</button>
-        <GoldButton label={buttonLabel || word} height={64} onClick={onRound} disabled={!live} style={{ flex: 1, width: 'auto', minWidth: 0, fontSize: 20 }}/>
+        <GoldButton label={buttonLabel || word} height={64} onClick={onRound} disabled={!live} style={{ flex: 1, width: 'auto', minWidth: 0, fontSize: 20, height: 'var(--sr-btn)' }}/>
       </div>
     </div>
   );
@@ -876,7 +887,7 @@ function RoundTimer({ word, words, buttonLabel, current, count, total, thisSec, 
 // (NO CONTINUES: park the bell before the grip goes).
 function SafetyLine({ text }) {
   return (
-    <div role="note" style={{
+    <div role="note" className="sr-safety" style={{
       padding: '10px 12px', borderRadius: 12, background: 'rgba(242,190,69,0.12)', border: '1.5px solid rgba(242,190,69,0.6)',
       font: `700 14px ${BODY}`, color: '#fff', lineHeight: 1.35, textAlign: 'center',
     }}>{text}</div>

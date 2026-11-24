@@ -6,7 +6,17 @@
 // or a page's last line runs under the tab bar (the owner's visual rule:
 // everything fits, nothing cut or squeezed).
 //
-//   CHROME_PATH=/opt/pw-browsers/chromium node scripts/fit-card-preview.mjs <out-dir> [--base http://localhost:8081] [--only <regex>]
+//   CHROME_PATH=/opt/pw-browsers/chromium node scripts/fit-card-preview.mjs <out-dir> [--base http://localhost:8081] [--only <regex>] [--sizes 360x640,360x780,390x844,430x932]
+//
+// --sizes: the phone sizes (default 360x780, 390x844 and 430x932); a size off the
+// default list is saved as <state>-<w>x<h>.png.
+//
+// The `pace-` states (owner, 2026-11-24): AT YOUR PACE on the first screen, run
+// at 360x640 too, each photographed running (<state>-<size>.png) and paused
+// (<state>-<size>-paused.png): the clock, the current move and PAUSE / STOP (the
+// bar fixed above the tab bar) all on screen without a scroll, nothing covering
+// the bar. `montage-<state>-run.png` / `-paused.png` put the sizes side by side.
+// The `lib-` states: the + on a library row, the whole workout dropped down.
 //
 // Needs the dev server: CI=1 EXPO_NO_TELEMETRY=1 npx expo start --web --port 8081
 // (CI mode does not reload: restart it with --clear after an edit).
@@ -25,14 +35,16 @@ import path from 'node:path';
 import { chromium } from 'playwright-core';
 
 const args = process.argv.slice(2);
-const OUT = args.find((a, i) => !a.startsWith('--') && !['--base', '--only'].includes(args[i - 1]));
+const OUT = args.find((a, i) => !a.startsWith('--') && !['--base', '--only', '--sizes'].includes(args[i - 1]));
 const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : null; };
 const BASE = (opt('--base') || 'http://localhost:8081').replace(/\/$/, '') + '/';
 const ONLY = opt('--only') ? new RegExp(opt('--only')) : null;
-if (!OUT) { console.error('usage: node scripts/fit-card-preview.mjs <out-dir> [--base URL] [--only regex]'); process.exit(2); }
+if (!OUT) { console.error('usage: node scripts/fit-card-preview.mjs <out-dir> [--base URL] [--only regex] [--sizes 360x640,...]'); process.exit(2); }
 fs.mkdirSync(OUT, { recursive: true });
 
-const SIZES = [[360, 780], [390, 844], [430, 932]];
+const DEFAULT_SIZES = [[360, 780], [390, 844], [430, 932]];
+const SIZES = opt('--sizes') ? opt('--sizes').split(',').map((x) => x.split('x').map(Number)) : DEFAULT_SIZES;
+const sizeTag = ([w, h]) => (DEFAULT_SIZES.some(([dw, dh]) => dw === w && dh === h) ? `${w}` : `${w}x${h}`);
 
 // ── the sample athlete ──────────────────────────────────────────────────────
 const NOW = new Date(2026, 10, 23, 10, 0, 0, 0);
@@ -63,17 +75,18 @@ const SESSIONS = [
   { id: 'f2', type: 'Fight Focus', completedAt: at(22, 18), completedCount: 2, totalCount: 3, xpEarned: 60 },
 ];
 const PROFILE = { name: 'TRAINEE', sex: 'male', experience: 'Some Training', goal: 'Get Fit', discipline: 'Boxing', voiceCoach: 'FEMALE', coachStyle: 'STANDARD', encouragement: 'normal', callStyle: 'names' };
-const SEED = (preview = true) => ({
+const SEED = (preview = true, { checkOff = true, off = null } = {}) => ({
   trainingModeOnboardingComplete: 'true',
   trainingModeTourComplete: 'true',
   ...(preview ? { tm_owner_preview: '1' } : {}),
+  ...(off ? { tm_preview_off: off } : {}), // a switch held off while the owner preview is on (the classic Quick Mission page)
   tm_arcade_intro_seen: '{}',
   tm_practice_invite_v1: JSON.stringify({ introShownAt: NOW.toISOString() }),
   tm_user_profile: JSON.stringify(PROFILE),
   // Level 4 with room to the next, so a finished run banks without a RANK UP.
   tm_user_stats: JSON.stringify({ xp: 1550, sessions: SESSIONS }),
   tm_qm_keys_v1: JSON.stringify({ workoutType: 'Bodyweight', difficulty: 'NORMAL', duration: 20, focus: 'FULL BODY' }),
-  tm_fit_card_v1: JSON.stringify({ saved: [{ ...CIRCUIT, id: 'saved-1', savedAt: NOW.getTime() - 8 * 864e5 }], recent: [{ ...WARRIOR, id: 'card-w2' }, { ...CIRCUIT, id: 'card-w1' }], checkOff: true }),
+  tm_fit_card_v1: JSON.stringify({ saved: [{ ...CIRCUIT, id: 'saved-1', savedAt: NOW.getTime() - 8 * 864e5 }], recent: [{ ...WARRIOR, id: 'card-w2' }, { ...CIRCUIT, id: 'card-w1' }], checkOff }),
   // Programs: PUSH / PULL / LEGS, day 2 (PULL) up next, bodyweight.
   tm_current_program: 'ppl', tm_prog_ppl: '1', tm_programs_equipment: 'Bodyweight',
 });
@@ -160,8 +173,39 @@ async function finishRun(page, w, opts = {}) {
   await wait(page, 2200);
 }
 
+// A library mission picked in CHOOSE and run AT YOUR PACE (QuickMissionSolo):
+// START, GET READY, then `runSec` seconds of the run. The clock is Playwright's.
+async function libraryRun(page, w, title, { runSec = 40 } = {}) {
+  await qm(page, w);
+  await tap(page, byName(page, /^CHOOSE$/));
+  await tap(page, byName(page, new RegExp(`^${title}`)));
+  await wait(page, 600);
+  await toTop(page);
+  await tap(page, page.getByRole('radio', { name: 'AT YOUR PACE' }));
+  await pause(page);
+  await tap(page, byName(page, /^START$/));
+  await page.clock.runFor(6000 + runSec * 1000);
+  await wait(page, 600);
+}
+// Today's mission AT YOUR PACE with CHECK-OFF off (the seed): the classic runner.
+async function generatedRun(page, w, { runSec = 40 } = {}) {
+  await qm(page, w);
+  await toTop(page);
+  await tap(page, page.getByRole('radio', { name: 'AT YOUR PACE' }));
+  await pause(page);
+  await tap(page, byName(page, /^START$/));
+  await page.clock.runFor(6000 + runSec * 1000);
+  await wait(page, 600);
+}
+// The + on a library row: the row button's own parent holds it. Returns the + locator.
+const plusOf = (page, rowName) => page.getByRole('button', { name: rowName }).first().locator('xpath=..').getByRole('button', { name: /full workout/ });
+// The classic MISSION LIBRARY's rows are radios inside a `.ml-row` box that also holds the +.
+const plusInLibrary = (page, rowName) => page.locator('.ml-row', { has: page.getByRole('radio', { name: rowName }) }).getByRole('button', { name: /full workout/ });
+
 // ── the states ──────────────────────────────────────────────────────────────
-// { name, note, open(page, w), expect, absent?, overlay?, preview? (false: the switch off) }
+// { name, note, open(page, w), expect, absent?, overlay?, preview? (false: the switch off),
+//   check? (selectors the text checks cover), checkOff? (false: the seed turns CHECK-OFF off), off? (a switch held off),
+//   pace? (the run states: photographed running and paused, see measureRun), expectNow? ('lit': a lit move; 'first': the list's first) }
 const STATES = [
   { name: 'card-closed', note: 'Quick Mission opens on the closed card: today\'s balanced deal, SHUFFLE / CHOOSE, the rounds and the sum with − / +, the first moves, SEE ALL, GUIDED | AT YOUR PACE and START on the first screen.',
     open: qm, expect: /TODAY’S QUICK MISSION[\s\S]*SHUFFLE[\s\S]*CHOOSE[\s\S]*ROUNDS[\s\S]*reps[\s\S]*About \d+ min[\s\S]*SEE ALL[\s\S]*GUIDED[\s\S]*START[\s\S]*GEAR[\s\S]*TIME[\s\S]*BONUS TRAINING[\s\S]*YOUR WORKOUTS/, startVisible: true },
@@ -218,6 +262,39 @@ const STATES = [
     open: programs, expect: /PROGRAMS[\s\S]*(Continue|Start a) program[\s\S]*Program library/i, absent: /SHUFFLE THIS DAY/, noCheck: true },
   { name: 'off-progress', preview: false, note: 'The switch off: Progress as before (no YOUR WORKOUTS).',
     open: progress, expect: /PROGRESS[\s\S]*TRAINING SPLIT/, absent: /YOUR WORKOUTS/, noCheck: true },
+
+  // ── the library's +: the whole workout dropped down under a row ──────────
+  { name: 'lib-drop-classic', off: 'fitCard', note: 'The classic MISSION LIBRARY: the + on IRON CLOCK 16 drops down its format, rounds, gear and every move with its reps; the other rows stay as they were.',
+    open: async (page, w) => {
+      await qm(page, w);
+      await tap(page, page.locator('[data-guide="qm-library"]'));
+      await wait(page, 700);
+      await tap(page, plusInLibrary(page, /^IRON CLOCK 16/));
+    },
+    overlay: true, check: ['[role="dialog"]'], expect: /MISSION LIBRARY[\s\S]*IRON CLOCK 16[\s\S]*FORMAT\s*EMOM[\s\S]*ROUNDS\s*4 ROUNDS[\s\S]*GEAR\s*1 BARBELL[\s\S]*MIN 1\s*Deadlifts\s*10[\s\S]*MIN 4\s*Push Press/i },
+  { name: 'lib-drop-choose', note: 'CHOOSE on the Fit card: the + on a library workout drops it down in the same words; its row still picks it.',
+    open: async (page, w) => {
+      await qm(page, w);
+      await tap(page, byName(page, /^CHOOSE$/));
+      await tap(page, plusOf(page, /^BEST OF 3/));
+    },
+    overlay: true, expect: /CHOOSE A WORKOUT[\s\S]*BEST OF 3[\s\S]*FORMAT\s*AMRAP[\s\S]*ROUNDS\s*3 ROUNDS[\s\S]*GEAR\s*NO GEAR[\s\S]*Sprawls\s*5[\s\S]*One-Two\s*10/i },
+
+  // ── AT YOUR PACE on the first screen (running, then paused) ──────────────
+  { name: 'pace-emom', pace: true, expectNow: 'lit', note: 'IRON CLOCK 16 (EMOM, four lifts) AT YOUR PACE in its second minute: the clock, the lit move and PAUSE / STOP.',
+    open: (page, w) => libraryRun(page, w, 'IRON CLOCK 16', { runSec: 75 }), expect: /AT YOUR PACE[\s\S]*IRON CLOCK 16[\s\S]*ELAPSED/ },
+  { name: 'pace-amrap', pace: true, expectNow: 'lit', note: 'BEST OF 3 (AMRAP, three moves) AT YOUR PACE: the clock, ROUND and UNDO, the moves and PAUSE / STOP.',
+    open: (page, w) => libraryRun(page, w, 'BEST OF 3', { runSec: 40 }), expect: /AT YOUR PACE[\s\S]*BEST OF 3[\s\S]*ROUND 1/ },
+  { name: 'pace-fortime', pace: true, expectNow: 'first', note: 'ONE-BELL 300 (for time, six moves) AT YOUR PACE: the clock, ROUND, FINISH, the moves and PAUSE / STOP.',
+    open: (page, w) => libraryRun(page, w, 'ONE-BELL 300', { runSec: 40 }), expect: /AT YOUR PACE[\s\S]*ONE-BELL 300[\s\S]*FINISH/ },
+  { name: 'pace-down', pace: true, expectNow: 'lit', note: 'NO CONTINUES (until the bell is down: the tallest head: SET, I PUT IT DOWN and the safety line).',
+    open: (page, w) => libraryRun(page, w, 'NO CONTINUES', { runSec: 40 }), expect: /AT YOUR PACE[\s\S]*NO CONTINUES[\s\S]*I PUT IT DOWN/ },
+  { name: 'pace-maxreps', pace: true, expectNow: 'lit', note: 'BOSS RUSH (MAX OUT: DONE, the safety card and the station in hand).',
+    open: (page, w) => libraryRun(page, w, 'BOSS RUSH', { runSec: 40 }), expect: /AT YOUR PACE[\s\S]*BOSS RUSH[\s\S]*DONE/ },
+  { name: 'pace-generated', pace: true, expectNow: 'first', checkOff: false, note: 'Today\'s mission AT YOUR PACE (CHECK-OFF off): the classic runner on a generated mission.',
+    open: (page, w) => generatedRun(page, w, { runSec: 40 }), expect: /AT YOUR PACE[\s\S]*ROUND 1[\s\S]*FINISH/ },
+  { name: 'pace-checkoff', pace: true, expectNow: 'lit', note: 'CHECK-OFF: round 1 done and four ticks into round 2: the clock, the next move lit and PAUSE / STOP.',
+    open: (page, w) => checkOff(page, w, { rounds: 1, more: 4 }), expect: /CHECK-OFF[\s\S]*ROUND 2 OF 3[\s\S]*SHUFFLE[\s\S]*STOP/ },
 ];
 
 // ── the checks (scripts/fit-looks-preview.mjs's, plus START in view) ────────
@@ -288,8 +365,56 @@ const overflowY = () => Math.max(0, ...[...document.querySelectorAll('body *')].
   return cs.overflowY === 'auto' || cs.overflowY === 'scroll' ? el.scrollHeight - el.clientHeight : 0;
 }));
 
+// AT YOUR PACE on the first screen (owner, 2026-11-24): runs in the page, for a
+// running screen and again for a paused one. Fails when the clock is not above
+// the PAUSE / STOP bar, the bar is not above the tab bar, a bar button is under
+// 44px or covered by anything (the BETA pill, the shelf), the current move is not
+// between the head and the bar, or the head leaves no room for the moves.
+// expectNow: 'lit' = a lit move (data-now) must be whole on the first screen;
+// 'first' = the moves list's first row (a run with no single current move).
+function measureRun({ expectNow }) {
+  const fails = [];
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const rect = (el) => el.getBoundingClientRect();
+  const bar = document.querySelector('[data-run-bar]');
+  const head = document.querySelector('[data-run-head]');
+  if (!bar || !head) return { fails: ['no sticky head or PAUSE / STOP bar on screen'], info: null };
+  const nav = document.querySelector('[data-guide="nav-tabs"]');
+  const navTop = nav ? rect(nav).top : vh;
+  const b = rect(bar), h = rect(head);
+  if (b.bottom > navTop + 1) fails.push(`the bar runs under the tab bar (ends ${Math.round(b.bottom)}, tab bar at ${Math.round(navTop)})`);
+  if (b.left < -1 || b.right > vw + 1) fails.push(`the bar is past the sides (${Math.round(b.left)}..${Math.round(b.right)} of ${vw})`);
+  const btns = [...bar.querySelectorAll('button')];
+  const labels = btns.map((x) => x.innerText.trim());
+  if (!/^(PAUSE|RESUME)$/.test(labels[0] || '') || labels[1] !== 'STOP') fails.push(`the bar reads "${labels.join(' / ')}", not PAUSE or RESUME / STOP`);
+  for (const x of btns) {
+    const r = rect(x);
+    if (r.height < 44 || r.width < 44) fails.push(`${x.innerText.trim()} is ${Math.round(r.width)}x${Math.round(r.height)}, under 44`);
+    const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    if (!hit || !x.contains(hit)) fails.push(`${x.innerText.trim()} is covered by ${hit ? hit.tagName.toLowerCase() + (hit.getAttribute('aria-label') ? ` "${hit.getAttribute('aria-label')}"` : '') : 'nothing'}`);
+  }
+  const clock = [...document.querySelectorAll('[role="timer"]')].find((e) => rect(e).height > 0);
+  if (!clock) fails.push('no clock on screen');
+  else { const c = rect(clock); if (c.top < -1 || c.bottom > b.top) fails.push(`the clock is not on the first screen (${Math.round(c.top)}..${Math.round(c.bottom)}, bar at ${Math.round(b.top)})`); }
+  const lit = [...document.querySelectorAll('[data-now="true"]')];
+  const whole = (e) => { const r = rect(e); return r.top >= h.bottom - 1 && r.bottom <= b.top + 1; };
+  if (expectNow === 'lit') {
+    if (!lit.length) fails.push('no current move is lit');
+    else if (!lit.some(whole)) fails.push(`the current move is off the first screen (${lit.map((e) => `${Math.round(rect(e).top)}..${Math.round(rect(e).bottom)}`).join(', ')}; head ends ${Math.round(h.bottom)}, bar at ${Math.round(b.top)})`);
+  } else if (expectNow === 'first') {
+    const first = document.querySelector('[data-run-list] > li');
+    if (!first) fails.push('no moves list');
+    else if (!whole(first)) fails.push(`the first move is off the first screen (${Math.round(rect(first).top)}..${Math.round(rect(first).bottom)}; head ends ${Math.round(h.bottom)}, bar at ${Math.round(b.top)})`);
+  }
+  // The bar's panel runs down to the tab bar and the BETA pill sits on its lower strip: it must be clear of the buttons.
+  const pill = document.querySelector('button[aria-label="Report beta feedback"]');
+  if (pill) { const p = rect(pill); if (btns.some((x) => { const r = rect(x); return p.left < r.right && r.left < p.right && p.top < r.bottom && r.top < p.bottom; })) fails.push('the BETA pill is over a bar button'); }
+  if (h.bottom > b.top - 40) fails.push(`the head leaves no room for the moves (ends ${Math.round(h.bottom)}, bar at ${Math.round(b.top)})`);
+  return { fails, info: { head: `${Math.round(h.top)}..${Math.round(h.bottom)}`, bar: `${Math.round(b.top)}..${Math.round(b.bottom)}`, tabs: Math.round(navTop), lit: lit.length } };
+}
+
 // ── run ────────────────────────────────────────────────────────────────────
-const launchOpts = { headless: true, args: ['--autoplay-policy=no-user-gesture-required'] };
+const launchOpts ={ headless: true, args: ['--autoplay-policy=no-user-gesture-required'] };
 let browser;
 const tries = process.env.CHROME_PATH ? [{ executablePath: process.env.CHROME_PATH }] : [{ channel: 'chrome' }, { executablePath: '/usr/bin/google-chrome' }];
 for (const t of tries) { try { browser = await chromium.launch({ ...launchOpts, ...t }); break; } catch (e) { if (t === tries.at(-1)) throw e; } }
@@ -307,23 +432,40 @@ for (const st of STATES) {
       localStorage.setItem('tm_reminder_card_dismissed', today);
       for (const [k, v] of Object.entries(seed)) localStorage.setItem(k, v);
       localStorage.setItem('__fc', '1');
-    }, { seed: SEED(st.preview !== false), today: NOW.toDateString() });
+    }, { seed: SEED(st.preview !== false, { checkOff: st.checkOff !== false, off: st.off || null }), today: NOW.toDateString() });
     const page = await ctx.newPage();
     await page.clock.install({ time: NOW.getTime() });
     const errors = [];
     page.on('pageerror', (e) => errors.push(String(e.message).slice(0, 200)));
-    const file = path.join(OUT, `${st.name}-${w}.png`);
+    const tag = sizeTag([w, h]);
+    const file = path.join(OUT, `${st.name}-${tag}.png`);
     let res = { fails: [], warns: [] };
+    let info = '';
     try {
       await st.open(page, w);
       await page.evaluate(() => document.fonts?.ready);
       await wait(page, 900);
-      const check = st.noCheck ? [] : st.overlay ? ['[data-look]'] : ['[data-fc]'];
+      const check = st.noCheck ? [] : st.check || (st.pace ? ['[data-run-head]', '[data-run-bar]'] : st.overlay ? ['[data-look]'] : ['[data-fc]']);
       res = await page.evaluate(measure, { checkSelectors: check, navClear: false, startVisible: !!st.startVisible });
       const t = await page.evaluate(() => document.body.innerText);
       if (st.expect && !st.expect.test(t)) res.fails.unshift(`expected ${st.expect} on screen`);
       if (st.absent && st.absent.test(t)) res.fails.unshift(`not expected on screen: ${st.absent} (${t.match(st.absent)[0]})`);
       await page.screenshot({ path: file });
+      if (st.pace) {
+        // Running, then paused: the same checks on both screens.
+        const run = await page.evaluate(measureRun, { expectNow: st.expectNow });
+        res.fails.push(...run.fails.map((f) => `running: ${f}`));
+        if (run.info) info = `head ${run.info.head}, bar ${run.info.bar}, tab bar ${run.info.tabs}`;
+        await byName(page, /^PAUSE$/).first().click({ timeout: 4000 });
+        await wait(page, 800);
+        const tp = await page.evaluate(() => document.body.innerText);
+        if (!/PAUSED/.test(tp) || !/RESUME/.test(tp)) res.fails.push('paused: the screen does not say PAUSED and RESUME');
+        const paused = await page.evaluate(measure, { checkSelectors: check, navClear: false, startVisible: false });
+        res.fails.push(...paused.fails.filter((f) => !res.fails.includes(f)).map((f) => `paused: ${f}`));
+        const runP = await page.evaluate(measureRun, { expectNow: st.expectNow });
+        res.fails.push(...runP.fails.map((f) => `paused: ${f}`));
+        await page.screenshot({ path: path.join(OUT, `${st.name}-${tag}-paused.png`) });
+      }
       let more = st.full ? await page.evaluate(overflowY) : 0;
       if (more > 0) {
         await toTop(page);
@@ -339,7 +481,7 @@ for (const st of STATES) {
         const tall = await page.evaluate(measure, { checkSelectors: check, navClear: true, startVisible: false });
         res.fails.push(...tall.fails.filter((f) => !res.fails.includes(f)));
         res.warns.push(...tall.warns.filter((f) => !res.warns.includes(f)));
-        await page.screenshot({ path: path.join(OUT, `${st.name}-${w}-full.png`), fullPage: true });
+        await page.screenshot({ path: path.join(OUT, `${st.name}-${tag}-full.png`), fullPage: true });
       }
     } catch (e) {
       res.fails.push(`could not open: ${e.message.split('\n')[0]}`);
@@ -348,12 +490,29 @@ for (const st of STATES) {
     if (errors.length) res.fails.push(`page errors: ${errors.join(' | ')}`);
     const ok = !res.fails.length;
     if (!ok) failures++;
-    console.log(`${ok ? 'ok  ' : 'FAIL'} ${st.name} @${w}x${h}  → ${file}`);
+    console.log(`${ok ? 'ok  ' : 'FAIL'} ${st.name} @${w}x${h}  → ${file}${info ? `  (${info})` : ''}`);
     for (const f of res.fails) console.log(`       ✗ ${f}`);
     for (const f of res.warns.slice(0, 4)) console.log(`       · warn: ${f}`);
     report.push({ state: st.name, size: `${w}x${h}`, file, fails: res.fails, warns: res.warns });
     await ctx.close();
   }
+}
+// The sizes side by side, one picture a state (and, for a run, one running and one
+// paused), so a phone's whole first screen can be read at a glance.
+async function montage(name, kind, outName) {
+  const items = SIZES.map(([w, h]) => ({ w, h, file: path.join(OUT, `${name}-${sizeTag([w, h])}${kind}.png`) })).filter((x) => fs.existsSync(x.file));
+  if (!items.length) return;
+  const figs = items.map((x) => `<figure style="margin:0"><img style="width:${x.w}px;height:${x.h}px;display:block;border:1px solid #555" src="data:image/png;base64,${fs.readFileSync(x.file).toString('base64')}"><figcaption style="padding-top:4px">${outName} · ${x.w}x${x.h}</figcaption></figure>`).join('');
+  const mp = await browser.newPage({ viewport: { width: items.reduce((a, x) => a + x.w + 14, 20), height: Math.max(...items.map((x) => x.h)) + 50 } });
+  await mp.setContent(`<body style="margin:0;background:#1b1b22;font:12px system-ui;color:#ddd"><div style="display:flex;gap:14px;padding:10px;align-items:flex-start">${figs}</div></body>`);
+  await mp.waitForTimeout(300);
+  await mp.screenshot({ path: path.join(OUT, `montage-${outName}.png`) });
+  await mp.close();
+}
+for (const st of STATES) {
+  if ((ONLY && !ONLY.test(st.name)) || !(st.pace || /^lib-/.test(st.name))) continue;
+  await montage(st.name, '', st.pace ? `${st.name}-running` : st.name);
+  if (st.pace) await montage(st.name, '-paused', `${st.name}-paused`);
 }
 fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify({ base: BASE, at: new Date().toISOString(), states: STATES.map((s) => ({ name: s.name, note: s.note })), results: report }, null, 2));
 await browser.close();

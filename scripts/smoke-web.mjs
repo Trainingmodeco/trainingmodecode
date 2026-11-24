@@ -1465,6 +1465,82 @@ await check('owner: turbo solo start', async () => {
   await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
   if (!/STOP/.test(await text())) throw new Error('no STOP on the SOLO screen');
 }, /AT YOUR PACE/);
+// The + on a library row (owner, 2026-11-24): the whole workout drops down under
+// the row, one at a time; a pick, a tap elsewhere or the − closes it, and the
+// row's own tap still picks. Both lists: the classic MISSION LIBRARY, and CHOOSE
+// on the Fit card's workout card.
+await check('owner: the library +: the whole workout drops down, one at a time; a pick, a tap elsewhere or the − closes it', async () => {
+  await ownerQuick(); await library();
+  const plus = (re) => sheet().locator('.ml-row', { has: page.getByRole('radio', { name: re }) }).getByRole('button', { name: /full workout/ });
+  const drops = () => sheet().locator('[data-drop="true"]').count();
+  const box = await plus(/^IRON CLOCK 16/).boundingBox();
+  if (!box || box.width < 44 || box.height < 44) throw new Error(`the + is ${box && Math.round(box.width)}x${box && Math.round(box.height)}, under 44`);
+  await plus(/^IRON CLOCK 16/).click({ timeout: 4000 }); await S(300);
+  const panel = await sheet().locator('[data-drop="true"]').innerText();
+  if (await drops() !== 1 || !/EMOM/.test(panel) || !/4 ROUNDS/.test(panel) || !/BARBELL/i.test(panel) || !/Deadlifts[\s\S]*Bent-Over Rows[\s\S]*Front Squats[\s\S]*Push Press/.test(panel)) throw new Error(`the dropped workout is not the whole IRON CLOCK 16: ${panel.replace(/\n/g, ' | ')}`);
+  if (await plus(/^IRON CLOCK 16/).getAttribute('aria-expanded') !== 'true') throw new Error('the open + does not say aria-expanded');
+  await plus(/^BEST OF 3/).click({ timeout: 4000 }); await S(300);
+  if (await drops() !== 1 || !/Sprawls/.test(await sheet().locator('[data-drop="true"]').innerText())) throw new Error('opening a second row did not close the first');
+  await sheet().getByRole('radio', { name: /^BEST OF 3/ }).click({ timeout: 4000 }); await S(300);
+  if (await drops() !== 0) throw new Error('picking the row left its workout open');
+  if (!/ON TOP/.test(await sheet().innerText())) throw new Error('the row tap no longer picks the workout');
+  await plus(/^IRON CLOCK 16/).click({ timeout: 4000 }); await S(300);
+  await sheet().locator('#ml-sub').click({ timeout: 4000 }); await S(300);
+  if (await drops() !== 0) throw new Error('a tap elsewhere left the workout open');
+  await plus(/^IRON CLOCK 16/).click({ timeout: 4000 }); await S(300);
+  await plus(/^IRON CLOCK 16/).click({ timeout: 4000 }); await S(300);
+  if (await drops() !== 0) throw new Error('the − did not close it');
+}, /MISSION LIBRARY/);
+await check('owner: CHOOSE on the workout card: the + drops the whole workout down, one at a time; the row still picks it', async () => {
+  await preview();
+  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 3000 }).catch(() => {});
+  await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200);
+  await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
+  await btn(/^CHOOSE$/).click({ timeout: 4000 }); await S(600);
+  const plus = (re) => page.getByRole('button', { name: re }).first().locator('xpath=..').getByRole('button', { name: /full workout/ });
+  const drops = () => page.locator('[data-drop="true"]').count();
+  await plus(/^IRON CLOCK 16/).click({ timeout: 4000 }); await S(300);
+  const panel = await page.locator('[data-drop="true"]').innerText();
+  if (await drops() !== 1 || !/EMOM/.test(panel) || !/4 ROUNDS/.test(panel) || !/Deadlifts[\s\S]*Push Press/.test(panel)) throw new Error(`the dropped workout is not the whole IRON CLOCK 16: ${panel.replace(/\n/g, ' | ')}`);
+  await plus(/^FULL BODY WARRIOR/).click({ timeout: 4000 }); await S(300);
+  const warrior = await page.locator('[data-drop="true"]').innerText();
+  if (await drops() !== 1 || !/Dive Bomber Push-Ups[\s\S]*Resistance Towel Curls/.test(warrior) || !/ROUNDS/.test(warrior)) throw new Error(`opening another row left the first open or FULL BODY WARRIOR is short: ${warrior.replace(/\n/g, ' | ')}`);
+  await page.getByText('CHOOSE A WORKOUT', { exact: true }).click({ timeout: 4000 }); await S(300);
+  if (await drops() !== 0) throw new Error('a tap elsewhere left the workout open');
+  await plus(/^BEST OF 3/).click({ timeout: 4000 }); await S(300);
+  await btn(/^BEST OF 3/).click({ timeout: 4000 }); await S(700);
+  if (await drops() !== 0 || await page.locator('[data-look="choose"]').count() || !/BEST OF 3/.test(await text())) throw new Error('the row tap did not put BEST OF 3 on the card');
+}, /BEST OF 3/);
+// AT YOUR PACE on the first screen (owner, 2026-11-24: "I couldn't find a pause
+// button"): the clock and the current move above PAUSE / STOP, which are a bar
+// fixed above the tab bar, at 360x640, running and paused.
+await check('quick mission: AT YOUR PACE keeps the clock, the current move and PAUSE / STOP on the first screen at 360x640, running and paused', async () => {
+  await ownerQuick(); await putOnCard(/^IRON CLOCK 16/);
+  await adjust();
+  await adjustSheet().getByRole('radiogroup', { name: 'Run mode' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
+  await done();
+  await btn(/^START$/).click({ timeout: 4000 }); await S(8000);
+  try {
+    await resizeTo(360, 640);
+    const read = () => page.evaluate(() => {
+      const r = (e) => e.getBoundingClientRect();
+      const bar = document.querySelector('[data-run-bar]'), nav = document.querySelector('[data-guide="nav-tabs"]'), clock = document.querySelector('[role="timer"]'), lit = document.querySelector('[data-now="true"]');
+      if (!bar || !nav || !clock || !lit) return { missing: { bar: !!bar, nav: !!nav, clock: !!clock, lit: !!lit } };
+      const btns = [...bar.querySelectorAll('button')].map((b) => { const q = r(b); const el = document.elementFromPoint(q.left + q.width / 2, q.top + q.height / 2); return { t: b.innerText.trim(), h: Math.round(q.height), hit: !!el && b.contains(el) }; });
+      return { bar: r(bar), nav: r(nav), clock: r(clock), lit: r(lit), btns };
+    });
+    const ok = (g, where, names) => {
+      if (g.missing) throw new Error(`${where}: not on screen ${JSON.stringify(g.missing)}`);
+      if (g.bar.bottom > g.nav.top + 1) throw new Error(`${where}: the bar runs under the tab bar`);
+      if (g.clock.top < 0 || g.clock.bottom > g.bar.top) throw new Error(`${where}: the clock is not above the bar`);
+      if (g.lit.top < 0 || g.lit.bottom > g.bar.top) throw new Error(`${where}: the current move is not above the bar`);
+      if (g.btns.map((b) => b.t).join() !== names || g.btns.some((b) => b.h < 44 || !b.hit)) throw new Error(`${where}: the bar buttons are ${JSON.stringify(g.btns)}, not ${names} at 44px or more and uncovered`);
+    };
+    ok(await read(), 'running', 'PAUSE,STOP');
+    await btn(/^PAUSE$/).click({ timeout: 4000 }); await S(500);
+    ok(await read(), 'paused', 'RESUME,STOP');
+  } finally { await resizeTo(390, 844); }
+}, /PAUSED/);
 // The owner's own workouts. BAR FIGHT runs GUIDED (the clean slate's mode):
 // SKIP the brief, and GET READY names its first bar drill.
 await check('owner: BAR FIGHT guided start', async () => {

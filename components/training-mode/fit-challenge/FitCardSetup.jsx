@@ -33,6 +33,7 @@ import {
   daySeed, WARRIOR_TITLE, WARRIOR_ID, CARD_MIN_ROUNDS, CARD_MAX_ROUNDS, BONUS_ITEMS, coolDownAddon, cardMoveInfo, barAppliesTo,
 } from '../data/fitCard';
 import { checkOffOn, setCheckOff, loadSavedWorkouts, cardRunById } from '../data/fitCardStore';
+import { libraryDrop, exercisesDrop } from '../data/libraryDrop';
 
 // Quick Mission with THE WORKOUT CARD (switch `fitCard`, data/retentionFlags;
 // with it off QuickMissionSetup draws the page exactly as before). Top to
@@ -226,14 +227,16 @@ export default function FitCardSetup({ entry, onBack, onFightMode, onStart, onPa
       if ((e.themes || []).includes('striking') || /combat/.test(f)) return 'combat';
       return /upper/.test(f) ? 'upper' : /lower/.test(f) ? 'lower' : /core/.test(f) ? 'core' : 'full';
     };
-    const lib = shelf.map((e) => ({ id: e.id, kind: e.kind, title: e.title, line: sentence(shelfEntryLine(e)), onCard: onCardId === e.id, part: partOf(e) }));
+    // Every row's + drops its whole workout down (`drop`, built only when opened).
+    const lib = shelf.map((e) => ({ id: e.id, kind: e.kind, title: e.title, line: sentence(shelfEntryLine(e)), onCard: onCardId === e.id, part: partOf(e), drop: () => libraryDrop(e, { gear }) }));
     const part = (p) => lib.filter((x) => x.part === p);
+    const cardDrop = (source, summary) => () => { const m = cardMission(cfg, { source, bar }); return exercisesDrop(m.exercises, { rounds: m.rounds, gear: m.workoutType, summary }); };
     const groups = [
       { id: 'card', label: 'On the card', items: [
-        { id: 'today', kind: 'today', title: "TODAY'S DEAL", line: 'A fresh balanced deal for your time', onCard: onCardId === 'today' },
-        { id: WARRIOR_ID, kind: 'warrior', title: WARRIOR_TITLE, line: '8 moves · 99 reps a round', onCard: onCardId === WARRIOR_ID },
+        { id: 'today', kind: 'today', title: "TODAY'S DEAL", line: 'A fresh balanced deal for your time', onCard: onCardId === 'today', drop: cardDrop({ kind: 'deal', seed, shuffles }, 'A balanced deal for your time. SHUFFLE deals new moves.') },
+        { id: WARRIOR_ID, kind: 'warrior', title: WARRIOR_TITLE, line: '8 moves · 99 reps a round', onCard: onCardId === WARRIOR_ID, drop: cardDrop({ kind: 'warrior' }, '99 reps a round. The rounds come from your time.') },
       ] },
-      ...(saved.length ? [{ id: 'saved', label: 'Your saved', items: saved.map((s) => ({ id: s.id, kind: 'saved', title: s.title, line: `${s.exercises.length} moves · ${s.rounds} ${s.rounds === 1 ? 'round' : 'rounds'}`, onCard: onCardId === s.id, s })) }] : []),
+      ...(saved.length ? [{ id: 'saved', label: 'Your saved', items: saved.map((s) => ({ id: s.id, kind: 'saved', title: s.title, line: `${s.exercises.length} moves · ${s.rounds} ${s.rounds === 1 ? 'round' : 'rounds'}`, onCard: onCardId === s.id, s, drop: () => exercisesDrop(s.exercises, { rounds: s.rounds, gear: s.workoutType }) })) }] : []),
       { id: 'full', label: 'Full Body', items: part('full') },
       { id: 'upper', label: 'Upper Body', items: part('upper') },
       { id: 'lower', label: 'Lower Body', items: part('lower') },
@@ -241,7 +244,7 @@ export default function FitCardSetup({ entry, onBack, onFightMode, onStart, onPa
       { id: 'combat', label: 'Combat Conditioning', items: part('combat') },
     ];
     return groups.filter((g) => g.items.length);
-  }, [shelf, saved, onCardId]);
+  }, [shelf, saved, onCardId, cfg, seed, shuffles, bar, gear]);
   const levelFor = (id) => { const def = missionDefById(id); const st = prefs.levels?.[id]; return st && def?.levels?.[st] ? st : def?.defaultLevel; };
   const choose = (item) => {
     setSheet(null); setNotice(null); setRounds(null); setV2swaps({});
