@@ -16,9 +16,11 @@ concurrency:
 jobs:
   checks:
     runs-on: ubuntu-latest
-    # The full gate (build + production smoke) takes 30-45 minutes; at 20 every
-    # run on `app` was cancelled before it finished, so nothing was checked.
-    timeout-minutes: 60
+    # The full gate (build + production smoke) takes 55-60 minutes now; at 20 every
+    # run on `app` was cancelled before it finished, so nothing was checked, and at
+    # 60 the run for pull request 19 passed every step (the smoke ended at 59m57s)
+    # and was marked cancelled 3 seconds before the limit.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 
