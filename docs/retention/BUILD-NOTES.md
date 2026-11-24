@@ -543,12 +543,13 @@ change sits behind its feature's switch; with the switches off the screens, stor
   cue (`ScrollDownIndicator`, fixed above the tab bar while more lies below, gone at the bottom), and the BETA pill is
   fixed at the bottom left; whatever scrolls under them is covered for a moment (on the end screens, now often SHARE
   YOUR WIN). The same with the switches off. Hiding the chevron once the page's last card is in view, or a little
-  clearance above the BETA pill, would change every screen.
+  clearance above the BETA pill, would change every screen. *Fixed for everyone on the owner's answer (`q-oldui`, below).*
 - **The stage pop-up's star goals** (A7): "★ < 27:00" and the like, 8 px stars over 7 px times, on the ladder's pop-up,
   which the path opens as it is.
 - **The pop-up's "Best" time** (`ArcadeSeriesDetail` `fmtTime`) rounds the seconds, so a best of 17:59.6 would read
   "17:60" there; the clear screen and the path's sheet cut down to whole seconds.
 - **The recap on short phones**: the end screens drop the round recap and the beta link under 812 px tall (above).
+  *Fixed for everyone on the owner's answer (`q-oldui`, below): the recap shows; only the beta link stays hidden.*
 
 ### Checked
 
@@ -956,9 +957,12 @@ The owner's answers on the preview board to four of the open questions. One sect
   counts the tab bar's padding and the frame's empty height). It follows the cards as they settle (each card it
   measures is watched for size), so it no longer misses an end screen whose share card or pictures come in after it
   opens. One-screen pages (no shelf) keep the row above the tab bar clear:
-  `--tm-resume-top` is now 108 px with nothing paused (was 0; 116 while paused, as before), so every page that takes
+  `--tm-resume-top` is now 102 px with nothing paused (was 0; 116 while paused, as before), so every page that takes
   `max(its clearance, --tm-resume-top)` ends above the BETA pill. That moved the Quick Mission and Build Workout pages,
-  the camp ladder, the Arcade carousel, the hubs, the setups, Programs, Profile and the Level page up by 0 to 36 px.
+  the camp ladder, the Arcade carousel, the hubs, the setups, Programs, Profile and the Level page up by 0 to 30 px.
+  The BETA pill itself (`shared/FeedbackChip`) sits 2 px lower and is 2 px shorter (72 px up, 24 tall; was 74 and
+  26): with 108 px of clearance the Quick Mission's first page at 360x740 (ADVANCED with WEIGHTED gear) ran 4 px past
+  the screen and scrolled, which its smoke check forbids; at 102 it fits again.
   The Fit setup pages (`FitSetupKit` `SetupPage`: Quick Mission, Build Workout, Cardio) scroll inside that clearance
   now, with the hubs' fade on the lower edge while more lies below (they used to scroll the clearance too, so their
   rows passed under the BETA pill while still).
@@ -983,3 +987,22 @@ The owner's answers on the preview board to four of the open questions. One sect
   panel's buttons become REMIND ME TOMORROW and DONE FOR TODAY (one size, as the spec has it), one local reminder for
   the next day for that same stage or session, only for someone who turned reminders on. The panel's comment and the
   gallery's feature line now say it comes with the notifications pass.
+
+### Checked (2026-11-24)
+
+- `test:nearmiss` 100, `test:xp` 121, `test:missions` 217, `test:concepts` 180, `test:streak` 185, `test:path` 96,
+  `test:power` 89, `test:maxout` 103, `test:levels` 183; eslint on every changed file (one old warning in
+  `smoke-web.mjs`, line 461, from 2026-11-05); `tsc --noEmit`. No spoken line was added or changed (the panel is
+  silent), so the voice banks need nothing.
+- `build:web`, then the whole `smoke:web` on `dist`: 148 of 148, with the new "owner fixes" check (Combat
+  Conditioning's summary at 430x932: the banner on the stats row's edges, the pill on the shelf; Build Workout's
+  summary at 360x640: its chips shown, nothing under the pill, opened and scrolled to its end; the Quick Mission and
+  Build Workout pages and the Fight hub: nothing under the pill) and the Quick Mission's "the first page does not
+  scroll at 360x740" check, which the 108 px clearance had broken.
+- `retention-preview.mjs` on a fresh dev server: the end screens (`o-end-*`, `f3-ff-nothing*`, the near-miss end
+  screens, the week-strip, stars and revive end screens) and the 19 other `o-*` screens at 360x780, 390x844,
+  430x932 and 360x640, each as it opens and scrolled to its end; every other state at 360, 390 and 430. All fit.
+  Looked at the photos: the recap shows at 360x780 and 360x640 and the screen scrolls to it; the banner meets the
+  cards' edges at 430; the pill and chevron sit on the shelf, and at the end the last button is clear of it; the
+  nothing-done card reads WHAT'S LEFT · 3 ROUNDS TO GO with its two buttons one size (DONE FOR TODAY alone on the
+  third session of the day); with the switch off it is the quiet card as before.
