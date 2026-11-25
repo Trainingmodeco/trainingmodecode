@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import PhoneFrame from '../PhoneFrame';
 import FightRingBackdrop from './FightRingBackdrop';
 import Embers from '../Embers';
+import { RunWatermark } from './RunBar';
 import VoiceMixer from './VoiceMixer';
 import FloatOnLeave from './FloatOnLeave';
 import { speakAsync, cancelSpeech, stopVoiceSession, primeSpeech } from '../voiceCoach';
@@ -32,6 +33,9 @@ import useMiniPlayer from '../hooks/useMiniPlayer';
 //   note      — { title, text }: a card of advice under the ring (a mission's
 //     own warm-up), when there are no idea chips.
 //   skipSolid — SKIP as a solid teal button (the AT YOUR PACE bypass).
+//   tBackdrop — the Training Mode T behind the screen, the same one the AT YOUR
+//     PACE workouts screen and run screen have (owner, 2026-11-25), in place of
+//     the boxer-in-ring picture and the embers.
 const TEAL = '#2dd4bf';
 const RING_SIZE = 394;
 const RING_R = 174;
@@ -66,7 +70,7 @@ function WarmupMiniFeed({ remaining, totalSec, name }) {
 export default function WarmupTimer({
   minutes = 5, title = 'WARM-UP', onDone, onSkip,
   suggestions, initialPick, onPick, skipLabel = 'SKIP → START', intro, miniPlayer = false,
-  lines = null, note = null, skipSolid = false, voice = true,
+  lines = null, note = null, skipSolid = false, voice = true, tBackdrop = false,
 }) {
   useWakeLock(true);
   const totalSec = Math.max(1, Math.round(minutes * 60));
@@ -157,9 +161,9 @@ export default function WarmupTimer({
 
   return (
     <PhoneFrame useBrandBg>
-      <FightRingBackdrop/>
+      {!tBackdrop && <FightRingBackdrop/>}
       <style dangerouslySetInnerHTML={{ __html: warmupCSS }}/>
-      <Embers count={3}/>
+      {!tBackdrop && <Embers count={3}/>}
       {miniPlayer && <WarmupMiniFeed remaining={remaining} totalSec={totalSec} name={pick?.label || 'WARM UP'}/>}
 
       <div style={{
@@ -167,6 +171,7 @@ export default function WarmupTimer({
         alignItems: 'center', minHeight: '100dvh',
         padding: '14px 14px calc(100px + env(safe-area-inset-bottom, 0px))',
       }}>
+        {tBackdrop && <RunWatermark/>}
         <VoiceMixer top={10} right={10}/>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 6 }}>

@@ -823,7 +823,7 @@ export default function QuickMissionSolo({ missionCfg, profile, onEnd, onBack, o
     return (
       <WarmupTimer minutes={PACE_WARMUP_MIN} title="WARM-UP · AT YOUR PACE" intro={PACE_WARMUP.intro} lines={PACE_WARMUP}
         note={{ title: advice ? 'THIS MISSION\'S WARM-UP' : 'WARM-UP IDEAS', text: advice || GENERIC_WARMUP }}
-        skipSolid voice={voiceOn} skipLabel="SKIP WARM-UP" onDone={() => setPhase('workouts')} onSkip={() => setPhase('workouts')}/>
+        skipSolid tBackdrop voice={voiceOn} skipLabel="SKIP WARM-UP" onDone={() => setPhase('workouts')} onSkip={() => setPhase('workouts')}/>
     );
   }
   if (phase === 'workouts') {
