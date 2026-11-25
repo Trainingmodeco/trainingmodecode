@@ -93,7 +93,13 @@ const SEED = (preview = true, { checkOff = true, off = null } = {}) => ({
 
 // ── getting there ───────────────────────────────────────────────────────────
 const wait = (page, ms) => page.waitForTimeout(ms);
-const tap = async (page, loc) => { await loc.first().scrollIntoViewIfNeeded({ timeout: 4000 }).catch(() => {}); await loc.first().click({ timeout: 4000 }); await wait(page, 450); };
+// A short phone's sheet can leave a row under a fade or the tab bar, where a
+// real click times out: the click is then dispatched on the element itself.
+const tap = async (page, loc) => {
+  await loc.first().scrollIntoViewIfNeeded({ timeout: 4000 }).catch(() => {});
+  try { await loc.first().click({ timeout: 4000 }); } catch (e) { if (!(await loc.count())) throw e; await loc.first().dispatchEvent('click'); }
+  await wait(page, 450);
+};
 const byName = (page, re) => page.getByRole('button', { name: re });
 async function home(page, w) {
   await page.goto(BASE, { waitUntil: 'networkidle' }); await wait(page, 1800);
@@ -410,6 +416,10 @@ function measure({ checkSelectors, navClear, startVisible }) {
     const st = document.querySelector('[data-guide="fc-start"]');
     const r = st?.getBoundingClientRect();
     if (!r || r.bottom > navTop - 4) fails.push(`START is not on the first screen (ends ${r ? Math.round(r.bottom) : '?'}, tab bar at ${Math.round(navTop)})`);
+    // ...and above the shelf: the BETA pill's row, where the bottom fade dims it.
+    const beta = [...document.querySelectorAll('button[aria-label="Report beta feedback"]')].find((e) => e.getBoundingClientRect().height > 0);
+    const shelf = beta ? beta.getBoundingClientRect().top : navTop;
+    if (r && r.bottom <= navTop - 4 && r.bottom > shelf + 2) fails.push(`START runs under the shelf's fade (ends ${Math.round(r.bottom)}, BETA pill at ${Math.round(shelf)})`);
   }
   // The whole page in one window: its last text or button ends above the tab bar.
   if (navClear && nav) {

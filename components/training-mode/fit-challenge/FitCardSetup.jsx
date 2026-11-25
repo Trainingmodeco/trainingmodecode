@@ -92,6 +92,11 @@ const CARD_CSS = `
   .fc-in { gap: 6px !important; }
   .fc-moves-closed > li:nth-child(n+2) { display: none !important; }
   .fc-start button { height: 46px !important; }
+  /* AT YOUR PACE adds the 44px CHECK-OFF row: the closed card then lists no
+     move (▾ SEE ALL N MOVES has them), so START clears the shelf's fade. */
+  .fc-solo .fc-moves-closed { display: none !important; }
+  /* The same while a notice line shows ("Shuffled: new moves..."). */
+  .fc-stack:has(.fc-notice) .fc-moves-closed { display: none !important; }
 }
 `;
 
@@ -412,8 +417,9 @@ export default function FitCardSetup({ entry, onBack, onFightMode, onStart, onPa
           <ModeTabs active="fit" onFight={onFightMode}/>
         </div>
 
-        <div data-fc="page" className="fc-stack" style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px 0' }}>
+        <div data-fc="page" className={runMode === 'solo' ? 'fc-stack fc-solo' : 'fc-stack'} style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px 0' }}>
           <WorkoutCard
+            raised
             cardRef={cardRef} guide="fc-card"
             eyebrow={eyebrow}
             eyebrowAction={source.kind !== 'deal' ? { label: 'TODAY', aria: "Back to today's deal", onClick: backToDeal } : null}

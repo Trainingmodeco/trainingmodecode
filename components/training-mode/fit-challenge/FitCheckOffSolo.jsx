@@ -254,7 +254,7 @@ export default function FitCheckOffSolo({ missionCfg, onEnd, onStateChange, init
           <GoldButton label="DONE" height={46} onClick={roundsDone} style={{ fontSize: 14 }}/>
         )}>
           <div data-look="rounds" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <RoundsStepper totals={draftTotals} min={CARD_MIN_ROUNDS} max={CARD_MAX_ROUNDS} onStep={(d) => setRoundsDraft(stepRounds(draftRounds, d))}/>
+            <RoundsStepper totals={draftTotals} min={CARD_MIN_ROUNDS} max={CARD_MAX_ROUNDS} onStep={(d) => setRoundsDraft(stepRounds(draftRounds, d))} raised/>
             <div style={{ font: `500 12px ${BODY}`, color: '#CFC9E4', lineHeight: 1.4 }}>
               {draftRounds < keep ? 'Fewer rounds than you have started: DONE asks to start over.' : 'Your ticks stay. The time and XP follow the rounds.'}
             </div>

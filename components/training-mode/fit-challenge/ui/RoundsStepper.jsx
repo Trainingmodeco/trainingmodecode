@@ -1,6 +1,7 @@
 import { Minus, Plus, Timer } from 'lucide-react';
 import { HEAD, BODY, MUTED, GOLD, VIOLET, VIOLET_TEXT } from '../../shared/FitSetupKit';
 import { holdWord } from '../../data/challengeTotals';
+import { QmStyle, qmRaised } from '../../shared/QmButtons';
 
 // ROUNDS on the wired card (the owner's note: the time stays the input, the
 // rounds are generated from it, and + adds a round): − N + on the left, the
@@ -11,7 +12,18 @@ import { holdWord } from '../../data/challengeTotals';
 //
 // A timed move counts in seconds, never in reps: "+ 2:00 hold" joins the
 // time line. Both buttons are 44px. totals: data/fitCard cardTotals.
-function StepButton({ label, onClick, disabled, children }) {
+// raised: Quick Mission's raised slate buttons (shared/QmButtons); the lip sits
+// in the panel's padding, so the panel is no taller.
+function StepButton({ label, onClick, disabled, children, raised }) {
+  if (raised) {
+    return (
+      <button type="button" aria-label={label} onClick={disabled ? undefined : onClick} aria-disabled={disabled ? 'true' : undefined} className="qm-raised" style={{
+        ...qmRaised('slate', { lift: 3, radius: 10 }), marginBottom: 0,
+        width: 44, height: 44, flexShrink: 0, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: '#fff', cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.35 : 1,
+      }}>{children}</button>
+    );
+  }
   return (
     <button type="button" aria-label={label} onClick={disabled ? undefined : onClick} aria-disabled={disabled ? 'true' : undefined} style={{
       width: 44, height: 44, flexShrink: 0, padding: 0, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -21,7 +33,7 @@ function StepButton({ label, onClick, disabled, children }) {
   );
 }
 
-export default function RoundsStepper({ totals, min = 1, max = 10, onStep, guide, note }) {
+export default function RoundsStepper({ totals, min = 1, max = 10, onStep, guide, note, raised = false }) {
   const { repsPerRound, secondsPerRound, rounds, totalReps, totalSeconds, estMinutes } = totals;
   const said = `${rounds} rounds. ${repsPerRound} reps a round${secondsPerRound ? ` and ${secondsPerRound} seconds of holds` : ''}, ${totalReps} reps in all, about ${estMinutes} minutes.`;
   return (
@@ -31,9 +43,10 @@ export default function RoundsStepper({ totals, min = 1, max = 10, onStep, guide
     }}>
       <div role="group" aria-label={said} style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <StepButton label="One round less" onClick={() => onStep?.(-1)} disabled={rounds <= min}><Minus size={18}/></StepButton>
+          {raised && <QmStyle/>}
+          <StepButton label="One round less" onClick={() => onStep?.(-1)} disabled={rounds <= min} raised={raised}><Minus size={18}/></StepButton>
           <span aria-live="polite" style={{ minWidth: 30, textAlign: 'center', font: `700 26px ${HEAD}`, lineHeight: 1, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{rounds}</span>
-          <StepButton label="One round more" onClick={() => onStep?.(1)} disabled={rounds >= max}><Plus size={18}/></StepButton>
+          <StepButton label="One round more" onClick={() => onStep?.(1)} disabled={rounds >= max} raised={raised}><Plus size={18}/></StepButton>
         </div>
         <span aria-hidden="true" style={{ font: `600 9px ${HEAD}`, letterSpacing: '0.16em', color: MUTED }}>ROUNDS</span>
       </div>

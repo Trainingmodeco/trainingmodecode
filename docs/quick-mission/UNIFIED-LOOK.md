@@ -64,15 +64,25 @@ saving, the stash and what each screen hands on are exactly as before.
   - The title lines use the same lettering as AT YOUR PACE. The old ring
     picture behind the page is gone; the T is there instead.
   - Short phones (360x640, 320x568): a smaller ring and a tighter card, so the
-    controls stay above the tab bar without scrolling.
+    controls stay above the tab bar without scrolling. MAX REPS on a 320x568
+    phone gets an even smaller ring and tighter rows (the stop line and the
+    safety card stay), so PAUSE and STOP clear the shelf mid-set; before this
+    job they sat half under it.
 - **AT YOUR PACE**: only the bolt, now about a tenth as strong.
 - **Setup page and Fit card** (`QuickMissionSetup.jsx`, `fit-challenge/ui/WorkoutCard.jsx`,
   `fit-challenge/FitCardSetup.jsx`): GEAR and GUIDED / AT YOUR PACE are raised
   segments (picked: violet with a gold hairline; START keeps the only gold);
   SHUFFLE, CHOOSE, SURPRISE and MISSION LIBRARY are raised slate; START is
-  raised gold. On a 360x640 phone the closed card shows its first move only
-  (SEE ALL shows them all) and START is 4 px shorter, so START stays on the
-  first screen with the raised switch and CHECK-OFF.
+  raised gold; the ROUNDS − / + buttons are raised slate (also on the CHECK-OFF
+  run's round picker, `fit-challenge/FitCheckOffSolo.jsx`). On a 360x640 phone
+  the closed card shows its first move only (SEE ALL shows them all) and START
+  is 4 px shorter; with AT YOUR PACE picked (the CHECK-OFF row) or a notice
+  line showing ("Shuffled: ..."), the closed card lists no move at that size,
+  so START stays clear of the shelf's fade. The ▾ SEE ALL line is a quiet
+  show-more link, not a button, and stays as it was.
+  `WorkoutCard` takes a `raised` prop that only the Quick Mission Fit card
+  turns on: the Fit Mode PROGRAMS day card uses the same card and keeps its
+  flat look (SHUFFLE THIS DAY, RESUME), as do the looks gallery's copies.
 - **ADJUST sheet** (`QuickMissionAdjustSheet.jsx`): LEVEL, run mode and FOCUS
   raised; DONE raised gold.
 - **MISSION LIBRARY** (`MissionLibrarySheet.jsx`) and **CHOOSE**
@@ -83,8 +93,11 @@ saving, the stash and what each screen hands on are exactly as before.
   NEW MISSION gold, BACK TO FIT MODE and RETURN HOME raised slate. The Fit
   card's (`fit-challenge/ui/ChallengeResults.jsx`): REPEAT gold, NEW CHALLENGE
   and SAVE WORKOUT raised slate (a touch shorter, so the screen is no taller).
-  The near-miss panel (RETRY, COME BACK FRESH TOMORROW) is shared with other
-  modes and was left as it is.
+  The near-miss panel (`retention/ui/NearMissPanel.jsx`: RETRY gold, COME BACK
+  FRESH TOMORROW raised slate) takes a `raised` prop that only Quick Mission's
+  end screen turns on (through `shared/MissionComplete.jsx`); the other modes
+  keep the flat panel. The library's filter chips keep a space before their
+  count ("ALL 53").
 
 ## Where an exercise GIF would go
 
@@ -111,6 +124,9 @@ that the ring is the shared one, the move names are 20 px or more, and the four
 controls are raised, 44 px or more, above the tab bar and not covered;
 `card-solo`, `adjust`, `end-failed`, `end-card-failed` (and `results`, the
 complete one). Every state passes at 360x640, 360x780, 390x844 and 430x932;
-GUIDED's work, rest, paused and PREPARING screens also at 320x568 (the
-MAX REPS state cannot be reached there by the script: the library sheet's row
-is not tapped in time at that size, a script limit, not a screen fault).
+GUIDED's work, rest, paused, PREPARING and MAX REPS screens also at 320x568.
+The script's tap now falls back to a direct click when a row sits under a fade
+(the library row on a 320x568 phone), and its START check now also fails when
+START runs under the shelf's fade (the BETA pill's row), not only under the
+tab bar. On a 320x568 phone the setup page scrolls to START, as it did before
+this job.

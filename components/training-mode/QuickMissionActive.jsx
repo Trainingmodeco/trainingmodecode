@@ -47,12 +47,6 @@ import {
 
 const GOLD = C.yellow;
 
-// MAX REPS on a short phone (under about 780px tall: 360 x 740, 375 x 667): the ring, the card and
-// the DONE button pack tighter and the first cue steps aside (the stop line stays), so DONE and
-// the controls stay above the tab bar and the BETA chip with no scrolling mid-set. A phone of
-// 781 to 830px (412 x 811) only trims the ring, enough to clear the BETA chip in the rest and the
-// set; a taller one keeps the full layout. Under 700px (375 x 667) the rest card also drops its
-// generic ready line and tightens the safety card.
 // The guided look's sizes: the move in hand large and bright (20px at the least,
 // readable from a couple of feet), smaller on a short phone.
 const GUIDED_CSS = `
@@ -74,6 +68,12 @@ const GUIDED_CSS = `
 }
 `;
 
+// MAX REPS on a short phone (under about 780px tall: 360 x 740, 375 x 667): the ring, the card and
+// the DONE button pack tighter and the first cue steps aside (the stop line stays), so DONE and
+// the controls stay above the tab bar and the BETA chip with no scrolling mid-set. A phone of
+// 781 to 830px (412 x 811) only trims the ring, enough to clear the BETA chip in the rest and the
+// set; a taller one keeps the full layout. Under 700px (375 x 667) the rest card also drops its
+// generic ready line and tightens the safety card.
 const MAX_COMPACT_CSS = `
 @media (min-height: 781px) and (max-height: 830px) {
   .qma-mx-ring { width: min(46vw, 172px) !important; margin-bottom: 10px !important; }
@@ -94,6 +94,19 @@ const MAX_COMPACT_CSS = `
   .qma-mx-ready { display: none !important; }
   .qma-mx-card { padding: 8px 12px !important; margin-bottom: 6px !important; }
   .qma-mx-safety { margin-bottom: 6px !important; padding: 5px 8px !important; font-size: 11px !important; line-height: 1.3 !important; }
+}
+/* 320 x 568: a smaller ring and tighter rows, so PAUSE and STOP stay above the
+   tab bar's shelf mid-set (the stop line stays). */
+@media (max-height: 600px) {
+  .qma-ringbox.qma-mx-ring { width: min(30vw, 96px) !important; margin-bottom: 6px !important; }
+  .qma-mx-ring-big { font-size: 22px !important; }
+  .qma-mx-ring-sub { font-size: 8px !important; }
+  .qma-mx-top { margin-bottom: 2px !important; }
+  .qma-mx-strip { margin-bottom: 6px !important; }
+  .qma-card.qma-mx-card { padding: 6px 10px !important; margin-bottom: 4px !important; }
+  .qma-mx-stop { font-size: 12px !important; line-height: 1.3 !important; }
+  .qma-mx-next { margin-bottom: 4px !important; }
+  .qma-mx-done { height: 44px !important; margin-bottom: 6px !important; }
 }
 `;
 
@@ -1755,7 +1768,7 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
                     {maxCues(currentEx.moveId, mission.weightWord)[0] && (
                       <div className="qma-mx-cue" style={{ font: `500 13px ${BODY}`, lineHeight: 1.4, color: C.text }}>{maxCues(currentEx.moveId, mission.weightWord)[0]}</div>
                     )}
-                    <div role="note" style={{ font: `700 13px ${BODY}`, lineHeight: 1.4, color: '#fff' }}>{maxStopLine(currentEx, mission.level)}</div>
+                    <div role="note" className="qma-mx-stop" style={{ font: `700 13px ${BODY}`, lineHeight: 1.4, color: '#fff' }}>{maxStopLine(currentEx, mission.level)}</div>
                   </div>
                 )}
                 {/* v2 list slots: an AMRAP block keeps its moves on screen; a

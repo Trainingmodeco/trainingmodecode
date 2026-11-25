@@ -109,7 +109,7 @@ function FilterChip({ on, dim, onClick, label, count }) {
     <button type="button" role="radio" aria-checked={on ? 'true' : 'false'} className="qm-raised ml-chip" onClick={onClick} style={{
       ...qmChip(on), flexShrink: 0, height: 34, padding: '0 5px', borderRadius: 9,
       font: `700 10px ${HEAD}`, letterSpacing: '0.02em', textTransform: 'none', opacity: dim ? 0.45 : 1,
-    }}>{label}{count != null && <span style={{ opacity: 0.6 }}> {count}</span>}</button>
+    }}>{label}{count != null && <span style={{ opacity: 0.6, marginLeft: 5 }}>{count}</span>}</button>
   );
 }
 

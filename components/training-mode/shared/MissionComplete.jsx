@@ -271,7 +271,7 @@ export default function MissionComplete({
 
           {showNearMiss && (
             <div style={{ marginBottom: 6 }}>
-              <NearMissPanel miss={nm.miss} gate={nm.gate} onRetry={nearMiss?.onRetry} retryLabel={nearMiss?.retryLabel} onLeave={nearMiss?.onLeave}/>
+              <NearMissPanel miss={nm.miss} gate={nm.gate} onRetry={nearMiss?.onRetry} retryLabel={nearMiss?.retryLabel} onLeave={nearMiss?.onLeave} raised={raised}/>
             </div>
           )}
           {summary && <div style={{ marginBottom: 6 }}>{summary}</div>}
