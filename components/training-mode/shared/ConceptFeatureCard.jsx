@@ -10,7 +10,7 @@ const H = "'Orbitron',sans-serif";
 const B = "'Rajdhani',sans-serif";
 const GOLD = '#fde047';
 
-export default function ConceptFeatureCard({ mode = 'home', onOpen, style, entry: given }) {
+export default function ConceptFeatureCard({ mode = 'home', onOpen, style, entry: given, center = false }) {
   const entry = given === undefined ? featuredEntry() : given;
   if (!entry) return null;
   const c = entry.concept;
@@ -26,7 +26,9 @@ export default function ConceptFeatureCard({ mode = 'home', onOpen, style, entry
   // On a hub the card gives height back on a short phone (88 down to 76), so its
   // text is centred in whatever height it gets instead of hanging from the top
   // and landing on the bottom edge at the floor.
-  const hub = mode !== 'home';
+  // Home's locked hub passes `center` for the same reason: there the card gives
+  // height back too (92 down to 60 on a short phone).
+  const hub = mode !== 'home' || center;
   return (
     // The guide anchor is per mode: the Fit and Fight hubs' "?" end on this card.
     <button type="button" data-guide={mode === 'fight' ? 'fight-concept' : mode === 'home' ? 'home-concept' : 'fit-concept'} onClick={() => onOpen?.(mode === 'home' ? 'fit' : mode)} style={{
