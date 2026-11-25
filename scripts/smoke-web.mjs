@@ -457,11 +457,35 @@ const GUIDED_LINE = 'The coach calls every move and keeps time.';
 const PACE_LINE = 'The moves and a timer. Beeps, no coach voice.';
 // The move names on the card, after ▾ SEE ALL opens it.
 const cardMoves = async () => { await expand(); return card().locator('ol > li > span:nth-child(2)').allInnerTexts(); };
-// The moves the run screen lists (its rows are 01, 02… then a name).
-const runMoves = (t) => [...t.matchAll(/\n\d\d\n([^\n]+)\n/g)].map(m => m[1]);
+// The moves the run screen lists (its rows are 1, 2… then a name).
+const runMoves = (t) => [...t.matchAll(/\n\d{1,2}\n([^\n]+)\n/g)].map(m => m[1]);
 // Move the app's clock on without waiting: the run screen counts Date.now().
 const jump = (ms) => page.evaluate((d) => { if (window.__off === undefined) { const r = Date.now.bind(Date); window.__off = 0; Date.now = () => r() + window.__off; } window.__off += d; }, ms);
 const nav = () => page.evaluate(() => document.querySelector('[data-guide="nav-tabs"]').getBoundingClientRect().top);
+// An AT YOUR PACE start (docs/quick-mission/PACE-FLOW.md) goes WARM-UP (5:00, SKIP WARM-UP) -> WORKOUTS (every move, "i",
+// START) -> GET READY (5 s, longer with a voice on) -> the run. paceThrough() walks all of that after the tap that started
+// it and returns when the run's own clock (role="timer", "Clock 0:00") is on screen: GET READY's ring is no timer. A check
+// that reads the notes, the pace targets or the load takes the steps apart: paceSkip() (warm-up, on to WORKOUTS), paceInfo()
+// (the "i" sheet's text, closed again) and paceGo() (START). A run brought back from a pause or a reload uses none of it.
+const runClock = () => page.locator('[role="timer"][aria-label^="Clock"]').first();
+const paceSkip = async () => {
+  await btn(/^SKIP WARM-UP$/).click({ timeout: 8000 });
+  await page.locator('[data-pace-workouts]').waitFor({ timeout: 4000 });
+};
+const paceInfo = async () => {
+  await page.getByRole('button', { name: 'About this workout' }).click({ timeout: 4000 });
+  const info = await page.locator('[data-pace-info]').innerText({ timeout: 4000 });
+  await page.getByRole('dialog', { name: 'ABOUT THIS WORKOUT' }).getByRole('button', { name: 'Close' }).click({ timeout: 4000 }); await S(300);
+  return info;
+};
+const paceGo = async () => {
+  await btn(/^START$/).click({ timeout: 4000 });
+  await runClock().waitFor({ timeout: 25000 }); await S(300);
+};
+const paceThrough = async () => { await paceSkip(); await paceGo(); };
+// A resumed run opens in the run itself: no warm-up, no WORKOUTS, no GET READY.
+const inTheRun = async (t) => !/SKIP WARM-UP|GET READY/.test(t) && !(await page.locator('[data-pace-workouts]').count()) && await runClock().count() > 0;
+const startPace = async () => { await btn(/^START$/).click({ timeout: 4000 }); await paceThrough(); };
 await check('quick mission: GUIDED | AT YOUR PACE is on the first page and the whole page stays above the tab bar', async () => {
   await quick();
   try {
@@ -561,8 +585,15 @@ const repsSheet = () => page.getByRole('dialog', { name: 'How many reps' });
 const startAtPace = async () => {
   await ownerQuick(); await putOnCard(/^BOSS RUSH/);
   await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
-  await btn(/^START$/).click({ timeout: 4000 }); await S(7500);
+  await btn(/^START$/).click({ timeout: 4000 });
+  await paceSkip();
+  const info = await paceInfo();
+  await paceGo();
+  return info;
 };
+// The run screen's list (docs/quick-mission/PACE-LOOK.md): the lit row is the move in hand, the rows before it are ticked ("Done").
+const litRow = () => page.locator('[data-run-list] [data-now="true"]').innerText();
+const tickedRows = () => page.locator('[data-run-list] [aria-label="Done"]').count();
 await check('max out: the MAX OUT chip lists the five workouts and their rows', async () => {
   await ownerQuick(); await library();
   const chip = sheet().getByRole('radiogroup', { name: 'Theme' }).getByRole('radio', { name: /^MAX OUT/ });
@@ -608,20 +639,23 @@ await check('max out: BOSS RUSH GUIDED, DONE opens HOW MANY REPS?, NOT YET goes 
   if (rows.length !== 1 || rows[0].score?.kind !== 'totalReps' || rows[0].score.sets !== 1 || !(rows[0].xpEarned >= 0)) throw new Error(`the run banked ${JSON.stringify(rows.map(r => r.score))}`);
 }, /TOTAL REPS/);
 await check('max out: BOSS RUSH AT YOUR PACE, DONE, the sheet, a timed rest, UNDO, and the last SAVE finishes with TOTAL REPS', async () => {
-  await startAtPace();
+  const info = await startAtPace();
   let t = await text();
-  if (!/^AT YOUR PACE\n/.test(t) || !/CAP 20:00 · ROUND 1\/3 · PUSH-UPS · MAX/.test(t) || !/SET 1/.test(t) || !/LAST — · SETS 0/.test(t)) throw new Error('not the MAX REPS at-your-pace screen');
-  if (!/Stop a set when your form breaks/.test(t)) throw new Error('no safety card above the list');
+  // The ring's clock (CAP 20:00), the station in hand and the one after it, no sets saved yet (the old "SETS 0" line is gone: the lit row and the ticks say it).
+  if (!/^AT YOUR PACE · MAX REPS\nBOSS RUSH\n/.test(t) || !/\n0:00\nCAP 20:00\nROUND 1 OF 3\nPush-Ups\nMAX REPS\nNEXT: Air Squats\n/.test(t) || !/STATION 1\nPush-Ups/.test(await litRow()) || await tickedRows() !== 0) throw new Error('not the MAX REPS at-your-pace screen');
+  // The safety card left the run screen for the "i" sheet (the lit station keeps its own stop line).
+  if (!/Stop a set when your form breaks/.test(info)) throw new Error('no safety card in the "i" sheet of WORKOUTS');
+  if (!/Stop when your hips sag/.test(t)) throw new Error('the lit station lost its own stop line');
   await jump(20000); await S(700);
   await btn(/^DONE$/).click({ timeout: 4000 }); await S(700);
   if (!await repsSheet().count()) throw new Error('DONE did not open the rep sheet');
   await btn(/^SAVE$/).click({ timeout: 4000 }); await S(700);
   t = await text();
-  if (!/REST 0:2\d/.test(t) || !/SETS 1/.test(t) || !/NEXT AIR SQUATS/.test(t)) throw new Error('SAVE did not start a REST 0:25 and name the next station');
+  if (!/ROUND 1 OF 3\nREST\n0:2\d\nNEXT: Air Squats/.test(t) || await tickedRows() !== 1) throw new Error('SAVE did not start a REST 0:25, name the next station and tick the saved one');
   if (!await btn(/^DONE$/).isDisabled()) throw new Error('DONE is on during the rest');
   await btn(/^Undo set$/).click({ timeout: 4000 }); await S(500);
   t = await text();
-  if (!/SETS 0/.test(t) || /REST 0:/.test(t)) throw new Error('UNDO did not take back the saved set');
+  if (!/ROUND 1 OF 3\nPush-Ups\nMAX REPS/.test(t) || /REST\n0:/.test(t) || await tickedRows() !== 0) throw new Error('UNDO did not take back the saved set');
   // the nine sets, the clock moved on through every set and rest
   const rests = [25, 25, 75, 25, 25, 75, 25, 25];
   for (let i = 0; i < 9; i += 1) {
@@ -643,7 +677,8 @@ await check('max out: STOP then END after one set at your pace ends as a partial
   await btn(/^SAVE$/).click({ timeout: 4000 }); await S(700);
   await page.reload({ waitUntil: 'networkidle' }); await S(2500);
   let t = await text();
-  if (!/^AT YOUR PACE\n/.test(t) || !/PAUSED/.test(t) || !/SETS 1/.test(t)) throw new Error('the reload did not bring back the run with its saved set');
+  // Straight back into the run (no warm-up, no WORKOUTS), paused, with the saved set kept: ticked, and the rest after it.
+  if (!/^AT YOUR PACE · MAX REPS\n/.test(t) || !/PAUSED/.test(t) || /SKIP WARM-UP|GET READY/.test(t) || await page.locator('[data-pace-workouts]').count() || await tickedRows() !== 1 || !/ROUND 1 OF 3\nREST\n/.test(t) || !/NEXT: Air Squats/.test(t)) throw new Error('the reload did not bring back the run with its saved set');
   await btn(/^RESUME$/).click({ timeout: 4000 }); await S(600);
   await page.locator('button', { hasText: /^STOP$/ }).first().click({ timeout: 4000 }); await S(500);
   if (!/Your saved sets count\./.test(await text())) throw new Error('the STOP sheet does not say the saved sets count');
@@ -845,22 +880,26 @@ await check('quick mission: AT YOUR PACE then START runs the moves and a timer; 
   const perMin = { EASY: 15, MEDIUM: 15, HARD: 16, ADVANCED: 18 }[(cardText.match(/\b(EASY|MEDIUM|HARD|ADVANCED)\b/) || [])[1]];
   if (!(askedMin >= 5) || !perMin) throw new Error(`could not read the minutes and level off the card: ${cardText.replace(/\n/g, ' / ').slice(0, 120)}`);
   await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
-  await btn(/^START$/).click({ timeout: 4000 }); await S(7500);
+  await btn(/^START$/).click({ timeout: 4000 });
+  await paceSkip();
+  const info = await paceInfo(); // the pace targets moved off the run screen into WORKOUTS' "i" sheet
+  await paceGo();
   let t = await text();
-  if (!/AT YOUR PACE/.test(t) || !/CIRCUIT/.test(t)) throw new Error('not the at-your-pace screen');
+  if (!/^AT YOUR PACE · CIRCUIT\n/.test(t)) throw new Error('not the at-your-pace screen');
   if (await page.locator('[data-guide="qma-ring"]').count() || /PREPARING/.test(t)) throw new Error('the coach runner opened');
   const shown = runMoves(t);
   if (JSON.stringify(shown) !== JSON.stringify(moves)) throw new Error(`the list is ${shown.join(', ')}, the card said ${moves.join(', ')}`);
-  const rounds = Number((t.match(/ROUND 1\/(\d+)/) || [])[1]);
+  const rounds = Number((t.match(/ROUND 1 OF (\d+)/) || [])[1]);
   if (!(rounds >= 2) || !/CAP \d+:\d\d/.test(t) || !/ROUND 1\b/.test(t) || !(await btn(/^ROUND$/).isVisible()) || !(await btn(/^FINISH$/).isVisible()) || !(await page.getByRole('button', { name: 'Undo round' }).count())) throw new Error('no timer, round count, ROUND, UNDO or FINISH');
-  const tier = (n) => { const m = t.match(new RegExp(`${n}\\s*\\n?\\s*≤ (\\d+):(\\d\\d)`)); return m ? Number(m[1]) * 60 + Number(m[2]) : NaN; };
+  const tier = (n) => { const m = info.match(new RegExp(`${n}\\s*\\n?\\s*≤ (\\d+):(\\d\\d)`)); return m ? Number(m[1]) * 60 + Number(m[2]) : NaN; };
   const [elite, standard, beginner] = ['ELITE', 'STANDARD', 'BEGINNER'].map(tier);
   if (!(elite < standard && standard < beginner)) throw new Error(`the pace targets are ${elite} / ${standard} / ${beginner}`);
-  if (/SOLO/i.test(t)) throw new Error('the screen says SOLO');
+  if (/SOLO/i.test(t + info)) throw new Error('the screen says SOLO');
   // Round 1, a round tap, the rest of the rounds, FINISH, SAVE: the clock is moved on, not waited for.
   for (let r = 1; r < rounds; r += 1) { await jump(Math.round(standard / rounds) * 1000); await S(700); await btn(/^ROUND$/).click({ timeout: 4000 }); await S(300); }
   await jump(Math.round(standard / rounds) * 1000); await S(700);
-  if (!new RegExp(`ROUNDS ${rounds - 1}\\b`).test(await text())) throw new Error('ROUND did not count the rounds');
+  // The round panel: the round in hand, its running time and the last round's time (the old "ROUNDS n" line left the screen).
+  if (!new RegExp(`THIS ROUND\\nROUND ${rounds} OF ${rounds}\\n\\d+:\\d\\d\\nLAST \\d+:\\d\\d`).test(await text())) throw new Error('ROUND did not count the rounds');
   await btn(/^FINISH$/).click({ timeout: 4000 }); await S(600);
   t = await text();
   if (!/YOUR SCORE/.test(t) || !/NOT YET/.test(t)) throw new Error('FINISH did not open the score');
@@ -875,24 +914,71 @@ await check('quick mission: AT YOUR PACE then START runs the moves and a timer; 
 }, /SESSION COMPLETE/);
 await check('quick mission: a finish far faster than the moves could be done pays nothing', async () => {
   await quick(); await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
-  await btn(/^START$/).click({ timeout: 4000 }); await S(7500);
+  await startPace();
   await btn(/^FINISH$/).click({ timeout: 4000 }); await S(500);
   await btn(/^SAVE$/).click({ timeout: 4000 }); await S(3500);
   const t = await text(); const rows = await qmRows();
   if (!/Under half the elite time/.test(t) || !/\+?0\s*\n?\s*XP/.test(t) || rows.length !== 1 || rows[0].xpEarned !== 0) throw new Error(`a quick tap paid: ${JSON.stringify(rows)}`);
 }, /VALIDATION FAILED|FAILED|COMPLETE/);
-// The pace targets on the run screen, in seconds ("≤ 10:15" under STANDARD).
+// The AT YOUR PACE start in order (docs/quick-mission/PACE-FLOW.md): START opens the 5:00 WARM-UP with SKIP WARM-UP, SKIP leads to
+// WORKOUTS (every move of the card, a SWAP on each, an "i" for the notes, a big START), START goes through GET READY into the run
+// and its clock. Nothing is kept for Continue, banked, or counted as a session start before the run starts.
+await check('quick mission: AT YOUR PACE START shows the warm-up with SKIP WARM-UP, SKIP leads to the WORKOUTS screen with every move and a START, START runs the clock; nothing is recorded before the run', async () => {
+  await quick(); await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
+  const moves = await cardMoves();
+  await page.evaluate(() => { window.__ev = []; window.plausible = (n, o) => window.__ev.push([n, o?.props]); });
+  const stash = () => page.evaluate(() => localStorage.getItem('trainingModePausedSession') || '');
+  const stats = () => page.evaluate(() => localStorage.getItem('tm_user_stats') || '');
+  const stats0 = await stats();
+  const quiet = async (where) => {
+    if (/"kind":"solo"/.test(await stash())) throw new Error(`${where}: a run is already saved for Continue`);
+    if ((await qmRows()).length || await stats() !== stats0) throw new Error(`${where}: a session or XP is already recorded`);
+  };
+  // The START tap counts the attempt once (analytics, as for GUIDED); the warm-up, WORKOUTS and the run add no second start.
+  const starts = async () => (await page.evaluate(() => window.__ev || [])).filter(e => e[0] === 'session_start').length;
+  await btn(/^START$/).click({ timeout: 4000 }); await S(1500);
+  let t = await text();
+  // The warm-up: the 5:00 ring counting down, a way to skip it, and no run yet.
+  if (!/WARM-UP · AT YOUR PACE/.test(t) || !/\n0(5:00|4:5\d)\n/.test(t) || !/NO XP/.test(t) || !await btn(/^SKIP WARM-UP$/).isVisible()) throw new Error('START did not open the 5:00 warm-up with SKIP WARM-UP');
+  if (await runClock().count() || await page.locator('[data-pace-workouts]').count() || await page.locator('[data-run-bar]').count()) throw new Error('the warm-up is already the run or WORKOUTS');
+  await quiet('warm-up');
+  await btn(/^SKIP WARM-UP$/).click({ timeout: 4000 });
+  await page.locator('[data-pace-workouts]').waitFor({ timeout: 4000 });
+  t = await text();
+  // WORKOUTS: every move of the card in order, a big START, the "i" for the notes; the clock has not started.
+  const listed = runMoves(t);
+  if (!/^AT YOUR PACE · WORKOUTS\n/.test(t) || JSON.stringify(listed) !== JSON.stringify(moves)) throw new Error(`WORKOUTS lists ${listed.join(', ')}, the card said ${moves.join(', ')}`);
+  if (!await btn(/^START$/).isVisible() || !await page.getByRole('button', { name: 'About this workout' }).isVisible() || /SKIP WARM-UP/.test(t)) throw new Error('WORKOUTS has no START or no "i"');
+  if (await runClock().count()) throw new Error('the clock runs on the WORKOUTS screen');
+  await quiet('WORKOUTS');
+  if (await starts() !== 1) throw new Error(`${await starts()} session starts counted before the run, not 1`);
+  await paceGo();
+  t = await text();
+  if (!/^AT YOUR PACE · /.test(t) || JSON.stringify(runMoves(t)) !== JSON.stringify(moves) || !await page.locator('[data-run-bar]').count() || await btn(/^START$/).count()) throw new Error('START did not open the run');
+  // The clock runs: the app's own clock moved on 20 s shows 0:20 or more on the ring.
+  await jump(20000); await S(1200);
+  const clock = await runClock().innerText();
+  const sec = (clock.match(/(\d+):(\d\d)/) || []).slice(1).reduce((a, v) => a * 60 + Number(v), 0);
+  if (sec < 20) throw new Error(`the ring clock reads ${clock} 20 s into the run`);
+  // Now it is a run: saved for Continue (nothing banked until the score is saved).
+  await S(800);
+  if (!/"kind":"solo"/.test(await stash()) || (await qmRows()).length) throw new Error('the run is not saved for Continue, or it banked before the end');
+  if (await starts() !== 1) throw new Error(`${await starts()} session starts counted after the run began, not 1`);
+}, /AT YOUR PACE/);
+// The pace targets in WORKOUTS' "i" sheet (they left the run screen), in seconds ("≤ 10:15" under STANDARD).
 const paceTier = (t, n) => { const m = t.match(new RegExp(`${n}\\s*\\n?\\s*≤ (\\d+):(\\d\\d)`)); return m ? Number(m[1]) * 60 + Number(m[2]) : NaN; };
 await check('quick mission: on an Easy mission a finish at a third of STANDARD still pays the full XP (the floor sits under what the moves take)', async () => {
   await fit();
   await page.evaluate(() => localStorage.setItem('tm_qm_keys_v1', JSON.stringify({ workoutType: 'Bodyweight', difficulty: 'EASY', duration: 10, focus: 'FULL BODY' })));
   await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
   await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
-  await btn(/^START$/).click({ timeout: 4000 }); await S(7500);
+  await btn(/^START$/).click({ timeout: 4000 });
+  await paceSkip();
+  const standard = paceTier(await paceInfo(), 'STANDARD');
+  await paceGo();
   let t = await text();
   const moves = runMoves(t).length;
-  const standard = paceTier(t, 'STANDARD');
-  if (!moves || !(standard > 0)) throw new Error('no moves or STANDARD target on the at-your-pace screen');
+  if (!moves || !(standard > 0)) throw new Error('no moves on the at-your-pace screen or no STANDARD target in the "i" sheet');
   await jump(Math.round(standard * 0.33) * 1000); await S(700);
   await btn(/^FINISH$/).click({ timeout: 4000 }); await S(500);
   await btn(/^SAVE$/).click({ timeout: 4000 }); await S(3500);
@@ -908,11 +994,14 @@ await check('home: a one-round run (the 5 minute mission) has FINISH only, and i
     cadencePreset: 'moderate', cadenceMs: 2000, voiceOn: true, cardioAddon: null, mode: 'solo' } })));
   await page.goto(BASE, { waitUntil: 'networkidle' }); await S(2000); await page.mouse.click(195, 120); await S(1500);
   await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 1500 }).catch(() => {});
-  await page.locator('[data-guide="home-continue"] button.hm-go').click({ timeout: 4000 }); await S(7500);
+  await page.locator('[data-guide="home-continue"] button.hm-go').click({ timeout: 4000 });
+  await paceSkip();
+  const info = await paceInfo(); // the tap-hint line moved off the run screen into WORKOUTS' "i" sheet
+  await paceGo();
   let t = await text();
-  if (!/^AT YOUR PACE\n/.test(t) || !runMoves(t).length) throw new Error('the replay did not open the at-your-pace screen');
+  if (!/^AT YOUR PACE · /.test(t) || !runMoves(t).length) throw new Error('the replay did not open the at-your-pace screen');
   if (await btn(/^ROUND$/).count() || !(await btn(/^FINISH$/).isVisible())) throw new Error('a one-round run should have FINISH and no ROUND');
-  if (!/Tap FINISH when the list is done\./.test(t)) throw new Error('no line saying what FINISH does');
+  if (!/Tap FINISH when the list is done\./.test(info) || !/ONE ROUND\nTHE WHOLE LIST\n\d+ MOVES\nTAP FINISH AT THE END/.test(t)) throw new Error('no line saying what FINISH does (in the "i" sheet, and on the run screen)');
   await jump(90000); await S(700);
   await btn(/^FINISH$/).click({ timeout: 4000 }); await S(600);
   t = await text();
@@ -930,9 +1019,9 @@ await check('home: the card says AT YOUR PACE when that is saved and START runs 
   await page.getByRole('button', { name: /SURPRISE ME/ }).click({ timeout: 4000 }); await S(400);
   const c = await cardText();
   if (!/Surprise Mission/.test(c) || !/AT YOUR PACE/.test(c)) throw new Error(`the Home card does not say AT YOUR PACE: ${c.replace(/\n/g, ' | ')}`);
-  await page.locator('[data-guide="home-continue"] button.hm-go').click({ timeout: 4000 }); await S(7500);
+  await page.locator('[data-guide="home-continue"] button.hm-go').click({ timeout: 4000 }); await paceThrough();
   const t = await text();
-  if (!/^AT YOUR PACE\n/.test(t) || !runMoves(t).length || await page.locator('[data-guide="qma-ring"]').count()) throw new Error('the Home START did not run the moves and a timer');
+  if (!/^AT YOUR PACE · /.test(t) || !runMoves(t).length || await page.locator('[data-guide="qma-ring"]').count()) throw new Error('the Home START did not run the moves and a timer');
   await home();
   await page.evaluate(() => localStorage.setItem('tm_qm_shelf_v1', JSON.stringify({ mode: 'guided' })));
   await goHome();
@@ -962,7 +1051,7 @@ await check('home: a guided start is remembered as guided, so CONTINUE stays gui
   // of guessing a fixed wait.
   await page.locator('[data-guide="home-continue"] button.hm-go').click({ timeout: 4000 });
   await page.locator('[data-guide="qma-ring"]').first().waitFor({ timeout: 8000 }).catch(() => {});
-  if (!await page.locator('[data-guide="qma-ring"]').count() || /^AT YOUR PACE\n/.test(await text())) throw new Error('CONTINUE did not repeat the guided run');
+  if (!await page.locator('[data-guide="qma-ring"]').count() || /^AT YOUR PACE · /.test(await text())) throw new Error('CONTINUE did not repeat the guided run');
 }, /PREPARING|ROUND|GET READY/);
 await check('quick mission: GUIDED still starts the coach, and its brief offers AT YOUR PACE INSTEAD for the same mission', async () => {
   await quick(); await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
@@ -980,24 +1069,24 @@ await check('quick mission: GUIDED still starts the coach, and its brief offers 
     return link && next ? Math.round(next.getBoundingClientRect().top - link.getBoundingClientRect().bottom) : null;
   });
   if (gap === null || gap < 8) throw new Error(`AT YOUR PACE INSTEAD sits ${gap}px above the pause row`);
-  await btn(/^AT YOUR PACE INSTEAD$/).click({ timeout: 4000 }); await S(7500);
+  await btn(/^AT YOUR PACE INSTEAD$/).click({ timeout: 4000 }); await paceThrough();
   const ev = await page.evaluate(() => window.__ev || []);
   if (ev.filter(e => e[0] === 'session_start').length !== 1 || ev.filter(e => e[0] === 'session_switch').length !== 1) throw new Error(`the switch counted as another start: ${JSON.stringify(ev)}`);
   t = await text();
-  if (!/^AT YOUR PACE\n/.test(t) || JSON.stringify(runMoves(t)) !== JSON.stringify(moves)) throw new Error('the switch did not restart the same mission at your pace');
+  if (!/^AT YOUR PACE · /.test(t) || JSON.stringify(runMoves(t)) !== JSON.stringify(moves)) throw new Error('the switch did not restart the same mission at your pace');
   if ((await qmRows()).length) throw new Error('the switch banked something');
 }, /AT YOUR PACE/);
 await check('quick mission: a paused at-your-pace run, and one killed and reloaded, come back with the same moves', async () => {
   await quick(); await modeKey('AT YOUR PACE').click({ timeout: 4000 }); await S(300);
   const moves = await cardMoves();
-  await btn(/^START$/).click({ timeout: 4000 }); await S(7500);
+  await startPace();
   await page.locator('[data-guide="nav-tabs"] button').first().click({ timeout: 4000 }); await S(1800);
   await page.getByRole('button', { name: /RESUME/ }).first().click({ timeout: 4000 }); await S(2500);
   let t = await text();
-  if (!/^AT YOUR PACE\n/.test(t) || !/PAUSED/.test(t) || JSON.stringify(runMoves(t)) !== JSON.stringify(moves)) throw new Error('the pause did not bring back the same run');
+  if (!/^AT YOUR PACE · /.test(t) || !/PAUSED/.test(t) || JSON.stringify(runMoves(t)) !== JSON.stringify(moves) || !await inTheRun(t)) throw new Error('the pause did not bring back the same run, straight in (no warm-up, no WORKOUTS screen)');
   await page.reload({ waitUntil: 'networkidle' }); await S(2500);
   t = await text();
-  if (!/^AT YOUR PACE\n/.test(t) || JSON.stringify(runMoves(t)) !== JSON.stringify(moves)) throw new Error('the reload did not bring back the same run');
+  if (!/^AT YOUR PACE · /.test(t) || JSON.stringify(runMoves(t)) !== JSON.stringify(moves) || !await inTheRun(t)) throw new Error('the reload did not bring back the same run, straight in (no warm-up, no WORKOUTS screen)');
 }, /AT YOUR PACE/);
 await check('fit hub: START runs today\'s mission AT YOUR PACE when that is the saved choice, and says so', async () => {
   await home();
@@ -1006,16 +1095,16 @@ await check('fit hub: START runs today\'s mission AT YOUR PACE when that is the 
   await page.getByRole('button', { name: /SURPRISE ME/ }).click({ timeout: 4000 }); await S(400);
   const hero = await page.evaluate(() => document.querySelector('[data-guide="fit-today"]').innerText);
   if (!/Surprise Mission/.test(hero) || !/\s·\s+At\s+your\s+pace/.test(hero)) throw new Error(`the card does not say At your pace: ${hero.replace(/\n/g, ' | ')}`);
-  await page.locator('[data-guide="fit-today"] button.fm-go').click({ timeout: 4000 }); await S(7500);
+  await page.locator('[data-guide="fit-today"] button.fm-go').click({ timeout: 4000 }); await paceThrough();
   const t = await text();
-  if (!/^AT YOUR PACE\n/.test(t) || !runMoves(t).length || await page.locator('[data-guide="qma-ring"]').count()) throw new Error('the hub START did not run the moves and a timer');
+  if (!/^AT YOUR PACE · /.test(t) || !runMoves(t).length || await page.locator('[data-guide="qma-ring"]').count()) throw new Error('the hub START did not run the moves and a timer');
 }, /AT YOUR PACE/);
 await check('fit hub: START still runs the coach when GUIDED is saved (no "At your pace" on the card)', async () => {
   await fit();
   await page.getByRole('button', { name: /SURPRISE ME/ }).click({ timeout: 4000 }); await S(400);
   if (/At\s+your\s+pace/.test(await page.evaluate(() => document.querySelector('[data-guide="fit-today"]').innerText))) throw new Error('the card says At your pace on GUIDED');
   await page.locator('[data-guide="fit-today"] button.fm-go').click({ timeout: 4000 }); await S(2500);
-  if (!await page.locator('[data-guide="qma-ring"]').count() || /^AT YOUR PACE\n/.test(await text())) throw new Error('the hub START did not run the coach');
+  if (!await page.locator('[data-guide="qma-ring"]').count() || /^AT YOUR PACE · /.test(await text())) throw new Error('the hub START did not run the coach');
 }, /PREPARING|ROUND|GET READY/);
 await check('fit hub: on the fullest day, with "At your pace" saved, the card still fits 412x811 and 360x740', async () => {
   await fullFitHub({ atYourPace: true });
@@ -1462,7 +1551,7 @@ await check('owner: turbo solo start', async () => {
   await adjust();
   await adjustSheet().getByRole('radiogroup', { name: 'Run mode' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
-  await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
+  await startPace();
   if (!/STOP/.test(await text())) throw new Error('no STOP on the SOLO screen');
 }, /AT YOUR PACE/);
 // The + on a library row (owner, 2026-11-24): the whole workout drops down under
@@ -1519,7 +1608,7 @@ await check('quick mission: AT YOUR PACE keeps the clock, the current move and P
   await adjust();
   await adjustSheet().getByRole('radiogroup', { name: 'Run mode' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
-  await btn(/^START$/).click({ timeout: 4000 }); await S(8000);
+  await startPace();
   try {
     await resizeTo(360, 640);
     const read = () => page.evaluate(() => {
@@ -1558,11 +1647,12 @@ await check('owner: NO CONTINUES solo, I PUT IT DOWN saves the score', async () 
   await adjust();
   await adjustSheet().getByRole('radiogroup', { name: 'Run mode' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
-  await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
+  await startPace();
   let t = await text();
-  if (!/CAP 30:00 · SET 1 · BOTH HANDS/.test(t) || !/I PUT IT DOWN/.test(t) || !/Park the bell between your feet/.test(t)) throw new Error('not the until-down SOLO screen');
+  if (!/\nCAP 30:00\nSET 1\nBoth Hands\b/i.test(t) || !/I PUT IT DOWN/.test(t) || !/Park the bell between your feet/.test(t)) throw new Error('not the until-down SOLO screen');
   await btn(/^SET$/).click({ timeout: 4000 }); await S(400);
-  if (!/SETS 1/.test(await text()) || !/SET 2 · LEFT ARM/.test(await text())) throw new Error('SET did not count a set');
+  // The set in hand moves on (the old "SETS 1" line left the screen; the score panel below still says SETS 1).
+  if (!/\nSET 2\nLeft Arm\b/i.test(await text()) || await btn(/^Undo set$/).isDisabled()) throw new Error('SET did not count a set');
   await S(10000); // past one set's honest floor, so the set pays
   await btn(/^I PUT IT DOWN$/).click({ timeout: 4000 }); await S(800);
   t = await text();
@@ -1578,7 +1668,7 @@ await check('owner: NO CONTINUES solo END with no taps shows no recap', async ()
   await adjust();
   await adjustSheet().getByRole('radiogroup', { name: 'Run mode' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
-  await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
+  await startPace();
   await btn(/^STOP$/).click({ timeout: 4000 }); await S(400);
   await btn(/^END$/).click({ timeout: 4000 }); await S(3000);
   const t = await text();
@@ -1593,13 +1683,14 @@ await check('owner: UPPER LOWER DIPS solo, two ROUND taps and I\'M DONE', async 
   await adjust();
   await adjustSheet().getByRole('radiogroup', { name: 'Run mode' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
-  await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
+  await startPace();
   let t = await text();
-  if (!/CAP 30:00 · ROUND 1/.test(t) || !/I'M DONE/.test(t) || !/elbows reach 90°/.test(t)) throw new Error('not the until-failure SOLO screen');
+  if (!/\nCAP 30:00\nROUND 1\n/.test(t) || !/I'M DONE/.test(t) || !/elbows reach 90°/.test(t)) throw new Error('not the until-failure SOLO screen');
   await btn(/^ROUND$/).click({ timeout: 4000 }); await S(1500);
   await btn(/^ROUND$/).click({ timeout: 4000 }); await S(400);
   t = await text();
-  if (!/ROUND 3/.test(t) || !/ROUNDS 2/.test(t) || !/R1 0:0\d · R2 0:0\d/.test(t)) throw new Error('ROUND did not take two splits');
+  // Round 3 is in hand after two taps (the old "ROUNDS 2" and "R1 · R2" lines left the run screen; the score and complete panels still show both splits, asserted below).
+  if (!/\nROUND 3\n/.test(t) || (await page.getByRole('button', { name: 'Undo round' }).isDisabled())) throw new Error('ROUND did not take two splits');
   await S(38000); // past two rounds' honest floor (19 s each), so both pay
   await btn(/^I'M DONE$/).click({ timeout: 4000 }); await S(800);
   t = await text();
@@ -1701,17 +1792,22 @@ await check('owner: TOUCH THE SKY solo, the timed rest and rounds held', async (
   await expand();
   const c = await card().innerText();
   if (!/45 reps a round, bar never down/i.test(c) || !/The bar is already in the rack\./.test(c)) throw new Error('not the bar-never-down card');
+  if (!/STANDARD/.test(c)) throw new Error('the card does not name the level (STANDARD)');
   await adjust();
   await adjustSheet().getByRole('radiogroup', { name: 'Run mode' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
-  await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
+  await btn(/^START$/).click({ timeout: 4000 });
+  await paceSkip();
+  const info = await paceInfo(); // the pace targets moved to WORKOUTS' "i" sheet
+  await paceGo();
   let t = await text();
-  if (!/COMPLEX · STANDARD/.test(t) || !/CAP 20:00 · ROUND 1\/3/.test(t) || !/3\/3 rounds/.test(t)) throw new Error('not the rounds-held SOLO screen');
+  // The title strip's level word (STANDARD) is gone from the run and WORKOUTS (it stays on the setup card, read above): COMPLEX is the format.
+  if (!/^AT YOUR PACE · COMPLEX\n/.test(t) || !/\nCAP 20:00\nTHIS ROUND\nROUND 1 OF 3\n/.test(t) || !/STANDARD\s*\n3\/3 rounds/.test(info)) throw new Error('not the rounds-held SOLO screen');
   // FINISH sits under the round timer, on screen above the tab bar without a scroll.
   const fin = await btn(/^FINISH$/).boundingBox();
   if (!fin || fin.y + fin.height > 760) throw new Error(`FINISH is off screen or under the tab bar (${fin && Math.round(fin.y)})`);
   await btn(/^ROUND$/).click({ timeout: 4000 }); await S(1500);
-  if (!/REST 1:5\d/.test(await text())) throw new Error('ROUND did not start the 2:00 rest');
+  if (!/\nREST\n1:5\d\n/.test(await text())) throw new Error('ROUND did not start the 2:00 rest');
   // ROUND rests with the athlete: a tap in the timed rest is no round.
   if (!(await btn(/^ROUND$/).isDisabled())) throw new Error('ROUND is live during the timed rest');
   await btn(/^FINISH$/).click({ timeout: 4000 }); await S(800);
@@ -1734,12 +1830,13 @@ await check('quick mission: OVERTIME 20 solo shows the ROUND button', async () =
   await adjust();
   await adjustSheet().getByRole('radiogroup', { name: 'Run mode' }).getByRole('radio', { name: 'AT YOUR PACE', exact: true }).click({ timeout: 4000 }); await S(300);
   await done();
-  await btn(/^START$/).click({ timeout: 4000 }); await S(7000);
+  await startPace();
   let t = await text();
-  if (!/OVERTIME 20/.test(t) || !/AMRAP 20/.test(t) || !/ROUND 1/.test(t) || !(await btn(/^ROUND$/).isVisible())) throw new Error('no ROUND button on the SOLO screen');
+  if (!/^AT YOUR PACE · AMRAP\n/.test(t) || !/OVERTIME 20/.test(t) || !/AMRAP 20/.test(t) || !/ROUND 1\b/.test(t) || !(await btn(/^ROUND$/).isVisible())) throw new Error('no ROUND button on the SOLO screen');
   await btn(/^ROUND$/).click({ timeout: 4000 }); await S(400);
   t = await text();
-  if (!/ROUND 2/.test(t) || !/R1 0:0\d/.test(t) || !/ROUNDS 1/.test(t)) throw new Error('ROUND did not take a split');
+  // The round panel: round 2 in hand and round 1's time as LAST (the old "R1 0:0x" and "ROUNDS 1" lines left the run screen).
+  if (!/THIS ROUND\nROUND 2\n\d+:\d\d\nLAST 0:0\d/.test(t)) throw new Error('ROUND did not take a split');
 }, /AT YOUR PACE/);
 // A SOLO-only library mission starts SOLO from the sheet's own START, whatever
 // the remembered run mode (GUIDED on a clean slate).
@@ -1749,7 +1846,7 @@ await check('quick mission: library BARBELL → HONOR ROUNDS starts SOLO', async
   if (await sheet().getByRole('radio', { name: /^IRON CLOCK 16/ }).count() !== 1 || await sheet().getByRole('radio', { name: /^BEST OF 3/ }).count()) throw new Error('BARBELL did not filter the list');
   await sheet().getByRole('radio', { name: /^HONOR ROUNDS YOUR PACE ONLY$/ }).click({ timeout: 4000 }); await S(300);
   if (!/HONOR ROUNDS/.test(await sheet().locator('[aria-live="polite"]').innerText())) throw new Error('HONOR ROUNDS is not on top');
-  await sheet().getByRole('button', { name: /^START$/ }).click({ timeout: 4000 }); await S(7000);
+  await sheet().getByRole('button', { name: /^START$/ }).click({ timeout: 4000 }); await paceThrough();
   const t = await text();
   if (!/HONOR ROUNDS/.test(t) || !/FINISH/.test(t) || !/STOP/.test(t) || !/CAP 20:00/.test(t)) throw new Error('not the SOLO screen for HONOR ROUNDS');
 }, /AT YOUR PACE/);

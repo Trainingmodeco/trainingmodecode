@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import PhoneFrame from '../PhoneFrame';
 import FightRingBackdrop from './FightRingBackdrop';
 import Embers from '../Embers';
+import { RunWatermark } from './RunBar';
 import VoiceMixer from './VoiceMixer';
 import FloatOnLeave from './FloatOnLeave';
 import { speakAsync, cancelSpeech, stopVoiceSession, primeSpeech } from '../voiceCoach';
@@ -26,6 +27,15 @@ import useMiniPlayer from '../hooks/useMiniPlayer';
 //   intro     — the opening line the coach speaks.
 //   miniPlayer — feed the floating window, so it is already open when the
 //     guided player takes it over (see hooks/useMiniPlayer).
+//   lines     — AT YOUR PACE's own words (data/paceVoice PACE_WARMUP): its
+//     halfway line, a line `lastTenAt` seconds from the end (before the beeps)
+//     and its closing line, in place of the defaults.
+//   note      — { title, text }: a card of advice under the ring (a mission's
+//     own warm-up), when there are no idea chips.
+//   skipSolid — SKIP as a solid teal button (the AT YOUR PACE bypass).
+//   tBackdrop — the Training Mode T behind the screen, the same one the AT YOUR
+//     PACE workouts screen and run screen have (owner, 2026-11-25), in place of
+//     the boxer-in-ring picture and the embers.
 const TEAL = '#2dd4bf';
 const RING_SIZE = 394;
 const RING_R = 174;
@@ -60,12 +70,15 @@ function WarmupMiniFeed({ remaining, totalSec, name }) {
 export default function WarmupTimer({
   minutes = 5, title = 'WARM-UP', onDone, onSkip,
   suggestions, initialPick, onPick, skipLabel = 'SKIP → START', intro, miniPlayer = false,
+  lines = null, note = null, skipSolid = false, voice = true, tBackdrop = false,
 }) {
   useWakeLock(true);
   const totalSec = Math.max(1, Math.round(minutes * 60));
   const [remaining, setRemaining] = useState(totalSec);
   const halfSpokenRef = useRef(false);
   const lastBeepRef = useRef(null);
+  const lastTenSpokenRef = useRef(false);
+  const linesRef = useRef(lines);
   const doneRef = useRef(false);
   const hasIdeas = Array.isArray(suggestions) && suggestions.length > 0;
   const [pickId, setPickId] = useState(() => (hasIdeas ? (suggestions.find(x => x.id === initialPick) || suggestions[0]).id : null));
@@ -80,11 +93,15 @@ export default function WarmupTimer({
   const pickCb = useRef(onPick);
   pickCb.current = onPick;
   const introRef = useRef(intro);
+  // voice={false} (a mission set to no voice): the warm-up keeps its beeps and bell but says nothing.
+  const voiceRef = useRef(voice);
+  voiceRef.current = voice;
+  const talk = (line, opts) => (voiceRef.current === false ? Promise.resolve() : speakAsync(line, opts));
 
   useEffect(() => {
     unlockAudio();
     primeSpeech()
-      .then(() => speakAsync(introRef.current || `Warm up. ${minutes} minute${minutes === 1 ? '' : 's'}. Stretch and get loose.`))
+      .then(() => talk(introRef.current || `Warm up. ${minutes} minute${minutes === 1 ? '' : 's'}. Stretch and get loose.`))
       .catch(() => {});
     // A warm-up that ran its course hands off while "Warm up complete. Here we
     // go." is still being said: let that line finish. A SKIP cuts it (below).
@@ -95,7 +112,7 @@ export default function WarmupTimer({
     if (idea.id === pickId) return;
     setPickId(idea.id);
     cancelSpeech();
-    speakAsync(idea.say || idea.label).catch(() => {});
+    talk(idea.say || idea.label).catch(() => {});
     pickCb.current?.(idea.id);
   };
 
@@ -110,7 +127,14 @@ export default function WarmupTimer({
     // Halfway nudge.
     if (!halfSpokenRef.current && remaining > 0 && remaining <= Math.floor(totalSec / 2)) {
       halfSpokenRef.current = true;
-      speakAsync('Halfway through the warm up. Keep moving.').catch(() => {});
+      talk(linesRef.current?.half || 'Halfway through the warm up. Keep moving.').catch(() => {});
+    }
+
+    // A line just before the last ten seconds (only when the caller gave one).
+    const L = linesRef.current;
+    if (L?.lastTen && !lastTenSpokenRef.current && remaining > 10 && remaining <= (L.lastTenAt || 12)) {
+      lastTenSpokenRef.current = true;
+      talk(L.lastTen, { dropIfBusy: true }).catch(() => {});
     }
 
     // Last 10s beeps.
@@ -122,7 +146,7 @@ export default function WarmupTimer({
     if (remaining === 0) {
       doneRef.current = true;
       playBell(1);
-      speakAsync('Warm up complete. Here we go.').catch(() => {});
+      talk(linesRef.current?.done || 'Warm up complete. Here we go.').catch(() => {});
       const t = setTimeout(() => doneCb.current?.(), 1200);
       return () => clearTimeout(t);
     }
@@ -137,9 +161,9 @@ export default function WarmupTimer({
 
   return (
     <PhoneFrame useBrandBg>
-      <FightRingBackdrop/>
+      {!tBackdrop && <FightRingBackdrop/>}
       <style dangerouslySetInnerHTML={{ __html: warmupCSS }}/>
-      <Embers count={3}/>
+      {!tBackdrop && <Embers count={3}/>}
       {miniPlayer && <WarmupMiniFeed remaining={remaining} totalSec={totalSec} name={pick?.label || 'WARM UP'}/>}
 
       <div style={{
@@ -147,6 +171,7 @@ export default function WarmupTimer({
         alignItems: 'center', minHeight: '100dvh',
         padding: '14px 14px calc(100px + env(safe-area-inset-bottom, 0px))',
       }}>
+        {tBackdrop && <RunWatermark/>}
         <VoiceMixer top={10} right={10}/>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', marginBottom: 6 }}>
@@ -169,7 +194,7 @@ export default function WarmupTimer({
 
         {/* With the idea chips under it the ring gives up a little height on
             short phones, so SKIP stays on screen above the tab bar. */}
-        <div style={{ position: 'relative', width: '100%', maxWidth: hasIdeas ? 'min(320px, 40dvh)' : 320, aspectRatio: '1', marginBottom: 14 }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: hasIdeas || note ? 'min(320px, 40dvh)' : 320, aspectRatio: '1', marginBottom: 14 }}>
           <svg width="100%" height="100%" viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`} style={{ display: 'block', overflow: 'visible' }}>
             <circle cx={cx} cy={cy} r={RING_R} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={RING_STROKE}/>
             <circle cx={cx} cy={cy} r={RING_R + 14} fill="none"
@@ -238,7 +263,23 @@ export default function WarmupTimer({
           </div>
         )}
 
-        <button onClick={() => { stopVoiceSession(); onSkip?.(); }} style={{
+        {note && !hasIdeas && (
+          <div data-warmup-note="true" style={{
+            width: '100%', maxWidth: 320, marginBottom: 14, padding: '10px 14px', boxSizing: 'border-box',
+            borderRadius: 12, background: 'rgba(45,212,191,0.08)', border: `1px solid ${TEAL}55`,
+          }}>
+            {note.title && <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 10, color: '#5fbfb2', letterSpacing: '0.18em', marginBottom: 4 }}>{note.title}</div>}
+            <div style={{ fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 16, lineHeight: 1.3, color: '#e6fbf7' }}>{note.text}</div>
+          </div>
+        )}
+
+        <button onClick={() => { stopVoiceSession(); onSkip?.(); }} className={skipSolid ? 'tm-cta-3d' : undefined} style={skipSolid ? {
+          width: '100%', maxWidth: 320, height: 54, borderRadius: 14,
+          background: `linear-gradient(180deg, #5eead4 0%, ${TEAL} 55%, #14b8a6 100%)`, border: '1px solid #99f6e4', color: '#04130f',
+          boxShadow: `inset 0 2px 0 rgba(255,255,255,0.35), 0 5px 0 #0f766e, 0 8px 18px ${TEAL}55`,
+          fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 15,
+          letterSpacing: '0.12em', cursor: 'pointer', marginBottom: 5,
+        } : {
           width: '100%', maxWidth: 320, height: 46, borderRadius: 12,
           background: 'transparent', border: `1px solid ${TEAL}66`, color: TEAL,
           fontFamily: "'Orbitron',sans-serif", fontWeight: 800, fontSize: 12,

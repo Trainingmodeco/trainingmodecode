@@ -1845,5 +1845,41 @@ const DR = await import('../components/training-mode/data/libraryDrop.js');
   check('library +: an unknown entry drops nothing', DR.libraryDrop(null) === null && DR.libraryDrop({ kind: 'v2', id: 'nope' }) === null && DR.libraryDrop({ kind: 'classic', id: 'nope' }) === null);
 }
 
+// ── AT YOUR PACE: the coach's lines (data/paceVoice) ────────────────────────
+{
+  console.log('\nAT YOUR PACE voice');
+  const PV = await import('../components/training-mode/data/paceVoice.js');
+  const lib = (id) => { const d = L.missionDefById(id); return L.buildLoadoutMission(id, { level: L.levelsOf(d)[0].id }); };
+  check('pace voice: the warm-up opens with what it is and how to skip', PV.PACE_WARMUP.intro === 'Warm up. 5 minutes. Tap skip when you are ready.' && PV.PACE_WARMUP_MIN === 5);
+  check('pace voice: the last-ten line is said before the beeps of the last ten', PV.PACE_WARMUP.lastTenAt > 10);
+  check('pace voice: WORKOUTS says at your pace and swap, or START when the moves cannot swap',
+    /At your own pace\. Swap any move before you start\.$/.test(PV.workoutsLine()) && /Tap start when you are ready\.$/.test(PV.workoutsLine({ canSwap: false })));
+  check('pace voice: an EMOM is run by the bell', PV.howToLine(lib('first_bell')) === 'Each set starts on the bell.');
+  check('pace voice: intervals are run by the bell', PV.howToLine(lib('surge_20_10')) === 'Work and rest on the bell.');
+  check('pace voice: an AMRAP names ROUND', PV.howToLine(lib('best_of_3')) === 'Tap round after each round.');
+  check('pace voice: a for-time run names ROUND and FINISH', PV.howToLine(lib('one_bell_300')) === 'Tap round after each round. Tap finish when you are done.');
+  check('pace voice: a ladder names its rungs', PV.howToLine(lib('burnout_21')) === 'Tap round after each rung. Tap finish when you are done.');
+  check('pace voice: a one-round for-time run names FINISH only', PV.howToLine(lib('ko_sprint_30')) === 'Tap finish when you are done.');
+  check('pace voice: until down names SET and I PUT IT DOWN', PV.howToLine(lib('no_continues')) === 'Tap set after each set. Tap I put it down when the bell is down.');
+  check('pace voice: until down in rounds names ROUND and I\'M DONE', PV.howToLine(lib('upper_lower_dips')) === "Tap round after each round. Tap I'm done.");
+  check('pace voice: max reps names DONE', PV.howToLine(lib('boss_rush')) === 'Tap done when the set is done.');
+  check('pace voice: the start says it is starting, at your pace, then the buttons', PV.startLine(lib('best_of_3')) === 'Workout starting. At your own pace. Tap round after each round.');
+  check('pace voice: GET READY is 5 s with no speech, longer for a long start, never past the cap',
+    PV.readySecFor(null) === 5 && PV.readySecFor(0) === 5 && PV.readySecFor(1500) === 5 && PV.readySecFor(5200) === 9 && PV.readySecFor(60000) === PV.PACE_READY_MAX);
+  const fb = PV.runVoiceCues(lib('first_bell'));
+  check('pace voice: FIRST BELL says rest and back to work around its block rest, after the bell', fb.length === 2 && fb[0].say === 'Rest.' && fb[1].say === 'Back to work.' && fb.every(c => c.at % 1000 === PV.PACE_AFTER_BELL_MS % 1000), JSON.stringify(fb));
+  check('pace voice: a 20/10 interval set says nothing at its short rests', PV.runVoiceCues(lib('surge_20_10')).every(c => c.say !== 'Rest.'));
+  const ft = PV.runVoiceCues(lib('one_bell_300'));
+  check('pace voice: a capped run says the last minute after its warning beep', ft.length === 1 && ft[0].say === 'Last minute.' && ft[0].at === (lib('one_bell_300').capSec - 60) * 1000 + 600);
+  const am = PV.runVoiceCues(lib('room_12'));
+  check('pace voice: one AMRAP says the last minute', am.length === 1 && am[0].at === (S.missionClockSec(lib('room_12')) - 60) * 1000);
+  check('pace voice: an EMOM with no rest says nothing in the run', PV.runVoiceCues(lib('iron_clock_16')).length === 0);
+  check('pace voice: every line is a fixed sentence (no move names, no counts)', L.LOADOUT_MISSIONS.every(d => PV.paceLinesFor(lib(d.id)).every(l => typeof l === 'string' && l && !/\d/.test(l.replace(/\b(5 minutes|10 seconds)\b/g, '')))));
+  check('pace voice: the warm-up advice is the note\'s own warm-up, after its colon',
+    PV.warmupAdvice({ note: 'Warm up 5 min first: 3 easy rounds of 5 prying goblet squats, 5 halos each way and 10 hip bridges, light bell. Switch arms.' }) === '3 easy rounds of 5 prying goblet squats, 5 halos each way and 10 hip bridges, light bell.'
+    && PV.warmupAdvice({ note: 'Same arm all minute. Warm up 5 min, then 1 round with the empty bar. Add 2.5 kg.' }) === 'Warm up 5 min, then 1 round with the empty bar.'
+    && PV.warmupAdvice({ note: 'No warm-up words here.' }) === null && PV.warmupAdvice(null) === null);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

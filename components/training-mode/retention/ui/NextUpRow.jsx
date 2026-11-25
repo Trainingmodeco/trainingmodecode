@@ -6,9 +6,9 @@ import { HOME, head, ARC, RETENTION_CSS } from './tokens';
 // lines), `label` the whole of it for a screen reader.
 const TWO_LINES = { display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden' };
 
-export default function NextUpRow({ eyebrow, title, label, number, boss = false, onGo, style }) {
+export default function NextUpRow({ eyebrow, title, label, number, boss = false, onGo, style, className = '' }) {
   return (
-    <button type="button" data-retention="next-up" aria-label={label} className="rt-go rt-anim" onClick={onGo} style={{
+    <button type="button" data-retention="next-up" aria-label={label} className={`rt-go rt-anim ${className}`.trim()} onClick={onGo} style={{
       width: '100%', minHeight: 64, boxSizing: 'border-box', borderRadius: 14, background: HOME.tile, border: '1px solid rgba(253,224,71,.35)',
       display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', cursor: 'pointer', textAlign: 'left', flexShrink: 0, ...style,
     }}>

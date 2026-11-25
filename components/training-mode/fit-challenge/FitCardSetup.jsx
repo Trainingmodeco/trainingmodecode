@@ -122,7 +122,10 @@ export default function FitCardSetup({ entry, onBack, onFightMode, onStart, onPa
   // What is on the card: today's deal, FULL BODY WARRIOR, a saved or repeated
   // workout (a snapshot), or a library mission (v2 / classic). YOUR WORKOUTS
   // on Progress opens the page on a kept run (entry.cardRunId).
+  // Back from AT YOUR PACE's WORKOUTS screen (entry.reopen): the library mission picked there, with its level and swaps.
+  const [reopen] = useState(() => (entry?.reopen && missionDefById(entry.reopen.missionId) ? entry.reopen : null));
   const [source, setSource] = useState(() => {
+    if (reopen) return { kind: 'v2', id: reopen.missionId };
     const kept = entry?.cardRunId ? cardRunById(entry.cardRunId) : null;
     return kept ? { kind: 'saved', snapshot: kept, from: 'history' } : { kind: 'deal' };
   });
@@ -135,14 +138,17 @@ export default function FitCardSetup({ entry, onBack, onFightMode, onStart, onPa
   const [bonusTicks, setBonusTicks] = useState({});
   const [checkOff, setCheckOffState] = useState(checkOffOn);
   const [prefs, setPrefs] = useState(() => loadShelfPrefs());
-  const [mode, setMode] = useState(() => prefs.mode || 'guided');
+  const [mode, setMode] = useState(() => (reopen ? 'solo' : prefs.mode || 'guided'));
   const gear = useState(() => gearProfile())[0];
   const [shelf] = useState(() => shelfEntries());
   const [saved] = useState(() => loadSavedWorkouts());
   const historyRows = useWorkoutRows();
   // A library mission on the card: its level and its own swaps.
-  const [level, setLevel] = useState('standard');
-  const [v2swaps, setV2swaps] = useState({});
+  const [level, setLevel] = useState(() => {
+    const def = reopen ? missionDefById(reopen.missionId) : null;
+    return def ? (def.levels?.[reopen.level] ? reopen.level : def.defaultLevel || 'standard') : 'standard';
+  });
+  const [v2swaps, setV2swaps] = useState(() => (reopen?.swaps || {}));
   const [notice, setNotice] = useState(() => (entry?.newDeal ? 'A new deal: new moves, same everything else.' : null));
 
   const cfg = useMemo(() => quickMissionConfig({ duration, focus, difficulty, workoutType }), [duration, focus, difficulty, workoutType]);

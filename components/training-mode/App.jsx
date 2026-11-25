@@ -101,8 +101,11 @@ const ACTIVE_SESSION_SCREENS = new Set([
 // cardio_mode is a setup screen most of the time and a session only while a
 // run is live. The run player reports { live: true } through onSessionState;
 // without it the screen is not stashed and the boot restore leaves it alone.
+// AT YOUR PACE's warm-up and WORKOUTS screen come before the clock: they
+// report { preRun: true } and leaving them leaves nothing to resume.
 function isSessionScreenLive(screen, internalState) {
   if (screen === 'cardio_mode') return !!internalState?.live;
+  if (screen === 'qm_active' && internalState?.preRun === true) return false;
   return true;
 }
 
@@ -831,7 +834,10 @@ export default function App() {
         // The workout card (switch fitCard): YOUR WORKOUTS on Progress puts a kept run back on
         // the card; the card's results' NEW CHALLENGE opens it on a new deal.
         : entry && (typeof entry.cardRunId === 'string' || entry.newDeal === true) ? { cardRunId: str(entry.cardRunId), newDeal: entry.newDeal === true }
-          : null);
+          // AT YOUR PACE's WORKOUTS screen, Back: the page opens with that library mission still picked (level and swaps kept).
+          : entry && entry.reopen && typeof entry.reopen.missionId === 'string'
+            ? { reopen: { missionId: entry.reopen.missionId, level: str(entry.reopen.level), swaps: entry.reopen.swaps && typeof entry.reopen.swaps === 'object' ? { ...entry.reopen.swaps } : {} } }
+            : null);
       setScreen('qm_setup');
     },
     // Every Quick Mission start comes through here, so the GUIDED / AT YOUR PACE

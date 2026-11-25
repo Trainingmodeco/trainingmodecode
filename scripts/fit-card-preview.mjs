@@ -175,7 +175,25 @@ async function finishRun(page, w, opts = {}) {
 
 // A library mission picked in CHOOSE and run AT YOUR PACE (QuickMissionSolo):
 // START, GET READY, then `runSec` seconds of the run. The clock is Playwright's.
-async function libraryRun(page, w, title, { runSec = 40 } = {}) {
+// START on the setup opens the WARM-UP (5:00); `stop` says where to stay:
+// 'warmup' (30 s in), 'workouts' (SKIP WARM-UP), or the run (START on
+// WORKOUTS, GET READY waited out, then runSec of the clock).
+async function paceFlow(page, { runSec = 40, stop = 'run' } = {}) {
+  await tap(page, byName(page, /^START$/));
+  if (stop === 'warmup') { await page.clock.runFor(30000); await wait(page, 600); return; }
+  await tap(page, byName(page, /^SKIP WARM-UP$/));
+  await wait(page, 500);
+  if (stop === 'workouts') return;
+  await tap(page, byName(page, /^START$/));
+  // GET READY is 5 s, longer with the spoken start: run it out whatever its length.
+  for (let k = 0; k < 30; k++) {
+    await page.clock.runFor(500);
+    if (!/GET READY/.test(await page.evaluate(() => document.body.innerText))) break;
+  }
+  await page.clock.runFor(runSec * 1000);
+  await wait(page, 600);
+}
+async function libraryRun(page, w, title, opts = {}) {
   await qm(page, w);
   await tap(page, byName(page, /^CHOOSE$/));
   await tap(page, byName(page, new RegExp(`^${title}`)));
@@ -183,19 +201,15 @@ async function libraryRun(page, w, title, { runSec = 40 } = {}) {
   await toTop(page);
   await tap(page, page.getByRole('radio', { name: 'AT YOUR PACE' }));
   await pause(page);
-  await tap(page, byName(page, /^START$/));
-  await page.clock.runFor(6000 + runSec * 1000);
-  await wait(page, 600);
+  await paceFlow(page, opts);
 }
 // Today's mission AT YOUR PACE with CHECK-OFF off (the seed): the classic runner.
-async function generatedRun(page, w, { runSec = 40 } = {}) {
+async function generatedRun(page, w, opts = {}) {
   await qm(page, w);
   await toTop(page);
   await tap(page, page.getByRole('radio', { name: 'AT YOUR PACE' }));
   await pause(page);
-  await tap(page, byName(page, /^START$/));
-  await page.clock.runFor(6000 + runSec * 1000);
-  await wait(page, 600);
+  await paceFlow(page, opts);
 }
 // The + on a library row: the row button's own parent holds it. Returns the + locator.
 const plusOf = (page, rowName) => page.getByRole('button', { name: rowName }).first().locator('xpath=..').getByRole('button', { name: /full workout/ });
@@ -283,7 +297,9 @@ const STATES = [
   // ── AT YOUR PACE on the first screen (running, then paused) ──────────────
   { name: 'pace-emom', pace: true, expectNow: 'lit', note: 'IRON CLOCK 16 (EMOM, four lifts) AT YOUR PACE in its second minute: the clock, the lit move and PAUSE / STOP.',
     open: (page, w) => libraryRun(page, w, 'IRON CLOCK 16', { runSec: 75 }), expect: /AT YOUR PACE[\s\S]*IRON CLOCK 16[\s\S]*ELAPSED/ },
-  { name: 'pace-amrap', pace: true, expectNow: 'lit', note: 'BEST OF 3 (AMRAP, three moves) AT YOUR PACE: the clock, ROUND and UNDO, the moves and PAUSE / STOP.',
+  { name: 'pace-firstbell', pace: true, expectNow: 'lit', note: 'FIRST BELL (EMOM, kettlebell: the owner\'s screenshot of 2026-11-24) AT YOUR PACE in its second set.',
+    open: (page, w) => libraryRun(page, w, 'FIRST BELL', { runSec: 49 }), expect: /AT YOUR PACE[\s\S]*FIRST BELL/ },
+  { name: 'pace-amrap', pace: true, expectNow: 'first', note: 'BEST OF 3 (AMRAP, three moves: a circuit, so no single move is lit) AT YOUR PACE: the ring, ROUND 1 and its time, UNDO / ROUND, the moves and PAUSE / STOP.',
     open: (page, w) => libraryRun(page, w, 'BEST OF 3', { runSec: 40 }), expect: /AT YOUR PACE[\s\S]*BEST OF 3[\s\S]*ROUND 1/ },
   { name: 'pace-fortime', pace: true, expectNow: 'first', note: 'ONE-BELL 300 (for time, six moves) AT YOUR PACE: the clock, ROUND, FINISH, the moves and PAUSE / STOP.',
     open: (page, w) => libraryRun(page, w, 'ONE-BELL 300', { runSec: 40 }), expect: /AT YOUR PACE[\s\S]*ONE-BELL 300[\s\S]*FINISH/ },
@@ -293,6 +309,23 @@ const STATES = [
     open: (page, w) => libraryRun(page, w, 'BOSS RUSH', { runSec: 40 }), expect: /AT YOUR PACE[\s\S]*BOSS RUSH[\s\S]*DONE/ },
   { name: 'pace-generated', pace: true, expectNow: 'first', checkOff: false, note: 'Today\'s mission AT YOUR PACE (CHECK-OFF off): the classic runner on a generated mission.',
     open: (page, w) => generatedRun(page, w, { runSec: 40 }), expect: /AT YOUR PACE[\s\S]*ROUND 1[\s\S]*FINISH/ },
+  // ── AT YOUR PACE before the clock: the WARM-UP, then WORKOUTS ────────────
+  { name: 'pre-warmup-firstbell', note: 'FIRST BELL\'s WARM-UP, 30 s in: the ring timer (4:30), the mission\'s own warm-up from its note and SKIP WARM-UP.',
+    open: (page, w) => libraryRun(page, w, 'FIRST BELL', { stop: 'warmup' }), check: [], expect: /WARM-UP[\s\S]*04:30[\s\S]*THIS MISSION'S WARM-UP[\s\S]*3 easy rounds of 5 prying goblet squats[\s\S]*SKIP WARM-UP/ },
+  { name: 'pre-warmup-generated', checkOff: false, note: 'Today\'s mission\'s WARM-UP: the generic warm-up ideas (the generator has no warm-up words).',
+    open: (page, w) => generatedRun(page, w, { stop: 'warmup' }), check: [], expect: /WARM-UP[\s\S]*WARM-UP IDEAS[\s\S]*SKIP WARM-UP/ },
+  ...[['emom', 'IRON CLOCK 16', /EMOM · \d+ MIN/], ['firstbell', 'FIRST BELL', /EMOM · \d+ MIN · REST 1:00/], ['amrap', 'BEST OF 3', /AMRAP · \d+ MIN · REST/],
+    ['intervals', 'SURGE 20/10', /INTERVALS · \d+ MIN/], ['fortime', 'ONE-BELL 300', /FOR TIME · \d ROUNDS · CAP/], ['down', 'NO CONTINUES', /· CAP 30:00/], ['maxreps', 'BOSS RUSH', /MAX REPS · \d ROUNDS · CAP/]]
+    .map(([k, title, fmt]) => ({ name: `pre-workouts-${k}`, note: `${title}'s WORKOUTS screen: the format in one line, every move big with SWAP, "i" and START over the tab bar.`,
+      open: (page, w) => libraryRun(page, w, title, { stop: 'workouts' }), check: ['[data-run-head]', '[data-run-bar]'],
+      expect: new RegExp(`AT YOUR PACE · WORKOUTS[\\s\\S]*${title.replace(/[/?]/g, '.')}[\\s\\S]*${fmt.source}[\\s\\S]*START`), absent: /PACE TARGETS|LOAD ·/ })),
+  { name: 'pre-workouts-generated', checkOff: false, note: 'Today\'s mission\'s WORKOUTS: no SWAP (a generated mission cannot swap), START.',
+    open: (page, w) => generatedRun(page, w, { stop: 'workouts' }), check: ['[data-run-head]', '[data-run-bar]'], expect: /AT YOUR PACE · WORKOUTS[\s\S]*Tap START when you are ready[\s\S]*START/, absent: /SWAP/ },
+  { name: 'pre-workouts-info', note: 'The "i" on FIRST BELL\'s WORKOUTS: pace targets, load, notes and the beeps line, all that left the run screen.', overlay: true, check: ['[role=dialog]'],
+    open: async (page, w) => { await libraryRun(page, w, 'FIRST BELL', { stop: 'workouts' }); await tap(page, byName(page, /About this workout/)); }, expect: /ABOUT THIS WORKOUT[\s\S]*PACE TARGETS[\s\S]*ELITE[\s\S]*NOTES[\s\S]*Beeps play while the screen is on/ },
+  { name: 'pre-workouts-back', note: 'Back on FIRST BELL\'s WORKOUTS: the Quick Mission page with FIRST BELL still picked (not today\'s generated mission).',
+    open: async (page, w) => { await libraryRun(page, w, 'FIRST BELL', { stop: 'workouts' }); await tap(page, byName(page, /^Back$/)); await wait(page, 800); },
+    check: [], expect: /FIRST BELL[\s\S]*START/, absent: /AT YOUR PACE · WORKOUTS|NO-GEAR GRIND/ },
   { name: 'pace-checkoff', pace: true, expectNow: 'lit', note: 'CHECK-OFF: round 1 done and four ticks into round 2: the clock, the next move lit and PAUSE / STOP.',
     open: (page, w) => checkOff(page, w, { rounds: 1, more: 4 }), expect: /CHECK-OFF[\s\S]*ROUND 2 OF 3[\s\S]*SHUFFLE[\s\S]*STOP/ },
 ];
@@ -410,6 +443,21 @@ function measureRun({ expectNow }) {
   const pill = document.querySelector('button[aria-label="Report beta feedback"]');
   if (pill) { const p = rect(pill); if (btns.some((x) => { const r = rect(x); return p.left < r.right && r.left < p.right && p.top < r.bottom && r.top < p.bottom; })) fails.push('the BETA pill is over a bar button'); }
   if (h.bottom > b.top - 40) fails.push(`the head leaves no room for the moves (ends ${Math.round(h.bottom)}, bar at ${Math.round(b.top)})`);
+  // The look (owner, 2026-11-24, docs/quick-mission/PACE-LOOK.md): the clock is the
+  // ring, the move in hand is big beside it, the rows are readable from a couple
+  // of feet, the buttons are raised, and the PACE card, the LOAD line, the note
+  // and the format sentence are off the run screen (they live on the pre-run page).
+  const ring = document.querySelector('[data-run-ring]');
+  if (!ring || !ring.querySelector('[role="timer"]')) fails.push('the clock is not the ring (no [data-run-ring] holding the timer)');
+  const nowName = document.querySelector('[data-run-now] .sr-name');
+  if (!nowName || !nowName.innerText.trim()) fails.push('no move in hand beside the ring');
+  else if (parseFloat(getComputedStyle(nowName).fontSize) < 20) fails.push(`the move in hand is ${getComputedStyle(nowName).fontSize}, under 20px`);
+  const bodyText = document.body.innerText;
+  const gone = bodyText.match(/Beeps play while the screen is on|LOAD ·|\bELITE\b|The pass:|Warm up \d+ min/);
+  if (gone) fails.push(`removed text is back on the run screen: "${gone[0]}"`);
+  const biggest = (el) => Math.max(...[el, ...el.querySelectorAll('*')].filter((x) => [...x.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())).map((x) => parseFloat(getComputedStyle(x).fontSize)), 0);
+  for (const e of lit) if (biggest(e) < 20) fails.push(`the lit move's words are ${biggest(e)}px, under 20`);
+  for (const x of btns) if (!/gradient/.test(getComputedStyle(x).backgroundImage)) fails.push(`${x.innerText.trim()} is flat (no raised gradient)`);
   return { fails, info: { head: `${Math.round(h.top)}..${Math.round(h.bottom)}`, bar: `${Math.round(b.top)}..${Math.round(b.bottom)}`, tabs: Math.round(navTop), lit: lit.length } };
 }
 
@@ -510,7 +558,7 @@ async function montage(name, kind, outName) {
   await mp.close();
 }
 for (const st of STATES) {
-  if ((ONLY && !ONLY.test(st.name)) || !(st.pace || /^lib-/.test(st.name))) continue;
+  if ((ONLY && !ONLY.test(st.name)) || !(st.pace || /^(lib|pre)-/.test(st.name))) continue;
   await montage(st.name, '', st.pace ? `${st.name}-running` : st.name);
   if (st.pace) await montage(st.name, '-paused', `${st.name}-paused`);
 }

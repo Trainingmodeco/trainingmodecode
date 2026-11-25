@@ -426,7 +426,9 @@ export default function QuickMissionSetup({ entry, onBack, onHome, onFightMode, 
   // Sally Up…) or a v2 launch mission. A library pick replaces the generated
   // mission until GEAR, TIME, SURPRISE or the card's way back hands it back
   // to the generator.
-  const [sel, setSel] = useState(GENERATED);
+  // Back from AT YOUR PACE's WORKOUTS screen (entry.reopen): the mission picked there comes back picked.
+  const [reopen] = useState(() => (entry?.reopen && missionDefById(entry.reopen.missionId) ? entry.reopen : null));
+  const [sel, setSel] = useState(() => (reopen ? { kind: 'v2', id: reopen.missionId } : GENERATED));
   const named = sel.kind === 'classic' ? namedWorkoutById(sel.id) : null;
   void onHome; void onCardioOnly;
 
@@ -435,9 +437,9 @@ export default function QuickMissionSetup({ entry, onBack, onHome, onFightMode, 
   // own LOADOUT / THEME); the selected mission and its swaps never do.
   const v2 = useState(() => qmV2Enabled())[0];
   const [prefs, setPrefs] = useState(() => loadShelfPrefs());
-  const [mode, setMode] = useState(() => prefs.mode || 'guided');
-  const [level, setLevel] = useState('standard');
-  const [swaps, setSwaps] = useState({}); // { [swapKey]: moveId }, the athlete's own picks only
+  const [mode, setMode] = useState(() => (reopen ? 'solo' : prefs.mode || 'guided'));
+  const [level, setLevel] = useState(() => (reopen && missionDefById(reopen.missionId)?.levels?.[reopen.level] ? reopen.level : reopen ? missionDefById(reopen.missionId)?.defaultLevel || 'standard' : 'standard'));
+  const [swaps, setSwaps] = useState(() => (reopen?.swaps || {})); // { [swapKey]: moveId }, the athlete's own picks only
   const [swapKeyOpen, setSwapKeyOpen] = useState(null);
   // Captured once, so the card, its rows, the swap sheet and the library all
   // filter alike.
