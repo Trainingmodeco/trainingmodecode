@@ -3,12 +3,10 @@
 **PICKED (owner, 2026-11-25): LOOK 2, RAISED · ROUNDED.** It is now built into
 the app: `FitSetupKit.jsx` appends `css(round look, 'html:not([data-bl="now"]) ')`
 to `fitKitCSS`, so the kit's buttons (GhostButton, SegRow, GearRow, RunModeSwitch,
-ChipGroup, the library's filter chips and +, the MISSION LIBRARY and ADJUST
-rows, SURPRISE) are raised and rounded. It reaches every screen that draws the
-kit (Build Workout and Cardio too). The end screen's BACK TO FIT MODE and RETURN
-HOME carry the classes `fk-end2` and `fk-home` (`MissionComplete` actions take
-an optional `className`; only `QuickMissionComplete` sets them, so other modes'
-end screens are unchanged). `/button-looks` keeps all looks for comparison:
+ChipGroup, the library's +, the MISSION LIBRARY and ADJUST rows, SURPRISE) are
+raised and rounded. Left in the OLD style at the owner's word (2026-11-25): the
+library's LOADOUT / THEME filter chips and the end screen's BACK TO FIT MODE and
+RETURN HOME. It reaches every screen that draws the kit (Build Workout and Cardio too). `/button-looks` keeps all looks for comparison:
 `?look=now` switches the pick off (the old buttons), `?look=applied` is the app
 as it is. Below is the original brief, with "applying" already done.
 

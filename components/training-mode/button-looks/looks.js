@@ -125,18 +125,23 @@ export function css(look, prefix) {
   if (!look) return '';
   const P = prefix ?? `html[data-bl="${look.id}"] body `;
   const px = (list) => list.map((s) => P + s);
+  // The applied look (a `prefix` was given) leaves the library's filter chips and
+  // the end screen's two buttons in the old style (owner, 2026-11-25).
+  const applied = prefix != null;
+  const CHIP = applied ? '.fk-chip:not(.ml-chip)' : '.fk-chip';
+  const ALL = ['.fk-seg', CHIP, '.fk-ghost', '.bl-quiet', '.bl-danger', '.qm-lib', '[data-guide="qm-adjust"]', DROP, ...(applied ? [] : [END2, HOME])];
   let out = `
-${px(['.fk-seg', '.fk-chip', '.fk-ghost', '.bl-quiet', '.bl-danger', '.qm-lib', '[data-guide="qm-adjust"]', END2, HOME, DROP]).join(',')}{position:relative !important;isolation:isolate;background:none !important;border:0 !important;box-shadow:none !important;clip-path:none !important;transition:transform .08s ease}
-${px(['.fk-seg', '.fk-chip', '.fk-ghost', '.bl-quiet', '.bl-danger', '.qm-lib', '[data-guide="qm-adjust"]', END2, HOME, DROP].map((s) => `${s}::before`)).join(',')},${px(['.fk-seg', '.fk-chip', '.fk-ghost', '.bl-quiet', '.bl-danger', '.qm-lib', '[data-guide="qm-adjust"]', END2, HOME, DROP].map((s) => `${s}::after`)).join(',')}{content:"";position:absolute;z-index:-1;pointer-events:none;transition:none}
-${px(['.fk-seg:active', '.fk-chip:active', '.fk-ghost:active', '.bl-quiet:active', '.bl-danger:active', '.qm-lib:active', END2 + ':active', HOME + ':active', DROP + ':active']).join(',')}{transform:translateY(2px)}
+${px(ALL).join(',')}{position:relative !important;isolation:isolate;background:none !important;border:0 !important;box-shadow:none !important;clip-path:none !important;transition:transform .08s ease}
+${px(ALL.map((s) => `${s}::before`)).join(',')},${px(ALL.map((s) => `${s}::after`)).join(',')}{content:"";position:absolute;z-index:-1;pointer-events:none;transition:none}
+${px(ALL.map((s) => `${s}:active`)).join(',')}{transform:translateY(2px)}
 ${P}${SEG}{clip-path:none !important;background:none !important;box-shadow:none !important;border:0 !important;padding:0 0 ${LIP + 1}px !important;gap:6px !important;height:auto !important}
-${px(['.fk-chip']).join(',')}{height:44px !important;margin-top:-4px !important;margin-bottom:-4px !important}
-${px(['.fk-chip']).join(',')}{min-width:44px}
-${px(['.fk-chip.ml-chip']).join(',')}{margin-top:-5px !important;margin-bottom:-5px !important;padding:0 6px !important}
+${px([CHIP]).join(',')}{height:44px !important;margin-top:-4px !important;margin-bottom:-4px !important;min-width:44px}
+${applied ? '' : `${px(['.fk-chip.ml-chip']).join(',')}{margin-top:-5px !important;margin-bottom:-5px !important;padding:0 6px !important}`}
 ${px(['.fk-seg']).join(',')}{min-height:44px}
-${px([END2, HOME]).join(',')}{height:44px !important;border-radius:0 !important}
+${applied ? '' : `${px([END2, HOME]).join(',')}{height:44px !important;border-radius:0 !important}`}
 `;
   for (const g of GROUPS) {
+    if (applied && (g.sel.includes('.fk-chip.ml-chip') || g.sel.includes(END2) || g.sel.includes(HOME))) continue;
     const big = g.size !== 's';
     const sel = (extra) => px(g.sel.map((s) => (extra ? s + extra : s)));
     if (g.on) {
