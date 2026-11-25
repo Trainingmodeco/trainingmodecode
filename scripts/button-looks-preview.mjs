@@ -25,7 +25,7 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const SIZES = [[360, 780], [390, 844]];
 const IDS = ['now', ...LOOKS.map((l) => l.id)];
-const LABEL = { now: 'NOW', raised: 'LOOK 1 · RAISED CUT', round: 'LOOK 2 · RAISED ROUND', neon: 'LOOK 3 · NEON FRAME', full: 'LOOK 4 · FULL COLOUR' };
+const LABEL = { now: 'NOW', raised: 'LOOK 1 · RAISED CUT', round: 'LOOK 2 · RAISED ROUND', neon: 'LOOK 3 · NEON COLOUR' };
 const PANELS = ['setup', 'library', 'end', 'kit'];
 const PANEL_WORD = { setup: 'Quick Mission setup', library: 'Library sheet', end: 'End screen', kit: 'Every kind' };
 

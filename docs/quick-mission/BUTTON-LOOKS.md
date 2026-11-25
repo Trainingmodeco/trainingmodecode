@@ -14,7 +14,7 @@ real Quick Mission screen with sample data in that look; no params lists them.
 
 `npm run preview:button-looks -- <out-dir>` photographs every look and panel at
 360x780 and 390x844 (scale 2) and builds one comparison sheet per panel and
-size (`sheet-<panel>-<width>.png`: NOW and LOOK 1 to 4 side by side). It fails
+size (`sheet-<panel>-<width>.png`: NOW and LOOKS 1 to 3 side by side). It fails
 on sideways overflow, a look's target under 44 px, a label under 4.5:1, or a
 look that styled nothing. Needs the dev server (`CI=1 npx expo start --web
 --port 8081`; restart with `--clear` after an edit) and ImageMagick.
@@ -25,19 +25,19 @@ with its + closed and one open, PUT ON CARD + START), (c) the end screen
 (BACK TO FIT MODE, RETURN HOME), (d) every kind side by side, including the red
 danger button, which no Quick Mission screen has yet.
 
-## The four looks
+## The three looks
 
 1. **RAISED, cut corners**: the kit's cut corners kept. Gradient body, light top
    edge, a darker 3 px lip, soft glow. Unpicked: deep slate-violet. Picked:
    brighter violet with a gold hairline. Quiet (PUT ON CARD, SURPRISE, RETURN
    HOME): gold-edged raised dark. Danger: the red skin.
 2. **RAISED, rounded**: the same depth and colours on rounded corners (Home START).
-3. **NEON FRAME**: dark glass body in a bright frame that follows the cut
-   corners, TrainingCTA corner ticks on the big buttons, glow. Picked fills with
-   violet. Quiet is a gold frame, danger a red one.
-4. **FULL COLOUR**: PUT ON CARD, SURPRISE and BACK TO FIT MODE filled violet,
-   danger red, the picked segment gold like START (flatter, small glow, so START
-   keeps the big one and stays the loudest), unpicked raised dark.
+3. **NEON COLOUR** (neon frame and full colour merged): the neon frame, the
+   TrainingCTA corner ticks (big buttons) and glow, on full-colour bodies.
+   Unpicked: raised dark glass in a violet frame. Picked: gold like START
+   (flatter, small glow, so START keeps the big one and stays the loudest).
+   PUT ON CARD, SURPRISE and BACK TO FIT MODE: filled violet. Danger: filled red.
+   RETURN HOME: dark glass in a gold frame.
 
 Gold START (`GoldButton`) and the end screen's NEW MISSION are not touched by
 any look.
@@ -46,7 +46,7 @@ any look.
 
 `components/training-mode/button-looks/looks.js`: one object per look (`LOOKS`)
 with its colours per role (`off`, `on`, `ghost`, `second`, `end2`, `home`,
-`danger`: body stops, lip, edge, glow, text; for neon the frame and ticks) and
+`danger`: body stops, lip, edge, glow, text; for neon the frame, fill or glass, and ticks) and
 its shape (`cut`, `round`, `neon`), plus `css(look)`, which turns a look into
 rules scoped to `html[data-bl="<id>"]`. `ButtonLooks.jsx` sets that attribute
 and draws the panels from the real components.

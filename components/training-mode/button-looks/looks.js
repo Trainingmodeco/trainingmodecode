@@ -37,38 +37,29 @@ const raisedRoles = {
 raisedRoles.end2 = raisedRoles.second;
 raisedRoles.home = raisedRoles.ghost;
 
-const neon = (frame, glow, ticks, glass = ['#171230', '#0F0B22']) => ({ frame, glow, ticks, glass, text: '#FFFFFF' });
-const neonRoles = {
-  off: neon('#9D6CFF', 'rgba(157,108,255,0.45)', '#C4A8FF'),
-  on: { frame: '#E2D2FF', glow: 'rgba(176,130,255,0.75)', ticks: 'rgba(255,255,255,0.85)', fill: ['#7E52F0', '#6A3FDD', '#5028B8'], text: '#FFFFFF' },
-  ghost: neon(GOLD, 'rgba(242,190,69,0.40)', GOLD),
-  second: neon('#B08CFF', 'rgba(157,108,255,0.40)', '#C4A8FF'),
-  danger: { ...RED, frame: '#FF6B6B', glow: 'rgba(255,90,90,0.55)', text: '#FFFFFF' },
+// NEON COLOUR: the neon frame, ticks and glow on full-colour bodies. Unpicked
+// is raised dark glass in a violet frame, picked is gold like START (flatter,
+// small glow: START stays the loudest), the secondary actions are filled violet,
+// danger is filled red.
+const DARK = ['#2A2447', '#1F1A38', '#171330'];
+const VIOLET_BODY = ['#7E52F0', '#6C3FE0', '#5329B8'];
+const neonColourRoles = {
+  off: { frame: '#9D6CFF', glass: DARK, glow: 'rgba(157,108,255,0.40)', ticks: '#C4A8FF', text: '#E6E2F5' },
+  on: { frame: '#FFF0B8', fill: ['#FFE9A8', '#F2BE45', '#C98A1C'], glow: 'rgba(242,190,69,0.30)', ticks: 'rgba(90,45,0,0.6)', text: '#1A1204' },
+  ghost: { frame: '#E2D2FF', fill: VIOLET_BODY, glow: 'rgba(157,108,255,0.55)', ticks: 'rgba(255,255,255,0.85)', text: '#FFFFFF' },
+  second: { frame: '#B08CFF', glass: DARK, glow: 'rgba(157,108,255,0.40)', ticks: '#C4A8FF', text: '#FFFFFF' },
+  home: { frame: GOLD, glass: DARK, glow: 'rgba(242,190,69,0.30)', ticks: GOLD, text: '#E6E2F5' },
+  danger: { frame: '#FF9A9A', fill: RED.body, glow: 'rgba(255,90,90,0.55)', ticks: 'rgba(255,220,220,0.8)', text: '#FFFFFF' },
 };
-neonRoles.end2 = neonRoles.second;
-neonRoles.home = neonRoles.ghost;
-
-const VIOLET_FILL = { body: ['#7E52F0', '#6C3FE0', '#5329B8'], lip: '#2A1470', edge: 'rgba(224,204,255,0.5)', glow: 'rgba(157,108,255,0.40)', text: '#FFFFFF' };
-const fullRoles = {
-  off: { body: ['#2A2447', '#1F1A38', '#171330'], lip: '#08060F', edge: 'rgba(255,255,255,0.14)', glow: 'rgba(0,0,0,0)', text: '#E6E2F5' },
-  // Gold like START, but flatter and with a small glow: START stays the loudest.
-  on: { body: ['#FFE9A8', '#F2BE45', '#C98A1C'], lip: '#8A5A10', edge: 'rgba(255,245,200,0.7)', glow: 'rgba(242,190,69,0.22)', text: '#1A1204' },
-  ghost: VIOLET_FILL,
-  second: { body: ['#2A2447', '#1F1A38', '#171330'], lip: '#08060F', edge: 'rgba(157,108,255,0.55)', glow: 'rgba(157,108,255,0.22)', text: '#FFFFFF' },
-  end2: VIOLET_FILL,
-  home: { body: ['#2A2447', '#1F1A38', '#171330'], lip: '#08060F', edge: 'rgba(255,255,255,0.14)', glow: 'rgba(0,0,0,0)', text: '#E6E2F5' },
-  danger: RED,
-};
+neonColourRoles.end2 = neonColourRoles.ghost;
 
 export const LOOKS = [
   { id: 'raised', n: 1, name: 'RAISED · CUT CORNERS', shape: 'cut', roles: raisedRoles,
     blurb: 'The kit’s cut corners kept. Gradient body, light top edge, darker lip, soft glow. Picked is brighter violet with a gold hairline; quiet buttons are a gold-edged raised dark.' },
   { id: 'round', n: 2, name: 'RAISED · ROUNDED', shape: 'round', roles: raisedRoles,
     blurb: 'The same raised depth on rounded corners, like Home START.' },
-  { id: 'neon', n: 3, name: 'NEON FRAME', shape: 'neon', roles: neonRoles,
-    blurb: 'Dark glass body inside a bright frame that follows the cut corners, corner ticks like TrainingCTA, glow. Picked fills with colour.' },
-  { id: 'full', n: 4, name: 'FULL COLOUR', shape: 'cut', roles: fullRoles,
-    blurb: 'Secondary actions filled violet, danger red, the picked segment gold like START (flatter, START keeps the glow), unpicked raised dark.' },
+  { id: 'neon', n: 3, name: 'NEON COLOUR', shape: 'neon', roles: neonColourRoles,
+    blurb: 'Neon frame, corner ticks and glow on full-colour bodies: unpicked raised dark glass in a violet frame, picked gold like START (flatter), secondary actions filled violet, danger filled red.' },
 ];
 export const NOW = { id: 'now', n: 0, name: 'NOW', blurb: 'The app as it is today.' };
 export const lookById = (id) => LOOKS.find((l) => l.id === id) || null;
