@@ -165,9 +165,10 @@ ${lockCSS('vh')}
 .hm-modes > button { height: auto !important; min-height: 0; }
 .hm-tiles > .hm-arcade { flex: 0 1 96px; min-height: 44px; }
 .hm-arcade-big { font-size: 26px; }
-.hm-quick { flex: 0 1 auto !important; display: flex; flex-direction: column; gap: 8px; min-height: var(--hm-tap); }
+/* Never squeezed below its own heading and 44px tiles: the art gives first. */
+.hm-quick { flex: 0 0.2 auto !important; display: flex; flex-direction: column; gap: 8px; min-height: calc(var(--hm-tap) + 22px); }
+.hm-l1 .hm-quick { min-height: var(--hm-tap); }
 .hm-quick-grid { flex: 1 1 var(--hm-quick-h); min-height: var(--hm-tap); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.hm-quick-head + .hm-quick-grid { min-height: var(--hm-tap); }
 .hm-drop { flex: 0 1 var(--hm-drop-h) !important; min-height: 60px; }
 .hm-under { display: flex; flex-direction: column; gap: var(--hm-gap); }
 /* No room for the icons above the Quick Access labels: the label alone. */
@@ -184,14 +185,13 @@ ${lockCSS('vh')}
 .hm-l1 .hm-arcade .hm-arcade-title:first-child { letter-spacing: .24em !important; font-size: 8px !important; }
 .hm-l1 .hm-arcade > svg { display: none; }
 .hm-l1 .hm-quick-head { display: none; }
-/* 2. A 1UP or POWER notice sits over the top of the card (never its START)
-   instead of pushing the hub down; NEXT UP gets slimmer. */
-.hm-l2 .hm-under { position: relative; z-index: 20; height: 0; }
-.hm-l2 { --hm-next-min: 46px; --hm-next-pad: 2px; }
+/* 2. The card at its tightest; NEXT UP gets slimmer. */
+.hm-l2 { --hm-card-pt: 8px; --hm-card-pb: 8px; --hm-card-gap: 2px; --hm-title: 20px; --hm-gap: 5px; --hm-top: 6px; --hm-go-h: max(40px, var(--hm-tap)); --hm-next-min: 46px; --hm-next-pad: 2px; }
 .hm-l2 .hm-next > span:first-of-type { width: 32px !important; height: 32px !important; }
-/* 3. The card at its tightest. */
-.hm-l3 { --hm-card-pt: 8px; --hm-card-pb: 8px; --hm-card-gap: 2px; --hm-title: 20px; --hm-gap: 5px; --hm-top: 6px; --hm-go-h: max(40px, var(--hm-tap)); }
-.hm-l3 [data-lock="pick"] { margin: calc(-1 * var(--hm-gap)) 0; }
+.hm-l2 [data-lock="pick"] { margin: calc(-1 * var(--hm-gap)) 0; }
+/* 3. A 1UP or POWER notice sits over the top of the card (never its START)
+   instead of pushing the hub down. */
+.hm-l3 .hm-under { position: relative; z-index: 20; height: 0; }
 /* 4. NEXT UP and the drop side by side. */
 .hm-pair { display: contents; }
 .hm-l4 .hm-pair { display: flex; gap: var(--hm-gap); min-height: 60px; }
@@ -546,7 +546,7 @@ export default function HomeDashboard({
       : null;
 
   // The fit check: while the column does not fit the screen, take the next
-  // tighter step (homeCSS: hm-l1..hm-l3). What is on the hub, or the screen's
+  // tighter step (homeCSS: hm-l1..hm-l4). What is on the hub, or the screen's
   // size, changing starts over from the roomiest look.
   const fitKey = [!!underNotice, !!b, boutDone, !!pausedAlt, card.kind, !!card.next, !!nextUp, !!ghostCh, !!showPower, String(b?.title || card.title || '').length > 18].join();
   const fitStart = useRef(fitKey);
@@ -570,7 +570,13 @@ export default function HomeDashboard({
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => setTick((t) => t + 1)) : null;
     for (const c of el.children) ro?.observe(c);
     window.addEventListener('resize', onResize);
-    return () => { ro?.disconnect(); window.removeEventListener('resize', onResize); };
+    // A step taken while a font or picture was still loading (the page was
+    // taller for a moment) is not kept: once they are in, start over from
+    // the roomiest look. The steps run before the screen is painted.
+    let live = true;
+    const settle = setTimeout(() => setFit(0), 900);
+    document.fonts?.ready?.then(() => { if (live) setFit(0); });
+    return () => { live = false; clearTimeout(settle); ro?.disconnect(); window.removeEventListener('resize', onResize); };
   }, [fitKey]);
 
   return (

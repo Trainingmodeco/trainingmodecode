@@ -42,9 +42,10 @@ Fit Mode and Fight Mode hubs. This is how it now works.
    time, only as many as it needs:
    - step 1: FIT, FIGHT and ARCADE share one row of three tiles, and the
      "Quick access" heading goes (its three tiles stay);
-   - step 2: a 1UP or POWER notice sits over the top of the card instead of
-     pushing the hub down (it never covers START), and NEXT UP gets slimmer;
-   - step 3: the card at its tightest (title 20px, less padding, smaller gaps);
+   - step 2: the card at its tightest (title 20px, less padding, smaller
+     gaps), and NEXT UP gets slimmer;
+   - step 3: a 1UP or POWER notice sits over the top of the card instead of
+     pushing the hub down (it never covers START);
    - step 4: NEXT UP and the drop banner sit side by side. Only the fullest
      state on the smallest phone (320x568 with a POWER notice, NEXT UP, a
      drop and a long title) needs this, and there the two banners' second
