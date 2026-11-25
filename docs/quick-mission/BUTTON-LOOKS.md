@@ -6,15 +6,16 @@ to `fitKitCSS`, so the kit's buttons (GhostButton, SegRow, GearRow, RunModeSwitc
 ChipGroup, the library's +, the MISSION LIBRARY and ADJUST rows, SURPRISE) are
 raised and rounded. Left in the OLD style at the owner's word (2026-11-25): the
 library's LOADOUT / THEME filter chips and the end screen's BACK TO FIT MODE and
-RETURN HOME. It reaches every screen that draws the kit (Build Workout and Cardio too). `/button-looks` keeps all looks for comparison:
+RETURN HOME. It reaches every screen that draws the kit (Build Workout and
+Cardio too). `/button-looks` keeps all looks for comparison:
 `?look=now` switches the pick off (the old buttons), `?look=applied` is the app
-as it is. Below is the original brief, with "applying" already done.
+as it is. Below is the original brief.
 
 The owner finds Quick Mission's cut-corner dark buttons flat ("they don't stand
 out") and wants the depth of the yellow START and the red combat buttons.
-Nothing in the app was changed: every existing screen, `FitSetupKit.jsx`,
-`RunBar.jsx` and `QuickMissionSolo.jsx` are as they were. The app looks exactly
-as today until a look is picked.
+When the looks were drawn up nothing in the app was changed; the pick above is
+the only change to `FitSetupKit.jsx`. `RunBar.jsx` and `QuickMissionSolo.jsx`
+are untouched.
 
 ## See them
 
