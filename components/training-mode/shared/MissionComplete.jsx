@@ -310,10 +310,10 @@ export default function MissionComplete({
           {ctas || <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {shownActions.map((a, i) => {
               if (a.kind === 'ghost') {
-                return <button key={i} onClick={a.onClick} style={{ width: '100%', height: 38, border: '1px solid rgba(255,255,255,0.12)', borderRadius: 11, background: 'transparent', color: '#9a90b8', font: "700 11px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer' }}>{a.label}</button>;
+                return <button key={i} className={a.className} onClick={a.onClick} style={{ width: '100%', height: 38, border: '1px solid rgba(255,255,255,0.12)', borderRadius: 11, background: 'transparent', color: '#9a90b8', font: "700 11px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer' }}>{a.label}</button>;
               }
               if (a.kind === 'secondary') {
-                return <button key={i} onClick={a.onClick} style={{ width: '100%', height: 40, border: '1px solid rgba(176,106,255,0.4)', borderRadius: 11, background: 'rgba(176,106,255,0.08)', color: '#b06aff', font: "800 12px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer' }}>{a.label}</button>;
+                return <button key={i} className={a.className} onClick={a.onClick} style={{ width: '100%', height: 40, border: '1px solid rgba(176,106,255,0.4)', borderRadius: 11, background: 'rgba(176,106,255,0.08)', color: '#b06aff', font: "800 12px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer' }}>{a.label}</button>;
               }
               return <button key={i} onClick={a.onClick} style={{ width: '100%', height: 44, border: 'none', borderRadius: 11, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 13px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 20px rgba(253,224,71,0.35)' }}>{a.label}</button>;
             })}

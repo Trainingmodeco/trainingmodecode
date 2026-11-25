@@ -65,8 +65,8 @@ function End() {
       ]}
       actions={[
         { label: 'NEW MISSION', onClick: noop, kind: 'primary' },
-        { label: 'BACK TO FIT MODE', onClick: noop, kind: 'secondary' },
-        { label: 'RETURN HOME', onClick: noop, kind: 'ghost', role: 'home' },
+        { label: 'BACK TO FIT MODE', onClick: noop, kind: 'secondary', className: 'fk-end2' },
+        { label: 'RETURN HOME', onClick: noop, kind: 'ghost', role: 'home', className: 'fk-home' },
       ]}
     />
   );
@@ -133,10 +133,10 @@ export default function ButtonLooks({ look, panel }) {
   // The look is set on <html>: the library sheet is portalled to <body>.
   useLayoutEffect(() => {
     const el = document.documentElement;
-    if (l) el.setAttribute('data-bl', l.id); else el.removeAttribute('data-bl');
+    if (l) el.setAttribute('data-bl', l.id); else if (look === 'now') el.setAttribute('data-bl', 'now'); else el.removeAttribute('data-bl');
     return () => el.removeAttribute('data-bl');
-  }, [l]);
-  if (!Panel || (!l && look !== 'now')) return <Gallery/>;
+  }, [l, look]);
+  if (!Panel || (!l && look !== 'now' && look !== 'applied')) return <Gallery/>;
   return (
     <>
       <style>{STYLE}</style>

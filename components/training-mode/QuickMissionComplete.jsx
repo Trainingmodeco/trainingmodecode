@@ -127,8 +127,8 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
       shareData={{ mode: 'Quick Mission', completedCount: exercisesCompleted, totalCount: totalExercises }}
       actions={[
         { label: 'NEW MISSION', onClick: onRetry, kind: 'primary' },
-        { label: 'BACK TO FIT MODE', onClick: onFitHub, kind: 'secondary' },
-        { label: 'RETURN HOME', onClick: onHome, kind: 'ghost', role: 'home' },
+        { label: 'BACK TO FIT MODE', onClick: onFitHub, kind: 'secondary', className: 'fk-end2' },
+        { label: 'RETURN HOME', onClick: onHome, kind: 'ghost', role: 'home', className: 'fk-home' },
       ]}
     />
   );

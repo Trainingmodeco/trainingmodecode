@@ -4,6 +4,7 @@ import { HelpButton } from './WorkoutHelpPanel';
 import BottomSheet from './BottomSheet';
 import { loadStats, getLevel } from '../data/userStats';
 import { useScrollFade } from './hubScroll';
+import { LOOKS, css as lookCss } from '../button-looks/looks';
 
 // The Fit-side setup vocabulary from the Revamp design (FitMode / QuickMission
 // / BuildWorkout / Cardio .dc.html): one header, a chamfered segmented row,
@@ -23,6 +24,12 @@ export const BODY = "'Barlow', system-ui, sans-serif";
 // Chamfered corners (top-left, bottom-right) — the design's .chf.
 export const chf = { clipPath: 'polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px)' };
 export const GOLD_FILL = 'linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%)';
+
+// The picked button look (owner, 2026-11-25: RAISED · ROUNDED, button-looks/looks.js):
+// gradient body, light top edge, darker lip, soft glow, on the kit's buttons and
+// Quick Mission's library, ADJUST and end-screen buttons. /button-looks keeps
+// the other looks for comparison; its NOW photo switches this off.
+const RAISED = lookCss(LOOKS.find(l => l.id === 'round'), 'html:not([data-bl="now"]) ');
 
 export const fitKitCSS = `
 .fk-gold { transition: filter .18s ease, box-shadow .18s ease, transform .1s ease; }
@@ -45,6 +52,7 @@ export const fitKitCSS = `
 .fk-hero img { opacity: .5; filter: brightness(.8); transition: opacity .25s ease, filter .25s ease, transform .3s ease; }
 .fk-hero:hover img { opacity: .8; filter: brightness(1) saturate(1.1); transform: scale(1.02); }
 :focus-visible { outline: 2px solid ${GOLD}; outline-offset: 2px; }
+${RAISED}
 `;
 
 export function LevelBadge() {

@@ -66,9 +66,10 @@ export const lookById = (id) => LOOKS.find((l) => l.id === id) || null;
 
 // ── the CSS ────────────────────────────────────────────────────────────────
 const SEG = '[role="radiogroup"][style*="clip-path"]';
-// The end screen's own buttons carry no class: found by their inline border.
-const END2 = 'button[style*="rgba(176, 106, 255, 0.4)"]';
-const HOME = 'button[style*="height: 38px"]';
+// The end screen's secondary and quietest buttons (QuickMissionComplete gives
+// MissionComplete's actions these classes).
+const END2 = '.fk-end2';
+const HOME = '.fk-home';
 const DROP = 'button[aria-controls^="ml-drop-"]';
 const CHECKED = '[aria-checked="true"]';
 
@@ -117,9 +118,12 @@ function roleRule(look, role, sels, size, iy, big) {
   return out;
 }
 
-export function css(look) {
+// `prefix`: what scopes every rule. The gallery's default is its own look; the
+// applied look passes `html:not([data-bl="now"]) ` so only the NOW photo keeps
+// the old buttons.
+export function css(look, prefix) {
   if (!look) return '';
-  const P = `html[data-bl="${look.id}"] `;
+  const P = prefix ?? `html[data-bl="${look.id}"] body `;
   const px = (list) => list.map((s) => P + s);
   let out = `
 ${px(['.fk-seg', '.fk-chip', '.fk-ghost', '.bl-quiet', '.bl-danger', '.qm-lib', '[data-guide="qm-adjust"]', END2, HOME, DROP]).join(',')}{position:relative !important;isolation:isolate;background:none !important;border:0 !important;box-shadow:none !important;clip-path:none !important;transition:transform .08s ease}

@@ -24,8 +24,9 @@ if (!OUT) { console.error('usage: node scripts/button-looks-preview.mjs <out-dir
 fs.mkdirSync(OUT, { recursive: true });
 
 const SIZES = [[360, 780], [390, 844]];
-const IDS = ['now', ...LOOKS.map((l) => l.id)];
-const LABEL = { now: 'NOW', raised: 'LOOK 1 · RAISED CUT', round: 'LOOK 2 · RAISED ROUND', neon: 'LOOK 3 · NEON COLOUR' };
+// 'applied' is the app as it is now, with the picked look built in (no look scope).
+const IDS = ['now', 'applied', ...LOOKS.map((l) => l.id)];
+const LABEL = { now: 'BEFORE (old buttons)', applied: 'APPLIED (the app)', raised: 'LOOK 1 · RAISED CUT', round: 'LOOK 2 · RAISED ROUND', neon: 'LOOK 3 · NEON COLOUR' };
 const PANELS = ['setup', 'library', 'end', 'kit'];
 const PANEL_WORD = { setup: 'Quick Mission setup', library: 'Library sheet', end: 'End screen', kit: 'Every kind' };
 
@@ -42,7 +43,7 @@ for (const l of LOOKS) {
 }
 
 // ── in-page measure ────────────────────────────────────────────────────────
-const TARGETS = '.fk-seg,.fk-chip,.fk-ghost,.bl-quiet,.bl-danger,.qm-lib,[data-guide="qm-adjust"],[aria-controls^="ml-drop-"],button[style*="rgba(176, 106, 255, 0.4)"],button[style*="height: 38px"]';
+const TARGETS = '.fk-seg,.fk-chip,.fk-ghost,.bl-quiet,.bl-danger,.qm-lib,[data-guide="qm-adjust"],[aria-controls^="ml-drop-"],.fk-end2,.fk-home';
 function measure({ look, TARGETS }) {
   const fails = [];
   const W = window.innerWidth;
@@ -100,7 +101,7 @@ for (const panel of PANELS) {
         if (panel === 'end') await page.waitForTimeout(1200);
         const m = await page.evaluate(measure, { look: id, TARGETS });
         fails.push(...m.fails);
-        if (id !== 'now' && !m.styled && panel !== 'kit') fails.push('the look styled no button on this panel');
+        if (id !== 'now' && id !== 'applied' && !m.styled && panel !== 'kit') fails.push('the look styled no button on this panel');
         await page.screenshot({ path: file });
         (files[`${panel}-${w}`] ||= {})[id] = file;
       } catch (e) {

@@ -1,4 +1,16 @@
-# Quick Mission button looks (looks only)
+# Quick Mission button looks
+
+**PICKED (owner, 2026-11-25): LOOK 2, RAISED · ROUNDED.** It is now built into
+the app: `FitSetupKit.jsx` appends `css(round look, 'html:not([data-bl="now"]) ')`
+to `fitKitCSS`, so the kit's buttons (GhostButton, SegRow, GearRow, RunModeSwitch,
+ChipGroup, the library's filter chips and +, the MISSION LIBRARY and ADJUST
+rows, SURPRISE) are raised and rounded. It reaches every screen that draws the
+kit (Build Workout and Cardio too). The end screen's BACK TO FIT MODE and RETURN
+HOME carry the classes `fk-end2` and `fk-home` (`MissionComplete` actions take
+an optional `className`; only `QuickMissionComplete` sets them, so other modes'
+end screens are unchanged). `/button-looks` keeps all looks for comparison:
+`?look=now` switches the pick off (the old buttons), `?look=applied` is the app
+as it is. Below is the original brief, with "applying" already done.
 
 The owner finds Quick Mission's cut-corner dark buttons flat ("they don't stand
 out") and wants the depth of the yellow START and the red combat buttons.
@@ -69,8 +81,8 @@ cut-corner container: each segment is its own button with a 6 px gap.
 ## Applying a pick
 
 The page restyles through classes the buttons already carry (`fk-seg`,
-`fk-chip`, `fk-ghost`, `qm-lib`, ...) plus two inline-style matches for the end
-screen's buttons (`MissionComplete` gives them no class). To make a pick real:
+`fk-chip`, `fk-ghost`, `qm-lib`, `fk-end2`, `fk-home`). To make another pick real
+(done for LOOK 2, as above):
 
 1. In `FitSetupKit.jsx`, move the pick's `roles` in and add its rules to
    `fitKitCSS` (copy `css(look)` with the `html[data-bl]` prefix dropped, about
