@@ -1,6 +1,6 @@
 {
  "voice": "female",
- "version": 27,
+ "version": 28,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -24001,6 +24001,66 @@
   "three position push ups": {
    "file": "three_position_push_ups.mp3",
    "ms": 1896
+  },
+  "workout starting": {
+   "file": "workout_starting.mp3",
+   "ms": 1440
+  },
+  "tap round after each round": {
+   "file": "tap_round_after_each_round.mp3",
+   "ms": 1800
+  },
+  "tap finish when you are done": {
+   "file": "tap_finish_when_you_are_done.mp3",
+   "ms": 1464
+  },
+  "your workout is set": {
+   "file": "your_workout_is_set.mp3",
+   "ms": 1368
+  },
+  "last minute": {
+   "file": "last_minute.mp3",
+   "ms": 984
+  },
+  "tap skip when you are ready": {
+   "file": "tap_skip_when_you_are_ready.mp3",
+   "ms": 1464
+  },
+  "last 10 seconds": {
+   "file": "last_10_seconds.mp3",
+   "ms": 1368
+  },
+  "swap any move before you start": {
+   "file": "swap_any_move_before_you_start.mp3",
+   "ms": 2088
+  },
+  "tap start when you are ready": {
+   "file": "tap_start_when_you_are_ready.mp3",
+   "ms": 1704
+  },
+  "each set starts on the bell": {
+   "file": "each_set_starts_on_the_bell.mp3",
+   "ms": 1632
+  },
+  "work and rest on the bell": {
+   "file": "work_and_rest_on_the_bell.mp3",
+   "ms": 1872
+  },
+  "tap round after each rung": {
+   "file": "tap_round_after_each_rung.mp3",
+   "ms": 1920
+  },
+  "tap set after each set": {
+   "file": "tap_set_after_each_set.mp3",
+   "ms": 1800
+  },
+  "tap i put it down when the bell is down": {
+   "file": "tap_i_put_it_down_when_the_bell_is_down.mp3",
+   "ms": 1824
+  },
+  "back to work": {
+   "file": "back_to_work.mp3",
+   "ms": 888
   }
  },
  "count": 1121,
