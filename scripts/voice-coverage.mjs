@@ -41,7 +41,7 @@ export async function gatherFeatures() {
   // ── 1. fixed words of every speak call ──────────────────────────────────────
   const SCREENS = {
     'Fight Mode': ['ComboCoachActive.jsx', 'FightFocusTimer.jsx', 'PracticeRound.jsx', 'PracticeMoveCard.jsx'],
-    'Quick Mission': ['QuickMissionActive.jsx'],
+    'Quick Mission': ['QuickMissionActive.jsx', 'QuickMissionSolo.jsx'],
     'Workout Builder': ['FitBuilderGuidedPlayer.jsx', 'FitRepCoach.jsx'],
     'Combat Conditioning': ['CombatConditioningActive.jsx'],
     'Cardio Mode': ['CardioProtocolPlayer.jsx', 'RunPlayer.jsx'],
