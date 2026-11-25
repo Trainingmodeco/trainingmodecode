@@ -182,22 +182,26 @@ ${lockCSS('vh')}
 .hm-l1 .hm-tiles > .hm-arcade { flex: 1 1 0; min-height: 0; padding: 0 8px !important; gap: 4px !important; }
 .hm-l1 .hm-mode-label { font-size: 14px !important; line-height: 1.05 !important; }
 .hm-l1 .hm-arcade-big { font-size: 15px; }
-.hm-l1 .hm-arcade .hm-arcade-title:first-child { letter-spacing: .24em !important; font-size: 8px !important; }
+.hm-l1 .hm-arcade .hm-arcade-title:first-child { letter-spacing: .2em !important; font-size: 9px !important; }
 .hm-l1 .hm-arcade > svg { display: none; }
+/* The narrow tile has no room for the STAGES · BOSSES · XP line: the art and
+   the title still wake on hover or press. */
+.hm-l1 .hm-arcade .hm-arcade-sub { display: none; }
 .hm-l1 .hm-quick-head { display: none; }
 /* 2. The card at its tightest; NEXT UP gets slimmer. */
 .hm-l2 { --hm-card-pt: 8px; --hm-card-pb: 8px; --hm-card-gap: 2px; --hm-title: 20px; --hm-gap: 5px; --hm-top: 6px; --hm-go-h: max(40px, var(--hm-tap)); --hm-next-min: 46px; --hm-next-pad: 2px; }
 .hm-l2 .hm-next > span:first-of-type { width: 32px !important; height: 32px !important; }
 .hm-l2 [data-lock="pick"] { margin: calc(-1 * var(--hm-gap)) 0; }
-/* 3. A 1UP or POWER notice sits over the top of the card (never its START)
-   instead of pushing the hub down. */
-.hm-l3 .hm-under { position: relative; z-index: 20; height: 0; }
-/* 4. NEXT UP and the drop side by side. */
+/* 3. NEXT UP and the drop side by side. */
 .hm-pair { display: contents; }
-.hm-l4 .hm-pair { display: flex; gap: var(--hm-gap); min-height: 60px; }
-.hm-l4 .hm-pair > * { flex: 1 1 0 !important; min-width: 0; height: auto !important; }
-.hm-l4 .hm-pair .hm-next { gap: 8px !important; padding-left: 8px !important; padding-right: 8px !important; }
-.hm-l4 .hm-pair .hm-next > span:last-child { display: none; }
+.hm-l3 .hm-pair { display: flex; gap: var(--hm-gap); min-height: 60px; }
+.hm-l3 .hm-pair > * { flex: 1 1 0 !important; min-width: 0; height: auto !important; }
+.hm-l3 .hm-pair .hm-next { gap: 8px !important; padding-left: 8px !important; padding-right: 8px !important; }
+.hm-l3 .hm-pair .hm-next > span:last-child { display: none; }
+/* 4. A 1UP or POWER notice sits over the header (level, streak, ?) until it is
+   closed, instead of pushing the hub down. It never covers the card: the
+   card's title is what START will run. */
+.hm-l4 .hm-under { position: absolute; top: var(--hm-top); left: 16px; right: 16px; z-index: 20; }
 `;
 
 export default function HomeDashboard({
@@ -556,11 +560,19 @@ export default function HomeDashboard({
   const [tick, setTick] = useState(0);
   const over = () => { const el = stackRef.current; return !!el && el.scrollHeight > el.clientHeight; };
   const [stuck, setStuck] = useState(false);
+  // In the roomy look, FIT and FIGHT squeezed under 80px (or the ARCADE under
+  // 64px, too short for its STAGES line) are thin strips: three in a row
+  // (step 1) gives each tile more height.
+  const slivers = () => {
+    const el = stackRef.current; if (!el || fit !== 0) return false;
+    const m = el.querySelector('.mc'); const a = el.querySelector('.hm-arcade');
+    return (!!m && m.offsetHeight < 80) || (!!a && a.offsetHeight < 64);
+  };
   useLayoutEffect(() => {
-    if (!over()) setStuck(false);
+    if (!over() && !slivers()) setStuck(false);
     else if (fit < 4) setFit(fit + 1);
     else setStuck(true);
-  }, [fit, fitKey, tick]);
+  }, [fit, fitKey, tick]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const el = stackRef.current;
     if (!el) return undefined;

@@ -148,6 +148,15 @@ function measure() {
     const ox = Math.min(a.right, c.right) - Math.max(a.left, c.left); const oy = Math.min(a.bottom, c.bottom) - Math.max(a.top, c.top);
     if (ox > 0.5 && oy > 0.5) fails.push(`${blocks[i].name} overlaps ${blocks[j].name}`);
   }
+  // 3b. a 1UP / POWER notice never covers the top card (its eyebrow and title
+  // name what START will run)
+  const card = blocks.find((b) => b.name === 'top card');
+  for (const n of col.querySelectorAll('.hm-under > *')) {
+    if (!card || !shown(n)) continue;
+    const a = n.getBoundingClientRect(); const c = card.el.getBoundingClientRect();
+    const oy = Math.min(a.bottom, c.bottom) - Math.max(a.top, c.top);
+    if (oy > 0.5 && Math.min(a.right, c.right) > Math.max(a.left, c.left)) fails.push(`notice covers the top card by ${Math.round(oy)}px`);
+  }
   // 4. tap targets (the hub's own; a toast or notice is transient and its own component)
   const minTap = H < 640 ? 40 : 44;
   for (const btn of col.querySelectorAll('button')) {
