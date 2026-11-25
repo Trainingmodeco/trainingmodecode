@@ -125,6 +125,7 @@ export default function QuickMissionComplete({ result, cardioResult, onRetry, on
       cardioResult={cardioResult}
       board={result.board ? <ScoreBoardSlot finish={result.board}/> : null}
       shareData={{ mode: 'Quick Mission', completedCount: exercisesCompleted, totalCount: totalExercises }}
+      raised
       actions={[
         { label: 'NEW MISSION', onClick: onRetry, kind: 'primary' },
         { label: 'BACK TO FIT MODE', onClick: onFitHub, kind: 'secondary' },

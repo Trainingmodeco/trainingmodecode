@@ -4,7 +4,7 @@ import { ARCADE } from '../ArcadeUI';
 //  - variant="primary": purple→blue gradient, gold corner cuts, white text.
 //  - variant="gold": metallic gold fill, dark text, purple glow (premium accent).
 // Shared so every setup/workout screen uses the same START treatment.
-const CTA_STYLES = `
+export const RAISED_CSS = `
 @keyframes tm-cta-pulse {
   0%, 100% { box-shadow: 0 0 16px rgba(124,58,237,0.42), 0 6px 20px rgba(0,0,0,0.35); }
   50% { box-shadow: 0 0 28px rgba(79,140,255,0.58), 0 6px 20px rgba(0,0,0,0.35); }
@@ -37,7 +37,12 @@ function corner(pos, c) {
   return { ...base, bottom: 5, right: 5, borderBottom: `2px solid ${c}`, borderRight: `2px solid ${c}` };
 }
 
-const SKINS = {
+// The raised skins: ONE source for every raised button in Training Mode (RunBar's
+// PAUSE / STOP, and Quick Mission's raised buttons in shared/QmButtons.jsx).
+// Each skin: a gradient body, a light top edge (inset), a darker lip under it.
+// slate, picked and teal are Quick Mission's (2026-11-25): slate the quiet,
+// unpicked button; picked a brighter violet with a gold hairline; teal DONE.
+export const RAISED_SKINS = {
   gold: {
     border: '1.5px solid rgba(255,238,150,0.9)',
     background: 'linear-gradient(180deg,#ffe574 0%,#f7c33f 55%,#eaa62a 100%)',
@@ -67,7 +72,35 @@ const SKINS = {
     pulse: 'tm-cta-pulse-violet', corner: 'rgba(60,20,90,0.5)', shimmer: 'rgba(255,255,255,0.5)',
     lip: '#7c3aed', inset: 'rgba(255,255,255,0.5)',
   },
+  slate: {
+    border: '1px solid rgba(196,168,255,0.26)',
+    background: 'linear-gradient(180deg,#30264d 0%,#221a3b 55%,#181130 100%)',
+    color: '#ECE8FA', fontSize: 13, textShadow: '0 1px 3px rgba(0,0,0,0.5)',
+    pulse: 'tm-cta-pulse-violet', corner: 'rgba(196,168,255,0.4)', shimmer: 'rgba(255,255,255,0.18)',
+    lip: '#0b0716', inset: 'rgba(255,255,255,0.13)', glow: 'rgba(124,58,237,0.18)',
+  },
+  picked: {
+    border: '1.5px solid rgba(242,190,69,0.9)',
+    background: 'linear-gradient(180deg,#8c64ee 0%,#6c45d2 55%,#5331ad 100%)',
+    color: '#fff', fontSize: 13, textShadow: '0 1px 4px rgba(0,0,0,0.45)',
+    pulse: 'tm-cta-pulse', corner: 'rgba(253,224,71,0.9)', shimmer: 'rgba(255,255,255,0.3)',
+    lip: '#2d1868', inset: 'rgba(255,255,255,0.34)', glow: 'rgba(157,108,255,0.45)',
+  },
+  teal: {
+    border: '1px solid #99f6e4',
+    background: 'linear-gradient(180deg,#5eead4 0%,#2dd4bf 55%,#14b8a6 100%)',
+    color: '#04130f', fontSize: 13, textShadow: '0 1px 0 rgba(255,255,255,0.25)',
+    pulse: 'tm-cta-pulse', corner: 'rgba(4,19,15,0.45)', shimmer: 'rgba(255,255,255,0.4)',
+    lip: '#0f766e', inset: 'rgba(255,255,255,0.35)', glow: 'rgba(45,212,191,0.3)',
+  },
 };
+const SKINS = RAISED_SKINS;
+
+// The raised key's shadow: light top edge, the lip `lift` px deep, a soft drop
+// and (when the skin has one) a soft glow in its colour.
+export function raisedShadow(sk, lift = 5) {
+  return `inset 0 2px 0 ${sk.inset}, 0 ${lift}px 0 ${sk.lip}, 0 ${lift * 2}px 16px rgba(0,0,0,0.45)${sk.glow ? `, 0 0 18px ${sk.glow}` : ''}`;
+}
 
 export default function TrainingCTA({ label, onClick, icon = '▶', disabled = false, height = 56, variant = 'primary', depth = false, style }) {
   const sk = SKINS[variant] || SKINS.primary;
@@ -80,7 +113,7 @@ export default function TrainingCTA({ label, onClick, icon = '▶', disabled = f
   };
   // 2.5D depth: a hard bottom "lip" + inset top highlight so the button reads as
   // a raised physical key; it presses down on :active.
-  const depthShadow = `inset 0 2px 0 ${sk.inset}, 0 5px 0 ${sk.lip}, 0 10px 16px rgba(0,0,0,0.45)`;
+  const depthShadow = raisedShadow(sk);
   const skin = {
     border: sk.border, background: sk.background, color: sk.color, fontSize: sk.fontSize,
     textShadow: sk.textShadow,
@@ -96,7 +129,7 @@ export default function TrainingCTA({ label, onClick, icon = '▶', disabled = f
       className={depth ? 'tm-cta-3d' : undefined}
       style={{ ...base, ...skin, ...(depth ? { boxShadow: depthShadow, marginBottom: 5 } : null), ...style }}
     >
-      <style dangerouslySetInnerHTML={{ __html: CTA_STYLES }} />
+      <style dangerouslySetInnerHTML={{ __html: RAISED_CSS }} />
       <span style={corner('tl', cornerColor)} /><span style={corner('tr', cornerColor)} />
       <span style={corner('bl', cornerColor)} /><span style={corner('br', cornerColor)} />
       {!disabled && (

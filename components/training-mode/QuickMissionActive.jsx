@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import SafeImage from './SafeImage';
 import PhoneFrame from './PhoneFrame';
 import CornerHUD from './CornerHUD';
 import VoiceMixer from './shared/VoiceMixer';
@@ -25,6 +24,11 @@ import { qmV2Enabled } from './data/qmV2';
 import { levelWord } from './data/quickMissionConfig';
 import { missionRunsAtYourPace, isGeneratedMission } from './data/soloFromGenerated';
 import MaxRepsSheet from './shared/MaxRepsSheet';
+// One look with AT YOUR PACE (owner, 2026-11-25, docs/quick-mission/UNIFIED-LOOK.md):
+// the same ring (with its very dim bolt), the Training Mode T behind, raised buttons.
+import RunRing from './shared/RunRing';
+import { RunWatermark } from './shared/RunBar';
+import { QmStyle, qmRaised } from './shared/QmButtons';
 // The runner's timing numbers and which moves it counts live in one pure module,
 // so the generator's minutes are these same minutes (data/quickMissionTiming).
 import {
@@ -49,6 +53,27 @@ const GOLD = C.yellow;
 // 781 to 830px (412 x 811) only trims the ring, enough to clear the BETA chip in the rest and the
 // set; a taller one keeps the full layout. Under 700px (375 x 667) the rest card also drops its
 // generic ready line and tightens the safety card.
+// The guided look's sizes: the move in hand large and bright (20px at the least,
+// readable from a couple of feet), smaller on a short phone.
+const GUIDED_CSS = `
+.qma-name { font-size: clamp(22px, 7vw, 28px); }
+.qma-nextname { font-size: 20px; }
+/* Short phones (360x640, 320x568): a smaller ring and a tighter card, so the
+   controls stay above the tab bar's shelf with no scroll. */
+@media (max-height: 700px) {
+  .qma-name { font-size: 22px; }
+  .qma-topbar { margin-bottom: 6px !important; }
+  .qma-status { margin-bottom: 8px !important; }
+  .qma-ringbox { width: min(38vw, 132px) !important; margin-bottom: 8px !important; --qma-time: 32px; }
+  .qma-card { padding: 8px 12px !important; margin-bottom: 8px !important; }
+  .qma-upnext { margin-bottom: 8px !important; }
+}
+@media (max-height: 600px) {
+  .qma-ringbox { width: min(34vw, 112px) !important; --qma-time: 26px; }
+  .qma-ready { display: none; }
+}
+`;
+
 const MAX_COMPACT_CSS = `
 @media (min-height: 781px) and (max-height: 830px) {
   .qma-mx-ring { width: min(46vw, 172px) !important; margin-bottom: 10px !important; }
@@ -1494,12 +1519,8 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
     });
   };
 
-  // The ring is drawn in a fixed 380-unit SVG coordinate space but RENDERED
-  // responsively (same pattern as FightFocusTimer) so it never eats the screen
-  // on a phone — it used to render at a hard 380px, which pushed the exercise
-  // card and controls off the bottom.
-  const ringSize = 380;
-  const ringR = (ringSize - 20) / 2;
+  // The ring (shared RunRing, drawn in its own SVG space) is RENDERED
+  // responsively so it never eats the screen on a phone.
   const ringBox = {
     position: 'relative', width: 'min(54vw, 208px)', maxWidth: '100%',
     aspectRatio: '1 / 1', marginBottom: 14,
@@ -1536,21 +1557,16 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
 
   return (
     <PhoneFrame useBrandBg>
-      {/* Themed background art */}
-      <div style={{
-        position: 'absolute', inset: 0, zIndex: 1, opacity: 0.1,
-        backgroundImage: 'url(/static/ring-conditioning.png)',
-        backgroundSize: 'cover', backgroundPosition: 'center',
-        filter: 'blur(2px) saturate(0.6)',
-        pointerEvents: 'none',
-      }}/>
       <CornerHUD color="rgba(253,224,71,0.3)" size={20} inset={10}/>
       {/* Universal layout: How-to (O) sits top-right in the header row below;
           Volume sits directly under it so the two never overlap. */}
       <VoiceMixer top={58} right={14} dataGuide="qma-volume"/>
       <FloatOnLeave {...mini}/>
 
+      {/* The guided sizes first, so MAX REPS' own compact rules win where both apply. */}
+      <style dangerouslySetInnerHTML={{ __html: GUIDED_CSS }}/>
       {maxReps && <style dangerouslySetInnerHTML={{ __html: MAX_COMPACT_CSS }}/>}
+      <QmStyle/>
       <div style={{
         position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column',
         alignItems: 'center', minHeight: '100dvh',
@@ -1558,15 +1574,17 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
         padding: '16px 16px calc(max(150px, 22dvh) + env(safe-area-inset-bottom, 0px))',
         overflowX: 'hidden',
       }}>
+        {/* The Training Mode T, large and glowing, behind everything (AT YOUR PACE's). */}
+        <RunWatermark/>
 
         {/* Top bar */}
-        <div className={maxReps ? 'qma-mx-top' : undefined} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 12 }}>
+        <div className={maxReps ? 'qma-topbar qma-mx-top' : 'qma-topbar'} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 12 }}>
           <button data-guide="qma-back" onClick={() => { if (!doneRef.current) setConfirmEnd(true); }} aria-disabled={done ? 'true' : undefined} style={{ background: 'none', border: 'none', color: C.text, padding: 4, ...offStyle }}>
             <ChevronLeft size={24}/>
           </button>
           <div data-guide="qma-title" style={{
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 16,
-            color: GOLD, letterSpacing: '0.15em',
+            fontFamily: HEAD, fontWeight: 700, fontSize: 17,
+            color: GOLD, letterSpacing: '0.16em',
             textShadow: '0 0 12px rgba(253,224,71,0.4)',
           }}>QUICK MISSION</div>
           <HelpButton onClick={() => setHelpOpen(true)} size={18}/>
@@ -1577,8 +1595,8 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
             FOOTWORK"); keep them on one line, clear of the floating
             mini-player and voice buttons in the top-right corner. */}
         <div style={{
-          fontFamily: "'Orbitron',sans-serif", fontWeight: 700, fontSize: 12,
-          color: C.text, letterSpacing: '0.1em', marginBottom: 4,
+          fontFamily: HEAD, fontWeight: 700, fontSize: 15,
+          color: '#fff', letterSpacing: '0.1em', marginBottom: 4,
           maxWidth: 'calc(100% - 120px)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'center',
         }}>{mission.title}</div>
         {v2Mission && mission.load && (
@@ -1590,106 +1608,69 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
 
         {/* Status strip. v2 missions: MINUTE m/N for an EMOM, and the level
             in place of the difficulty. */}
-        <div data-guide="qma-status" className={maxReps ? 'qma-mx-strip' : undefined} style={{
+        <div data-guide="qma-status" className={maxReps ? 'qma-status qma-mx-strip' : 'qma-status'} style={{
           display: 'flex', gap: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 16,
           padding: '7px 16px', borderRadius: 8,
           background: 'rgba(15,5,30,0.7)', border: '1px solid rgba(253,224,71,0.15)',
         }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 700, color: GOLD, letterSpacing: '0.1em' }}>
+          <span style={{ fontFamily: HEAD, fontSize: 12, fontWeight: 700, color: GOLD, letterSpacing: '0.12em' }}>
             {untilDown ? `${dc.ONE} ${exercisesCompleted + 1}` : (minuteLabel || <>ROUND {round}/{mission.rounds}</>)}
           </span>
-          <span role={clocked ? 'timer' : undefined} style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 600, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>
+          <span role={clocked ? 'timer' : undefined} style={{ fontFamily: HEAD, fontSize: 11, fontWeight: 600, color: '#CFC7E8', letterSpacing: '0.08em', fontVariantNumeric: 'tabular-nums' }}>
             {clocked ? `${mmss(runSec)} / ${mmss(mission.capSec || 0)}` : workoutType.toUpperCase()}
           </span>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 600, color: C.muted }}>
+          <span style={{ fontFamily: HEAD, fontSize: 11, fontWeight: 600, color: '#CFC7E8', letterSpacing: '0.08em' }}>
             {v2Mission && mission.levelLabel ? mission.levelLabel : levelWord(missionCfg.difficulty)}
           </span>
         </div>
 
-        {/* Timer ring / Cadence display / Reps display */}
-        {(phase === 'work' && currentEx.mode === 'timed') || phase === 'rest' ? (
-          <div data-guide="qma-ring" className={maxReps ? 'qma-mx-ring' : undefined} style={ringBox}>
-            {/* The ring's own art, dimmed behind the arc (matches Fight Focus) */}
-            <SafeImage src="/static/ring-conditioning.png" alt="" style={{
-              position: 'absolute', inset: 0, width: '100%', height: '100%',
-              objectFit: 'cover', borderRadius: '50%', opacity: 0.2, pointerEvents: 'none',
-            }}/>
-            <svg width="100%" height="100%" viewBox={`0 0 ${ringSize} ${ringSize}`} style={{ display: 'block' }}>
-              <circle cx={ringSize/2} cy={ringSize/2} r={ringR} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={12}/>
-              <circle cx={ringSize/2} cy={ringSize/2} r={ringR} fill="none"
-                stroke={ringColor} strokeWidth={12} strokeLinecap="round"
-                strokeDasharray={2 * Math.PI * ringR}
-                strokeDashoffset={(1 - pct) * 2 * Math.PI * ringR}
-                transform={`rotate(-90 ${ringSize/2} ${ringSize/2})`}
-                style={{ transition: 'stroke-dashoffset 0.9s linear', filter: `drop-shadow(0 0 12px ${ringColor})` }}
-              />
-            </svg>
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        {/* Timer ring / Cadence display / Reps display: AT YOUR PACE's ring (RunRing:
+            a faint track, the glowing arc, the very dim bolt behind it) in every phase. */}
+        <div data-guide="qma-ring" className={maxReps ? 'qma-ringbox qma-mx-ring' : 'qma-ringbox'} style={ringBox}>
+          {(phase === 'work' && currentEx.mode === 'timed') || phase === 'rest' ? (
+            <RunRing fill timer={false} paused={paused} pct={pct} color={ringColor}
+              time={formatTime(remaining)} timeSize="var(--qma-time, clamp(30px, 10vw, 42px))" arcTransition="stroke-dashoffset 0.9s linear"
+              word={phase === 'rest' ? (v2 && restKind === 'lead' ? 'GET READY' : 'REST') : 'WORK'}
+              call={phase === 'work' && liveCall ? liveCall : undefined}/>
+          ) : phase === 'work' && cadenceActive ? (
+            <RunRing fill timer={false} paused={paused} color={GOLD} arcTransition="stroke-dashoffset 0.3s ease"
+              pct={currentEx.reps > 0 ? cadenceRep / currentEx.reps : 0}>
               <div style={{
-                fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 36,
-                color: '#fff', textShadow: `0 0 20px ${ringColor}`,
-              }}>{formatTime(remaining)}</div>
-              <div style={{
-                fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700,
-                color: ringColor, letterSpacing: '0.2em', marginTop: 6,
-              }}>{phase === 'rest' ? (v2 && restKind === 'lead' ? 'GET READY' : 'REST') : 'WORK'}</div>
-              {phase === 'work' && liveCall && (
-                <div style={{ fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 20, color: GOLD, letterSpacing: '0.12em', marginTop: 6, textShadow: '0 0 14px rgba(253,224,71,0.5)' }}>{liveCall}</div>
+                fontFamily: HEAD, fontWeight: 700, fontSize: 'clamp(40px, 13vw, 54px)', lineHeight: 1,
+                color: '#fff', textShadow: '0 0 16px rgba(253,224,71,0.7)', fontVariantNumeric: 'tabular-nums',
+              }}>{cadenceRep}</div>
+              <div style={{ font: `700 12px ${HEAD}`, color: GOLD, letterSpacing: '0.16em', marginTop: 4 }}>REP {cadenceRep} / {currentEx.reps}</div>
+            </RunRing>
+          ) : (
+            <RunRing fill timer={false} paused={paused} color={GOLD} pct={phase === 'intro' ? 0 : 1}>
+              {phase === 'intro' ? (
+                /* Beta ND-08 — this state can hold 8s+ while the coach reads the
+                   brief; a static label read as a hang. Pulse it and say why. */
+                <>
+                  <style>{'@keyframes qm-prep{0%,100%{opacity:.4}50%{opacity:1}}'}</style>
+                  <div style={{
+                    fontFamily: HEAD, fontWeight: 700, fontSize: 17,
+                    color: GOLD, letterSpacing: '0.12em', animation: 'qm-prep 1.2s ease-in-out infinite',
+                  }}>PREPARING...</div>
+                  <div style={{
+                    font: `600 13px ${BODY}`, lineHeight: 1.3, textAlign: 'center', maxWidth: '78%',
+                    color: '#E6E2F5', marginTop: 6,
+                  }}>Your coach is reading the mission brief</div>
+                </>
+              ) : (
+                <>
+                  <div className={maxSet ? 'qma-mx-ring-big' : undefined} style={{
+                    fontFamily: HEAD, fontWeight: 700, fontSize: 'clamp(40px, 13vw, 52px)', lineHeight: 1,
+                    color: '#fff', textShadow: '0 0 16px rgba(253,224,71,0.7)',
+                  }}>{maxSet ? 'MAX' : currentEx.reps}</div>
+                  <div className={maxSet ? 'qma-mx-ring-sub' : undefined} style={{
+                    font: `700 12px ${HEAD}`, color: GOLD, letterSpacing: '0.16em', marginTop: 4,
+                  }}>{maxSet ? maxRingLabel : currentEx.unit || 'REPS'}</div>
+                </>
               )}
-            </div>
-          </div>
-        ) : phase === 'work' && cadenceActive ? (
-          <div data-guide="qma-ring" className={maxReps ? 'qma-mx-ring' : undefined} style={{
-            ...ringBox,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            borderRadius: '50%', border: `4px solid ${GOLD}55`,
-            background: 'rgba(10,0,20,0.4)',
-            boxShadow: '0 0 30px rgba(253,224,71,0.15)',
-          }}>
-            <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 44,
-              color: GOLD, textShadow: '0 0 20px rgba(253,224,71,0.5)',
-            }}>{cadenceRep}</div>
-            <div style={{
-              fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 700,
-              color: C.muted, letterSpacing: '0.15em', marginTop: 6,
-            }}>REP {cadenceRep} / {currentEx.reps}</div>
-          </div>
-        ) : (
-          <div data-guide="qma-ring" className={maxReps ? 'qma-mx-ring' : undefined} style={{
-            ...ringBox,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            borderRadius: '50%', border: `4px solid ${GOLD}33`,
-            background: 'rgba(10,0,20,0.4)',
-          }}>
-            {phase === 'intro' ? (
-              /* Beta ND-08 — this state can hold 8s+ while the coach reads the
-                 brief; a static label read as a hang. Pulse it and say why. */
-              <>
-                <style>{'@keyframes qm-prep{0%,100%{opacity:.4}50%{opacity:1}}'}</style>
-                <div style={{
-                  fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 15,
-                  color: GOLD, letterSpacing: '0.1em', animation: 'qm-prep 1.2s ease-in-out infinite',
-                }}>PREPARING...</div>
-                <div style={{
-                  fontFamily: "'Rajdhani',sans-serif", fontWeight: 600, fontSize: 11,
-                  color: C.muted, marginTop: 6,
-                }}>Your coach is reading the mission brief</div>
-              </>
-            ) : (
-              <>
-                <div className={maxSet ? 'qma-mx-ring-big' : undefined} style={{
-                  fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 40,
-                  color: GOLD,
-                }}>{maxSet ? 'MAX' : currentEx.reps}</div>
-                <div className={maxSet ? 'qma-mx-ring-sub' : undefined} style={{
-                  fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 700,
-                  color: C.muted, letterSpacing: '0.15em', marginTop: 6,
-                }}>{maxSet ? maxRingLabel : currentEx.unit || 'REPS'}</div>
-              </>
-            )}
-          </div>
-        )}
+            </RunRing>
+          )}
+        </div>
 
         {/* While the coach reads the brief: the same mission AT YOUR PACE
             instead (the moves and a timer, no coach voice). Nothing is banked
@@ -1704,25 +1685,26 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
 
         {/* Current exercise / Up Next card */}
         {phase !== 'intro' && (
-          <div data-guide="qma-exercisecard" className={maxReps ? 'qma-mx-card' : undefined} style={{
-            width: '100%', maxWidth: 360, padding: '16px 18px', borderRadius: 12,
-            background: 'rgba(10,0,20,0.8)', border: `1px solid ${ringColor}33`,
+          <div data-guide="qma-exercisecard" className={maxReps ? 'qma-card qma-mx-card' : 'qma-card'} style={{
+            width: '100%', maxWidth: 380, padding: '14px 16px', borderRadius: 14, boxSizing: 'border-box',
+            background: 'linear-gradient(180deg, rgba(24,10,44,0.86) 0%, rgba(10,2,22,0.86) 100%)', border: `1px solid ${ringColor}66`,
+            boxShadow: `0 0 18px ${ringColor}22, inset 0 1px 0 rgba(255,255,255,0.06)`,
             textAlign: 'center', marginBottom: 14,
           }}>
             {phase === 'rest' && upNextExercise ? (
               <>
-                <div style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 7, color: '#4f8cff', letterSpacing: '0.15em', marginBottom: 6 }}>
+                <div style={{ font: `700 13px ${HEAD}`, color: '#9CC0FF', letterSpacing: '0.16em', marginBottom: 4 }}>
                   {maxReps && upNextExercise.max ? `UP NEXT · STATION ${exIdx + 1}` : 'UP NEXT'}
                 </div>
-                <div style={{
-                  fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 20,
-                  color: '#fff', letterSpacing: '0.06em',
+                <div data-guided-move="true" className="qma-name" style={{
+                  fontFamily: HEAD, fontWeight: 700, lineHeight: 1.1,
+                  color: '#fff', overflowWrap: 'break-word', textShadow: '0 2px 10px rgba(0,0,0,0.6)',
                 }}>
                   {upNextExercise.name}
                 </div>
                 <div style={{
-                  fontFamily: "'Rajdhani',sans-serif", fontSize: 13, fontWeight: 500,
-                  color: C.muted, marginTop: 8,
+                  fontFamily: HEAD, fontSize: 18, fontWeight: 800,
+                  color: '#9CC0FF', marginTop: 4,
                 }}>
                   {v2 ? doseOf(upNextExercise) : legacyDose(upNextExercise)}
                 </div>
@@ -1731,10 +1713,10 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
                   const ready = workoutType === 'Weighted' && !(maxReps && upNextExercise.max && !isLoadedMove(upNextExercise.moveId)) ? 'Grab your weight.' : workoutType === 'Hybrid' ? 'Prepare your setup.' : 'Get in position.';
                   return (
                     // On the shortest phones the generic line makes way for the stop line (the coach says it).
-                    <div className={maxReps && ready === 'Get in position.' ? 'qma-mx-ready' : undefined} style={{
-                      fontFamily: "'Rajdhani',sans-serif", fontSize: 12, fontWeight: 500,
-                      color: workoutType === 'Bodyweight' ? 'rgba(79,140,255,0.7)' : GOLD,
-                      marginTop: 6,
+                    <div className={maxReps && ready === 'Get in position.' ? 'qma-ready qma-mx-ready' : 'qma-ready'} style={{
+                      font: `600 14px ${BODY}`,
+                      color: workoutType === 'Bodyweight' ? '#9CC0FF' : GOLD,
+                      marginTop: 4,
                     }}>{ready}</div>
                   );
                 })()}
@@ -1745,13 +1727,13 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
             ) : (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontFamily: "'Press Start 2P',monospace", fontSize: 7, color: C.muted, letterSpacing: '0.15em' }}>
+                  <span style={{ font: `700 12px ${HEAD}`, color: GOLD, letterSpacing: '0.16em' }}>
                     {untilDown ? (roundsDown ? `${dc.ONE} ${exercisesCompleted + 1}` : `BLOCK ${exIdx + 1}/${allExercises.length}`) : maxSet ? `STATION ${exIdx + 1}` : (minuteLabel || <>EXERCISE {exIdx + 1}/{allExercises.length}</>)}
                   </span>
                   {phase === 'work' && currentEx.mode === 'reps' && (
                     <span style={{
-                      fontFamily: "'Orbitron',sans-serif", fontSize: 7, fontWeight: 700,
-                      color: cadenceActive ? '#22c55e' : 'rgba(255,255,255,0.62)',
+                      font: `700 10px ${HEAD}`,
+                      color: cadenceActive ? '#4ade80' : 'rgba(255,255,255,0.75)',
                       letterSpacing: '0.08em',
                       padding: '2px 6px', borderRadius: 4,
                       background: cadenceActive ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.04)',
@@ -1761,10 +1743,9 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
                     </span>
                   )}
                 </div>
-                <div style={{
-                  fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 20,
-                  color: GOLD, letterSpacing: '0.06em',
-                  textShadow: '0 0 12px rgba(253,224,71,0.4)',
+                <div data-guided-move="true" className="qma-name" style={{
+                  fontFamily: HEAD, fontWeight: 700, lineHeight: 1.1,
+                  color: '#fff', overflowWrap: 'break-word', textShadow: '0 2px 10px rgba(0,0,0,0.6)',
                 }}>
                   {currentEx.name}
                 </div>
@@ -1807,11 +1788,14 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
 
         {/* v2: what comes after this move, under its card */}
         {upNextInWork && (
-          <div className={maxReps ? 'qma-mx-next' : undefined} style={{
-            width: '100%', maxWidth: 360, marginTop: -6, marginBottom: 14, textAlign: 'center',
-            font: `600 11px ${HEAD}`, letterSpacing: '0.08em', color: '#4f8cff',
-            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-          }}>UP NEXT · {String(upNextInWork.name || '').toUpperCase()} · {doseOf(upNextInWork)}</div>
+          <div className={maxReps ? 'qma-upnext qma-mx-next' : 'qma-upnext'} style={{
+            width: '100%', maxWidth: 380, marginTop: -4, marginBottom: 14, textAlign: 'center',
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.2,
+          }}>
+            <span style={{ font: `700 12px ${HEAD}`, letterSpacing: '0.16em', color: '#C4A8FF' }}>UP NEXT: </span>
+            <span data-guided-move="true" className="qma-nextname" style={{ fontFamily: HEAD, fontWeight: 700, color: '#EDE8FF' }}>{upNextInWork.name}</span>
+            <span style={{ font: `700 15px ${HEAD}`, color: GOLD }}> · {doseOf(upNextInWork)}</span>
+          </div>
         )}
 
         {/* untilDown: the safety line, big, through every block and rest. */}
@@ -1830,10 +1814,10 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
             back), so a mis-tap never ends a run. */}
         {untilDown && !done && phase !== 'intro' && (
           <button type="button" onClick={askDown} style={{
-            width: '100%', maxWidth: 360, height: 56, marginBottom: 14, borderRadius: 14, cursor: 'pointer',
-            background: 'rgba(239,68,68,0.16)', border: '1.5px solid rgba(239,68,68,0.75)', color: '#fff',
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 15, letterSpacing: '0.14em',
-          }}>{dc.done}</button>
+            ...qmRaised('red', { lift: 5, radius: 14 }),
+            width: '100%', maxWidth: 360, height: 56, marginBottom: 14, cursor: 'pointer',
+            fontFamily: HEAD, fontWeight: 700, fontSize: 16, letterSpacing: '0.14em',
+          }} className="qm-raised">{dc.done}</button>
         )}
 
         {/* MAX REPS: DONE ends the set and opens HOW MANY REPS?. It is dim for the
@@ -1841,65 +1825,63 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
             never happened. */}
         {maxSet && !done && (
           <button type="button" data-guide="qma-done" className="qma-mx-done" onClick={handleCompleteRep} disabled={!setReady} aria-label="Done. Enter your reps" style={{
-            width: '100%', maxWidth: 360, height: 56, marginBottom: 14, borderRadius: 14, border: 'none',
-            cursor: setReady ? 'pointer' : 'default', opacity: setReady ? 1 : 0.4,
-            background: 'linear-gradient(180deg,#FFE9A8 0%,#F2BE45 50%,#C98A1C 100%)', color: '#1A1204',
-            fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 18, letterSpacing: '0.2em',
-            boxShadow: setReady ? '0 0 24px rgba(242,190,69,0.35)' : 'none', transition: 'opacity .25s ease',
+            ...qmRaised('gold', { lift: 5, radius: 14, glow: setReady ? 'rgba(242,190,69,0.4)' : undefined }),
+            width: '100%', maxWidth: 360, height: 56, marginBottom: 14,
+            cursor: setReady ? 'pointer' : 'default', opacity: setReady ? 1 : 0.4, color: '#1A1204',
+            fontFamily: HEAD, fontWeight: 700, fontSize: 19, letterSpacing: '0.2em', transition: 'opacity .25s ease',
           }}>DONE</button>
         )}
 
         {/* Controls */}
         <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
           {showDone && (
-            <button onClick={handleCompleteRep} style={{
-              width: 64, height: 64, borderRadius: 16,
+            <button onClick={handleCompleteRep} className="qm-raised" style={{
+              ...qmRaised('teal', { lift: 4, radius: 16 }),
+              width: 64, height: 64,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.4)',
-              color: '#22c55e', fontFamily: "'Orbitron',sans-serif", fontWeight: 900, fontSize: 10,
-              letterSpacing: '0.05em', cursor: 'pointer',
+              fontFamily: HEAD, fontWeight: 700, fontSize: 13,
+              letterSpacing: '0.08em', cursor: 'pointer',
             }}>
               DONE
             </button>
           )}
           {/* 3b — REWIND: back to the previous exercise (symmetric to SKIP) */}
-          <button data-guide="qma-rewind" onClick={rewindExercise} aria-label="Previous exercise" disabled={done} aria-disabled={rewindOff ? 'true' : undefined} style={{
-            width: 56, height: 56, borderRadius: 14,
+          <button data-guide="qma-rewind" className="qm-raised" onClick={rewindExercise} aria-label="Previous exercise" disabled={done} aria-disabled={rewindOff ? 'true' : undefined} style={{
+            ...qmRaised('slate', { lift: 4, radius: 14 }),
+            width: 56, height: 56,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(20,5,40,0.8)', border: '1px solid rgba(168,85,247,0.3)',
-            color: C.neon, cursor: rewindOff ? 'default' : 'pointer',
+            color: '#D9C8FF', cursor: rewindOff ? 'default' : 'pointer',
             ...(rewindOff ? { opacity: 0.45 } : null),
           }}>
             <RotateCcw size={22}/>
           </button>
-          <button data-guide="qma-pause" onClick={handlePauseToggle} disabled={done} style={{
-            width: 70, height: 70, borderRadius: 18,
+          <button data-guide="qma-pause" className="qm-raised" onClick={handlePauseToggle} disabled={done} style={{
+            // PAUSE raised violet; RESUME raised gold and glowing (AT YOUR PACE's bar).
+            ...qmRaised(paused ? 'gold' : 'violet', { lift: 5, radius: 18, glow: paused ? 'rgba(242,190,69,0.5)' : undefined }),
+            width: 72, height: 70,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: paused ? 'rgba(253,224,71,0.12)' : 'linear-gradient(135deg, rgba(253,224,71,0.3), rgba(253,224,71,0.15))',
-            border: `1.5px solid ${paused ? GOLD : 'rgba(253,224,71,0.4)'}`,
-            color: '#fff', cursor: 'pointer',
-            boxShadow: paused ? 'none' : '0 0 20px rgba(253,224,71,0.2)',
+            cursor: 'pointer',
             ...offStyle,
           }}>
-            {paused ? <Play size={28}/> : <Pause size={28}/>}
+            {paused ? <Play size={28} fill="currentColor" strokeWidth={0}/> : <Pause size={28} fill="currentColor" strokeWidth={0}/>}
           </button>
-          <button data-guide="qma-skip" onClick={handleSkip} disabled={done} style={{
-            width: 56, height: 56, borderRadius: 14,
+          <button data-guide="qma-skip" className="qm-raised" onClick={handleSkip} disabled={done} style={{
+            ...qmRaised('slate', { lift: 4, radius: 14 }),
+            width: 56, height: 56,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(20,5,40,0.8)', border: '1px solid rgba(168,85,247,0.3)',
-            color: C.neon, cursor: 'pointer',
+            color: '#D9C8FF', cursor: 'pointer',
             ...offStyle,
           }}>
             <SkipForward size={22}/>
           </button>
-          <button data-guide="qma-stop" onClick={() => { if (!doneRef.current) setConfirmEnd(true); }} disabled={done} style={{
-            width: 56, height: 56, borderRadius: 14,
+          <button data-guide="qma-stop" className="qm-raised" onClick={() => { if (!doneRef.current) setConfirmEnd(true); }} disabled={done} style={{
+            ...qmRaised('red', { lift: 4, radius: 14 }),
+            width: 56, height: 56,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.35)',
-            color: '#ef4444', cursor: 'pointer',
+            cursor: 'pointer',
             ...offStyle,
           }}>
-            <Square size={20}/>
+            <Square size={19} fill="currentColor" strokeWidth={0}/>
           </button>
         </div>
 
@@ -1965,16 +1947,16 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
                 ? 'The minutes you worked count toward your XP.'
                 : 'Only completed exercises will count toward your stats.'}</div>
             <div style={{ display: 'flex', gap: 12 }}>
-              <button onClick={() => setConfirmEnd(false)} style={{
-                flex: 1, padding: '12px 0', borderRadius: 10,
-                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.15)',
-                color: C.text, fontFamily: "'Orbitron',sans-serif", fontWeight: 700,
+              <button onClick={() => setConfirmEnd(false)} className="qm-raised" style={{
+                ...qmRaised('slate', { lift: 4, radius: 12 }),
+                flex: 1, padding: '12px 0', minHeight: 46,
+                fontFamily: "'Orbitron',sans-serif", fontWeight: 700,
                 fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer',
               }}>CANCEL</button>
-              <button onClick={() => handleEndConfirm()} style={{
-                flex: 1, padding: '12px 0', borderRadius: 10,
-                background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.5)',
-                color: '#ef4444', fontFamily: "'Orbitron',sans-serif", fontWeight: 700,
+              <button onClick={() => handleEndConfirm()} className="qm-raised" style={{
+                ...qmRaised('red', { lift: 4, radius: 12 }),
+                flex: 1, padding: '12px 0', minHeight: 46,
+                fontFamily: "'Orbitron',sans-serif", fontWeight: 700,
                 fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer',
               }}>END MISSION</button>
             </div>

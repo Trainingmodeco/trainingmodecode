@@ -1,7 +1,8 @@
 import { Shuffle, Folder, ChevronDown, ChevronUp, ChevronLeft } from 'lucide-react';
 import SafeImage from '../../SafeImage';
 import { MoveRow } from '../../shared/MoveSwapSheet';
-import { GoldButton, Tag, HEAD, BODY, MUTED, GOLD, VIOLET, VIOLET_TEXT, CARD, CARD_BORDER, chf } from '../../shared/FitSetupKit';
+import { Tag, HEAD, BODY, MUTED, GOLD, VIOLET_TEXT } from '../../shared/FitSetupKit';
+import { QmGold, QmStyle, qmRaised, qmSeg, qmStrip } from '../../shared/QmButtons';
 import RoundsPicker from './RoundsPicker';
 import TotalsStrip from './TotalsStrip';
 import RoundsStepper from './RoundsStepper';
@@ -31,45 +32,44 @@ import CardSettings from './CardSettings';
 // more. The card stays in the Fit kit's palette (Chakra Petch, #F2BE45).
 
 // GUIDED | AT YOUR PACE, Quick Mission's own switch (QuickMissionSetup's
-// RunModeSwitch look): two 44px segments, the chosen one gold; `off` dims one
+// RunModeSwitch look): two 44px raised segments (shared/QmButtons), the chosen
+// one brighter with a gold hairline; `off` dims one
 // (a mission only offered at your pace, a classic run with the coach).
 const RUN_MODES = [{ id: 'guided', label: 'GUIDED' }, { id: 'solo', label: 'AT YOUR PACE' }];
 function RunModeSwitch({ value, onPick, off = {} }) {
   return (
-    <div role="radiogroup" aria-label="Run mode" style={{ ...chf, display: 'flex', height: 44, flexShrink: 0, background: CARD, boxShadow: `inset 0 0 0 1px ${CARD_BORDER}` }}>
+    <div role="radiogroup" aria-label="Run mode" style={{ ...qmStrip, flexShrink: 0 }}>
+      <QmStyle/>
       {RUN_MODES.map(({ id, label }) => {
         const on = id === value;
         const dim = !!off[id];
         return (
-          <button key={id} type="button" role="radio" aria-checked={on ? 'true' : 'false'} aria-disabled={dim ? 'true' : undefined} className="fk-seg"
-            onClick={dim ? undefined : () => onPick?.(id)} style={{
-              flex: '1 1 0', minWidth: 0, height: 44, border: 'none', padding: '0 4px', whiteSpace: 'nowrap', cursor: dim ? 'default' : 'pointer',
-              font: `700 12px ${HEAD}`, letterSpacing: '0.12em', color: on ? '#1A1204' : MUTED, background: on ? GOLD : 'transparent', opacity: dim ? 0.4 : 1,
-            }}>{label}</button>
+          <button key={id} type="button" role="radio" aria-checked={on ? 'true' : 'false'} aria-disabled={dim ? 'true' : undefined} className="qm-raised"
+            onClick={dim ? undefined : () => onPick?.(id)} style={{ ...qmSeg(on, { off: dim }), letterSpacing: '0.12em' }}>{label}</button>
         );
       })}
     </div>
   );
 }
 
-// SHUFFLE (violet: the deal) and CHOOSE (the library), 44px. With no
+// SHUFFLE (the deal) and CHOOSE (the library), 44px, raised slate. With no
 // onChoose (a program day) SHUFFLE takes the whole row; with no onShuffle (a
 // library mission) CHOOSE does.
 function DealRow({ onShuffle, onChoose, shuffleLabel = 'SHUFFLE' }) {
   const base = {
-    ...chf, height: 44, minWidth: 0, cursor: 'pointer', padding: '0 8px',
+    ...qmRaised('slate', { lift: 4, radius: 12 }), height: 44, minWidth: 0, cursor: 'pointer', padding: '0 8px',
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap',
     font: `700 13px ${HEAD}`, letterSpacing: '0.14em', color: '#fff',
   };
   return (
     <div style={{ display: 'grid', gridTemplateColumns: onChoose && onShuffle ? '1fr 1fr' : '1fr', gap: 8 }}>
       {onShuffle && (
-        <button type="button" className="fk-ghost" onClick={onShuffle} style={{ ...base, background: 'rgba(157,108,255,0.24)', border: `1px solid ${VIOLET}` }}>
+        <button type="button" className="qm-raised" onClick={onShuffle} style={base}>
           <Shuffle size={17} color={VIOLET_TEXT} style={{ flexShrink: 0 }}/>{shuffleLabel}
         </button>
       )}
       {onChoose && (
-        <button type="button" className="fk-ghost" onClick={onChoose} aria-haspopup="dialog" style={{ ...base, background: CARD, border: '1px solid rgba(255,255,255,0.14)' }}>
+        <button type="button" className="qm-raised" onClick={onChoose} aria-haspopup="dialog" style={base}>
           <Folder size={16} color={VIOLET_TEXT} style={{ flexShrink: 0 }}/>CHOOSE
         </button>
       )}
@@ -199,7 +199,7 @@ export default function WorkoutCard({
           </div>
         ) : runHelp && <div style={{ font: `500 11px ${BODY}`, color: MUTED, lineHeight: 1.35 }}>{runHelp}</div>}
         <div data-guide={guide ? 'fc-start' : undefined} className="fc-start">
-          <GoldButton label={startLabel} icon="play" onClick={onStart} height={collapsible ? 50 : 54} style={{ fontSize: 18, letterSpacing: '0.22em' }}/>
+          <QmGold label={startLabel} icon="play" onClick={onStart} height={collapsible ? 50 : 54} style={{ fontSize: 18, letterSpacing: '0.22em' }}/>
         </div>
       </div>
     </section>

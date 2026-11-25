@@ -4,7 +4,8 @@ import { NAV_H } from './Styles';
 import OverlayPortal, { OVERLAY_Z } from './shared/OverlayPortal';
 import { FLOAT_BACKDROP, floatPanel } from './shared/BottomSheet';
 import useSheetModal, { GRAB_BAR } from './shared/useSheetModal';
-import { GoldButton, GhostButton, Tag, HEAD, BODY, MUTED, VIOLET, VIOLET_TEXT, GOLD } from './shared/FitSetupKit';
+import { Tag, HEAD, BODY, MUTED, VIOLET, GOLD } from './shared/FitSetupKit';
+import { QmGold, QmGhost, QmStyle, qmChip } from './shared/QmButtons';
 import { useOneOpen, DropButton, WorkoutDrop } from './shared/WorkoutDrop';
 import { libraryDrop } from './data/libraryDrop';
 import { QM_LEVEL_WORD } from './data/quickMissionConfig';
@@ -101,14 +102,13 @@ export function CountPill({ n }) {
   return <span style={{ flexShrink: 0, font: `700 11px ${HEAD}`, color: GOLD, background: 'rgba(242,190,69,0.14)', borderRadius: 999, padding: '3px 8px' }}>{n}</span>;
 }
 
-// A LOADOUT / THEME chip: the kit's violet radio chip, compact, dimmed (still
-// tappable) when its count is 0. The count is quieter than the word.
+// A LOADOUT / THEME chip: Quick Mission's raised chip (shared/QmButtons: picked
+// brighter with a gold hairline), compact, dimmed (still tappable) when its count is 0. The count is quieter than the word.
 function FilterChip({ on, dim, onClick, label, count }) {
   return (
-    <button type="button" role="radio" aria-checked={on ? 'true' : 'false'} className="fk-chip ml-chip" onClick={onClick} style={{
-      flexShrink: 0, height: 34, padding: '0 4px', borderRadius: 3, cursor: 'pointer', whiteSpace: 'nowrap',
-      background: on ? 'rgba(157,108,255,0.22)' : '#16131F', border: `1px solid ${on ? 'rgba(157,108,255,0.55)' : 'transparent'}`,
-      color: on ? VIOLET_TEXT : '#E6E2F5', font: `700 10px ${HEAD}`, letterSpacing: '0.02em', opacity: dim ? 0.45 : 1,
+    <button type="button" role="radio" aria-checked={on ? 'true' : 'false'} className="qm-raised ml-chip" onClick={onClick} style={{
+      ...qmChip(on), flexShrink: 0, height: 34, padding: '0 5px', borderRadius: 9,
+      font: `700 10px ${HEAD}`, letterSpacing: '0.02em', textTransform: 'none', opacity: dim ? 0.45 : 1,
     }}>{label}{count != null && <span style={{ opacity: 0.6 }}> {count}</span>}</button>
   );
 }
@@ -119,6 +119,7 @@ function FilterChip({ on, dim, onClick, label, count }) {
 function ChipRow({ label, children }) {
   return (
     <div role="radiogroup" aria-label={label} style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+      <QmStyle/>
       {children}
     </div>
   );
@@ -325,16 +326,16 @@ export default function MissionLibrarySheet({ shelf, onTop, gear, initial = null
             {empty && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 10 }}>
                 <div style={{ font: `500 13px ${BODY}`, color: MUTED, lineHeight: 1.4 }}>{empty.text}</div>
-                {empty.action && <GhostButton label={empty.action.label} height={40} onClick={() => pickLoadout(empty.action.loadout)}/>}
+                {empty.action && <QmGhost label={empty.action.label} height={40} onClick={() => pickLoadout(empty.action.loadout)}/>}
               </div>
             )}
           </div>
 
           {/* PUT ON CARD · START, pinned. */}
           <div className="ml-foot" style={{ flexShrink: 0, display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 3fr)', gap: 10, padding: '10px 12px 12px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-            <GhostButton label="PUT ON CARD" height={48} onClick={current ? () => onPutOnCard?.(current) : undefined}
+            <QmGhost label="PUT ON CARD" height={48} onClick={current ? () => onPutOnCard?.(current) : undefined}
               style={{ fontSize: 12, opacity: current ? 1 : 0.45, cursor: current ? 'pointer' : 'default' }}/>
-            <GoldButton label="START" icon="play" height={48} disabled={!current} onClick={() => current && onStart?.(current)} style={{ fontSize: 16, letterSpacing: '0.2em' }}/>
+            <QmGold label="START" icon="play" height={48} disabled={!current} onClick={() => current && onStart?.(current)} style={{ fontSize: 16, letterSpacing: '0.2em' }}/>
           </div>
         </div>
       </div>
