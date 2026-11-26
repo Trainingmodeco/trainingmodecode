@@ -108,6 +108,16 @@ ring kept as the clock. On AT YOUR PACE, the move in hand beside the ring
 or the ring's own middle on GET READY. The bolt behind the ring is soft; if a picture laid over it fights the bolt, lower BOLT_OPACITY (see below). On short phones the card is
 tight, so the picture there should be the smaller size (about 72 px).
 
+## The charged bolt (2026-11-26)
+
+While the work is on (the ring is gold, or red in the last minute) the bolt in
+`shared/RunRing.jsx` is charged: it pulses, three sets of jagged electric arcs
+take turns around it (a crackle), and six sparks twinkle at its tips. On a rest
+(blue) the bolt settles to `BOLT_REST_OPACITY` (0.12) and the arcs stop; paused
+and GET READY are as before. With reduced motion the arcs stand still. It is
+CSS animation only (no timers, no extra renders). The same ring draws it in the
+guided run and in AT YOUR PACE.
+
 ## Tuning the bolt
 
 `BOLT_OPACITY` at the top of `components/training-mode/shared/RunRing.jsx`:
