@@ -84,6 +84,20 @@ const CARD_CSS = `
   .fc-moves-closed > li:nth-child(n+3) { display: none !important; }
   .fc-how { gap: 4px !important; }
 }
+/* 360x640: the raised run switch keeps a lip under it, so START is a touch
+   shorter, and the closed card shows its first move only (SEE ALL has them
+   all), so START stays on the first screen with CHECK-OFF showing too. */
+@media (max-height: 700px) {
+  .fc-how { gap: 2px !important; }
+  .fc-in { gap: 6px !important; }
+  .fc-moves-closed > li:nth-child(n+2) { display: none !important; }
+  .fc-start button { height: 46px !important; }
+  /* AT YOUR PACE adds the 44px CHECK-OFF row: the closed card then lists no
+     move (▾ SEE ALL N MOVES has them), so START clears the shelf's fade. */
+  .fc-solo .fc-moves-closed { display: none !important; }
+  /* The same while a notice line shows ("Shuffled: new moves..."). */
+  .fc-stack:has(.fc-notice) .fc-moves-closed { display: none !important; }
+}
 `;
 
 // CHECK-OFF, a remembered choice inside AT YOUR PACE: one 44px row under the
@@ -403,8 +417,9 @@ export default function FitCardSetup({ entry, onBack, onFightMode, onStart, onPa
           <ModeTabs active="fit" onFight={onFightMode}/>
         </div>
 
-        <div data-fc="page" className="fc-stack" style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px 0' }}>
+        <div data-fc="page" className={runMode === 'solo' ? 'fc-stack fc-solo' : 'fc-stack'} style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '14px 16px 0' }}>
           <WorkoutCard
+            raised
             cardRef={cardRef} guide="fc-card"
             eyebrow={eyebrow}
             eyebrowAction={source.kind !== 'deal' ? { label: 'TODAY', aria: "Back to today's deal", onClick: backToDeal } : null}

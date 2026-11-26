@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { QmGold, QmGhost } from './QmButtons';
 import PhoneFrame from '../PhoneFrame';
 import Embers from '../Embers';
 import SafeImage from '../SafeImage';
@@ -115,6 +116,7 @@ export default function MissionComplete({
   achievements = [],        // item 10b — newly unlocked, shown as a toast on top
   actions = [],             // [{ label, onClick, kind: 'primary'|'secondary'|'ghost', role?: 'retry'|'home' }]
   ctas = null,              // optional ReactNode drawn in place of the actions' buttons
+  raised = false,           // Quick Mission's raised buttons (shared/QmButtons) for the actions; off = as before
                             // (the Fit looks' end screen, in the Fit kit's buttons)
   board = null,             // the world score board (switch `scores`): the session's
                             // board slot (retention/ui/ScoreBoardSlot), drawn under the
@@ -269,7 +271,7 @@ export default function MissionComplete({
 
           {showNearMiss && (
             <div style={{ marginBottom: 6 }}>
-              <NearMissPanel miss={nm.miss} gate={nm.gate} onRetry={nearMiss?.onRetry} retryLabel={nearMiss?.retryLabel} onLeave={nearMiss?.onLeave}/>
+              <NearMissPanel miss={nm.miss} gate={nm.gate} onRetry={nearMiss?.onRetry} retryLabel={nearMiss?.retryLabel} onLeave={nearMiss?.onLeave} raised={raised}/>
             </div>
           )}
           {summary && <div style={{ marginBottom: 6 }}>{summary}</div>}
@@ -307,7 +309,17 @@ export default function MissionComplete({
           )}
 
           {/* CTAs */}
-          {ctas || <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {ctas || (raised ? (
+            // Quick Mission (2026-11-25, docs/quick-mission/UNIFIED-LOOK.md): the
+            // same raised buttons as the rest of Quick Mission, gold the loudest.
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {shownActions.map((a, i) => (a.kind === 'ghost'
+                ? <QmGhost key={i} label={a.label} onClick={a.onClick} height={42} style={{ fontSize: 12, color: '#CFC7E8' }}/>
+                : a.kind === 'secondary'
+                  ? <QmGhost key={i} label={a.label} onClick={a.onClick} height={46} style={{ fontSize: 13, fontWeight: 700, color: '#D9C8FF' }}/>
+                  : <QmGold key={i} label={a.label} onClick={a.onClick} height={50} style={{ fontSize: 16, letterSpacing: '0.14em' }}/>))}
+            </div>
+          ) : <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {shownActions.map((a, i) => {
               if (a.kind === 'ghost') {
                 return <button key={i} onClick={a.onClick} style={{ width: '100%', height: 38, border: '1px solid rgba(255,255,255,0.12)', borderRadius: 11, background: 'transparent', color: '#9a90b8', font: "700 11px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer' }}>{a.label}</button>;
@@ -317,7 +329,7 @@ export default function MissionComplete({
               }
               return <button key={i} onClick={a.onClick} style={{ width: '100%', height: 44, border: 'none', borderRadius: 11, background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', font: "900 13px 'Orbitron',sans-serif", letterSpacing: '0.08em', cursor: 'pointer', boxShadow: '0 0 20px rgba(253,224,71,0.35)' }}>{a.label}</button>;
             })}
-          </div>}
+          </div>)}
 
           <button className="mc-beta" onClick={() => openExternalUrl(BETA_FEEDBACK_FORM_URL)} style={{ margin: '6px auto 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '5px 12px', borderRadius: 8, border: 'none', background: 'rgba(253,224,71,0.06)', cursor: 'pointer' }}>
             <span style={{ font: "700 8px 'Orbitron',sans-serif", color: GOLD, letterSpacing: '0.08em' }}>💬 GIVE BETA FEEDBACK</span>

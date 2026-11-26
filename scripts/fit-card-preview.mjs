@@ -93,7 +93,13 @@ const SEED = (preview = true, { checkOff = true, off = null } = {}) => ({
 
 // ── getting there ───────────────────────────────────────────────────────────
 const wait = (page, ms) => page.waitForTimeout(ms);
-const tap = async (page, loc) => { await loc.first().scrollIntoViewIfNeeded({ timeout: 4000 }).catch(() => {}); await loc.first().click({ timeout: 4000 }); await wait(page, 450); };
+// A short phone's sheet can leave a row under a fade or the tab bar, where a
+// real click times out: the click is then dispatched on the element itself.
+const tap = async (page, loc) => {
+  await loc.first().scrollIntoViewIfNeeded({ timeout: 4000 }).catch(() => {});
+  try { await loc.first().click({ timeout: 4000 }); } catch (e) { if (!(await loc.count())) throw e; await loc.first().dispatchEvent('click'); }
+  await wait(page, 450);
+};
 const byName = (page, re) => page.getByRole('button', { name: re });
 async function home(page, w) {
   await page.goto(BASE, { waitUntil: 'networkidle' }); await wait(page, 1800);
@@ -248,7 +254,37 @@ const STATES = [
     open: async (page, w) => { await qm(page, w); await tap(page, byName(page, /BONUS TRAINING/)); await tap(page, page.getByRole('checkbox', { name: /Cardio cool-down done/ })); await page.locator('[data-guide="fc-bonus"]').scrollIntoViewIfNeeded(); }, full: true,
     expect: /BONUS TRAINING[\s\S]*Cardio cool-down[\s\S]*On: your workout goes straight into it\.[\s\S]*L-Sit Hold[\s\S]*Shadowboxing[\s\S]*FIGHT[\s\S]*never changes the rounds/ },
   { name: 'guided', note: 'GUIDED running: the Quick Mission runner with the card\'s moves (its own existing lines).',
-    open: async (page, w) => { await qm(page, w); await pause(page); await tap(page, byName(page, /^START$/)); await page.clock.runFor(25000); }, expect: /ROUND 1\/\d/, noCheck: true },
+    open: async (page, w) => { await qm(page, w); await pause(page); await tap(page, byName(page, /^START$/)); await page.clock.runFor(25000); }, expect: /ROUND 1\/\d/, noCheck: true, guided: true },
+  // ── GUIDED in every phase (owner, 2026-11-25: one look with AT YOUR PACE, docs/quick-mission/UNIFIED-LOOK.md) ──
+  { name: 'guided-intro', guided: true, noCheck: true, note: 'GUIDED while the coach reads the brief: PREPARING... in the ring, AT YOUR PACE INSTEAD under it.',
+    open: async (page, w) => { await qm(page, w); await pause(page); await tap(page, byName(page, /^START$/)); await page.clock.runFor(600); }, expect: /PREPARING/ },
+  { name: 'guided-paused', guided: true, noCheck: true, note: 'GUIDED paused mid-move: RESUME in gold.',
+    open: async (page, w) => { await qm(page, w); await pause(page); await tap(page, byName(page, /^START$/)); await page.clock.runFor(25000); await tap(page, page.locator('[data-guide="qma-pause"]')); }, expect: /ROUND 1\/\d/ },
+  { name: 'guided-rest', guided: true, noCheck: true, note: 'GUIDED in a rest (the move skipped): the blue ring, UP NEXT and the next move.',
+    open: async (page, w) => { await qm(page, w); await pause(page); await tap(page, byName(page, /^START$/)); await page.clock.runFor(25000); await tap(page, page.locator('[data-guide="qma-skip"]')); await page.clock.runFor(1500); }, expect: /UP NEXT/ },
+  { name: 'guided-maxreps', guided: true, noCheck: true, off: 'fitCard', note: 'BOSS RUSH (MAX REPS) GUIDED from the classic MISSION LIBRARY: the set screen with DONE.',
+    open: async (page, w) => {
+      await qm(page, w); await tap(page, page.locator('[data-guide="qm-library"]')); await wait(page, 700);
+      await tap(page, page.getByRole('radio', { name: /^BOSS RUSH/ })); await tap(page, byName(page, /^START$/).last()); await wait(page, 900);
+      await pause(page); const st = byName(page, /^START$/); if (await st.count()) await tap(page, st); await page.clock.runFor(40000);
+    }, expect: /BOSS RUSH/ },
+  // ── the setup's two choices, the ADJUST sheet and the end screens ────────
+  { name: 'card-solo', montage: true, note: 'The card with AT YOUR PACE picked: CHECK-OFF under the switch, START on the first screen.',
+    open: async (page, w) => { await qm(page, w); await tap(page, page.getByRole('radio', { name: 'AT YOUR PACE' })); await toTop(page); }, expect: /AT YOUR PACE[\s\S]*START/, startVisible: true },
+  { name: 'adjust', montage: true, overlay: true, check: ['[role="dialog"]'], note: 'ADJUST on the open card: level, run mode, focus and DONE.',
+    open: async (page, w) => { await qm(page, w); await seeAll(page); await tap(page, page.locator('[data-guide="fc-adjust"] button').first()); }, expect: /DONE/ },
+  { name: 'end-failed', montage: true, noCheck: true, off: 'fitCard', note: 'The classic Quick Mission, a GUIDED run ended at once: the failed screen with NEW MISSION, BACK TO FIT MODE and RETURN HOME.',
+    open: async (page, w) => {
+      await qm(page, w); await pause(page); await tap(page, byName(page, /^START$/)); await page.clock.runFor(25000);
+      await tap(page, page.locator('[data-guide="qma-stop"]')); await tap(page, byName(page, /^END MISSION$/));
+      await runUntil(page, (t) => /RETURN HOME|BACK TO FIT MODE|NEW MISSION/.test(t), { max: 40 }); await page.clock.resume(); await wait(page, 2200);
+    }, expect: /NEW MISSION|BACK TO FIT MODE|RETURN HOME/ },
+  { name: 'end-card-failed', montage: true, noCheck: true, note: 'The Fit card, a GUIDED run ended at once: the failed screen with REPEAT, NEW CHALLENGE and SAVE WORKOUT (the complete one is `results`).',
+    open: async (page, w) => {
+      await qm(page, w); await pause(page); await tap(page, byName(page, /^START$/)); await page.clock.runFor(25000);
+      await tap(page, page.locator('[data-guide="qma-stop"]')); await tap(page, byName(page, /^END MISSION$/));
+      await runUntil(page, (t) => /REPEAT/.test(t), { max: 40 }); await page.clock.resume(); await wait(page, 2200);
+    }, expect: /REPEAT[\s\S]*NEW CHALLENGE/ },
   { name: 'checkoff', note: 'AT YOUR PACE with CHECK-OFF: rounds 1 and 2 done, round 3 with 3 ticked, the next move lit.',
     open: (page, w) => checkOff(page, w), full: true, expect: /CHECK-OFF[\s\S]*ROUND 3 OF 3[\s\S]*2 OF 3 ROUNDS[\s\S]*ROUND 1 DONE[\s\S]*ROUND 2 DONE[\s\S]*ROUND 3[\s\S]*IN PROGRESS[\s\S]*3 OF \d[\s\S]*SHUFFLE[\s\S]*ROUNDS · 3[\s\S]*STOP/ },
   { name: 'confirm', note: 'SHUFFLE mid-run with ticks: START OVER? KEEP GOING, SHUFFLE, and END at the bottom.',
@@ -257,7 +293,7 @@ const STATES = [
     open: async (page, w) => { await checkOff(page, w); await tap(page, byName(page, /^ROUNDS · 3$/)); await tap(page, byName(page, /One round more/)); }, overlay: true, expect: /ROUNDS[\s\S]*× 4 =[\s\S]*Your ticks stay/ },
   { name: 'cooldown', note: 'The cool-down: the cardio cool-down was ticked, so FINISH goes straight into it (the cardio finisher, an easy 10-minute walk).',
     open: (page, w) => finishRun(page, w, { bonus: true }), expect: /COOL-DOWN · UP NEXT[\s\S]*Walk/, noCheck: true },
-  { name: 'results', note: 'The results (SESSION COMPLETE, as every AT YOUR PACE finish): the rounds, total reps and time, the recap with each round, REPEAT, NEW CHALLENGE and SAVE WORKOUT.',
+  { name: 'results', montage: true, note: 'The results (SESSION COMPLETE, as every AT YOUR PACE finish): the rounds, total reps and time, the recap with each round, REPEAT, NEW CHALLENGE and SAVE WORKOUT.',
     open: (page, w) => finishRun(page, w), full: true, expect: /SESSION COMPLETE[\s\S]*3\/3[\s\S]*TOTAL REPS[\s\S]*100% COMPLETE[\s\S]*moves ticked[\s\S]*R1[\s\S]*REPEAT[\s\S]*NEW CHALLENGE[\s\S]*SAVE WORKOUT/, absent: /SAVED/ },
   { name: 'saved', note: 'After SAVE WORKOUT: ✓ SAVED, and the recap says where to find it.',
     open: async (page, w) => { await finishRun(page, w); await tap(page, byName(page, /SAVE WORKOUT/)); }, full: true, expect: /Saved\. Find it in CHOOSE\.[\s\S]*SAVED/, absent: /SAVE WORKOUT/ },
@@ -380,6 +416,10 @@ function measure({ checkSelectors, navClear, startVisible }) {
     const st = document.querySelector('[data-guide="fc-start"]');
     const r = st?.getBoundingClientRect();
     if (!r || r.bottom > navTop - 4) fails.push(`START is not on the first screen (ends ${r ? Math.round(r.bottom) : '?'}, tab bar at ${Math.round(navTop)})`);
+    // ...and above the shelf: the BETA pill's row, where the bottom fade dims it.
+    const beta = [...document.querySelectorAll('button[aria-label="Report beta feedback"]')].find((e) => e.getBoundingClientRect().height > 0);
+    const shelf = beta ? beta.getBoundingClientRect().top : navTop;
+    if (r && r.bottom <= navTop - 4 && r.bottom > shelf + 2) fails.push(`START runs under the shelf's fade (ends ${Math.round(r.bottom)}, BETA pill at ${Math.round(shelf)})`);
   }
   // The whole page in one window: its last text or button ends above the tab bar.
   if (navClear && nav) {
@@ -461,6 +501,31 @@ function measureRun({ expectNow }) {
   return { fails, info: { head: `${Math.round(h.top)}..${Math.round(h.bottom)}`, bar: `${Math.round(b.top)}..${Math.round(b.bottom)}`, tabs: Math.round(navTop), lit: lit.length } };
 }
 
+// GUIDED in the AT YOUR PACE look (owner, 2026-11-25): the ring is the shared
+// RunRing, the move in hand is 20px or more, and the four controls (restart,
+// PAUSE, skip, STOP) are raised, 44px or more, whole above the tab bar and not
+// covered by anything (the BETA pill).
+function measureGuided() {
+  const fails = [];
+  const nav = document.querySelector('[data-guide="nav-tabs"]');
+  const navTop = nav ? nav.getBoundingClientRect().top : window.innerHeight;
+  for (const g of ['qma-rewind', 'qma-pause', 'qma-skip', 'qma-stop']) {
+    const el = document.querySelector(`[data-guide="${g}"]`);
+    if (!el) { fails.push(`no ${g}`); continue; }
+    const r = el.getBoundingClientRect();
+    if (r.width < 44 || r.height < 44) fails.push(`${g} is ${Math.round(r.width)}x${Math.round(r.height)}, under 44`);
+    if (r.top < 0 || r.bottom > navTop + 1) fails.push(`${g} is off the first screen (${Math.round(r.top)}..${Math.round(r.bottom)}, tab bar at ${Math.round(navTop)})`);
+    else { const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); if (!hit || !el.contains(hit)) fails.push(`${g} is covered by ${hit ? hit.tagName.toLowerCase() : 'nothing'}`); }
+    if (!/gradient/.test(getComputedStyle(el).backgroundImage)) fails.push(`${g} is flat (no raised gradient)`);
+  }
+  if (!document.querySelector('[data-guide="qma-ring"] [data-run-ring]')) fails.push('the ring is not the shared RunRing');
+  for (const el of document.querySelectorAll('[data-guided-move]')) {
+    const px = parseFloat(getComputedStyle(el).fontSize);
+    if (px < 20) fails.push(`a move name is ${px}px, under 20`);
+  }
+  return fails;
+}
+
 // ── run ────────────────────────────────────────────────────────────────────
 const launchOpts ={ headless: true, args: ['--autoplay-policy=no-user-gesture-required'] };
 let browser;
@@ -514,6 +579,7 @@ for (const st of STATES) {
         res.fails.push(...runP.fails.map((f) => `paused: ${f}`));
         await page.screenshot({ path: path.join(OUT, `${st.name}-${tag}-paused.png`) });
       }
+      if (st.guided) res.fails.push(...(await page.evaluate(measureGuided)).map((f) => `guided: ${f}`));
       let more = st.full ? await page.evaluate(overflowY) : 0;
       if (more > 0) {
         await toTop(page);
@@ -558,7 +624,7 @@ async function montage(name, kind, outName) {
   await mp.close();
 }
 for (const st of STATES) {
-  if ((ONLY && !ONLY.test(st.name)) || !(st.pace || /^(lib|pre)-/.test(st.name))) continue;
+  if ((ONLY && !ONLY.test(st.name)) || !(st.pace || st.guided || st.montage || /^(lib|pre)-/.test(st.name))) continue;
   await montage(st.name, '', st.pace ? `${st.name}-running` : st.name);
   if (st.pace) await montage(st.name, '-paused', `${st.name}-paused`);
 }

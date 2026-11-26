@@ -1,5 +1,6 @@
 import { RotateCcw } from 'lucide-react';
 import { ARC, RETENTION_CSS } from './tokens';
+import { QmStyle, qmRaised } from '../../shared/QmButtons';
 
 // The near-miss panel (retention feature 3): how close the session came, in
 // plain words from its real counts (data/nearMiss), the bar, and two buttons
@@ -18,7 +19,9 @@ import { ARC, RETENTION_CSS } from './tokens';
 //   onLeave / leaveLabel: the way out (home); null leaves the button out (a
 //          screen that keeps its own way out, the classic clear)
 //   alt:   { label, onClick } in place of the way out (the clear's next stage)
-export default function NearMissPanel({ miss, gate, onRetry, retryLabel = 'RETRY', onLeave, leaveLabel, alt = null, eyebrow: eyebrowIn, style }) {
+//   raised: Quick Mission's raised buttons (shared/QmButtons: RETRY gold, the
+//          way out slate); only Quick Mission's end screen turns it on.
+export default function NearMissPanel({ miss, gate, onRetry, retryLabel = 'RETRY', onLeave, leaveLabel, alt = null, eyebrow: eyebrowIn, style, raised = false }) {
   if (!miss) return null;
   const eyebrow = eyebrowIn || (miss.nothing ? 'WHAT\'S LEFT' : 'HOW CLOSE');
   const allowed = !!gate?.allowed && typeof onRetry === 'function';
@@ -55,14 +58,17 @@ export default function NearMissPanel({ miss, gate, onRetry, retryLabel = 'RETRY
       {(allowed || second) && (
         // One grid row height for both: a label that wraps on a narrow phone
         // makes both buttons taller, never one bigger than the other.
-        <div style={{ display: 'grid', gridAutoRows: '1fr', gap: 8, marginTop: 10 }}>
+        <div style={{ display: 'grid', gridAutoRows: '1fr', gap: raised ? 4 : 8, marginTop: 10 }}>
+          {raised && <QmStyle/>}
           {allowed && (
-            <button type="button" className="rt-go" onClick={onRetry} style={{ ...btn, border: 'none', background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', boxShadow: '0 0 18px rgba(253,224,71,0.3)' }}>
+            <button type="button" className={raised ? 'qm-raised' : 'rt-go'} onClick={onRetry} style={raised ? { ...btn, ...qmRaised('gold', { lift: 4, radius: 12 }), height: 'auto' }
+              : { ...btn, border: 'none', background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', boxShadow: '0 0 18px rgba(253,224,71,0.3)' }}>
               <RotateCcw size={14} strokeWidth={2.6} aria-hidden/>{retryLabel}
             </button>
           )}
           {second && (
-            <button type="button" className="rt-go" onClick={second.onClick} style={{ ...btn, border: '1px solid rgba(176,106,255,0.6)', background: 'rgba(176,106,255,0.16)', color: ARC.text }}>
+            <button type="button" className={raised ? 'qm-raised' : 'rt-go'} onClick={second.onClick} style={raised ? { ...btn, ...qmRaised('slate', { lift: 4, radius: 12 }), height: 'auto' }
+              : { ...btn, border: '1px solid rgba(176,106,255,0.6)', background: 'rgba(176,106,255,0.16)', color: ARC.text }}>
               {second.label}
             </button>
           )}
