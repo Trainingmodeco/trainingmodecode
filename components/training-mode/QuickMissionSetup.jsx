@@ -27,9 +27,10 @@ import {
   classicMeta, shelfEntries, loadShelfPrefs, saveShelfPrefs, libraryLevelFor,
 } from './data/loadoutMissions';
 import {
-  fitKitCSS, SetupHeader, SetupPage, GoldButton, Tag, Label,
-  HEAD, BODY, MUTED, VIOLET, VIOLET_TEXT, GOLD, CARD, CARD_BORDER, chf,
+  fitKitCSS, SetupHeader, SetupPage, Tag, Label,
+  HEAD, BODY, MUTED, VIOLET, VIOLET_TEXT, GOLD,
 } from './shared/FitSetupKit';
+import { QmGold, QmStyle, qmRaised, qmSeg, qmStrip } from './shared/QmButtons';
 
 // Quick Mission: a quick workout without having to think too much (Build
 // Workout is for the specifics). Top to bottom, the page is:
@@ -165,6 +166,13 @@ input[type=range].qm-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3
   .qm-start button, .qm-surprise { height: 44px !important; }
   .qm-time-band { padding-top: 14px !important; }
   .qm-lib { min-height: 48px !important; padding: 4px 12px !important; }
+  /* The raised buttons' lips (3 to 5px of shadow under each) hang into the gaps
+     here instead of each keeping its own room under it: the two strips, START /
+     SURPRISE and the library row win back 10px, so the page (ADVANCED, WEIGHTED:
+     four tags) still fits above the tab bar. The buttons stay 44px or more. */
+  .qm-stack [role="radio"] { margin-bottom: 1px !important; }
+  .qm-start button, .qm-surprise { margin-bottom: 2px !important; }
+  .qm-lib { margin-bottom: 1px !important; }
 }
 `;
 
@@ -195,19 +203,17 @@ function PlainMove({ index, name, dose, finisher, gold }) {
   );
 }
 
-// GEAR: the kit's chamfered radio strip (SegRow's look, 44px). value null
-// lights none (a library mission is on the card).
+// GEAR: a strip of raised segments (shared/QmButtons, 44px): the picked one
+// brighter with a gold hairline. value null lights none (a library mission is on the card).
 export function GearRow({ value, onPick }) {
   return (
-    <div role="radiogroup" aria-label="Gear" style={{ ...chf, display: 'flex', padding: 3, gap: 3, background: CARD, border: `1px solid ${CARD_BORDER}` }}>
+    <div role="radiogroup" aria-label="Gear" style={qmStrip}>
+      <QmStyle/>
       {QM_TYPES.map(t => {
         const on = t === value;
         return (
-          <button key={t} type="button" role="radio" aria-checked={on ? 'true' : 'false'} className="fk-seg" onClick={() => onPick(t)} style={{
-            flex: '1 1 0', minWidth: 0, height: 44, border: 'none', cursor: 'pointer', padding: '0 3px', whiteSpace: 'nowrap',
-            font: `600 12px ${HEAD}`, letterSpacing: '0.1em',
-            color: on ? '#fff' : MUTED, background: on ? 'rgba(157,108,255,0.24)' : 'transparent',
-            boxShadow: on ? `inset 0 0 0 1px ${VIOLET}` : 'none',
+          <button key={t} type="button" role="radio" aria-checked={on ? 'true' : 'false'} className="qm-raised" onClick={() => onPick(t)} style={{
+            ...qmSeg(on), padding: '0 3px',
           }}>{t.toUpperCase()}</button>
         );
       })}
@@ -216,23 +222,20 @@ export function GearRow({ value, onPick }) {
 }
 
 // GUIDED | AT YOUR PACE: how START runs the mission on the card. Two 44px
-// segments in the kit's chamfered strip, the chosen one in gold. `guidedOff`
+// raised segments (shared/QmButtons), the chosen one brighter with a gold
+// hairline (gold is START's alone). `guidedOff`
 // dims GUIDED (a mission only offered at your pace), `soloOff` dims AT YOUR
 // PACE (a classic); a dimmed segment does nothing and the line under the strip
 // says why.
 function RunModeSwitch({ value, guidedOff, soloOff, onPick }) {
   return (
-    <div role="radiogroup" aria-label="Run mode" aria-describedby="qm-how-help" style={{ ...chf, display: 'flex', height: 44, flexShrink: 0, background: CARD, boxShadow: `inset 0 0 0 1px ${CARD_BORDER}` }}>
+    <div role="radiogroup" aria-label="Run mode" aria-describedby="qm-how-help" style={{ ...qmStrip, flexShrink: 0 }}>
       {RUN_MODES.map(({ id, label }) => {
         const on = id === value;
         const off = id === 'guided' ? guidedOff : soloOff;
         return (
-          <button key={id} type="button" role="radio" aria-checked={on ? 'true' : 'false'} aria-disabled={off ? 'true' : undefined} className="fk-seg"
-            onClick={off ? undefined : () => onPick(id)} style={{
-              flex: '1 1 0', minWidth: 0, height: 44, border: 'none', padding: '0 4px', whiteSpace: 'nowrap', cursor: off ? 'default' : 'pointer',
-              font: `700 12px ${HEAD}`, letterSpacing: '0.12em', opacity: off ? 0.4 : 1,
-              color: on ? '#1A1204' : MUTED, background: on ? GOLD : 'transparent',
-            }}>{label}</button>
+          <button key={id} type="button" role="radio" aria-checked={on ? 'true' : 'false'} aria-disabled={off ? 'true' : undefined} className="qm-raised"
+            onClick={off ? undefined : () => onPick(id)} style={{ ...qmSeg(on, { off }), letterSpacing: '0.12em' }}>{label}</button>
         );
       })}
     </div>
@@ -875,14 +878,14 @@ export default function QuickMissionSetup({ entry, onBack, onHome, onFightMode, 
 
               <div style={{ display: 'flex', gap: 8 }}>
                 <div data-guide="qm-start" className="qm-start" style={{ flex: 1, minWidth: 0 }}>
-                  <GoldButton label="START" icon="play" onClick={handleStart} height={50} style={{ fontSize: 18, letterSpacing: '0.22em' }}/>
+                  <QmGold label="START" icon="play" onClick={handleStart} height={50} style={{ fontSize: 18, letterSpacing: '0.22em' }}/>
                 </div>
                 {/* SURPRISE — a different workout with the same GEAR and TIME. */}
                 {!onLibrary && (
-                  <button type="button" data-guide="qm-surprise" className="fk-ghost qm-surprise" onClick={surprise} style={{
-                    ...chf, width: 64, height: 50, flexShrink: 0, padding: 0, cursor: 'pointer',
+                  <button type="button" data-guide="qm-surprise" className="qm-raised qm-surprise" onClick={surprise} style={{
+                    ...qmRaised('slate', { lift: 5, radius: 14 }), width: 64, height: 50, flexShrink: 0, padding: 0, cursor: 'pointer',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3,
-                    background: CARD, border: '1px solid rgba(157,108,255,0.5)', color: '#fff', font: `700 8px ${HEAD}`, letterSpacing: '0.12em',
+                    color: '#fff', font: `700 9px ${HEAD}`, letterSpacing: '0.1em',
                   }}><span key={roll} aria-hidden="true" className={roll ? 'qm-dice qm-rolling' : 'qm-dice'}><span className="qm-die a">🎲</span><span className="qm-die b">🎲</span></span>SURPRISE</button>
                 )}
               </div>
@@ -904,9 +907,10 @@ export default function QuickMissionSetup({ entry, onBack, onHome, onFightMode, 
 
           {/* MISSION LIBRARY — the folder: every launch mission and classic,
               in a sheet. */}
-          <button type="button" data-guide="qm-library" className="fk-row qm-mt qm-lib" onClick={() => setLibraryOpen(true)} aria-haspopup="dialog" aria-expanded={libraryOpen ? 'true' : 'false'} style={{
-            flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10, minHeight: 56, padding: '8px 12px', width: '100%', boxSizing: 'border-box', marginTop: 4,
-            borderRadius: 14, background: '#0F0B1E', border: '1px solid rgba(157,108,255,0.4)', color: '#fff', textAlign: 'left', cursor: 'pointer',
+          <button type="button" data-guide="qm-library" className="qm-raised qm-mt qm-lib" onClick={() => setLibraryOpen(true)} aria-haspopup="dialog" aria-expanded={libraryOpen ? 'true' : 'false'} style={{
+            ...qmRaised('slate', { lift: 4, radius: 14 }),
+            flexShrink: 0, display: 'flex', alignItems: 'center', gap: 10, minHeight: 56, padding: '8px 12px', width: '100%', marginTop: 4,
+            color: '#fff', textAlign: 'left', cursor: 'pointer',
           }}>
             <span style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 10, background: 'rgba(157,108,255,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Folder size={18} color={VIOLET_TEXT}/>

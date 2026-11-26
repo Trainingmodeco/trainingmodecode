@@ -1,6 +1,7 @@
 import { Fragment, useState, useRef, useEffect } from 'react';
 import { Plus, Minus } from 'lucide-react';
 import { HEAD, BODY, MUTED, GOLD, VIOLET_TEXT } from './FitSetupKit';
+import { QmStyle, qmRaised } from './QmButtons';
 
 // The + on a library row (owner, 2026-11-24): it drops the full workout down
 // under the row (every move with its reps or time, the rounds, the format, the
@@ -42,10 +43,13 @@ export function DropButton({ open, controls, titleId, onClick }) {
   const Icon = open ? Minus : Plus;
   return (
     <button type="button" aria-label={open ? 'Hide the full workout' : 'Show the full workout'} aria-expanded={open ? 'true' : 'false'}
-      aria-controls={controls} aria-describedby={titleId} onClick={onClick} style={{
-        width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 10, cursor: 'pointer',
-        background: open ? 'rgba(157,108,255,0.22)' : 'rgba(255,255,255,0.04)', border: `1px solid ${open ? 'rgba(157,108,255,0.6)' : 'rgba(255,255,255,0.14)'}`, color: VIOLET_TEXT,
+      aria-controls={controls} aria-describedby={titleId} onClick={onClick} className="qm-raised" style={{
+        // Quick Mission's raised button (shared/QmButtons): open = picked.
+        ...qmRaised(open ? 'picked' : 'slate', { lift: 3, radius: 10 }), marginTop: 3,
+        width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, cursor: 'pointer',
+        color: open ? '#fff' : VIOLET_TEXT,
       }}>
+      <QmStyle/>
       <Icon size={18} strokeWidth={2.6} aria-hidden="true"/>
     </button>
   );

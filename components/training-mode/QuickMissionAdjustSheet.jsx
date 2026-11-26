@@ -6,9 +6,10 @@ import OverlayPortal, { OVERLAY_Z } from './shared/OverlayPortal';
 import { FLOAT_BACKDROP, floatPanel } from './shared/BottomSheet';
 import useSheetModal, { GRAB_BAR } from './shared/useSheetModal';
 import {
-  SegRow, ChipGroup, CardioToggleCard, GoldButton, Label,
-  HEAD, BODY, MUTED, VIOLET, VIOLET_TEXT, GOLD, CARD, CARD_BORDER, chf,
+  CardioToggleCard, Label,
+  HEAD, BODY, MUTED, VIOLET, VIOLET_TEXT, GOLD,
 } from './shared/FitSetupKit';
+import { QmGold, QmSegRow, QmChipGroup, QmStyle, qmSeg, qmStrip } from './shared/QmButtons';
 
 // Quick Mission · ADJUST. Everything that is not GEAR or TIME, behind the
 // open card's ADJUST row, so the page itself stays two choices and START.
@@ -39,33 +40,31 @@ const CSS = `
 /* The five FOCUS chips on one row at 412px; a narrower phone wraps them. */
 /* The four LEVEL segments on a 360px phone: ADVANCED has to fit its segment. */
 @media (max-width: 380px) { .qa-lv { font-size: 10.5px !important; letter-spacing: 0.02em !important; } }
-.qa-chips .fk-chip { position: relative; padding: 0 9px !important; letter-spacing: 0.08em !important; }
-.qa-chips .fk-chip::after { content: ''; position: absolute; top: -4px; bottom: -4px; left: -3px; right: -3px; }
+.qa-chips .qm-raised { position: relative; padding: 0 9px !important; letter-spacing: 0.08em !important; }
+.qa-chips .qm-raised::after { content: ''; position: absolute; top: -4px; bottom: -4px; left: -3px; right: -3px; }
 @media (prefers-reduced-motion: reduce) { .qa-panel { animation: none !important; } }
 `;
 
-// LEVEL: the kit's strip (the SegRow look, 44px), for four levels on a 360px
+// LEVEL: Quick Mission's raised strip (shared/QmButtons, 44px), for four levels on a 360px
 // phone (a tighter label), with the athlete's own captioned under its segment.
 function LevelRow({ level }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <Label>Level</Label>
-      <div role="radiogroup" aria-label="Level" style={{ ...chf, display: 'flex', padding: 3, gap: 3, background: CARD, border: `1px solid ${CARD_BORDER}` }}>
+      <div role="radiogroup" aria-label="Level" style={qmStrip}>
+        <QmStyle/>
         {level.options.map(o => {
           const on = o.id === level.value;
           return (
             <button key={o.id} type="button" role="radio" aria-checked={on ? 'true' : 'false'} aria-label={o.id === level.mark ? `${o.label}, ${level.markLabel.toLowerCase()}` : o.label}
-              className="fk-seg qa-lv" onClick={() => level.onPick(o.id)} style={{
-                flex: '1 1 0', minWidth: 0, height: 44, border: 'none', cursor: 'pointer', padding: 0, whiteSpace: 'nowrap',
-                font: `600 11px ${HEAD}`, letterSpacing: '0.06em',
-                color: on ? '#fff' : MUTED, background: on ? 'rgba(157,108,255,0.24)' : 'transparent',
-                boxShadow: on ? `inset 0 0 0 1px ${VIOLET}` : 'none',
+              className="qm-raised qa-lv" onClick={() => level.onPick(o.id)} style={{
+                ...qmSeg(on), padding: 0, font: `700 11px ${HEAD}`, letterSpacing: '0.06em',
               }}>{o.label}</button>
           );
         })}
       </div>
       {level.mark && (
-        <div aria-hidden="true" style={{ display: 'flex', gap: 3, padding: '0 3px', marginTop: -2 }}>
+        <div aria-hidden="true" style={{ display: 'flex', gap: 6, marginTop: -2 }}>
           {level.options.map(o => (
             <span key={o.id} data-your-level={o.id === level.mark ? '' : undefined} style={{
               flex: '1 1 0', minWidth: 0, textAlign: 'center', whiteSpace: 'nowrap', font: `700 9px ${HEAD}`, letterSpacing: '0.1em', color: GOLD,
@@ -80,24 +79,21 @@ function LevelRow({ level }) {
 
 const help = (text) => <div style={{ font: `500 12px ${BODY}`, color: MUTED, lineHeight: 1.4 }}>{text}</div>;
 
-// GUIDED · AT YOUR PACE: the kit's strip (the same choice as the first page's
+// GUIDED · AT YOUR PACE: Quick Mission's raised strip (the same choice as the first page's
 // switch, kept in sync by the page), with GUIDED greyed out on a mission only
 // offered at your pace (it still says what is coming).
 function HowRow({ how }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <Label>Run mode</Label>
-      <div role="radiogroup" aria-label="Run mode" style={{ ...chf, display: 'flex', padding: 3, gap: 3, background: CARD, border: `1px solid ${CARD_BORDER}` }}>
+      <div role="radiogroup" aria-label="Run mode" style={qmStrip}>
         {RUN_MODES.map(({ id, label }) => {
           const on = how.value === id;
           const off = id === 'guided' && how.soloOnly;
           return (
-            <button key={id} type="button" role="radio" aria-checked={on ? 'true' : 'false'} aria-disabled={off ? 'true' : undefined} className="fk-seg"
+            <button key={id} type="button" role="radio" aria-checked={on ? 'true' : 'false'} aria-disabled={off ? 'true' : undefined} className="qm-raised"
               onClick={off ? undefined : () => how.onPick(id)} style={{
-                flex: 1, height: 44, border: 'none', padding: 0, cursor: off ? 'default' : 'pointer', whiteSpace: 'nowrap',
-                font: `600 12px ${HEAD}`, letterSpacing: '0.14em', opacity: off ? 0.45 : 1,
-                color: on ? '#fff' : MUTED, background: on ? 'rgba(157,108,255,0.24)' : 'transparent',
-                boxShadow: on ? `inset 0 0 0 1px ${VIOLET}` : 'none',
+                ...qmSeg(on, { off }), padding: 0, letterSpacing: '0.14em',
               }}>{label}</button>
           );
         })}
@@ -153,14 +149,14 @@ export default function QuickMissionAdjustSheet({ title, level, focus, how, note
               ? <LevelRow level={level}/>
               : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <SegRow label="Level" options={level.options} value={level.value} onPick={level.onPick} height={44}/>
+                  <QmSegRow Label={Label} label="Level" options={level.options} value={level.value} onPick={level.onPick} height={44}/>
                   {level.detail && help(level.detail)}
                 </div>
               ))}
             {focus && (
               <div className="qa-chips" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <Label>Focus</Label>
-                <ChipGroup ariaLabel="Focus" options={focus.options} value={focus.value} onPick={focus.onPick}/>
+                <QmChipGroup ariaLabel="Focus" options={focus.options} value={focus.value} onPick={focus.onPick}/>
               </div>
             )}
             {how && <HowRow how={how}/>}
@@ -169,7 +165,7 @@ export default function QuickMissionAdjustSheet({ title, level, focus, how, note
           </div>
 
           <div style={{ flexShrink: 0, padding: '10px 16px 14px' }}>
-            <GoldButton label="DONE" icon={<Check size={16} strokeWidth={3}/>} height={48} onClick={onClose} style={{ fontSize: 16, letterSpacing: '0.2em', color: '#1A1204' }}/>
+            <QmGold label="DONE" icon={<Check size={16} strokeWidth={3}/>} height={48} onClick={onClose} style={{ fontSize: 16, letterSpacing: '0.2em', color: '#1A1204' }}/>
           </div>
         </div>
       </div>

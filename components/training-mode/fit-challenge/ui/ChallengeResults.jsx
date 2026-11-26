@@ -1,6 +1,7 @@
 import { Check, RotateCcw } from 'lucide-react';
 import MissionComplete from '../../shared/MissionComplete';
-import { GoldButton, GhostButton, GOLD as KIT_GOLD } from '../../shared/FitSetupKit';
+import { GOLD as KIT_GOLD } from '../../shared/FitSetupKit';
+import { QmGold, QmGhost } from '../../shared/QmButtons';
 import { mmss } from '../../data/challengeTotals';
 
 // The results: the app's own end screen (shared/MissionComplete, as
@@ -41,15 +42,17 @@ function Recap({ pct, ticked, cells, splits, totalSec, saved, doneWord = 'ticked
 
 function Ctas({ onRepeat, onNew, onSave, saved }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <GoldButton label="REPEAT" icon={<RotateCcw size={18} strokeWidth={2.6}/>} height={52} onClick={onRepeat} style={{ fontSize: 16 }}/>
+    // Raised (shared/QmButtons): the lips make the room between the rows, so
+    // the gaps are smaller and the screen is no taller than with the flat ones.
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <QmGold label="REPEAT" icon={<RotateCcw size={18} strokeWidth={2.6}/>} height={48} onClick={onRepeat} style={{ fontSize: 16 }}/>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
         {/* Two words each, no icon before SAVE WORKOUT and a little less
             tracking than the kit's: at 360px a half-width button holds them
-            with room to the chamfers. */}
-        <GhostButton label="NEW CHALLENGE" height={46} onClick={onNew} style={{ letterSpacing: '0.1em' }}/>
-        <GhostButton
-          label={saved ? 'SAVED' : 'SAVE WORKOUT'} height={46} onClick={saved ? undefined : onSave}
+            with room to spare. */}
+        <QmGhost label="NEW CHALLENGE" height={44} onClick={onNew} style={{ letterSpacing: '0.1em' }}/>
+        <QmGhost
+          label={saved ? 'SAVED' : 'SAVE WORKOUT'} height={44} onClick={saved ? undefined : onSave}
           icon={saved ? <Check size={16} strokeWidth={3} color={KIT_GOLD}/> : null}
           style={{ letterSpacing: '0.1em', ...(saved ? { color: KIT_GOLD, cursor: 'default' } : {}) }}
         />

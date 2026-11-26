@@ -1,6 +1,7 @@
 import { Check, Dices } from 'lucide-react';
 import BottomSheet from '../../shared/BottomSheet';
 import { Label, HEAD, BODY, MUTED, GOLD, VIOLET, VIOLET_TEXT } from '../../shared/FitSetupKit';
+import { QmStyle, qmRaised } from '../../shared/QmButtons';
 import { useOneOpen, DropButton, WorkoutDrop } from '../../shared/WorkoutDrop';
 
 // CHOOSE: the library, grouped by the spec's categories (FULL BODY, UPPER
@@ -52,10 +53,12 @@ function Row({ item, onPick, open, onToggle, wrapRef }) {
 
 function SurpriseRow({ onClick }) {
   return (
-    <button type="button" className="fk-ghost" onClick={onClick} style={{
-      width: '100%', minHeight: 56, display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px', borderRadius: 10,
-      boxSizing: 'border-box', textAlign: 'left', cursor: 'pointer', background: 'rgba(157,108,255,0.18)', border: `1px solid ${VIOLET}`,
+    <button type="button" className="qm-raised" onClick={onClick} style={{
+      ...qmRaised('slate', { lift: 4, radius: 12 }),
+      width: '100%', minHeight: 56, display: 'flex', alignItems: 'center', gap: 12, padding: '8px 12px',
+      textAlign: 'left', cursor: 'pointer',
     }}>
+      <QmStyle/>
       <Dices size={20} color={VIOLET_TEXT} style={{ flexShrink: 0 }}/>
       <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span style={{ font: `700 13px ${HEAD}`, letterSpacing: '0.12em', color: '#fff' }}>SURPRISE ME</span>
