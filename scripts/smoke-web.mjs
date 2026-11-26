@@ -619,7 +619,7 @@ await check('max out: BOSS RUSH GUIDED, DONE opens HOW MANY REPS?, NOT YET goes 
   await maxDone().waitFor({ timeout: 20000 });
   if (!await maxDone().isDisabled()) throw new Error('DONE is lit in the first seconds of a set');
   t = await text();
-  if (!/MAX\s*\nREPS/.test(t) || !/STATION 1/.test(t) || !/UP NEXT · AIR SQUATS · MAX/.test(t)) throw new Error('the set does not say MAX, its station and what is up next');
+  if (!/MAX\s*\nREPS/.test(t) || !/STATION 1/.test(t) || !/UP NEXT: Air Squats · MAX/.test(t)) throw new Error('the set does not say MAX, its station and what is up next');
   await page.waitForFunction(() => { const b = document.querySelector('[data-guide="qma-done"]'); return b && !b.disabled; }, null, { timeout: 15000 });
   await maxDone().click({ timeout: 4000 }); await S(700);
   if (!await repsSheet().count() || !/HOW MANY REPS\?/.test(await text())) throw new Error('DONE did not open HOW MANY REPS?');

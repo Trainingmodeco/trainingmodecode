@@ -64,14 +64,20 @@ export function qmChip(on) {
   };
 }
 
+// The <style> sits BESIDE the button, not inside it: a style element inside a
+// button puts its whole sheet into the button's textContent, so a script that
+// finds the START button by its text ("START") no longer finds it. (A style is
+// display: none, so next to the button it takes no room in a flex or grid.)
 export function QmButton({ skin = 'slate', lift = 4, radius = 12, glow, className, style, children, type = 'button', ...rest }) {
   return (
-    <button type={type} className={`qm-raised${className ? ` ${className}` : ''}`} {...rest} style={{
-      cursor: rest.disabled ? 'default' : 'pointer', ...qmRaised(skin, { lift, radius, glow }), ...style,
-    }}>
+    <>
       <QmStyle/>
-      {children}
-    </button>
+      <button type={type} className={`qm-raised${className ? ` ${className}` : ''}`} {...rest} style={{
+        cursor: rest.disabled ? 'default' : 'pointer', ...qmRaised(skin, { lift, radius, glow }), ...style,
+      }}>
+        {children}
+      </button>
+    </>
   );
 }
 

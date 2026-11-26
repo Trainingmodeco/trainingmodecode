@@ -166,6 +166,13 @@ input[type=range].qm-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3
   .qm-start button, .qm-surprise { height: 44px !important; }
   .qm-time-band { padding-top: 14px !important; }
   .qm-lib { min-height: 48px !important; padding: 4px 12px !important; }
+  /* The raised buttons' lips (3 to 5px of shadow under each) hang into the gaps
+     here instead of each keeping its own room under it: the two strips, START /
+     SURPRISE and the library row win back 10px, so the page (ADVANCED, WEIGHTED:
+     four tags) still fits above the tab bar. The buttons stay 44px or more. */
+  .qm-stack [role="radio"] { margin-bottom: 1px !important; }
+  .qm-start button, .qm-surprise { margin-bottom: 2px !important; }
+  .qm-lib { margin-bottom: 1px !important; }
 }
 `;
 
