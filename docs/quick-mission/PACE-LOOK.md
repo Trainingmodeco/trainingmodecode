@@ -122,4 +122,4 @@ Small phones (320x568 and other screens 600 px tall or less): the ring, buttons 
 
 
 2026-11-25: the GUIDED Quick Mission now uses this ring and look too, and the
-bolt is very dim (BOLT_OPACITY): see docs/quick-mission/UNIFIED-LOOK.md.
+bolt strength is one number (BOLT_OPACITY, 0.3): see docs/quick-mission/UNIFIED-LOOK.md.

@@ -40,7 +40,7 @@ saving, the stash and what each screen hands on are exactly as before.
   Mission's end screen turns on; every other end screen is as before.
 - **The ring** is `shared/RunRing.jsx` everywhere in Quick Mission: a faint
   track, a glowing arc, the time large in the middle, one word under it, and
-  the lightning bolt behind the arc, now very dim.
+  the lightning bolt behind the arc, at its original strength (0.3).
 - **The Training Mode T**, large and glowing behind the page:
   `RunWatermark` in `shared/RunBar.jsx`.
 
@@ -105,14 +105,13 @@ In the GUIDED run, the exercise card (`data-guide="qma-exercisecard"`): a
 square picture about 96 to 120 px, above the move's name, centred, with the
 ring kept as the clock. On AT YOUR PACE, the move in hand beside the ring
 (`[data-run-now]`) has the room: a picture about 72 to 96 px above its name,
-or the ring's own middle on GET READY. The bolt behind the ring is dim enough
-that a picture laid over it will not fight it. On short phones the card is
+or the ring's own middle on GET READY. The bolt behind the ring is soft; if a picture laid over it fights the bolt, lower BOLT_OPACITY (see below). On short phones the card is
 tight, so the picture there should be the smaller size (about 72 px).
 
 ## Tuning the bolt
 
 `BOLT_OPACITY` at the top of `components/training-mode/shared/RunRing.jsx`:
-0 hides the bolt, 1 is full strength. It is 0.03 now (it was 0.3). Paused,
+0 hides the bolt, 1 is full strength. It is 0.3 (the owner tried 0.03 on 2026-11-25 and asked for 0.3 back on 2026-11-26). Paused,
 the bolt is about half of that. Change the one number; nothing else needs to
 change.
 

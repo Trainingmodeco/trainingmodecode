@@ -27,11 +27,11 @@ const R = 86;
 const STROKE = 11;
 const CIRC = 2 * Math.PI * R;
 
-// The lightning bolt behind the arc, very dim (owner, 2026-11-25: "keep the bolt
-// in the background, but make it very dim", exercise GIFs will come to these
-// screens). Its strength, 0 (gone) to 1; it was 0.3 until 2026-11-25. Paused,
-// it drops to about half of this.
-export const BOLT_OPACITY = 0.03;
+// The lightning bolt behind the arc. Its strength, 0 (gone) to 1. It is 0.3, as it
+// was when AT YOUR PACE shipped: the owner tried it at 0.03 (2026-11-25, for the
+// exercise GIFs to come) and asked for it back (2026-11-26). Paused, it drops to
+// about half of this.
+export const BOLT_OPACITY = 0.3;
 
 export const RING_COLORS = { work: GOLD, rest: '#4f8cff', ready: '#B57BFF', warn: '#EF4444' };
 
@@ -42,7 +42,7 @@ export default function RunRing({ time, pct = 1, color = GOLD, word, call, pause
       <svg aria-hidden="true" viewBox={`0 0 ${VB} ${VB}`} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block', overflow: 'visible' }}>
         <circle cx={VB / 2} cy={VB / 2} r={R} fill="rgba(7,0,15,0.55)" stroke="rgba(255,255,255,0.08)" strokeWidth={STROKE}/>
       </svg>
-      {/* The lightning bolt: Quick Mission is the lightning mode. Very dim, behind the arc (BOLT_OPACITY). */}
+      {/* The lightning bolt: Quick Mission is the lightning mode. Behind the arc (BOLT_OPACITY). */}
       <svg aria-hidden="true" viewBox="0 0 100 160" style={{ position: 'absolute', left: '50%', top: '50%', height: '78%', transform: 'translate(-50%, -50%)', opacity: paused ? BOLT_OPACITY * 0.55 : BOLT_OPACITY, filter: `drop-shadow(0 0 8px ${color})`, pointerEvents: 'none' }}>
         <polygon points="62,2 16,92 47,92 32,158 88,60 56,60 78,2" fill={color} fillOpacity="0.35" stroke={color} strokeWidth="4" strokeLinejoin="round"/>
       </svg>
