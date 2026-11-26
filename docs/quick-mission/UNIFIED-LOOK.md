@@ -113,11 +113,11 @@ tight, so the picture there should be the smaller size (about 72 px).
 While the work is on (the ring is gold, or red in the last minute) the bolt in
 `shared/RunRing.jsx` is charged, like a Super Saiyan powering up (the owner's
 picture): a golden aura pulses behind it, the bolt itself glows with a slow
-pulse, short white arcs crackle along its edges, and long white-and-pale-blue
-lightning streaks shoot out of its edges, five sets flashing at their own
-rhythms, with sparks flying off its tips. On a rest (blue) the bolt settles to
+pulse, and white lightning streaks (white with a pale blue glow; no yellow
+ones, the owner took those out) shoot out of its edges, five sets flashing at
+their own rhythms, with sparks flying off its tips. On a rest (blue) the bolt settles to
 `BOLT_REST_OPACITY` (0.12) and the crackle stops; paused and GET READY are as
-before. With reduced motion everything stands still (a still glow and one pair
+before. With reduced motion everything stands still (a still glow and two sets
 of streaks). It is CSS animation only (no timers, no extra renders). The same
 ring draws it in the guided run and in AT YOUR PACE. To make it stronger or
 calmer: the stroke widths and the `rr-s1`..`rr-s5` keyframes in `CHARGE_CSS`

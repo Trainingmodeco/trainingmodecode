@@ -46,9 +46,6 @@ const GLOW = (c) => (c === RING_COLORS.work ? '#9fd8ff' : c);
 const CHARGE_CSS = `
 @keyframes rr-glow { 0% { filter: drop-shadow(0 0 6px var(--rr-c)) drop-shadow(0 0 2px #fff); opacity: .3 } 100% { filter: drop-shadow(0 0 20px var(--rr-c)) drop-shadow(0 0 6px #fff); opacity: .46 } }
 @keyframes rr-aura { 0% { opacity: .35; transform: translate(-50%, -50%) scale(.92) } 100% { opacity: .85; transform: translate(-50%, -50%) scale(1.1) } }
-@keyframes rr-hug { 0%, 30% { opacity: 1 } 34%, 100% { opacity: 0 } }
-@keyframes rr-hug2 { 0%, 32% { opacity: 0 } 36%, 64% { opacity: 1 } 68%, 100% { opacity: 0 } }
-@keyframes rr-hug3 { 0%, 66% { opacity: 0 } 70%, 96% { opacity: 1 } 100% { opacity: 0 } }
 @keyframes rr-s1 { 0%, 5% { opacity: 0 } 6%, 11% { opacity: 1 } 12%, 18% { opacity: 0 } 19%, 23% { opacity: .9 } 24%, 100% { opacity: 0 } }
 @keyframes rr-s2 { 0%, 38% { opacity: 0 } 39%, 45% { opacity: 1 } 46%, 52% { opacity: 0 } 53%, 57% { opacity: .85 } 58%, 100% { opacity: 0 } }
 @keyframes rr-s3 { 0%, 66% { opacity: 0 } 67%, 74% { opacity: 1 } 75%, 80% { opacity: 0 } 81%, 85% { opacity: .9 } 86%, 100% { opacity: 0 } }
@@ -57,10 +54,7 @@ const CHARGE_CSS = `
 @keyframes rr-spark { 0% { opacity: 0; transform: translate(0, 0) scale(.5) } 30% { opacity: 1 } 100% { opacity: 0; transform: translate(var(--rr-dx), var(--rr-dy)) scale(1.2) } }
 .rr-bolt-live { animation: rr-glow 1.05s ease-in-out infinite alternate; }
 .rr-aura { animation: rr-aura 1.05s ease-in-out infinite alternate; }
-.rr-streak, .rr-hugs { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.rr-hug-a { animation: rr-hug .6s steps(1, end) infinite; }
-.rr-hug-b { animation: rr-hug2 .6s steps(1, end) infinite; }
-.rr-hug-c { animation: rr-hug3 .6s steps(1, end) infinite; }
+.rr-streak { fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .rr-set1 { animation: rr-s1 .95s linear infinite; }
 .rr-set2 { animation: rr-s2 1.15s linear infinite .2s; }
 .rr-set3 { animation: rr-s3 .8s linear infinite .45s; }
@@ -70,18 +64,15 @@ const CHARGE_CSS = `
 @media (prefers-reduced-motion: reduce) {
   .rr-bolt-live, .rr-aura, .rr-spark { animation: none !important; }
   .rr-aura { opacity: .5; }
-  .rr-hug-a, .rr-hug-b, .rr-hug-c, .rr-set1, .rr-set2, .rr-set3, .rr-set4, .rr-set5 { animation: none !important; opacity: 0; }
+  .rr-set1, .rr-set2, .rr-set3, .rr-set4, .rr-set5 { animation: none !important; opacity: 0; }
   .rr-set1, .rr-set3 { opacity: .8 !important; }
   .rr-spark { opacity: .6; }
 }
 `;
 
-// The bolt is drawn in a 100 x 160 box. Short jagged arcs hug its edges (three
-// sets that take turns), and long white streaks shoot out from its edges like a
-// charging Super Saiyan's lightning, five sets flashing at their own rhythms.
-const HUG_A = ['M57 4 L48 20 L54 25 L38 48 L44 52 L26 76 L31 80 L16 94', 'M83 62 L72 80 L78 85 L60 112 L65 116 L47 142 L52 146 L38 158'];
-const HUG_B = ['M80 2 L72 16 L78 22 L66 38 L71 42 L58 58', 'M20 88 L33 96 L45 88 L52 98 L40 112 L45 116 L33 138', 'M92 58 L80 74 L84 78 L70 100 L74 104 L60 126'];
-const HUG_C = ['M64 0 L56 14 L62 19 L46 40 L51 44 L34 68 L39 72 L22 90', 'M90 64 L81 82 L86 86 L68 112 L72 116 L54 144 L58 148', 'M58 62 L68 54 L62 50 L76 38 L70 34 L84 18'];
+// The bolt is drawn in a 100 x 160 box. Long white streaks shoot out from its
+// edges like a charging Super Saiyan's lightning, five sets flashing at their own
+// rhythms (white only: the owner took the yellow ones out, 2026-11-26).
 const STREAK_SETS = [
   ['M39 47 L30 40 L33 33 L20 26 L24 18 L8 8 L12 -2', 'M30 40 L22 45 L12 41', 'M60 109 L72 108 L70 118 L86 120 L84 130 L102 134', 'M62 2 L58 -8 L66 -14 L60 -26'],
   ['M67 31 L78 27 L76 20 L92 14 L90 6 L108 -2', 'M78 27 L88 33 L100 29', 'M39 125 L28 124 L30 133 L14 134 L16 144 L-2 150', 'M32 158 L38 166 L32 172 L40 184'],
@@ -113,18 +104,6 @@ export default function RunRing({ time, pct = 1, color = GOLD, word, call, pause
       </svg>
       {charged && (
         <svg aria-hidden="true" viewBox="0 0 100 160" data-run-charge="true" style={boltPos}>
-          <g style={{ filter: `drop-shadow(0 0 2px ${color})` }}>
-            {[['a', HUG_A], ['b', HUG_B], ['c', HUG_C]].map(([k, list]) => (
-              <g key={k} className={`rr-hug-${k}`}>
-                {list.map((dd) => (
-                  <g key={dd}>
-                    <path className="rr-hugs" d={dd} stroke={color} strokeWidth="4" strokeOpacity="0.55"/>
-                    <path className="rr-hugs" d={dd} stroke="#FFFFFF" strokeWidth="1.7"/>
-                  </g>
-                ))}
-              </g>
-            ))}
-          </g>
           <g style={{ filter: `drop-shadow(0 0 3px ${GLOW(color)}) drop-shadow(0 0 8px ${GLOW(color)})` }}>
             {STREAK_SETS.map((list, i) => (
               <g key={i} className={`rr-set${i + 1}`} opacity="0">
