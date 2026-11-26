@@ -135,13 +135,42 @@ input[type=range].qm-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3
 .qm-toggle:hover, .qm-toggle:focus-visible { color: #fff !important; }
 /* The GUIDED | AT YOUR PACE switch and its line sit in the card, so on a
    phone under about 860px tall (412 x 811, 390 x 844) the whole first page
-   packs a little tighter to stay above the tab bar. */
+   packs a little tighter to stay above the tab bar. The raised buttons' lips
+   (3 to 5px of shadow under each) hang into the gaps instead of each keeping
+   its own room under it. A 360 or 375px wide phone keeps the four tags
+   (20 MIN, ADVANCED, FULL BODY, WEIGHTED) on one line. */
 @media (max-height: 860px) {
   .qm-stack { gap: 8px !important; padding-top: 12px !important; }
   .qm-stack > .qm-mt { margin-top: 0 !important; }
   .qm-card-in { padding: 10px 14px 10px !important; gap: 6px !important; }
   .qm-card-in > .qm-toggle { margin: -2px 0 -4px !important; }
   .qm-time-band { padding-top: 14px !important; }
+  .qm-stack [role="radio"] { margin-bottom: 1px !important; }
+  .qm-start button, .qm-surprise { margin-bottom: 2px !important; }
+  .qm-lib { margin-bottom: 1px !important; }
+}
+@media (max-height: 860px) and (max-width: 380px) {
+  .qm-tags { gap: 4px !important; }
+  .qm-tags > span { padding: 5px 6px !important; letter-spacing: 0.1em !important; }
+}
+/* A phone about 780px tall (360 x 780, 412 x 800) is a little shorter still:
+   the gaps, the card's padding, START and the library row give up a few px.
+   Every button stays 44px or more and every line of text stays. */
+@media (max-height: 810px) {
+  .qm-stack { gap: 6px !important; padding-top: 10px !important; }
+  .qm-card-in { padding: 9px 14px 10px !important; gap: 4px !important; }
+  .qm-card-in > .qm-toggle { margin: -2px 0 -5px !important; }
+  .qm-start button, .qm-surprise { height: 46px !important; }
+  .qm-lib { min-height: 49px !important; padding: 4px 12px !important; }
+}
+/* Between 761 and 775px tall, a little tighter again, so the page still fits
+   before the 760px layout below takes over. */
+@media (max-height: 775px) {
+  .qm-stack { gap: 5px !important; }
+  .qm-card-in { padding: 8px 14px 8px !important; gap: 3px !important; }
+  .qm-card-in > .qm-toggle { margin: -2px 0 -6px !important; }
+  .qm-how { gap: 4px !important; }
+  .qm-lib { min-height: 46px !important; padding: 3px 12px !important; }
 }
 /* A short phone (360 x 740) keeps the whole first page above the tab bar AND
    above the floating BETA chip (it sits 37px over the bar, at the left edge, so
