@@ -1,6 +1,6 @@
 {
  "voice": "male",
- "version": 29,
+ "version": 30,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -24165,6 +24165,10 @@
   "back to reverse curls": {
    "file": "back_to_reverse_curls.mp3",
    "ms": 1848
+  },
+  "tick each move as you do it": {
+   "file": "tick_each_move_as_you_do_it.mp3",
+   "ms": 1800
   }
  },
  "count": 1121,

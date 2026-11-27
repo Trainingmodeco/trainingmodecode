@@ -31,8 +31,8 @@ Saving: nothing is kept for Continue until GET READY. Leaving the warm-up or WOR
 back from a pause (Continue on Home, the floating resume) goes straight into the run: no warm-up, no WORKOUTS, no
 spoken start.
 
-Not changed: the Fit card's CHECK-OFF run keeps its own start (straight to GET READY) and stays silent. Giving it
-the warm-up would mean new saved states in a separate runner (FitCheckOffSolo); it was left as it is.
+The Fit card's CHECK-OFF run (a separate runner, FitCheckOffSolo) has the same start since 2026-11-26: see
+docs/quick-mission/CHECKOFF-START.md. WorkoutsScreen, RunMoveRow and formatSummary live in shared/PaceStart.jsx.
 
 ## What the coach says
 

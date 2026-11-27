@@ -147,9 +147,14 @@ async function runUntil(page, done, { stepMs = 1000, max = 120 } = {}) {
   }
   throw new Error('the clock ran out before the screen came');
 }
-// AT YOUR PACE with CHECK-OFF: START, GET READY, then `rounds` full rounds and
-// `more` ticks of the next, minutes apart.
-async function checkOff(page, w, { rounds = 2, more = 3, bonus = false, minutes = 20 } = {}) {
+// AT YOUR PACE with CHECK-OFF: START opens the WARM-UP (5:00), SKIP WARM-UP the
+// WORKOUTS screen, START there GET READY (owner, 2026-11-26: the same start as
+// the regular AT YOUR PACE run), then `rounds` full rounds and `more` ticks of
+// the next, minutes apart. `stop` says where to stay: 'warmup' (30 s in),
+// 'workouts', 'swapsheet' (the sheet of the first move that can swap) or 'info'
+// (the "i" sheet); `swap`: swap the first move that can before START, and fail
+// if its name is still in the run.
+async function checkOff(page, w, { rounds = 2, more = 3, bonus = false, minutes = 20, stop = 'run', swap = false } = {}) {
   await qm(page, w);
   if (minutes !== 20) {
     await page.locator('input[type=range][aria-label="Time"]').first().evaluate((el, v) => { el.focus(); }, minutes);
@@ -164,7 +169,27 @@ async function checkOff(page, w, { rounds = 2, more = 3, bonus = false, minutes 
   await tap(page, page.getByRole('radio', { name: 'AT YOUR PACE' }));
   await pause(page);
   await tap(page, byName(page, /^START$/));
+  if (stop === 'warmup') { await page.clock.runFor(30000); await wait(page, 600); return; }
+  await tap(page, byName(page, /^SKIP WARM-UP$/));
+  await wait(page, 500);
+  let swappedFrom = null;
+  if (stop === 'info') { await tap(page, byName(page, /About this workout/)); return; }
+  if (stop === 'swapsheet' || swap) {
+    const sw = page.getByRole('button', { name: /^Swap / }).first();
+    swappedFrom = (await sw.getAttribute('aria-label')).replace(/^Swap /, '');
+    await tap(page, sw);
+    if (stop === 'swapsheet') return;
+    // As a person picks: open the first stand-in's row (its name), then USE THIS MOVE.
+    const first = (await page.getByRole('button', { name: /^Swap to / }).first().getAttribute('aria-label')).replace(/^Swap to /, '');
+    await tap(page, page.getByRole('button', { name: first, exact: true }));
+    await tap(page, byName(page, /^USE THIS MOVE$/));
+    await wait(page, 400);
+    if (!(await page.getByRole('button', { name: new RegExp(`^Undo swap `) }).count())) throw new Error('the swap did not show SWAPPED / UNDO on WORKOUTS');
+  }
+  if (stop === 'workouts') return;
+  await tap(page, byName(page, /^START$/));
   await runUntil(page, (t) => /ROUND 1 OF/.test(t), { max: 20 });
+  if (swappedFrom && (await page.evaluate(() => document.body.innerText)).includes(swappedFrom)) throw new Error(`${swappedFrom} was swapped on WORKOUTS and is still in the run`);
   const tickRound = async (n) => { for (let k = 0; k < n; k++) { await page.locator('[data-look="tracker"] button[role="checkbox"][aria-checked="false"]').first().click({ timeout: 4000 }); await page.clock.runFor(35000); } };
   const per = await page.locator('[data-look="tracker"] button[role="checkbox"]').count();
   for (let r = 0; r < rounds; r++) { await tickRound(per); await page.clock.runFor(60000); }
@@ -364,6 +389,26 @@ const STATES = [
     check: [], expect: /FIRST BELL[\s\S]*START/, absent: /AT YOUR PACE · WORKOUTS|NO-GEAR GRIND/ },
   { name: 'pace-checkoff', pace: true, expectNow: 'lit', note: 'CHECK-OFF: round 1 done and four ticks into round 2: the clock, the next move lit and PAUSE / STOP.',
     open: (page, w) => checkOff(page, w, { rounds: 1, more: 4 }), expect: /CHECK-OFF[\s\S]*ROUND 2 OF 3[\s\S]*SHUFFLE[\s\S]*STOP/ },
+  { name: 'pace-checkoff-bonus', pace: true, expectNow: 'lit', note: 'CHECK-OFF with the cardio cool-down ticked (bonus training): the same run screen, round 1 done and two ticks into round 2.',
+    open: (page, w) => checkOff(page, w, { rounds: 1, more: 2, bonus: true }), expect: /CHECK-OFF[\s\S]*ROUND 2 OF 3[\s\S]*SHUFFLE[\s\S]*STOP/ },
+
+  // ── the CHECK-OFF start (owner, 2026-11-26): WARM-UP -> WORKOUTS -> GET READY -> the run ──
+  { name: 'pre-checkoff-warmup', note: 'CHECK-OFF\'s WARM-UP, 30 s in: the ring timer (4:30), warm-up ideas and SKIP WARM-UP (the same as AT YOUR PACE\'s).',
+    open: (page, w) => checkOff(page, w, { stop: 'warmup' }), check: [], expect: /WARM-UP · AT YOUR PACE[\s\S]*04:30[\s\S]*WARM-UP IDEAS[\s\S]*SKIP WARM-UP/ },
+  { name: 'pre-checkoff-warmup-bonus', note: 'The same WARM-UP with bonus training (the cool-down) ticked on the card.',
+    open: (page, w) => checkOff(page, w, { stop: 'warmup', bonus: true }), check: [], expect: /WARM-UP · AT YOUR PACE[\s\S]*04:30[\s\S]*SKIP WARM-UP/ },
+  { name: 'pre-checkoff-workouts', note: 'CHECK-OFF\'s WORKOUTS screen: the format in one line, every move of the card big with SWAP, "i" and START over the tab bar.',
+    open: (page, w) => checkOff(page, w, { stop: 'workouts' }), check: ['[data-run-head]', '[data-run-bar]'], expect: /AT YOUR PACE · WORKOUTS[\s\S]*CHECK-OFF · \d+ ROUNDS · CAP \d+:\d\d[\s\S]*Swap any move now[\s\S]*SWAP[\s\S]*START/, absent: /SKIP WARM-UP|GET READY/ },
+  { name: 'pre-checkoff-workouts-bonus', note: 'The same WORKOUTS screen with bonus training (the cool-down) ticked on the card.',
+    open: (page, w) => checkOff(page, w, { stop: 'workouts', bonus: true }), check: ['[data-run-head]', '[data-run-bar]'], expect: /AT YOUR PACE · WORKOUTS[\s\S]*CHECK-OFF · \d+ ROUNDS[\s\S]*SWAP[\s\S]*START/ },
+  { name: 'pre-checkoff-swap', overlay: true, note: 'The swap sheet on CHECK-OFF\'s WORKOUTS: the card\'s own sheet (EASIER / SIMILAR / HARDER / NO GEAR).', check: ['[data-look="swap"]'],
+    open: (page, w) => checkOff(page, w, { stop: 'swapsheet' }), expect: /SWAP: [\s\S]*NOW[\s\S]*rounds stay; the totals update/ },
+  { name: 'pre-checkoff-swapped', note: 'A move swapped on WORKOUTS (SWAPPED, UNDO) before START.',
+    open: async (page, w) => { await checkOff(page, w, { stop: 'workouts', swap: true }); }, check: ['[data-run-head]', '[data-run-bar]'], expect: /AT YOUR PACE · WORKOUTS[\s\S]*SWAPPED[\s\S]*UNDO/ },
+  { name: 'pre-checkoff-info', overlay: true, note: 'The "i" on CHECK-OFF\'s WORKOUTS: pace targets, what the ticks do and the beeps line.', check: ['[role=dialog]'],
+    open: (page, w) => checkOff(page, w, { stop: 'info' }), expect: /ABOUT THIS WORKOUT[\s\S]*PACE TARGETS[\s\S]*THE BUTTONS[\s\S]*Tick each move as you do it[\s\S]*Beeps play while the screen is on/ },
+  { name: 'pre-checkoff-run-swapped', pace: true, expectNow: 'lit', note: 'A move swapped on WORKOUTS carries into the run: the run lists the new move, not the old one (the open fails otherwise).',
+    open: (page, w) => checkOff(page, w, { rounds: 0, more: 1, swap: true }), expect: /CHECK-OFF[\s\S]*ROUND 1 OF 3[\s\S]*SHUFFLE[\s\S]*STOP/ },
 ];
 
 // ── the checks (scripts/fit-looks-preview.mjs's, plus START in view) ────────
