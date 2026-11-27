@@ -24,7 +24,9 @@ Nothing is shipped to the app until the owner says push.
 
 Needs a Generate run. Six of them are exercises the app still lacks a loop for: Calf Raises, Concentration Curls, Dumbbell Shrugs, Glute Bridges, Hack Squat (Hack Squats), Kettlebell Presses.
 
-- **Reverse Curls** (Fit workout card, 2026-11-23): not in the library or the voice banks; record both voices with the next batch if the owner keeps it.
-- **"Your pace. Tap DONE when the set is done."** (found while building the Fit card, 2026-11-24): GUIDED says it on
-  every weighted set in a Weighted or Hybrid Quick Mission, today and on the new card, but it has no clip in either
-  voice, so on the owner's phone it is silent. Record it in both voices with the next batch.
+- **Reverse Curls**: DONE 2026-11-27. Added to the library (`biceps_reverse_curls_core`) and its five coach lines (name, complete,
+  straight into, skipping to, back to) recorded in both voices (bank v29).
+- **"Your pace. Tap DONE when the set is done."**: nothing to record. Both phrases ("your pace", "tap done when the set is
+  done") are in both banks since 2026-11-23; the note that it was silent was out of date (the comment near line 288 of
+  scripts/spoken-sweeps.mjs says the same and is stale too). If the owner still hears silence on that line, it is a
+  playback problem, not a missing clip.
