@@ -1,6 +1,6 @@
 {
  "voice": "male",
- "version": 29,
+ "version": 31,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -24165,6 +24165,190 @@
   "back to reverse curls": {
    "file": "back_to_reverse_curls.mp3",
    "ms": 1848
+  },
+  "alternating dumbbell punches to the sky": {
+   "file": "alternating_dumbbell_punches_to_the_sky.mp3",
+   "ms": 2328
+  },
+  "alternating dumbbell punches to the sky complete": {
+   "file": "alternating_dumbbell_punches_to_the_sky_complete.mp3",
+   "ms": 2808
+  },
+  "back to alternating dumbbell punches to the sky": {
+   "file": "back_to_alternating_dumbbell_punches_to_the_sky.mp3",
+   "ms": 2832
+  },
+  "back to bulgarian jump lunges with high knee": {
+   "file": "back_to_bulgarian_jump_lunges_with_high_knee.mp3",
+   "ms": 2736
+  },
+  "back to close grip lat pulldowns": {
+   "file": "back_to_close_grip_lat_pulldowns.mp3",
+   "ms": 2520
+  },
+  "back to crossed leg crunches": {
+   "file": "back_to_crossed_leg_crunches.mp3",
+   "ms": 1752
+  },
+  "back to lat pulldowns": {
+   "file": "back_to_lat_pulldowns.mp3",
+   "ms": 1536
+  },
+  "back to single arm lat pulldowns": {
+   "file": "back_to_single_arm_lat_pulldowns.mp3",
+   "ms": 2424
+  },
+  "back to squat to fake thai roundhouse": {
+   "file": "back_to_squat_to_fake_thai_roundhouse.mp3",
+   "ms": 2760
+  },
+  "back to stienborn squat": {
+   "file": "back_to_stienborn_squat.mp3",
+   "ms": 1512
+  },
+  "back to wide grip lat pulldowns": {
+   "file": "back_to_wide_grip_lat_pulldowns.mp3",
+   "ms": 2184
+  },
+  "bulgarian jump lunges with high knee": {
+   "file": "bulgarian_jump_lunges_with_high_knee.mp3",
+   "ms": 2232
+  },
+  "bulgarian jump lunges with high knee complete": {
+   "file": "bulgarian_jump_lunges_with_high_knee_complete.mp3",
+   "ms": 2736
+  },
+  "close grip lat pulldowns": {
+   "file": "close_grip_lat_pulldowns.mp3",
+   "ms": 1704
+  },
+  "close grip lat pulldowns complete": {
+   "file": "close_grip_lat_pulldowns_complete.mp3",
+   "ms": 2304
+  },
+  "crossed leg crunches": {
+   "file": "crossed_leg_crunches.mp3",
+   "ms": 1656
+  },
+  "crossed leg crunches complete": {
+   "file": "crossed_leg_crunches_complete.mp3",
+   "ms": 2016
+  },
+  "lat pulldowns": {
+   "file": "lat_pulldowns.mp3",
+   "ms": 1152
+  },
+  "lat pulldowns complete": {
+   "file": "lat_pulldowns_complete.mp3",
+   "ms": 1656
+  },
+  "single arm lat pulldowns": {
+   "file": "single_arm_lat_pulldowns.mp3",
+   "ms": 2280
+  },
+  "single arm lat pulldowns complete": {
+   "file": "single_arm_lat_pulldowns_complete.mp3",
+   "ms": 2808
+  },
+  "skipping to alternating dumbbell punches to the sky": {
+   "file": "skipping_to_alternating_dumbbell_punches_to_the_sky.mp3",
+   "ms": 3480
+  },
+  "skipping to bulgarian jump lunges with high knee": {
+   "file": "skipping_to_bulgarian_jump_lunges_with_high_knee.mp3",
+   "ms": 3216
+  },
+  "skipping to close grip lat pulldowns": {
+   "file": "skipping_to_close_grip_lat_pulldowns.mp3",
+   "ms": 2328
+  },
+  "skipping to crossed leg crunches": {
+   "file": "skipping_to_crossed_leg_crunches.mp3",
+   "ms": 1968
+  },
+  "skipping to lat pulldowns": {
+   "file": "skipping_to_lat_pulldowns.mp3",
+   "ms": 2016
+  },
+  "skipping to single arm lat pulldowns": {
+   "file": "skipping_to_single_arm_lat_pulldowns.mp3",
+   "ms": 2424
+  },
+  "skipping to squat to fake thai roundhouse": {
+   "file": "skipping_to_squat_to_fake_thai_roundhouse.mp3",
+   "ms": 2472
+  },
+  "skipping to stienborn squat": {
+   "file": "skipping_to_stienborn_squat.mp3",
+   "ms": 1896
+  },
+  "skipping to wide grip lat pulldowns": {
+   "file": "skipping_to_wide_grip_lat_pulldowns.mp3",
+   "ms": 2568
+  },
+  "squat to fake thai roundhouse": {
+   "file": "squat_to_fake_thai_roundhouse.mp3",
+   "ms": 1896
+  },
+  "squat to fake thai roundhouse complete": {
+   "file": "squat_to_fake_thai_roundhouse_complete.mp3",
+   "ms": 2904
+  },
+  "stienborn squat": {
+   "file": "stienborn_squat.mp3",
+   "ms": 1392
+  },
+  "stienborn squat complete": {
+   "file": "stienborn_squat_complete.mp3",
+   "ms": 1824
+  },
+  "straight into alternating dumbbell punches to the sky": {
+   "file": "straight_into_alternating_dumbbell_punches_to_the_sky.mp3",
+   "ms": 3264
+  },
+  "straight into bulgarian jump lunges with high knee": {
+   "file": "straight_into_bulgarian_jump_lunges_with_high_knee.mp3",
+   "ms": 3240
+  },
+  "straight into close grip lat pulldowns": {
+   "file": "straight_into_close_grip_lat_pulldowns.mp3",
+   "ms": 2736
+  },
+  "straight into crossed leg crunches": {
+   "file": "straight_into_crossed_leg_crunches.mp3",
+   "ms": 2088
+  },
+  "straight into lat pulldowns": {
+   "file": "straight_into_lat_pulldowns.mp3",
+   "ms": 1800
+  },
+  "straight into single arm lat pulldowns": {
+   "file": "straight_into_single_arm_lat_pulldowns.mp3",
+   "ms": 2640
+  },
+  "straight into squat to fake thai roundhouse": {
+   "file": "straight_into_squat_to_fake_thai_roundhouse.mp3",
+   "ms": 2688
+  },
+  "straight into stienborn squat": {
+   "file": "straight_into_stienborn_squat.mp3",
+   "ms": 2496
+  },
+  "straight into wide grip lat pulldowns": {
+   "file": "straight_into_wide_grip_lat_pulldowns.mp3",
+   "ms": 2520
+  },
+  "wide grip lat pulldowns": {
+   "file": "wide_grip_lat_pulldowns.mp3",
+   "ms": 2160
+  },
+  "wide grip lat pulldowns complete": {
+   "file": "wide_grip_lat_pulldowns_complete.mp3",
+   "ms": 2064
+  },
+  "tick each move as you do it": {
+   "file": "tick_each_move_as_you_do_it.mp3",
+   "ms": 1800
   }
  },
  "count": 1121,

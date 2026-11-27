@@ -29,6 +29,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: chest-bench-dips
   ex('Chest Bench Dips', 'Chest', ['Triceps', 'Shoulders'], 'Bodyweight', 'Normal', 'Compound',
     'Hands on the bench edge with the chest leading, lower until the elbows reach ninety degrees, then press up.', 'Chest and shoulder pressing strength for pushing an opponent off.', { reps: '8-12' }),
+  // loop: cross-push-ups
+  ex('Cross Push-Ups', 'Chest', ['Triceps', 'Shoulders', 'Core'], 'Bodyweight', 'Normal', 'Compound',
+    'Set one hand out front and across toward the other side, lower the chest between the hands, press up and switch hands each rep.', 'Pressing through a crossed, uneven base, the shoulder balance of throwing a cross.', { reps: '10-14' }),
   // loop: high-push-ups
   ex('High Push-Ups', 'Chest', ['Triceps', 'Shoulders'], 'Bodyweight', 'Normal', 'Compound',
     'Place the hands ahead of the chest line, keep the body straight, lower the chest and press all the way up.', 'The base of every punch: chest, shoulders and triceps working as one.'),
@@ -91,6 +94,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: close-grip-inverted-rows
   ex('Close-Grip Inverted Rows', 'Back', ['Biceps', 'Shoulders'], 'Bodyweight', 'Normal', 'Compound',
     'Hang under the bar with the hands close together, body straight, pull the chest to the bar and lower slowly.', 'Arm-heavy pulling strength for hand fighting and steady shoulders under punching volume.', { reps: '10-15' }),
+  // loop: close-grip-lat-pulldowns
+  ex('Close-Grip Lat Pulldowns', 'Back', ['Biceps', 'Shoulders'], 'Cable', 'Normal', 'Compound',
+    'Narrow grip, sit tall with the thighs under the pad, pull the handle to the upper chest, squeeze the lats and let it rise slowly.', 'Pulling strength through the lower lats for dragging an opponent in and holding them close.', { reps: '8-12' }),
   // loop: commando-pull-ups
   ex('Commando Pull-Ups', 'Back', ['Biceps', 'Shoulders', 'Core'], 'Bodyweight', 'Hard', 'Compound',
     'Hands one in front of the other on the bar, pull the head up past one side, lower, and work each side.', 'Offset-grip pulling strength for grappling exchanges where the hands are never even.', { reps: '4-6', rest: 90 }),
@@ -112,6 +118,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loops: landmind-single-arm-row, landmine-rows, landmine-single-side-row
   ex('Landmine Single-Arm Rows', 'Back', ['Biceps', 'Shoulders'], 'Weighted', 'Normal', 'Compound',
     'Hinge with a flat back, one hand on the bar, pull the plate end to the hip, lower slowly, each side.', 'Single-side pulling and hip strength for grappling and clinch exchanges.', { reps: '8-12' }),
+  // loop: lat-pulldowns
+  ex('Lat Pulldowns', 'Back', ['Biceps', 'Shoulders'], 'Cable', 'Normal', 'Compound',
+    'Sit tall with the thighs under the pad, pull the bar to the upper chest, squeeze the shoulder blades and let it rise slowly.', 'Lat strength for pulling an opponent in and keeping them there.', { reps: '8-12' }),
   // loop: muscule-ups
   ex('Muscle-Ups', 'Back', ['Triceps', 'Chest', 'Shoulders'], 'Bodyweight', 'Hard', 'Compound',
     'Pull explosively to the chest, lean over the bar and press out to straight arms on top, then lower with control.', 'Explosive pull and press power for winning the scramble out of the clinch.', { reps: '3-5', rest: 120, style: 'Power' }),
@@ -139,6 +148,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loops: side-lying-neck-raises, side-lying-neck-raises-2
   ex('Side-Lying Neck Raises', 'Back', ['Shoulders'], 'Bodyweight', 'Easy', 'Isolation',
     'Lie on your side, lift the head sideways toward the ceiling, lower slowly, and work each side.', 'Side-neck strength to stay steady when a hook turns the head.', { reps: '10-15', rest: 45 }),
+  // loop: single-arm-lat-pulldowns
+  ex('Single-Arm Lat Pulldowns', 'Back', ['Biceps', 'Core', 'Shoulders'], 'Cable', 'Normal', 'Compound',
+    'Sit tall, one handle in one hand, pull the elbow down to the ribs, squeeze the lat and let the arm rise slowly, each side.', 'One-sided pulling strength and trunk control, for a strong underhook and for pulling a single arm.', { reps: '8-12' }),
   // loop: straight-arm-pulldowns
   ex('Straight-Arm Pulldowns', 'Back', ['Triceps', 'Core'], 'Cable', 'Normal', 'Isolation',
     'Arms nearly straight, hinge slightly forward, sweep the bar down to the thighs and let it rise slowly.', 'Lat strength for pulling an opponent in and keeping them there.', { reps: '10-12' }),
@@ -151,11 +163,17 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: wide-to-narrow-pull-ups
   ex('Wide to Narrow Pull-Ups', 'Back', ['Biceps', 'Shoulders'], 'Bodyweight', 'Hard', 'Compound',
     'Pull up on a wide grip, lower, bring the hands in close and pull up again, keeping the body still.', 'Lats and arms trained at two widths for pulling strength in the clinch.', { reps: '4-6', rest: 90 }),
+  // loop: wide-grip-lat-pulldowns
+  ex('Wide-Grip Lat Pulldowns', 'Back', ['Biceps', 'Shoulders'], 'Cable', 'Normal', 'Compound',
+    'Wide grip, sit tall with the thighs under the pad, pull the bar to the upper chest with the elbows out, squeeze the shoulder blades and let it rise slowly.', 'Width and strength across the upper back for a strong frame and for pulling an opponent off balance.', { reps: '8-12' }),
   // loop: wrist-grip-single-arm-pull-ups
   ex('Wrist-Grip Single-Arm Pull-Ups', 'Back', ['Biceps', 'Shoulders', 'Core'], 'Bodyweight', 'Hard', 'Compound',
     'Grip the bar with one hand and hold that wrist with the other, pull up, lower slowly, and work each side.', 'Single-arm pulling strength and a strong grip for hand fighting and clinch control.', { reps: '3-5', rest: 120 }),
 
   // ── Shoulders ─────────────────────────────────────────────────────
+  // loop: alternating-dumbbell-punches-to-the-sky
+  ex('Alternating Dumbbell Punches to the Sky', 'Shoulders', ['Triceps', 'Core', 'Chest'], 'Weighted', 'Normal', 'Compound',
+    'Stand tall with a dumbbell in each fist at the chin, punch one straight up to the sky, bring it back and alternate.', 'Overhead punching power and shoulder endurance for uppercuts and for keeping the hands up late in a round.', { reps: '20-30', rest: 45, style: 'Endurance' }),
   // loop: decline-pike-push-ups
   ex('Decline Pike Push-Ups', 'Shoulders', ['Triceps', 'Chest'], 'Bodyweight', 'Hard', 'Compound',
     'Feet on a box, hips high, lower the head between the hands and press back up.', 'Shoulder strength for overhead pressing and framing.', { reps: '6-10', rest: 75 }),
@@ -228,6 +246,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: cross-leg-sit-ups
   ex('Cross-Leg Sit-Ups', 'Core', [], 'Bodyweight', 'Normal', 'Compound',
     'Cross one ankle over the opposite knee, hands behind the head, sit up toward it, lower slowly, then swap legs.', 'Oblique and ab strength for twisting kicks and hooks.', { reps: '10-15', rest: 30 }),
+  // loop: crossed-leg-crunches
+  ex('Crossed-Leg Crunches', 'Core', [], 'Bodyweight', 'Normal', 'Isolation',
+    'On your back with one ankle crossed over the opposite knee, hands behind the head, curl the shoulders up toward the knee and lower slowly.', 'Upper-ab strength and control for absorbing body shots and driving punches.', { reps: '12-20', rest: 30 }),
   // loop: hanging-knee-raises
   ex('Hanging Knee Raises', 'Core', ['Quads', 'Back'], 'Bodyweight', 'Normal', 'Isolation',
     'Hang from the bar, pull the knees up toward the chest without swinging, lower slowly.', 'Lower-ab strength for knee strikes.', { reps: '8-12', rest: 45 }),
@@ -284,6 +305,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: boxing-box-squat-bounce
   ex('Boxing Squat Bounces', 'Quads', ['Glutes', 'Calves'], 'Bodyweight', 'Normal', 'Cardio',
     'Sink into a low squat with the fists up in guard and bounce lightly on the feet, chest tall.', 'Low-stance leg endurance for fighting from a crouch while staying light on the feet.', { hold: 30, rest: 30 }),
+  // loops: bulgarian-jump-lunges-with-high-knee, bulgarian-jump-lunges-with-high-knee-2
+  ex('Bulgarian Jump Lunges with High Knee', 'Quads', ['Glutes', 'Hamstrings', 'Calves', 'Core'], 'Bodyweight', 'Hard', 'Compound',
+    'Rear foot on a bench, drop into the lunge, jump straight up and drive the front knee high, then land soft in the lunge, each side.', 'Single-leg explosive power into a high knee, the drive behind a knee strike and a fast step in.', { reps: '6-8', rest: 60, style: 'Power' }),
   // loop: crab-walk-squats
   ex('Crab Walk Squats', 'Quads', ['Glutes', 'Calves'], 'Bodyweight', 'Normal', 'Compound',
     'Arms crossed, step wide to the side, sink into a wide squat and keep stepping sideways with the chest tall.', 'Lateral leg strength and a wide, low base for moving sideways under pressure.', { hold: 40, rest: 45 }),
@@ -380,6 +404,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: squats-hold-thrust-jump
   ex('Squat Hold Thrust Jumps', 'Quads', ['Glutes', 'Calves', 'Core'], 'Bodyweight', 'Normal', 'Compound',
     'Sink into a squat and hold it, then thrust up hard into a jump and land soft back in the squat.', 'Explosive leg drive out of a held low position, the power of a sudden shot or a spring away.', { reps: '6-10', rest: 60, style: 'Power' }),
+  // loop: squat-to-fake-thai-roundhouse
+  ex('Squat to Fake Thai Roundhouse', 'Quads', ['Glutes', 'Core'], 'Bodyweight', 'Normal', 'Compound',
+    'Sit into a deep squat, drive up with the guard high, turn the hip over like a Thai roundhouse without landing it, then reset and alternate.', 'Leg drive into a rotating feint, the hip turn and balance behind a roundhouse that sets up the real one.', { reps: '10-14', rest: 45, style: 'Power' }),
   // loop: squat-to-flick-kick
   ex('Squat to Flick Kick', 'Quads', ['Glutes', 'Core'], 'Bodyweight', 'Normal', 'Compound',
     'Sit into a deep squat, drive up and flick the kick out fast, land balanced and alternate legs.', 'Leg drive into a quick snap kick, with the balance to land it and reset.', { reps: '10-14', rest: 45, style: 'Power' }),
@@ -392,6 +419,9 @@ export const FIT_MODE_LOOP_EXERCISES = [
   // loop: squats-tuck-jumps
   ex('Squat Tuck Jumps', 'Quads', ['Glutes', 'Calves', 'Core'], 'Bodyweight', 'Hard', 'Compound',
     'Squat down, explode up and pull the knees to the chest in the air, then land soft and squat again.', 'Explosive leg power and fast recovery for springing in and out of range.', { reps: '6-10', rest: 75, style: 'Power' }),
+  // loop: stienborn-squat
+  ex('Stienborn Squat', 'Quads', ['Glutes', 'Hamstrings', 'Back', 'Core'], 'Weighted', 'Hard', 'Compound',
+    'Pick the bar up off the floor and roll it onto the shoulders, squat deep with the chest tall, stand, then lower the bar to the floor under control.', 'Full-chain strength from the floor to a loaded squat, the power to lift and drive through an opponent.', { reps: '4-6', rest: 120 }),
   // loop: tippy-toe-squats
   ex('Tippy-Toe Squats', 'Quads', ['Calves', 'Glutes'], 'Bodyweight', 'Normal', 'Compound',
     'Hands together at the chest, rise onto the toes and squat down with the heels off the floor, then stand tall.', 'Quad and calf strength for staying on the balls of the feet, light and ready to move.', { reps: '10-15', rest: 45 }),

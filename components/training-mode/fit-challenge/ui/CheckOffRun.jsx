@@ -11,8 +11,8 @@ import { mmss, doseWord, tickProgress } from '../../data/challengeTotals';
 // the tracker in place of the ROUND tap, then SHUFFLE / ROUNDS (both ask first
 // when they would throw ticks away) and PAUSE / STOP as today.
 // Render inside PhoneFrame, as QuickMissionSolo does.
-// Wired (fit-challenge/FitCheckOffSolo): `readyLeft` shows GET READY's count
-// in place of the clock, and `onFinish` puts FINISH under the tracker once
+// Wired (fit-challenge/FitCheckOffSolo): `readyLeft` (of `readySec`) shows GET
+// READY's count in place of the clock, and `onFinish` puts FINISH under the tracker once
 // every round is ticked.
 //
 // It fits the screen (owner, 2026-11-24): the title, the clock and FINISH are a
@@ -26,7 +26,7 @@ import { mmss, doseWord, tickProgress } from '../../data/challengeTotals';
 
 export default function CheckOffRun({
   title, strip, elapsedSec, thisRoundSec, moves, ticks, roundTimes, rounds,
-  onTick, onBack, onShuffle, onRounds, onPause, onStop, paused = false, readyLeft = null, onFinish,
+  onTick, onBack, onShuffle, onRounds, onPause, onStop, paused = false, readyLeft = null, readySec = 5, onFinish,
 }) {
   const current = ticks.findIndex((r) => !r.every(Boolean));
   const lit = current >= 0 ? ticks[current].findIndex((v) => !v) : -1;
@@ -41,7 +41,7 @@ export default function CheckOffRun({
   const after = lit >= 0 ? (lit + 1 < moves.length ? moves[lit + 1] : current + 1 < ticks.length ? moves[0] : null) : null;
   const ready = readyLeft != null;
   const ring = ready
-    ? { time: String(readyLeft), pct: readyLeft / 5, color: RING_COLORS.ready, word: 'GET READY' }
+    ? { time: String(readyLeft), pct: readyLeft / readySec, color: RING_COLORS.ready, word: 'GET READY' }
     : { time: mmss(elapsedSec), pct: p.pct / 100, color: RING_COLORS.work, word: paused ? 'PAUSED' : `${p.pct}% DONE` };
   return (
     <div ref={rootRef} style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: 12, padding: `0 16px ${RUN_BAR_CLEAR}px`, boxSizing: 'border-box' }}>

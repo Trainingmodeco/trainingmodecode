@@ -2082,6 +2082,78 @@ await check('owner: the workout card on Quick Mission: SHUFFLE, CHOOSE, the roun
   if (before === await page.locator('[data-guide="fc-rounds"]').innerText()) throw new Error('+ did not add a round');
   await btn(/^START$/).click({ timeout: 4000 }); await S(4000);
 }, /ROUND|WORK|EXERCISE/);
+// The card's AT YOUR PACE CHECK-OFF run starts the way every AT YOUR PACE run does (owner, 2026-11-26,
+// docs/quick-mission/CHECKOFF-START.md): WARM-UP (SKIP WARM-UP) -> WORKOUTS (every move, SWAP, START) -> GET READY -> the
+// run. Nothing is saved or banked before the run starts, a swap made on WORKOUTS is in the run and in its saved state, and
+// a run brought back from a pause or a reload goes straight back in (no warm-up, no WORKOUTS screen).
+await check('owner: the Fit card CHECK-OFF starts with the warm-up, then WORKOUTS (a swap carries into the run), then the run; nothing is saved before the run; a paused or reloaded run comes straight back', async () => {
+  await preview();
+  await page.locator('button[aria-label="Close"]').first().click({ force: true, timeout: 3000 }).catch(() => {});
+  await page.locator('button[aria-label="FIT MODE"]').click({ timeout: 5000 }); await S(1200);
+  await page.locator('[data-guide="fit-quick"]').click({ timeout: 4000 }); await S(1200);
+  await page.getByRole('radio', { name: 'AT YOUR PACE', exact: true }).first().click({ timeout: 4000 }); await S(300);
+  await page.evaluate(() => { window.__ev = []; window.plausible = (n, o) => window.__ev.push([n, o?.props]); });
+  const stash = () => page.evaluate(() => localStorage.getItem('trainingModePausedSession') || '');
+  const stats = () => page.evaluate(() => localStorage.getItem('tm_user_stats') || '');
+  const stats0 = await stats();
+  const quiet = async (where) => {
+    if (/"kind":"solo"/.test(await stash())) throw new Error(`${where}: a run is already saved for Continue`);
+    if ((await qmRows()).length || await stats() !== stats0) throw new Error(`${where}: a session or XP is already recorded`);
+  };
+  const starts = async () => (await page.evaluate(() => window.__ev || [])).filter(e => e[0] === 'session_start').length;
+  const trackerMoves = () => page.locator('[data-look="tracker"] button[role="checkbox"]').evaluateAll(els => els.map(e => e.getAttribute('aria-label').split(', ')[0]));
+  await btn(/^START$/).click({ timeout: 4000 }); await S(1500);
+  let t = await text();
+  // The warm-up: the 5:00 ring, a way to skip it, and no run yet.
+  if (!/WARM-UP · AT YOUR PACE/.test(t) || !/\n0(5:00|4:5\d)\n/.test(t) || !await btn(/^SKIP WARM-UP$/).isVisible()) throw new Error('START did not open the 5:00 warm-up with SKIP WARM-UP');
+  if (await runClock().count() || await page.locator('[data-pace-workouts]').count() || await page.locator('[data-run-bar]').count() || await page.locator('[data-fc="checkoff"]').count()) throw new Error('the warm-up is already WORKOUTS or the run');
+  await quiet('warm-up');
+  const n0 = await starts();
+  await paceSkip();
+  t = await text();
+  // WORKOUTS: every move in order with a SWAP, the CHECK-OFF format line, START and the "i"; no clock.
+  const listed = runMoves(t);
+  if (!/^AT YOUR PACE · WORKOUTS\n/.test(t) || !/CHECK-OFF · \d+ ROUNDS?/.test(t) || listed.length < 3) throw new Error(`WORKOUTS does not list the card's moves as CHECK-OFF: ${t.replace(/\n/g, ' | ').slice(0, 200)}`);
+  if (!await btn(/^START$/).isVisible() || !await page.getByRole('button', { name: 'About this workout' }).isVisible() || /SKIP WARM-UP/.test(t)) throw new Error('WORKOUTS has no START or no "i"');
+  if (await runClock().count() || await page.locator('[data-fc="checkoff"]').count()) throw new Error('the clock or the run is on the WORKOUTS screen');
+  await quiet('WORKOUTS');
+  // A swap here: the first move that can swap, its first stand-in.
+  const swapBtn = page.getByRole('button', { name: /^Swap / }).first();
+  const was = (await swapBtn.getAttribute('aria-label')).replace(/^Swap /, '');
+  await swapBtn.click({ timeout: 4000 }); await S(500);
+  const now = (await page.getByRole('button', { name: /^Swap to / }).first().getAttribute('aria-label')).replace(/^Swap to /, '');
+  // As a person picks: open the first stand-in's row (its name), then USE THIS MOVE.
+  await page.getByRole('button', { name: now, exact: true }).click({ timeout: 4000 }); await S(300);
+  await page.getByRole('button', { name: 'USE THIS MOVE' }).click({ timeout: 4000 }); await S(500);
+  t = await text();
+  if (!runMoves(t).includes(now) || runMoves(t).includes(was) || !/SWAPPED/.test(t) || !await page.getByRole('button', { name: `Undo swap ${now}` }).isVisible()) throw new Error(`the swap of ${was} for ${now} did not show on WORKOUTS`);
+  await quiet('WORKOUTS after a swap');
+  if (await starts() !== n0) throw new Error('the warm-up or WORKOUTS counted another session start');
+  await paceGo();
+  // The run: the tick boxes with the swapped move, the clock on its own, not the warm-up's.
+  const names = await trackerMoves();
+  if (!names.includes(now) || names.includes(was) || !await page.locator('[data-run-bar]').count() || await btn(/^START$/).count()) throw new Error(`START did not open the run with ${now} in place of ${was}: ${names.join(', ')}`);
+  await jump(20000); await S(1200);
+  const sec = ((await runClock().innerText()).match(/(\d+):(\d\d)/) || []).slice(1).reduce((a, v) => a * 60 + Number(v), 0);
+  if (sec < 20 || sec > 40) throw new Error(`the ring clock reads ${sec} s, 20 s into the run (the warm-up must not be in it)`);
+  await page.locator('[data-look="tracker"] button[role="checkbox"][aria-checked="false"]').first().click({ timeout: 4000 }); await S(800);
+  // Now it is a run: saved for Continue with the swap in it; nothing banked until the end.
+  const saved = await stash();
+  const st = (() => { try { return [].concat(JSON.parse(saved)).filter(x => x?.screen === 'qm_active').pop()?.internalState || {}; } catch { return {}; } })();
+  const savedMoves = (st.mission?.exercises || []).map(e => e.name);
+  if (st.kind !== 'solo' || st.checkOff !== true || !savedMoves.includes(now) || savedMoves.includes(was) || !(st.card?.exercises || []).some(e => e.name === now) || (await qmRows()).length) throw new Error(`the run is not saved for Continue with its swap (${was} -> ${now}), or it banked before the end: ${JSON.stringify({ kind: st.kind, checkOff: st.checkOff, savedMoves })} in ${saved.slice(0, 160)}`);
+  if (await starts() !== n0) throw new Error('the run counted another session start');
+  // Away and back through the paused-run card: straight into the run, the tick kept; then a reload.
+  await page.locator('[data-guide="nav-tabs"] button').first().click({ timeout: 4000 }); await S(1800);
+  await page.getByRole('button', { name: /RESUME/ }).first().click({ timeout: 4000 }); await S(2500);
+  for (const how of ['the pause', 'the reload']) {
+    if (how === 'the reload') { await page.reload({ waitUntil: 'networkidle' }); await S(2500); }
+    t = await text();
+    const back = await trackerMoves();
+    const ticked = await page.locator('[data-look="tracker"] button[role="checkbox"][aria-checked="true"]').count();
+    if (!/PAUSED/.test(t) || /SKIP WARM-UP|GET READY/.test(t) || await page.locator('[data-pace-workouts]').count() || !back.includes(now) || back.includes(was) || ticked < 1 || !await runClock().count()) throw new Error(`${how} did not bring the run back straight in with ${now} and its tick: ${t.replace(/\n/g, ' | ').slice(0, 160)}`);
+  }
+}, /CHECK-OFF/);
 await check('cardio setup', async () => { await fit(); await page.locator('[data-guide="fit-cardio"]').click(); await S(1800); }, /START/);
 await check('cardio GPS run start', async () => { await btn(/START RUN|^START$/).click({ timeout: 4000 }); for (let i = 0; i < 25; i++) { await S(1000); if (/ELAPSED|LOCKING GPS/.test(await text())) break; } }, /GPS LIVE|GPS ACQUIRING|LOCKING GPS|ELAPSED/);
 await check('just train start', async () => { await fight(); await page.locator('.fb', { hasText: 'JUST TRAIN' }).first().click(); await S(1200); await btn(/START/).click({ timeout: 4000 }); await S(4000); }, /ROUND|WARM/i);

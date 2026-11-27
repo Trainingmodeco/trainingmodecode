@@ -32,7 +32,14 @@ export function workoutsLine({ canSwap = true } = {}) {
 
 // ── the spoken start (GET READY) ─────────────────────────────────────────────
 // What to do on THIS screen for THIS format, naming the real buttons.
-export function howToLine(mission) {
+// { checkOff: true } is the Fit card's CHECK-OFF run (fit-challenge/FitCheckOffSolo),
+// which starts the same way: the tick boxes, and FINISH, which shows once every
+// round is ticked. One new sentence, "Tick each move as you do it.", then the
+// for-time run's own "Tap finish when you are done." (one recorded clip a
+// sentence, in both voices).
+export const CHECKOFF_HOWTO = 'Tick each move as you do it. Tap finish when you are done.';
+export function howToLine(mission, { checkOff = false } = {}) {
+  if (checkOff) return CHECKOFF_HOWTO;
   if (!mission) return '';
   if (isMaxReps(mission)) return 'Tap done when the set is done.';
   if (isUntilDown(mission)) {
@@ -52,8 +59,8 @@ export function howToLine(mission) {
   }
   return '';
 }
-export function startLine(mission) {
-  return ['Workout starting. At your own pace.', howToLine(mission)].filter(Boolean).join(' ');
+export function startLine(mission, opts) {
+  return ['Workout starting. At your own pace.', howToLine(mission, opts)].filter(Boolean).join(' ');
 }
 
 // GET READY's length: 5 seconds, or, with the voice on, long enough for the
@@ -113,11 +120,12 @@ export function runVoiceCues(mission) {
 }
 
 // Every line this module can produce, for a mission (the sweep and the tests).
-export function paceLinesFor(mission, { canSwap = true } = {}) {
+export function paceLinesFor(mission, { canSwap = true, checkOff = false } = {}) {
   return [
     PACE_WARMUP.intro, PACE_WARMUP.half, PACE_WARMUP.lastTen, PACE_WARMUP.done,
-    workoutsLine({ canSwap }), startLine(mission),
-    ...runVoiceCues(mission).map(c => c.say),
+    workoutsLine({ canSwap }), startLine(mission, { checkOff }),
+    // CHECK-OFF is silent in the run itself: only the start above is said.
+    ...(checkOff ? [] : runVoiceCues(mission).map(c => c.say)),
     PACE_RUN.paused, PACE_RUN.resumed, PACE_RUN.time, PACE_RUN.done,
   ];
 }

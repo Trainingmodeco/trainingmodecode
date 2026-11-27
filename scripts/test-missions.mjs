@@ -1864,6 +1864,8 @@ const DR = await import('../components/training-mode/data/libraryDrop.js');
   check('pace voice: until down in rounds names ROUND and I\'M DONE', PV.howToLine(lib('upper_lower_dips')) === "Tap round after each round. Tap I'm done.");
   check('pace voice: max reps names DONE', PV.howToLine(lib('boss_rush')) === 'Tap done when the set is done.');
   check('pace voice: the start says it is starting, at your pace, then the buttons', PV.startLine(lib('best_of_3')) === 'Workout starting. At your own pace. Tap round after each round.');
+  check('pace voice: the Fit card CHECK-OFF start says to tick each move, then FINISH', PV.startLine(null, { checkOff: true }) === 'Workout starting. At your own pace. Tick each move as you do it. Tap finish when you are done.');
+  check('pace voice: the CHECK-OFF lines are fixed sentences and add no run cues', PV.paceLinesFor(lib('best_of_3'), { checkOff: true }).every(l => typeof l === 'string' && l && !/\d/.test(l.replace(/\b(5 minutes|10 seconds)\b/g, ''))) && !PV.paceLinesFor(lib('first_bell'), { checkOff: true }).includes('Last minute.') && PV.startLine(lib('best_of_3')) === 'Workout starting. At your own pace. Tap round after each round.');
   check('pace voice: GET READY is 5 s with no speech, longer for a long start, never past the cap',
     PV.readySecFor(null) === 5 && PV.readySecFor(0) === 5 && PV.readySecFor(1500) === 5 && PV.readySecFor(5200) === 9 && PV.readySecFor(60000) === PV.PACE_READY_MAX);
   const fb = PV.runVoiceCues(lib('first_bell'));
