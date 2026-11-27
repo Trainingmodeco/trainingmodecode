@@ -1,6 +1,6 @@
 import { RotateCcw } from 'lucide-react';
 import { ARC, RETENTION_CSS } from './tokens';
-import { QmStyle, qmRaised } from '../../shared/QmButtons';
+import { QmStyle, QmTicks, qmRaised } from '../../shared/QmButtons';
 
 // The near-miss panel (retention feature 3): how close the session came, in
 // plain words from its real counts (data/nearMiss), the bar, and two buttons
@@ -61,15 +61,15 @@ export default function NearMissPanel({ miss, gate, onRetry, retryLabel = 'RETRY
         <div style={{ display: 'grid', gridAutoRows: '1fr', gap: raised ? 4 : 8, marginTop: 10 }}>
           {raised && <QmStyle/>}
           {allowed && (
-            <button type="button" className={raised ? 'qm-raised' : 'rt-go'} onClick={onRetry} style={raised ? { ...btn, ...qmRaised('gold', { lift: 4, radius: 12 }), height: 'auto' }
+            <button type="button" className={raised ? 'qm-raised' : 'rt-go'} onClick={onRetry} style={raised ? { ...btn, ...qmRaised('gold', { lift: 4, radius: 12, ticks: true }), height: 'auto' }
               : { ...btn, border: 'none', background: 'linear-gradient(135deg,#fde047,#f59e0b)', color: '#0a0014', boxShadow: '0 0 18px rgba(253,224,71,0.3)' }}>
-              <RotateCcw size={14} strokeWidth={2.6} aria-hidden/>{retryLabel}
+              {raised && <QmTicks skin="gold"/>}<RotateCcw size={14} strokeWidth={2.6} aria-hidden/>{retryLabel}
             </button>
           )}
           {second && (
-            <button type="button" className={raised ? 'qm-raised' : 'rt-go'} onClick={second.onClick} style={raised ? { ...btn, ...qmRaised('slate', { lift: 4, radius: 12 }), height: 'auto' }
+            <button type="button" className={raised ? 'qm-raised' : 'rt-go'} onClick={second.onClick} style={raised ? { ...btn, ...qmRaised('slate', { lift: 4, radius: 12, ticks: true }), height: 'auto' }
               : { ...btn, border: '1px solid rgba(176,106,255,0.6)', background: 'rgba(176,106,255,0.16)', color: ARC.text }}>
-              {second.label}
+              {raised && <QmTicks skin="slate"/>}{second.label}
             </button>
           )}
         </div>

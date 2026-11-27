@@ -38,6 +38,20 @@ saving, the stash and what each screen hands on are exactly as before.
   pixel by pixel: the only differences are the glows that animate).
   `shared/MissionComplete.jsx` takes a new `raised` switch, which only Quick
   Mission's end screen turns on; every other end screen is as before.
+- **Corner ticks (2026-11-27).** AT YOUR PACE's buttons carry four small
+  bracket marks in their corners (`cornerTick` in `shared/TrainingCTA.jsx`);
+  the LARGE primary raised buttons of Quick Mission carry the same ones, in the
+  skin's own colour (`QmTicks` in `shared/QmButtons.jsx`): `QmGold` (START,
+  DONE, REPEAT, NEW MISSION, ...) and `QmGhost` from 44px up (BACK TO FIT MODE,
+  RETURN HOME, NEW CHALLENGE, SAVE WORKOUT, PUT ON CARD) by default
+  (`ticks={false}` turns them off), and the guided run's raw buttons (PAUSE /
+  RESUME, STOP, the MAX REPS and untilDown DONE, the manual DONE, the END
+  MISSION? box, the near-miss RETRY and its second button) with `ticks: true` in
+  `qmRaised` plus `<QmTicks skin=.../>` as the first child. Never on chips,
+  segments, the filter pills, restart and skip, the drop-down +, the ROUNDS
+  - / +, SHUFFLE / CHOOSE / SURPRISE, MISSION LIBRARY or the library rows. The
+  ticks are aria-hidden empty spans placed inside the button (`data-qm-tick`):
+  no text, no height, no gap in a flex row, clicks pass through.
 - **The ring** is `shared/RunRing.jsx` everywhere in Quick Mission: a faint
   track, a glowing arc, the time large in the middle, one word under it, and
   the lightning bolt behind the arc, at its original strength (0.3).
