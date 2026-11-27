@@ -6,7 +6,8 @@
 // builds them with the module's own functions for every library mission at
 // every level and for today's generated mission over the setup's choices
 // (data/soloFromGenerated: the same moves at 1 to 6 rounds, one round has
-// FINISH only).
+// FINISH only), and the Fit card's CHECK-OFF start (one line: it does not
+// depend on the mission).
 const range = (lo, hi, step = 1) => { const out = []; for (let v = lo; v <= hi; v += step) out.push(v); return out; };
 
 export default async function sweep() {
@@ -16,7 +17,8 @@ export default async function sweep() {
   const { generateQuickMission } = await import('../../components/training-mode/fit-mode/quickMissionGenerator.js');
   const fixed = new Set([PV.PACE_WARMUP.intro, PV.PACE_WARMUP.half, PV.PACE_WARMUP.lastTen, PV.PACE_WARMUP.done,
     PV.workoutsLine({ canSwap: true }), PV.workoutsLine({ canSwap: false }), ...Object.values(PV.PACE_RUN)]);
-  const start = new Set();
+  // The Fit card's CHECK-OFF run starts the same way (fit-challenge/FitCheckOffSolo): its own how-to, no run cues.
+  const start = new Set([PV.startLine(null, { checkOff: true })]);
   const cues = new Set();
   const say = (m) => { start.add(PV.startLine(m)); for (const c of PV.runVoiceCues(m)) cues.add(c.say); };
   for (const d of L.LOADOUT_MISSIONS) for (const lv of L.levelsOf(d)) say(L.buildLoadoutMission(d.id, { level: lv.id }));

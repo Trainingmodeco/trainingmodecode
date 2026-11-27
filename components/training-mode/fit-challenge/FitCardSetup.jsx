@@ -292,7 +292,7 @@ export default function FitCardSetup({ entry, onBack, onFightMode, onStart, onPa
     // The card's own run: the mission as shown, a snapshot for the results
     // and YOUR WORKOUTS, and CHECK-OFF when AT YOUR PACE has it on.
     const card = snapshotOf(mission, {
-      kind: source.kind, startedAt: Date.now(),
+      kind: source.kind, startedAt: Date.now(), bar,
       ...(source.kind === 'deal' ? { deal: { seed, shuffles, bar } } : {}),
       gen: { workoutType: cfg.workoutType, duration: cfg.duration, difficulty: cfg.difficulty, focus: cfg.focus },
     });

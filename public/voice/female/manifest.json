@@ -1,6 +1,6 @@
 {
  "voice": "female",
- "version": 30,
+ "version": 31,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -24261,6 +24261,10 @@
   "wide grip lat pulldowns complete": {
    "file": "wide_grip_lat_pulldowns_complete.mp3",
    "ms": 2592
+  },
+  "tick each move as you do it": {
+   "file": "tick_each_move_as_you_do_it.mp3",
+   "ms": 1800
   }
  },
  "count": 1121,
