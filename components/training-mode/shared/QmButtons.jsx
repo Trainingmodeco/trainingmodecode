@@ -1,5 +1,5 @@
 import { Play } from 'lucide-react';
-import { RAISED_SKINS, RAISED_CSS, raisedShadow } from './TrainingCTA';
+import { RAISED_SKINS, RAISED_CSS, raisedShadow, cornerTick } from './TrainingCTA';
 import { HEAD } from './FitSetupKit';
 
 // Quick Mission's raised buttons (owner, 2026-11-25: "make it look unified";
@@ -11,6 +11,15 @@ import { HEAD } from './FitSetupKit';
 // Used ONLY from Quick Mission's own files. FitSetupKit's GoldButton,
 // GhostButton, SegRow and ChipGroup stay as they are for every other screen
 // (Workout Builder, Combat Conditioning, Fit Mode...).
+//
+// Corner ticks (owner, 2026-11-27: "fix"): AT YOUR PACE's buttons carry four
+// small bracket marks in their corners; the LARGE primary buttons of Quick
+// Mission now carry the same ones (QmTicks, from TrainingCTA's cornerTick, in
+// the skin's own colour): QmGold and the big QmGhost (44px or more) by default,
+// and the raw big buttons (guided PAUSE / STOP, MAX REPS DONE, ...) by adding
+// <QmTicks skin="..."/> as their first child with `ticks: true` in qmRaised
+// (that sets position: relative, the ticks' anchor). Chips, segments, the
+// small round controls, the drop-down + and the library rows have none.
 //
 // Rules: gold is the main action and the loudest button on a screen; a picked
 // choice is a brighter violet body with a gold hairline (`picked`), an unpicked
@@ -32,13 +41,26 @@ export function QmStyle() {
 
 // The raised body for a skin: put it on any <button>. `lift` is the lip's
 // depth (the button keeps that much room under it), `radius` its corners.
-export function qmRaised(skin = 'slate', { lift = 4, radius = 12, glow } = {}) {
+export function qmRaised(skin = 'slate', { lift = 4, radius = 12, glow, ticks = false } = {}) {
   const sk = RAISED_SKINS[skin] || RAISED_SKINS.slate;
   return {
+    ...(ticks ? { position: 'relative' } : null),
     background: sk.background, border: sk.border, color: sk.color, textShadow: sk.textShadow,
     borderRadius: radius, marginBottom: lift, boxSizing: 'border-box',
     boxShadow: raisedShadow(sk, lift) + (glow ? `, 0 0 24px ${glow}` : ''),
   };
+}
+
+// The four corner ticks, as the first child of a raised button whose style has
+// `ticks: true`. Decorative: no text, aria-hidden, absolutely placed inside the
+// button (so no height, and no gap in a flex row), clicks pass through.
+export function QmTicks({ skin = 'slate' }) {
+  const c = (RAISED_SKINS[skin] || RAISED_SKINS.slate).corner;
+  return (
+    <>
+      {['tl', 'tr', 'bl', 'br'].map(pos => <span key={pos} aria-hidden="true" data-qm-tick="" style={cornerTick(pos, c)}/>)}
+    </>
+  );
 }
 
 // A segment of a choice strip (GEAR, GUIDED | AT YOUR PACE, LEVEL): picked or
@@ -68,13 +90,14 @@ export function qmChip(on) {
 // button puts its whole sheet into the button's textContent, so a script that
 // finds the START button by its text ("START") no longer finds it. (A style is
 // display: none, so next to the button it takes no room in a flex or grid.)
-export function QmButton({ skin = 'slate', lift = 4, radius = 12, glow, className, style, children, type = 'button', ...rest }) {
+export function QmButton({ skin = 'slate', lift = 4, radius = 12, glow, ticks = false, className, style, children, type = 'button', ...rest }) {
   return (
     <>
       <QmStyle/>
       <button type={type} className={`qm-raised${className ? ` ${className}` : ''}`} {...rest} style={{
-        cursor: rest.disabled ? 'default' : 'pointer', ...qmRaised(skin, { lift, radius, glow }), ...style,
+        cursor: rest.disabled ? 'default' : 'pointer', ...qmRaised(skin, { lift, radius, glow, ticks }), ...style,
       }}>
+        {ticks && <QmTicks skin={skin}/>}
         {children}
       </button>
     </>
@@ -82,9 +105,9 @@ export function QmButton({ skin = 'slate', lift = 4, radius = 12, glow, classNam
 }
 
 // GoldButton's place in Quick Mission: the main action, raised gold with a soft glow.
-export function QmGold({ label, icon, onClick, height = 56, guide, style, disabled }) {
+export function QmGold({ label, icon, onClick, height = 56, guide, style, disabled, ticks = true }) {
   return (
-    <QmButton skin="gold" lift={5} radius={14} glow={disabled ? undefined : 'rgba(242,190,69,0.4)'} data-guide={guide} onClick={onClick} disabled={disabled} style={{
+    <QmButton skin="gold" lift={5} radius={14} ticks={ticks} glow={disabled ? undefined : 'rgba(242,190,69,0.4)'} data-guide={guide} onClick={onClick} disabled={disabled} style={{
       height, width: '100%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
       color: '#1A1204', opacity: disabled ? 0.55 : 1, font: `700 18px ${HEAD}`, letterSpacing: '0.18em', padding: 0,
       ...style,
@@ -95,10 +118,11 @@ export function QmGold({ label, icon, onClick, height = 56, guide, style, disabl
   );
 }
 
-// GhostButton's place: the quiet raised slate button.
-export function QmGhost({ label, icon, onClick, height = 46, guide, style, ariaExpanded, skin = 'slate' }) {
+// GhostButton's place: the quiet raised slate button. Ticks from 44px up (the
+// big end-screen buttons); the 40 and 42px ones are quiet and have none.
+export function QmGhost({ label, icon, onClick, height = 46, guide, style, ariaExpanded, skin = 'slate', ticks = height >= 44 }) {
   return (
-    <QmButton skin={skin} data-guide={guide} onClick={onClick} aria-expanded={ariaExpanded} style={{
+    <QmButton skin={skin} ticks={ticks} data-guide={guide} onClick={onClick} aria-expanded={ariaExpanded} style={{
       height, width: '100%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
       font: `600 13px ${HEAD}`, letterSpacing: '0.12em', padding: 0,
       ...style,

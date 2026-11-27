@@ -28,7 +28,7 @@ import MaxRepsSheet from './shared/MaxRepsSheet';
 // the same ring (with its very dim bolt), the Training Mode T behind, raised buttons.
 import RunRing from './shared/RunRing';
 import { RunWatermark } from './shared/RunBar';
-import { QmStyle, qmRaised } from './shared/QmButtons';
+import { QmStyle, QmTicks, qmRaised } from './shared/QmButtons';
 // The runner's timing numbers and which moves it counts live in one pure module,
 // so the generator's minutes are these same minutes (data/quickMissionTiming).
 import {
@@ -1827,10 +1827,10 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
             back), so a mis-tap never ends a run. */}
         {untilDown && !done && phase !== 'intro' && (
           <button type="button" onClick={askDown} style={{
-            ...qmRaised('red', { lift: 5, radius: 14 }),
+            ...qmRaised('red', { lift: 5, radius: 14, ticks: true }),
             width: '100%', maxWidth: 360, height: 56, marginBottom: 14, cursor: 'pointer',
             fontFamily: HEAD, fontWeight: 700, fontSize: 16, letterSpacing: '0.14em',
-          }} className="qm-raised">{dc.done}</button>
+          }} className="qm-raised"><QmTicks skin="red"/>{dc.done}</button>
         )}
 
         {/* MAX REPS: DONE ends the set and opens HOW MANY REPS?. It is dim for the
@@ -1838,23 +1838,24 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
             never happened. */}
         {maxSet && !done && (
           <button type="button" data-guide="qma-done" className="qma-mx-done" onClick={handleCompleteRep} disabled={!setReady} aria-label="Done. Enter your reps" style={{
-            ...qmRaised('gold', { lift: 5, radius: 14, glow: setReady ? 'rgba(242,190,69,0.4)' : undefined }),
+            ...qmRaised('gold', { lift: 5, radius: 14, glow: setReady ? 'rgba(242,190,69,0.4)' : undefined, ticks: true }),
             width: '100%', maxWidth: 360, height: 56, marginBottom: 14,
             cursor: setReady ? 'pointer' : 'default', opacity: setReady ? 1 : 0.4, color: '#1A1204',
             fontFamily: HEAD, fontWeight: 700, fontSize: 19, letterSpacing: '0.2em', transition: 'opacity .25s ease',
-          }}>DONE</button>
+          }}><QmTicks skin="gold"/>DONE</button>
         )}
 
         {/* Controls */}
         <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
           {showDone && (
             <button onClick={handleCompleteRep} className="qm-raised" style={{
-              ...qmRaised('teal', { lift: 4, radius: 16 }),
+              ...qmRaised('teal', { lift: 4, radius: 16, ticks: true }),
               width: 64, height: 64,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontFamily: HEAD, fontWeight: 700, fontSize: 13,
               letterSpacing: '0.08em', cursor: 'pointer',
             }}>
+              <QmTicks skin="teal"/>
               DONE
             </button>
           )}
@@ -1870,12 +1871,13 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
           </button>
           <button data-guide="qma-pause" className="qm-raised" onClick={handlePauseToggle} disabled={done} style={{
             // PAUSE raised violet; RESUME raised gold and glowing (AT YOUR PACE's bar).
-            ...qmRaised(paused ? 'gold' : 'violet', { lift: 5, radius: 18, glow: paused ? 'rgba(242,190,69,0.5)' : undefined }),
+            ...qmRaised(paused ? 'gold' : 'violet', { lift: 5, radius: 18, glow: paused ? 'rgba(242,190,69,0.5)' : undefined, ticks: true }),
             width: 72, height: 70,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer',
             ...offStyle,
           }}>
+            <QmTicks skin={paused ? 'gold' : 'violet'}/>
             {paused ? <Play size={28} fill="currentColor" strokeWidth={0}/> : <Pause size={28} fill="currentColor" strokeWidth={0}/>}
           </button>
           <button data-guide="qma-skip" className="qm-raised" onClick={handleSkip} disabled={done} style={{
@@ -1888,12 +1890,13 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
             <SkipForward size={22}/>
           </button>
           <button data-guide="qma-stop" className="qm-raised" onClick={() => { if (!doneRef.current) setConfirmEnd(true); }} disabled={done} style={{
-            ...qmRaised('red', { lift: 4, radius: 14 }),
+            ...qmRaised('red', { lift: 4, radius: 14, ticks: true }),
             width: 56, height: 56,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer',
             ...offStyle,
           }}>
+            <QmTicks skin="red"/>
             <Square size={19} fill="currentColor" strokeWidth={0}/>
           </button>
         </div>
@@ -1961,17 +1964,17 @@ export default function QuickMissionActive({ missionCfg, profile, onEnd, onSwitc
                 : 'Only completed exercises will count toward your stats.'}</div>
             <div style={{ display: 'flex', gap: 12 }}>
               <button onClick={() => setConfirmEnd(false)} className="qm-raised" style={{
-                ...qmRaised('slate', { lift: 4, radius: 12 }),
+                ...qmRaised('slate', { lift: 4, radius: 12, ticks: true }),
                 flex: 1, padding: '12px 0', minHeight: 46,
                 fontFamily: "'Orbitron',sans-serif", fontWeight: 700,
                 fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer',
-              }}>CANCEL</button>
+              }}><QmTicks skin="slate"/>CANCEL</button>
               <button onClick={() => handleEndConfirm()} className="qm-raised" style={{
-                ...qmRaised('red', { lift: 4, radius: 12 }),
+                ...qmRaised('red', { lift: 4, radius: 12, ticks: true }),
                 flex: 1, padding: '12px 0', minHeight: 46,
                 fontFamily: "'Orbitron',sans-serif", fontWeight: 700,
                 fontSize: 11, letterSpacing: '0.1em', cursor: 'pointer',
-              }}>END MISSION</button>
+              }}><QmTicks skin="red"/>END MISSION</button>
             </div>
           </div>
         </div>
