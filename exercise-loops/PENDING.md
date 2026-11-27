@@ -2,18 +2,29 @@
 
 Written 2026-11-22. The owner said: do not record now, remind me later, and tell me what is submitted and what is missing.
 
-## 1. Reminder: new exercise names still to be added and recorded
+## 1. New exercise names: ADDED and RECORDED 2026-11-27 (loops still staged)
 
-Approved loops that show moves the app has no exact entry for. Not added to the library, not recorded. When the owner says go,
-follow the voice rule in CLAUDE.md (add the exercises, run `npm run voice:coverage` and `npm run -s test:spoken`, record every new name in both voices).
-Candidates (21 names, 24 loops in `factory-loops/`):
+The owner said "21 new exercise names please add". The 24 loops in `factory-loops/` that had no exact library entry came to 21 names; 10 of
+them are new exercises and were added to the library (`fitModeExerciseDataLoops.js`, each with a `// loop: <slug>` comment naming its staged
+loop, no `videoUrl`; the loops are NOT copied into `public/` and the loop catalogue and board files are untouched). 402 exercises now.
 
-- Lat pulldowns: Lat Pulldowns, Close-Grip, Wide-Grip, Single-Arm (4 loops)
-- Bulgarian Jump Lunges with High Knee (2), Squat to Fake Thai Roundhouse, Stienborn Squat, Alternating Dumbbell Punches to the Sky,
-  Windshield Wipers, Crossed-Leg Crunches, Cross Push-Ups, Landmine single-arm / single-side row (2)
+- Lat pulldowns (Cable): Lat Pulldowns, Close-Grip Lat Pulldowns, Wide-Grip Lat Pulldowns, Single-Arm Lat Pulldowns (each side)
+- Bulgarian Jump Lunges with High Knee (Bodyweight, Hard; each side; gear chip BODYWEIGHT + BENCH OR STEP via `gearNote.js`)
+- Squat to Fake Thai Roundhouse, Stienborn Squat (the owner's spelling; the lift is usually written Steinborn), Alternating Dumbbell Punches to the Sky
+- Crossed-Leg Crunches, Cross Push-Ups (the cue was written from the loop frames: one hand across and ahead of the other, hands switching each rep; worth a look)
+
+Recorded in both voices (bank v30): 9 names x 5 lines (name, complete, straight into, skipping to, back to) = 45 keys, 90 clips. Cross Push-Ups needs no
+clip of its own (both banks already play it from "cross" + "push ups", so `test:spoken` lists nothing for it); record "cross push ups" and its four lines
+if the owner wants it as one take.
+
+Not added, and why (21 names = 10 added + 3 already there + 6 extra loops + 2 cardio):
+- Windshield Wipers: the same move as **Seated Ab Windshield Wipers**, already in the library (library-questions.md says so).
+- Landmine single-arm row and Landmine single-side row: the same move, already **Landmine Single-Arm Rows** in the library.
 - Extra loops of moves the app already has (no new name): Jumping Lunges (2), Weighted Punches (2), Dumbbell Bench Press, Kettlebell Swings,
-  Parallel-Bar Dips, Alternating Roundhouse Kicks
-- Cardio, not an exercise entry: Treadmill sled hands on handles, Treadmill sprint
+  Parallel-Bar Dips, Alternating Roundhouse Kicks.
+- Cardio, not an exercise entry: Treadmill sled hands on handles, Treadmill sprint.
+
+When the owner says push the loops, attach them to these entries (the `// loop:` comments name them).
 
 ## 2. Where things stand (276 of 552 exercises have a loop; a majority is 277)
 
