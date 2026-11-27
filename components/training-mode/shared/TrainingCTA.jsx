@@ -29,7 +29,9 @@ export const RAISED_CSS = `
 .tm-cta-3d:active { transform: translateY(3px); }
 `;
 
-function corner(pos, c) {
+// One corner tick (a 10px bracket mark, 5px in from the corner). Quick Mission's
+// QmTicks (shared/QmButtons.jsx) draws the same four marks with this.
+export function cornerTick(pos, c) {
   const base = { position: 'absolute', width: 10, height: 10, pointerEvents: 'none' };
   if (pos === 'tl') return { ...base, top: 5, left: 5, borderTop: `2px solid ${c}`, borderLeft: `2px solid ${c}` };
   if (pos === 'tr') return { ...base, top: 5, right: 5, borderTop: `2px solid ${c}`, borderRight: `2px solid ${c}` };
@@ -130,8 +132,8 @@ export default function TrainingCTA({ label, onClick, icon = '▶', disabled = f
       style={{ ...base, ...skin, ...(depth ? { boxShadow: depthShadow, marginBottom: 5 } : null), ...style }}
     >
       <style dangerouslySetInnerHTML={{ __html: RAISED_CSS }} />
-      <span style={corner('tl', cornerColor)} /><span style={corner('tr', cornerColor)} />
-      <span style={corner('bl', cornerColor)} /><span style={corner('br', cornerColor)} />
+      <span style={cornerTick('tl', cornerColor)} /><span style={cornerTick('tr', cornerColor)} />
+      <span style={cornerTick('bl', cornerColor)} /><span style={cornerTick('br', cornerColor)} />
       {!disabled && (
         <span style={{
           position: 'absolute', top: 0, bottom: 0, left: 0, width: '35%',

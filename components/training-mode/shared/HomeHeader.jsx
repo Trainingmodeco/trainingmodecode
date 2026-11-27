@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react';
 import SafeImage from '../SafeImage';
 import { HelpButton } from './WorkoutHelpPanel';
 
@@ -10,6 +11,13 @@ import { HelpButton } from './WorkoutHelpPanel';
 // height whatever the rank, the level or the chip's width (it used to wrap
 // only when they did not fit, so Home moved by a line from one athlete or
 // week to the next).
+// The level, the rank and the XP numbers share one line in the column beside
+// the chip. On a 320px phone (and on a 340 to 375px one with a long rank such
+// as CHAMPION) they do not fit and the numbers ran under the chip ("0 / 5").
+// When they would come within XP_CLEAR px of the chip they give way, as they
+// already do in the compact header: the bar still shows the progress and the
+// Level page has the numbers. Where they fit, nothing changes.
+const XP_CLEAR = 4; // px the line may run past the column: the 12px gap to the chip takes the rest
 const MUTED = '#A9A3C4';
 
 export default function HomeHeader({ level, tierName, levelXp, levelNeeded, xpPercent, chip, compact = false, onHome, onHelp, helpSlop = 0 }) {
@@ -18,6 +26,23 @@ export default function HomeHeader({ level, tierName, levelXp, levelNeeded, xpPe
   // they keep one line in the level column beside the chip; they still wrap
   // rather than be cut.
   const longTier = String(tierName || '').length > 10;
+  const lineRef = useRef(null);
+  useLayoutEffect(() => {
+    const line = lineRef.current;
+    const xp = line && line.querySelector('.hh-xp');
+    if (!line || !xp) return undefined;
+    // Measure with the numbers in, then show them only if the line fits.
+    const fit = () => {
+      xp.style.display = '';
+      if (line.scrollWidth > line.clientWidth + XP_CLEAR) xp.style.display = 'none';
+    };
+    fit();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(fit) : null;
+    ro?.observe(line);
+    let live = true;
+    document.fonts?.ready?.then(() => { if (live) fit(); });
+    return () => { live = false; ro?.disconnect(); };
+  }, [compact, level, tierName, levelXp, levelNeeded]);
   return (
     <header data-guide="home-level" style={{ display: 'flex', alignItems: 'center', gap }}>
       <button type="button" onClick={onHome} aria-label="Training Mode" style={{ background: 'none', border: 'none', padding: '5px 7px', margin: '-5px -7px', cursor: 'pointer', display: 'flex' }}>
@@ -30,10 +55,10 @@ export default function HomeHeader({ level, tierName, levelXp, levelNeeded, xpPe
             <span style={{ minWidth: 0, font: `600 ${longTier ? 10 : 11}px/14px 'Chakra Petch',sans-serif`, letterSpacing: longTier ? '0.04em' : '0.1em', textTransform: 'uppercase', color: MUTED }}>{tierName}</span>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <div ref={lineRef} style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
             <span style={{ font: "700 14px 'Chakra Petch',sans-serif", color: '#F2BE45', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>LV {level}</span>
             <span style={{ font: "600 11px 'Chakra Petch',sans-serif", letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTED }}>{tierName}</span>
-            <span style={{ marginLeft: 'auto', fontSize: 11, color: MUTED, whiteSpace: 'nowrap' }}>{levelXp.toLocaleString()} / {levelNeeded.toLocaleString()} XP</span>
+            <span className="hh-xp" style={{ marginLeft: 'auto', fontSize: 11, color: MUTED, whiteSpace: 'nowrap' }}>{levelXp.toLocaleString()} / {levelNeeded.toLocaleString()} XP</span>
           </div>
         )}
         <div style={{ height: 4, background: '#1B1730', borderRadius: 2, overflow: 'hidden' }}>
