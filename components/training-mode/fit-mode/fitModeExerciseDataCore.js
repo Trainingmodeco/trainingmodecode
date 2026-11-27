@@ -130,6 +130,8 @@ export const FIT_MODE_CORE_EXERCISES = [
     'Elbows pinned at the sides, curl to the shoulder, lower slow.', 'Arm strength for hooks and for holding a clinch.', { reps: '10-12', rest: 45 }),
   ex('Hammer Curls', 'Biceps', [], 'Weighted', 'Normal', 'Isolation',
     'Palms facing each other, curl without swinging, control the way down.', 'Forearm and grip strength for grappling.', { reps: '10-12', rest: 45 }),
+  ex('Reverse Curls', 'Biceps', [], 'Weighted', 'Normal', 'Isolation',
+    'Overhand grip, palms facing down, elbows pinned at the sides, curl without swinging and lower slow.', 'Forearm and grip strength for gripping and controlling an opponent in the clinch.', { reps: '10-12', rest: 45 }),
   ex('Concentration Curls', 'Biceps', [], 'Weighted', 'Normal', 'Isolation',
     'Seated, elbow braced on the inner thigh, curl slow and squeeze at the top.', 'Peak bicep strength for the hook.', { reps: '10-12', rest: 45 }),
   ex('Incline Dumbbell Curls', 'Biceps', [], 'Weighted', 'Normal', 'Isolation',

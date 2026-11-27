@@ -1,6 +1,6 @@
 {
  "voice": "female",
- "version": 28,
+ "version": 29,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -24061,6 +24061,26 @@
   "back to work": {
    "file": "back_to_work.mp3",
    "ms": 888
+  },
+  "reverse curls": {
+   "file": "reverse_curls.mp3",
+   "ms": 1368
+  },
+  "reverse curls complete": {
+   "file": "reverse_curls_complete.mp3",
+   "ms": 1944
+  },
+  "straight into reverse curls": {
+   "file": "straight_into_reverse_curls.mp3",
+   "ms": 2232
+  },
+  "skipping to reverse curls": {
+   "file": "skipping_to_reverse_curls.mp3",
+   "ms": 1944
+  },
+  "back to reverse curls": {
+   "file": "back_to_reverse_curls.mp3",
+   "ms": 1464
   }
  },
  "count": 1121,

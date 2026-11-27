@@ -1,6 +1,6 @@
 {
  "voice": "male",
- "version": 28,
+ "version": 29,
  "clips": {
   "0": {
    "file": "0.mp3",
@@ -24145,6 +24145,26 @@
   "back to work": {
    "file": "back_to_work.mp3",
    "ms": 960
+  },
+  "reverse curls": {
+   "file": "reverse_curls.mp3",
+   "ms": 1056
+  },
+  "reverse curls complete": {
+   "file": "reverse_curls_complete.mp3",
+   "ms": 1632
+  },
+  "straight into reverse curls": {
+   "file": "straight_into_reverse_curls.mp3",
+   "ms": 1872
+  },
+  "skipping to reverse curls": {
+   "file": "skipping_to_reverse_curls.mp3",
+   "ms": 1728
+  },
+  "back to reverse curls": {
+   "file": "back_to_reverse_curls.mp3",
+   "ms": 1848
   }
  },
  "count": 1121,
