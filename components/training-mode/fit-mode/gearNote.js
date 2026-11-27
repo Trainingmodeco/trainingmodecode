@@ -13,7 +13,7 @@ const GEAR_RULES = [
   [/parallel bar/i, 'BODYWEIGHT + PARALLEL BARS'],
   [/\b(bench|step)\b.*\bdips?\b|\bdips?\b.*\b(bench|step)\b/i, 'BODYWEIGHT + BENCH OR STEP'],
   [/\bdips?\b/i, 'BODYWEIGHT + BENCH OR BARS'],
-  [/arm march|isolated tricep/i, 'BODYWEIGHT + BENCH OR STEP'],
+  [/arm march|isolated tricep|bulgarian jump/i, 'BODYWEIGHT + BENCH OR STEP'],
 ];
 
 // The kit label for a move, or its plain tag when the tag already tells it.
