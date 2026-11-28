@@ -41,3 +41,16 @@ Needs a Generate run. Six of them are exercises the app still lacks a loop for: 
   done") are in both banks since 2026-11-23; the note that it was silent was out of date (the comment near line 288 of
   scripts/spoken-sweeps.mjs says the same and is stale too). If the owner still hears silence on that line, it is a
   playback problem, not a missing clip.
+
+## 4. After the app is published on the app store: film the rest (owner, 2026-11-28)
+
+The owner films the most-used moves first (the "Film today" tab) and the rest later, slowly, once the app is on the app store.
+The rest is the "Film later" tab of the filming doc, 277 moves in the same muscle and gear order, tickable (the 35 new TRX base
+moves are all there): https://claude.ai/artifact/428RJ5fSspnKYNLdTYwqey#451cc61f-26c3 (doc id 1873bb56-add3-4037-8d4e-3f7dd71dae7a).
+
+- Reminders are scheduled as one-shot tasks: **2027-02-01** (Quarter 1) and **2027-04-01** (Quarter 2 fallback), 10:00 Pacific, push to the owner's phone.
+  When the owner talks about loops, exercises or recording, say in one line that the rest of the filming is due then.
+- When a batch of clips comes in: add the exercises to the library (the new TRX moves are not in the app yet and need entries, group and gear),
+  record the coach names in both voices (CLAUDE.md, "The coach's voice"), and attach the loops only when the owner says push.
+- The list's data is from the board of 2026-11-21; re-run `exercise-loops/board/gen-list.mjs` before the reminder is acted on, because loops
+  approved since then are not taken off it.
