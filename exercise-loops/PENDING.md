@@ -47,8 +47,9 @@ Needs a Generate run. Six of them are exercises the app still lacks a loop for: 
 The owner filmed the most-used moves on 2026-11-28: 225 videos, 145 moves ticked on the "Filmed" tab of the filming doc
 (https://claude.ai/artifact/428RJ5fSspnKYNLdTYwqey, doc id 1873bb56-add3-4037-8d4e-3f7dd71dae7a). About 80 clips are moves the owner added
 that were not on the list, or second takes; the owner will send the names (Google Photos cannot be opened from here), and the videos were still
-uploading. Still to film: 237 moves on the first tab, "Still to film": 30 skipped from the first list (most used: 21 TRX/other moves and the 9
-bag moves) and 207 for after the app is published.
+uploading. Still to film: 233 moves on the first tab, "Still to film": 30 skipped from the first list (most used: 21 TRX/other moves and the 9
+bag moves) and 203 for after the app is published. The 4 "slow" moves (Slow Mountain Climbers, Slow Tyson Push-Ups, Slow Dive Bombers,
+Slow Bodyweight Rows) need no filming: the owner (2026-11-28) said they can be recreated by slowing the original clip; they are listed at the end of that tab.
 
 - Reminders are scheduled as one-shot tasks: **2027-02-01** (Quarter 1) and **2027-04-01** (Quarter 2 fallback), 10:00 Pacific, push to the owner's phone.
   When the owner talks about loops, exercises or recording, say in one line that the rest of the filming is due then.
