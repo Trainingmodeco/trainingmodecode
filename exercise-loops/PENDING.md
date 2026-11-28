@@ -44,14 +44,15 @@ Needs a Generate run. Six of them are exercises the app still lacks a loop for: 
 
 ## 4. After the app is published on the app store: film the rest (owner, 2026-11-28)
 
-The owner films the most-used moves first (the "Film today" tab) and the rest later, slowly, once the app is on the app store.
-The rest is the "Film later" tab of the filming doc, 241 moves in the same muscle and gear order, tickable:
-https://claude.ai/artifact/428RJ5fSspnKYNLdTYwqey#451cc61f-26c3 (doc id 1873bb56-add3-4037-8d4e-3f7dd71dae7a). The 35 new TRX base moves
-(and Ring Rows) were moved to the "Film today" tab on 2026-11-28 at the owner's request: when those clips come in, they also need library entries.
+The owner filmed the most-used moves on 2026-11-28: 225 videos, 145 moves ticked on the "Filmed" tab of the filming doc
+(https://claude.ai/artifact/428RJ5fSspnKYNLdTYwqey, doc id 1873bb56-add3-4037-8d4e-3f7dd71dae7a). About 80 clips are moves the owner added
+that were not on the list, or second takes; the owner will send the names (Google Photos cannot be opened from here), and the videos were still
+uploading. Still to film: 237 moves on the first tab, "Still to film": 30 skipped from the first list (most used: 21 TRX/other moves and the 9
+bag moves) and 207 for after the app is published.
 
 - Reminders are scheduled as one-shot tasks: **2027-02-01** (Quarter 1) and **2027-04-01** (Quarter 2 fallback), 10:00 Pacific, push to the owner's phone.
   When the owner talks about loops, exercises or recording, say in one line that the rest of the filming is due then.
-- When a batch of clips comes in: add the exercises to the library (the new TRX moves are not in the app yet and need entries, group and gear),
-  record the coach names in both voices (CLAUDE.md, "The coach's voice"), and attach the loops only when the owner says push.
-- The list's data is from the board of 2026-11-21; re-run `exercise-loops/board/gen-list.mjs` before the reminder is acted on, because loops
-  approved since then are not taken off it.
+- When clips come in: add the exercises to the library (the TRX base moves, 35 new, are not in the app yet and need entries, group and gear; 21 of them were
+  filmed), record the coach names in both voices (CLAUDE.md, "The coach's voice"), and attach the loops only when the owner says push.
+- The list's data is from the board of 2026-11-21; re-run `exercise-loops/board/gen-list.mjs` before acting on it, because loops approved since
+  then are not taken off it.
