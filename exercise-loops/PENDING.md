@@ -45,8 +45,9 @@ Needs a Generate run. Six of them are exercises the app still lacks a loop for: 
 ## 4. After the app is published on the app store: film the rest (owner, 2026-11-28)
 
 The owner films the most-used moves first (the "Film today" tab) and the rest later, slowly, once the app is on the app store.
-The rest is the "Film later" tab of the filming doc, 277 moves in the same muscle and gear order, tickable (the 35 new TRX base
-moves are all there): https://claude.ai/artifact/428RJ5fSspnKYNLdTYwqey#451cc61f-26c3 (doc id 1873bb56-add3-4037-8d4e-3f7dd71dae7a).
+The rest is the "Film later" tab of the filming doc, 241 moves in the same muscle and gear order, tickable:
+https://claude.ai/artifact/428RJ5fSspnKYNLdTYwqey#451cc61f-26c3 (doc id 1873bb56-add3-4037-8d4e-3f7dd71dae7a). The 35 new TRX base moves
+(and Ring Rows) were moved to the "Film today" tab on 2026-11-28 at the owner's request: when those clips come in, they also need library entries.
 
 - Reminders are scheduled as one-shot tasks: **2027-02-01** (Quarter 1) and **2027-04-01** (Quarter 2 fallback), 10:00 Pacific, push to the owner's phone.
   When the owner talks about loops, exercises or recording, say in one line that the rest of the filming is due then.
